@@ -1,0 +1,385 @@
+"""
+Euro Area macro heatmap — two-block model.
+
+Architecture
+------------
+Block 1 — Macro DFM (macro data only, no yields):
+  Monthly macro indicators → Kalman smoother → daily factor estimates.
+  Factors: Growth, Inflation, Employment, Wages (K=4).
+
+Block 2 — Yield curve (daily, separate pipeline):
+  Daily Bund yields → PCA → daily PC scores.
+  PC1/PC2 regressed on Block 1 daily factors (no intercept).
+  10y Bund fair value reconstructed via PCA inversion.
+
+No yields enter Block 1. This eliminates the circularity of using yields
+to identify factors and then using those factors to predict yields.
+
+Simulated data
+--------------
+All series are synthetic until the Haver/Bloomberg pipeline is wired up.
+Replace `_simulate_*` functions with live data pulls.
+"""
+
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+from dataclasses import dataclass
+
+from dfm import (
+    kalman_filter,
+    kalman_smoother,
+    estimate_ar1_daily,
+    estimate_loadings_ols,
+)
+
+# ---------------------------------------------------------------------------
+# Date grid
+# ---------------------------------------------------------------------------
+
+DAILY_DATES: pd.DatetimeIndex = pd.bdate_range("2023-06-01", "2025-06-30")
+T_DAILY = len(DAILY_DATES)
+
+# Last business day of each month
+MONTHLY_DATES: pd.DatetimeIndex = (
+    pd.Series(DAILY_DATES).groupby(DAILY_DATES.to_period("M")).last().values
+)
+MONTHLY_DATES = pd.DatetimeIndex(MONTHLY_DATES)
+T_MONTHLY = len(MONTHLY_DATES)
+
+# Index into DAILY_DATES for each month-end day
+MONTH_END_IDX: np.ndarray = np.array(
+    [np.searchsorted(DAILY_DATES, d) for d in MONTHLY_DATES]
+)
+
+YIELD_TENORS = ["2y", "3y", "5y", "7y", "10y", "15y", "20y", "30y"]
+FACTOR_NAMES = ["Growth", "Inflation", "Employment", "Wages"]
+K = len(FACTOR_NAMES)
+N_TENORS = len(YIELD_TENORS)
+BUND_10Y_IDX = YIELD_TENORS.index("10y")
+
+# ---------------------------------------------------------------------------
+# Block 1 — Macro DFM
+# ---------------------------------------------------------------------------
+
+MACRO_INDICATOR_NAMES = [
+    "EA Composite PMI",
+    "EA Core HICP (y/y)",
+    "EA Unemployment Rate",
+    "EA Negotiated Wages (y/y)",
+    "EA Industrial Production (y/y)",
+    "EA Services PMI",
+    "EA CES 1y Inflation Expectations",
+    "EA Job Vacancy Rate",
+]
+M_MACRO = len(MACRO_INDICATOR_NAMES)
+
+
+def _simulate_macro_block(rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Simulate K daily latent factors and M monthly macro observations.
+
+    Returns
+    -------
+    true_factors   : [T_DAILY, K]   ground-truth daily factors
+    macro_monthly  : [T_MONTHLY, M] monthly macro observations (at month-end)
+    """
+    # AR(1) daily factors with mild cross-correlation
+    ar = np.array([0.92, 0.88, 0.95, 0.90])
+    innov_std = np.array([0.15, 0.12, 0.10, 0.12])
+
+    # Slight cross-correlation in innovations (Growth <-> Employment)
+    L_chol = np.eye(K)
+    L_chol[2, 0] = 0.25  # Employment slightly correlated with Growth
+
+    factors = np.zeros((T_DAILY, K))
+    factors[0] = rng.standard_normal(K) * innov_std
+    for t in range(1, T_DAILY):
+        eta = L_chol @ (rng.standard_normal(K) * innov_std * np.sqrt(1 - ar**2))
+        factors[t] = ar * factors[t - 1] + eta
+
+    # Observation loadings: [M_MACRO, K]
+    # Each indicator loads primarily on one factor
+    Lambda_macro = np.array([
+        [1.0,  0.2,  0.1,  0.0],   # Composite PMI   → Growth
+        [0.1,  1.0,  0.0,  0.2],   # Core HICP        → Inflation
+        [0.2,  0.1,  1.0,  0.3],   # Unemployment     → Employment
+        [0.0,  0.3,  0.2,  1.0],   # Negotiated wages → Wages
+        [0.8,  0.1,  0.1,  0.0],   # Industrial prod  → Growth
+        [0.7,  0.2,  0.1,  0.0],   # Services PMI     → Growth
+        [0.1,  0.8,  0.0,  0.1],   # Inflation expec  → Inflation
+        [0.1,  0.0,  0.8,  0.1],   # Job vacancy rate → Employment
+    ])
+
+    noise_std = np.array([0.3, 0.2, 0.15, 0.2, 0.4, 0.3, 0.2, 0.2])
+
+    # Observe at month-end only
+    macro_monthly = (
+        factors[MONTH_END_IDX] @ Lambda_macro.T
+        + rng.standard_normal((T_MONTHLY, M_MACRO)) * noise_std
+    )
+
+    return factors, Lambda_macro, macro_monthly
+
+
+def _build_macro_dfm(
+    Lambda_macro: np.ndarray,   # [M_MACRO, K]
+    macro_monthly: np.ndarray,  # [T_MONTHLY, M_MACRO]
+    factors_monthly: np.ndarray, # [T_MONTHLY, K] ground truth at month ends
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Fit DFM parameters from monthly data, run Kalman smoother at daily frequency.
+
+    In production: replace OLS parameter init with EM algorithm.
+
+    Returns
+    -------
+    factors_smooth : [T_DAILY, K]   smoothed daily factor estimates
+    factors_filt   : [T_DAILY, K]   filtered daily factor estimates
+    """
+    # ── Parameter estimation (simplified: OLS loadings, AR(1) transition) ──
+    Lambda_est = estimate_loadings_ols(factors_monthly, macro_monthly)
+    ar_est = estimate_ar1_daily(factors_monthly)
+    A_est = np.diag(ar_est)
+
+    # State noise (daily): Q = diag(σ²(1-ρ²))
+    innov_var = np.var(factors_monthly[1:] - (factors_monthly[:-1] * ar_est[None, :]), axis=0)
+    Q_est = np.diag(np.maximum(innov_var, 1e-6))
+
+    # Observation noise: residual variance from OLS fit
+    resid = macro_monthly - factors_monthly @ Lambda_est.T
+    R_est = np.diag(np.maximum(np.var(resid, axis=0), 1e-6))
+
+    # ── Build daily observation matrix: NaN everywhere except month-end ──
+    Y_daily = np.full((T_DAILY, M_MACRO), np.nan)
+    Y_daily[MONTH_END_IDX] = macro_monthly
+
+    # ── Kalman filter + RTS smoother ──
+    f_filt, P_filt, f_pred, P_pred, _ = kalman_filter(
+        Y=Y_daily,
+        Lambda=Lambda_est,
+        A=A_est,
+        Q=Q_est,
+        R=R_est,
+    )
+    f_smooth, _ = kalman_smoother(f_filt, P_filt, f_pred, P_pred, A_est)
+
+    return f_smooth, f_filt
+
+
+# ---------------------------------------------------------------------------
+# Block 2 — Yield PCA
+# ---------------------------------------------------------------------------
+
+# Approximate Bund yield means over the sample (%)
+BUND_YIELD_MEANS = np.array([2.45, 2.35, 2.28, 2.38, 2.44, 2.50, 2.56, 2.62])
+
+# How each macro factor drives each tenor (level + slope structure)
+# PC1 (level) is mainly Inflation-driven; PC2 (slope) mainly Growth-driven
+_YIELD_FACTOR_LOADINGS = np.array([
+    # Growth  Inflation  Employment  Wages
+    [  0.15,    0.40,      0.05,     0.08],  # 2y  — front end, rate-sensitive
+    [  0.15,    0.40,      0.05,     0.08],  # 3y
+    [  0.15,    0.38,      0.06,     0.09],  # 5y
+    [  0.16,    0.35,      0.06,     0.09],  # 7y
+    [  0.18,    0.32,      0.07,     0.09],  # 10y
+    [  0.20,    0.28,      0.07,     0.09],  # 15y — long end, term-premium driven
+    [  0.22,    0.25,      0.07,     0.09],  # 20y
+    [  0.24,    0.22,      0.08,     0.09],  # 30y
+])
+
+
+def _simulate_yield_block(
+    true_factors: np.ndarray,  # [T_DAILY, K]
+    rng: np.random.Generator,
+) -> np.ndarray:
+    """
+    Simulate daily Bund yields from latent factors.
+    Returns [T_DAILY, N_TENORS].
+    """
+    noise = rng.standard_normal((T_DAILY, N_TENORS)) * 0.025
+    return BUND_YIELD_MEANS[None, :] + true_factors @ _YIELD_FACTOR_LOADINGS.T + noise
+
+
+def _compute_pca(
+    data: np.ndarray,  # [T, M]
+    n_components: int = 3,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    PCA via eigendecomposition of the sample covariance matrix.
+
+    Returns
+    -------
+    scores        : [T, n_components]
+    loadings      : [n_components, M]   eigenvectors (rows)
+    explained_var : [n_components]      fraction of variance
+    means         : [M]                 column means
+    """
+    means = data.mean(axis=0)
+    centered = data - means
+    cov = centered.T @ centered / (len(data) - 1)
+    eigenvalues, eigenvectors = np.linalg.eigh(cov)
+    # Sort descending
+    idx = np.argsort(eigenvalues)[::-1]
+    eigenvalues = eigenvalues[idx]
+    eigenvectors = eigenvectors[:, idx]
+
+    loadings = eigenvectors[:, :n_components].T   # [n_comp, M]
+
+    # Sign conventions: PC1 → 10y positive; PC2 → 30y positive; PC3 → 7y positive
+    for k, pivot_col in enumerate([BUND_10Y_IDX, N_TENORS - 1, 3]):
+        if k < n_components and loadings[k, pivot_col] < 0:
+            loadings[k] *= -1
+
+    scores = centered @ loadings.T
+    explained_var = eigenvalues[:n_components] / eigenvalues.sum()
+    return scores, loadings, explained_var, means
+
+
+# ---------------------------------------------------------------------------
+# OLS (no intercept)
+# ---------------------------------------------------------------------------
+
+def _ols(y: np.ndarray, X: np.ndarray) -> dict:
+    """OLS without intercept. y: [N], X: [N, K]."""
+    N, K = X.shape
+    XtX = X.T @ X
+    beta = np.linalg.solve(XtX, X.T @ y)
+    fitted = X @ beta
+    resid = y - fitted
+    sigma2 = (resid ** 2).sum() / (N - K)
+    se = np.sqrt(sigma2 * np.diag(np.linalg.inv(XtX)))
+    tstat = beta / se
+    TSS = ((y - y.mean()) ** 2).sum()
+    r2 = 1 - (resid ** 2).sum() / TSS
+    adj_r2 = 1 - (1 - r2) * (N - 1) / (N - K)
+    return dict(beta=beta, tstat=tstat, r2=r2, adj_r2=adj_r2, fitted=fitted, resid=resid)
+
+
+# ---------------------------------------------------------------------------
+# Main computation — run once at import
+# ---------------------------------------------------------------------------
+
+_rng = np.random.default_rng(42)
+
+# Block 1
+_true_factors, _Lambda_macro, _macro_monthly = _simulate_macro_block(_rng)
+FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm(
+    _Lambda_macro,
+    _macro_monthly,
+    _true_factors[MONTH_END_IDX],
+)
+
+# Block 2
+BUND_YIELDS = _simulate_yield_block(_true_factors, _rng)
+PC_SCORES, PC_LOADINGS, PC_EXPLAINED_VAR, YIELD_MEANS = _compute_pca(BUND_YIELDS)
+
+# Regressions: PC1/PC2 ~ macro factors (no intercept)
+PC1_REG = _ols(PC_SCORES[:, 0], FACTORS_SMOOTH)
+PC2_REG = _ols(PC_SCORES[:, 1], FACTORS_SMOOTH)
+
+# Fair value
+BUND_PCA_FITTED = (
+    YIELD_MEANS[BUND_10Y_IDX]
+    + PC_SCORES[:, 0] * PC_LOADINGS[0, BUND_10Y_IDX]
+    + PC_SCORES[:, 1] * PC_LOADINGS[1, BUND_10Y_IDX]
+)
+BUND_MACRO_FV = (
+    YIELD_MEANS[BUND_10Y_IDX]
+    + PC1_REG["fitted"] * PC_LOADINGS[0, BUND_10Y_IDX]
+    + PC2_REG["fitted"] * PC_LOADINGS[1, BUND_10Y_IDX]
+)
+BUND_RICH_CHEAP_BPS = (BUND_YIELDS[:, BUND_10Y_IDX] - BUND_MACRO_FV) * 100
+
+
+# ---------------------------------------------------------------------------
+# API response builders
+# ---------------------------------------------------------------------------
+
+@dataclass
+class DailyFactorsResponse:
+    dates: list[str]
+    factors: dict[str, list[float]]   # factor_name → daily series
+    smoothed: bool = True
+
+
+@dataclass
+class FairValueResponse:
+    dates: list[str]
+    actual: list[float]
+    pca_fitted: list[float]
+    macro_fair_value: list[float]
+    rich_cheap_bps: list[float]
+
+
+@dataclass
+class YieldPCAResponse:
+    dates: list[str]
+    pc_scores: dict[str, list[float]]        # "PC1"/"PC2"/"PC3" → series
+    loadings: dict[str, list[float]]         # "PC1"/"PC2"/"PC3" → per-tenor loadings
+    explained_var: dict[str, float]
+    tenor_names: list[str]
+
+
+@dataclass
+class PCRegressionResponse:
+    factor_names: list[str]
+    pc1: dict                                # beta, tstat, r2, adj_r2
+    pc2: dict
+
+
+def get_daily_factors() -> DailyFactorsResponse:
+    dates = [d.strftime("%Y-%m-%d") for d in DAILY_DATES]
+    factors = {
+        name: FACTORS_SMOOTH[:, k].round(4).tolist()
+        for k, name in enumerate(FACTOR_NAMES)
+    }
+    return DailyFactorsResponse(dates=dates, factors=factors)
+
+
+def get_fair_value() -> FairValueResponse:
+    dates = [d.strftime("%Y-%m-%d") for d in DAILY_DATES]
+    return FairValueResponse(
+        dates=dates,
+        actual=BUND_YIELDS[:, BUND_10Y_IDX].round(4).tolist(),
+        pca_fitted=BUND_PCA_FITTED.round(4).tolist(),
+        macro_fair_value=BUND_MACRO_FV.round(4).tolist(),
+        rich_cheap_bps=BUND_RICH_CHEAP_BPS.round(2).tolist(),
+    )
+
+
+def get_yield_pca() -> YieldPCAResponse:
+    dates = [d.strftime("%Y-%m-%d") for d in DAILY_DATES]
+    pc_labels = ["PC1", "PC2", "PC3"]
+    return YieldPCAResponse(
+        dates=dates,
+        pc_scores={
+            label: PC_SCORES[:, k].round(4).tolist()
+            for k, label in enumerate(pc_labels)
+        },
+        loadings={
+            label: PC_LOADINGS[k].round(4).tolist()
+            for k, label in enumerate(pc_labels)
+        },
+        explained_var={
+            label: round(float(PC_EXPLAINED_VAR[k]), 4)
+            for k, label in enumerate(pc_labels)
+        },
+        tenor_names=YIELD_TENORS,
+    )
+
+
+def get_pc_regressions() -> PCRegressionResponse:
+    def _fmt(reg: dict) -> dict:
+        return dict(
+            beta=reg["beta"].round(4).tolist(),
+            tstat=reg["tstat"].round(3).tolist(),
+            r2=round(float(reg["r2"]), 4),
+            adj_r2=round(float(reg["adj_r2"]), 4),
+        )
+    return PCRegressionResponse(
+        factor_names=FACTOR_NAMES,
+        pc1=_fmt(PC1_REG),
+        pc2=_fmt(PC2_REG),
+    )
