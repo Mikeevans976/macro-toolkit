@@ -28,8 +28,6 @@ import warnings
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
-from scipy.optimize import linear_sum_assignment
-
 from dfm import (
     kalman_filter,
     kalman_smoother,
@@ -43,15 +41,13 @@ from data_fetcher import get_fetcher
 # DFM series metadata — single source of truth: series_catalogue.json
 # ---------------------------------------------------------------------------
 
-_dfm_meta = _load_dfm_meta(m_macro=8)   # raises if catalogue is missing or malformed
+_dfm_meta = _load_dfm_meta(m_macro=60)  # raises if catalogue is missing or malformed
 
-_MACRO_SERIES_IDS    = [e["id"]         for e in _dfm_meta]
-MACRO_INDICATOR_NAMES = [e["name"]       for e in _dfm_meta]
+_MACRO_SERIES_IDS     = [e["id"]   for e in _dfm_meta]
+MACRO_INDICATOR_NAMES = [e["name"] for e in _dfm_meta]
 
-# Primary series per factor: the entry with dfm_primary=True, in factor order.
-# Used to sign-normalise PCA components so each factor has a consistent direction.
-_primary_entries     = [e for e in _dfm_meta if e.get("dfm_primary")]
-_primary_by_factor   = {e["dfm_factor"]: e for e in _primary_entries}
+# Primary series per named factor (from catalogue dfm_primary=True entries).
+_primary_by_factor = {e["dfm_factor"]: e for e in _dfm_meta if e.get("dfm_primary")}
 
 # ---------------------------------------------------------------------------
 # Date grid
@@ -73,111 +69,103 @@ MONTH_END_IDX: np.ndarray = np.array(
 )
 
 YIELD_TENORS = ["2y", "3y", "5y", "7y", "10y", "15y", "20y", "30y"]
-FACTOR_NAMES = ["Growth", "Inflation", "Employment", "Wages"]
-K = len(FACTOR_NAMES)
+
+# Five factors: four named group factors + one Global Macro that spans all series.
+# Named factors are extracted via within-group PCA; Global Macro via full-panel PCA.
+FACTOR_NAMES = ["Global Macro", "Growth", "Inflation", "Employment", "Wages"]
+_NAMED_FACTORS = FACTOR_NAMES[1:]   # the four group factors
+
+K        = len(FACTOR_NAMES)       # 5
 N_TENORS = len(YIELD_TENORS)
 BUND_10Y_IDX = YIELD_TENORS.index("10y")
-M_MACRO = len(_MACRO_SERIES_IDS)
+M_MACRO  = len(_MACRO_SERIES_IDS)  # 60
 
-# col_index of the primary series for each factor, and its sign convention.
-# Derived from catalogue dfm_primary=True entries, in FACTOR_NAMES order.
-_FACTOR_PRIMARY_COL  = [_primary_by_factor[f]["dfm_col_index"] for f in FACTOR_NAMES]
-_FACTOR_PRIMARY_SIGN = [int(_primary_by_factor[f]["dfm_sign"])  for f in FACTOR_NAMES]
+# Column indices in Y_daily for each named factor's group, sorted.
+_GROUP_COLS: dict[str, list[int]] = {
+    fname: sorted(e["dfm_col_index"] for e in _dfm_meta if e["dfm_factor"] == fname)
+    for fname in _NAMED_FACTORS
+}
+
+# Primary series col and sign for each named factor (in _NAMED_FACTORS order).
+_NAMED_PRIMARY_COL  = [_primary_by_factor[f]["dfm_col_index"] for f in _NAMED_FACTORS]
+_NAMED_PRIMARY_SIGN = [int(_primary_by_factor[f]["dfm_sign"])  for f in _NAMED_FACTORS]
+
+# Global Macro sign anchor: ESI is a broad composite covering all sectors.
+# Sign convention: Global Macro ↑ = better overall conditions → ESI ↑.
+_GM_PRIMARY_COL  = next(e["dfm_col_index"] for e in _dfm_meta if e["id"] == "ea_esi")
+_GM_PRIMARY_SIGN = 1
 
 # ---------------------------------------------------------------------------
 # Block 1 — Macro DFM
 # ---------------------------------------------------------------------------
 
 
-def _simulate_macro_block(rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
+def _simulate_macro_block(rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Simulate K daily latent factors and M monthly macro observations.
+    Simulate K=5 daily factors and M=60 macro observations (simulation fallback).
+
+    Factor structure mirrors the real model:
+      col 0  (Global Macro) : loads on all series
+      col 1  (Growth)       : loads on Growth group (cols 0-24)
+      col 2  (Inflation)    : loads on Inflation group (cols 25-44)
+      col 3  (Employment)   : loads on Employment group (cols 45-52)
+      col 4  (Wages)        : loads on Wages group (cols 53-59)
 
     Returns
     -------
-    true_factors   : [T_DAILY, K]   ground-truth daily factors
-    macro_monthly  : [T_MONTHLY, M] monthly macro observations (at month-end)
+    factors    : [T_DAILY, K]
+    Lambda_sim : [M_MACRO, K]
+    Y_monthly  : [T_MONTHLY, M_MACRO]  observations at month-end
     """
-    # AR(1) daily factors with mild cross-correlation
-    ar = np.array([0.92, 0.88, 0.95, 0.90])
-    innov_std = np.array([0.15, 0.12, 0.10, 0.12])
-
-    # Slight cross-correlation in innovations (Growth <-> Employment)
-    L_chol = np.eye(K)
-    L_chol[2, 0] = 0.25  # Employment slightly correlated with Growth
+    ar        = np.array([0.95, 0.92, 0.90, 0.93, 0.88])
+    innov_std = np.array([0.10, 0.15, 0.12, 0.10, 0.12])
 
     factors = np.zeros((T_DAILY, K))
     factors[0] = rng.standard_normal(K) * innov_std
     for t in range(1, T_DAILY):
-        eta = L_chol @ (rng.standard_normal(K) * innov_std * np.sqrt(1 - ar**2))
+        eta = rng.standard_normal(K) * innov_std * np.sqrt(1 - ar ** 2)
         factors[t] = ar * factors[t - 1] + eta
 
-    # Observation loadings: [M_MACRO, K]
-    # Each indicator loads primarily on one factor
-    Lambda_macro = np.array([
-        [1.0,  0.2,  0.1,  0.0],   # Composite PMI   → Growth
-        [0.1,  1.0,  0.0,  0.2],   # Core HICP        → Inflation
-        [0.2,  0.1,  1.0,  0.3],   # Unemployment     → Employment
-        [0.0,  0.3,  0.2,  1.0],   # Negotiated wages → Wages
-        [0.8,  0.1,  0.1,  0.0],   # Industrial prod  → Growth
-        [0.7,  0.2,  0.1,  0.0],   # Services PMI     → Growth
-        [0.1,  0.8,  0.0,  0.1],   # Inflation expec  → Inflation
-        [0.1,  0.0,  0.8,  0.1],   # Job vacancy rate → Employment
-    ])
+    # Block-structured loadings: each series loads on Global Macro + its group factor.
+    Lambda_sim = np.zeros((M_MACRO, K))
+    group_factor_col = {"Growth": 1, "Inflation": 2, "Employment": 3, "Wages": 4}
+    for entry in _dfm_meta:
+        m   = entry["dfm_col_index"]
+        gfc = group_factor_col[entry["dfm_factor"]]
+        Lambda_sim[m, 0]   = 0.5                          # Global Macro loading
+        Lambda_sim[m, gfc] = 1.0 * int(entry["dfm_sign"]) # Group factor loading
 
-    noise_std = np.array([0.3, 0.2, 0.15, 0.2, 0.4, 0.3, 0.2, 0.2])
-
-    # Observe at month-end only
-    macro_monthly = (
-        factors[MONTH_END_IDX] @ Lambda_macro.T
+    noise_std = np.full(M_MACRO, 0.3)
+    Y_monthly = (
+        factors[MONTH_END_IDX] @ Lambda_sim.T
         + rng.standard_normal((T_MONTHLY, M_MACRO)) * noise_std
     )
+    return factors, Lambda_sim, Y_monthly
 
-    return factors, Lambda_macro, macro_monthly
 
-
-def _build_macro_dfm(
-    Lambda_macro: np.ndarray,   # [M_MACRO, K]
-    macro_monthly: np.ndarray,  # [T_MONTHLY, M_MACRO]
-    factors_monthly: np.ndarray, # [T_MONTHLY, K] ground truth at month ends
+def _build_macro_dfm_sim(
+    Lambda_sim: np.ndarray,    # [M_MACRO, K]
+    Y_monthly:  np.ndarray,    # [T_MONTHLY, M_MACRO]
+    f_monthly:  np.ndarray,    # [T_MONTHLY, K]
 ) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Fit DFM parameters from monthly data, run Kalman smoother at daily frequency.
+    """Simulation fallback: OLS init → Kalman smoother."""
+    Lambda_est = estimate_loadings_ols(f_monthly, Y_monthly)
+    ar_est     = estimate_ar1_daily(f_monthly)
+    A_est      = np.diag(ar_est)
 
-    In production: replace OLS parameter init with EM algorithm.
+    innov_var = np.var(f_monthly[1:] - f_monthly[:-1] * ar_est[None, :], axis=0)
+    Q_est     = np.diag(np.maximum(innov_var, 1e-6))
 
-    Returns
-    -------
-    factors_smooth : [T_DAILY, K]   smoothed daily factor estimates
-    factors_filt   : [T_DAILY, K]   filtered daily factor estimates
-    """
-    # ── Parameter estimation (simplified: OLS loadings, AR(1) transition) ──
-    Lambda_est = estimate_loadings_ols(factors_monthly, macro_monthly)
-    ar_est = estimate_ar1_daily(factors_monthly)
-    A_est = np.diag(ar_est)
-
-    # State noise (daily): Q = diag(σ²(1-ρ²))
-    innov_var = np.var(factors_monthly[1:] - (factors_monthly[:-1] * ar_est[None, :]), axis=0)
-    Q_est = np.diag(np.maximum(innov_var, 1e-6))
-
-    # Observation noise: residual variance from OLS fit
-    resid = macro_monthly - factors_monthly @ Lambda_est.T
+    resid = Y_monthly - f_monthly @ Lambda_est.T
     R_est = np.diag(np.maximum(np.var(resid, axis=0), 1e-6))
 
-    # ── Build daily observation matrix: NaN everywhere except month-end ──
-    Y_daily = np.full((T_DAILY, M_MACRO), np.nan)
-    Y_daily[MONTH_END_IDX] = macro_monthly
+    Y_daily_sim = np.full((T_DAILY, M_MACRO), np.nan)
+    Y_daily_sim[MONTH_END_IDX] = Y_monthly
 
-    # ── Kalman filter + RTS smoother ──
     f_filt, P_filt, f_pred, P_pred, _ = kalman_filter(
-        Y=Y_daily,
-        Lambda=Lambda_est,
-        A=A_est,
-        Q=Q_est,
-        R=R_est,
+        Y=Y_daily_sim, Lambda=Lambda_est, A=A_est, Q=Q_est, R=R_est,
     )
     f_smooth, _ = kalman_smoother(f_filt, P_filt, f_pred, P_pred, A_est)
-
     return f_smooth, f_filt
 
 
@@ -188,18 +176,19 @@ def _build_macro_dfm(
 # Approximate Bund yield means over the sample (%)
 BUND_YIELD_MEANS = np.array([2.45, 2.35, 2.28, 2.38, 2.44, 2.50, 2.56, 2.62])
 
-# How each macro factor drives each tenor (level + slope structure)
-# PC1 (level) is mainly Inflation-driven; PC2 (slope) mainly Growth-driven
+# How each macro factor drives each Bund tenor (simulation only).
+# Columns: GlobalMacro, Growth, Inflation, Employment, Wages
+# Inflation and Global Macro are the dominant level drivers; Growth drives slope.
 _YIELD_FACTOR_LOADINGS = np.array([
-    # Growth  Inflation  Employment  Wages
-    [  0.15,    0.40,      0.05,     0.08],  # 2y  — front end, rate-sensitive
-    [  0.15,    0.40,      0.05,     0.08],  # 3y
-    [  0.15,    0.38,      0.06,     0.09],  # 5y
-    [  0.16,    0.35,      0.06,     0.09],  # 7y
-    [  0.18,    0.32,      0.07,     0.09],  # 10y
-    [  0.20,    0.28,      0.07,     0.09],  # 15y — long end, term-premium driven
-    [  0.22,    0.25,      0.07,     0.09],  # 20y
-    [  0.24,    0.22,      0.08,     0.09],  # 30y
+    # GlobalMacro  Growth  Inflation  Employment  Wages
+    [   0.10,       0.12,    0.38,      0.03,     0.06],  # 2y
+    [   0.10,       0.12,    0.38,      0.03,     0.06],  # 3y
+    [   0.10,       0.12,    0.36,      0.04,     0.07],  # 5y
+    [   0.10,       0.13,    0.33,      0.04,     0.07],  # 7y
+    [   0.12,       0.15,    0.30,      0.05,     0.07],  # 10y
+    [   0.13,       0.17,    0.26,      0.05,     0.07],  # 15y
+    [   0.14,       0.19,    0.23,      0.05,     0.07],  # 20y
+    [   0.15,       0.21,    0.20,      0.06,     0.07],  # 30y
 ])
 
 
@@ -274,87 +263,110 @@ def _ols(y: np.ndarray, X: np.ndarray) -> dict:
 # Block 1 (real data path) — PCA init → Kalman smoother
 # ---------------------------------------------------------------------------
 
+def _block_pca_1(Y_std: np.ndarray, cols: list[int], primary_col: int, primary_sign: int) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Extract the first principal component from a subset of standardised columns.
+
+    Returns
+    -------
+    score    : [T]       factor score time series
+    loadings : [M_MACRO] sparse loading vector (zeros outside `cols`)
+    """
+    T, M = Y_std.shape
+    block = Y_std[:, cols]                                       # [T, n_block]
+    cov   = block.T @ block / (T - 1)                           # [n_block, n_block]
+    _, evecs = np.linalg.eigh(cov)
+    pc1 = evecs[:, -1]                                          # highest eigenvalue
+
+    # Sign normalise against primary series
+    block_pos = cols.index(primary_col)
+    if pc1[block_pos] * primary_sign < 0:
+        pc1 = -pc1
+
+    score           = block @ pc1                               # [T]
+    loading_full    = np.zeros(M)
+    loading_full[cols] = pc1
+    return score, loading_full
+
+
 def _build_macro_dfm_from_data(
-    Y_daily: np.ndarray,           # [T_DAILY, M_MACRO] — NaN except on release dates
-    primary_cols: list[int],       # col_index of primary series per factor
-    primary_signs: list[int],      # +1/-1 per factor
+    Y_daily: np.ndarray,  # [T_DAILY, M_MACRO] — NaN except on (estimated) release dates
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Fit the DFM to real macro data without ground-truth factors.
+    Block-PCA initialisation + Kalman smoother for the 5-factor model.
+
+    Factor structure
+    ----------------
+    Factor 0 — Global Macro : first PC of ALL 60 series (sign: ESI ↑)
+    Factor 1 — Growth       : first PC of Growth group  (cols 0-24,  sign: Composite PMI ↑)
+    Factor 2 — Inflation    : first PC of Inflation group (cols 25-44, sign: Core HICP ↑)
+    Factor 3 — Employment   : first PC of Employment group (cols 45-52, sign: Unemployment ↓)
+    Factor 4 — Wages        : first PC of Wages group   (cols 53-59, sign: Neg. Wages ↑)
+
+    Loading matrix Λ [60, 5] is block-structured:
+      - Each named factor (cols 1-4) has non-zero loadings only for its group.
+      - Global Macro (col 0) has non-zero loadings for all 60 series.
+    The zero restrictions are enforced by construction and held fixed throughout
+    the Kalman pass (no EM update of Λ in this implementation).
 
     Pipeline
     --------
-    1. Forward-fill Y_daily (LOCF) → complete matrix for PCA.
-    2. Standardise columns using statistics from actual observations.
-    3. PCA on forward-filled data → K=4 components.
-    4. Assign PCA components to named factors via the Hungarian algorithm
-       (maximise absolute loading on each factor's primary series).
-    5. Sign-normalise factors (factor ↑ ↔ primary series ↑).
-    6. Convert PCA loadings back to original units → Lambda_est [M, K].
-    7. Estimate AR(1) transition and noise matrices from PCA scores.
-    8. Run Kalman filter + RTS smoother on raw Y_daily (with NaNs).
+    1.  Forward-fill Y_daily (LOCF) → Y_ffill [T, 60], no NaNs.
+    2.  Standardise each column using statistics from actual observations only.
+    3.  Within-group PCA for each named factor → score [T] + sparse loading [60].
+    4.  Full-panel PCA for Global Macro → score [T] + dense loading [60].
+    5.  Assemble F_init [T, 5] and Λ_std [60, 5].
+    6.  Un-standardise Λ to original units.
+    7.  Estimate AR(1) coefficients and noise matrices from F_init scores.
+    8.  Run Kalman filter + RTS smoother on raw Y_daily (with NaNs).
     """
     T, M = Y_daily.shape
 
-    # ── Step 1: forward-fill for PCA initialisation ───────────────────────────
-    df = pd.DataFrame(Y_daily)
-    Y_ffill = df.ffill().bfill().values   # [T, M], no NaNs
+    # ── 1. Forward-fill ───────────────────────────────────────────────────────
+    Y_ffill = pd.DataFrame(Y_daily).ffill().bfill().values       # [T, M]
 
-    # ── Step 2: standardise using statistics from actual observations ─────────
+    # ── 2. Standardise (stats from actual observations only) ──────────────────
     col_means = np.nanmean(Y_daily, axis=0)                      # [M]
-    col_stds  = np.nanstd(Y_daily, axis=0)                       # [M]
-    col_stds  = np.where(col_stds < 1e-8, 1.0, col_stds)        # guard zero-std
+    col_stds  = np.nanstd(Y_daily,  axis=0)                      # [M]
+    col_stds  = np.where(col_stds < 1e-8, 1.0, col_stds)
 
-    Y_std = (Y_ffill - col_means[None, :]) / col_stds[None, :]  # [T, M]
+    Y_std = (Y_ffill - col_means[None, :]) / col_stds[None, :]   # [T, M]
 
-    # ── Step 3: PCA → K components ────────────────────────────────────────────
-    cov = Y_std.T @ Y_std / (T - 1)                             # [M, M]
-    eigenvalues, eigenvectors = np.linalg.eigh(cov)
-    idx = np.argsort(eigenvalues)[::-1]
-    eigenvectors = eigenvectors[:, idx[:K]]                      # [M, K]
-    scores_pca   = Y_std @ eigenvectors                          # [T, K]
-    loadings_pca = eigenvectors.T                                # [K, M]
+    # ── 3. Within-group PCA for each named factor ─────────────────────────────
+    F_init    = np.zeros((T, K))                                  # [T, 5]
+    Lambda_std = np.zeros((M, K))                                 # [M, 5]
 
-    # ── Step 4: assign PCA components to named factors (Hungarian) ───────────
-    # Maximise total absolute loading on each factor's primary series.
-    abs_loading = np.abs(loadings_pca[:, primary_cols])          # [K, K]
-    _, col_ind  = linear_sum_assignment(-abs_loading)            # col_ind[k] → factor k
-    scores_assigned   = scores_pca[:, col_ind]                   # [T, K]
-    loadings_assigned = loadings_pca[col_ind, :]                 # [K, M]
+    for k, fname in enumerate(_NAMED_FACTORS):
+        cols         = _GROUP_COLS[fname]
+        primary_col  = _NAMED_PRIMARY_COL[k]
+        primary_sign = _NAMED_PRIMARY_SIGN[k]
+        score, loading = _block_pca_1(Y_std, cols, primary_col, primary_sign)
+        F_init[:, k + 1]      = score      # factors 1-4 are named group factors
+        Lambda_std[:, k + 1]  = loading
 
-    # Fallback: if best-matched loading is too weak, keep PCA order
-    for k in range(K):
-        if abs_loading[col_ind[k], k] < 0.05:
-            scores_assigned   = scores_pca                        # [T, K]
-            loadings_assigned = loadings_pca                      # [K, M]
-            break
+    # ── 4. Full-panel PCA for Global Macro ────────────────────────────────────
+    all_cols = list(range(M))
+    gm_score, gm_loading = _block_pca_1(Y_std, all_cols, _GM_PRIMARY_COL, _GM_PRIMARY_SIGN)
+    F_init[:, 0]     = gm_score           # factor 0 = Global Macro
+    Lambda_std[:, 0] = gm_loading
 
-    # ── Step 5: sign-normalise ────────────────────────────────────────────────
-    for k in range(K):
-        if loadings_assigned[k, primary_cols[k]] * primary_signs[k] < 0:
-            loadings_assigned[k]   *= -1
-            scores_assigned[:, k]  *= -1
+    # ── 5. Un-standardise loadings → original units ───────────────────────────
+    # y = Λ f + ε  in original units  →  Λ[m,k] = λ_std[m,k] × std[m]
+    Lambda_est = Lambda_std * col_stds[:, None]                   # [M, K]
 
-    # ── Step 6: convert loadings to original units ────────────────────────────
-    # Y_std = (Y - mean) / std ≈ scores @ loadings_assigned
-    # Y     ≈ scores @ loadings_assigned * std + mean
-    # ⟹ Lambda_est[m, k] = loadings_assigned[k, m] * col_stds[m]
-    Lambda_est = (loadings_assigned * col_stds[None, :]).T       # [M, K]
-
-    # ── Step 7: AR(1) transition + noise matrices ─────────────────────────────
-    ar_est   = estimate_ar1_daily(scores_assigned)               # [K]
+    # ── 6. AR(1) transition + noise matrices ──────────────────────────────────
+    ar_est   = estimate_ar1_daily(F_init)                         # [K]
     A_est    = np.diag(ar_est)
 
-    resid_ar = scores_assigned[1:] - scores_assigned[:-1] * ar_est[None, :]
+    resid_ar = F_init[1:] - F_init[:-1] * ar_est[None, :]
     Q_est    = np.diag(np.maximum(np.var(resid_ar, axis=0), 1e-6))
 
-    Y_fitted = scores_assigned @ Lambda_est.T + col_means[None, :]  # [T, M]
+    Y_fitted  = F_init @ Lambda_est.T + col_means[None, :]
     resid_obs = Y_ffill - Y_fitted
-    R_est = np.diag(np.maximum(np.var(resid_obs, axis=0), 1e-6))
+    R_est     = np.diag(np.maximum(np.var(resid_obs, axis=0), 1e-6))
 
-    # ── Step 8: Kalman filter + RTS smoother on raw data ─────────────────────
-    # Demean Y_daily (NaN propagates correctly through subtraction)
-    Y_kalman = Y_daily - col_means[None, :]
+    # ── 7. Kalman filter + RTS smoother on raw Y_daily ────────────────────────
+    Y_kalman = Y_daily - col_means[None, :]                       # NaN rows propagate
 
     f_filt, P_filt, f_pred, P_pred, _ = kalman_filter(
         Y=Y_kalman,
@@ -362,7 +374,7 @@ def _build_macro_dfm_from_data(
         A=A_est,
         Q=Q_est,
         R=R_est,
-        f0=scores_assigned[0],
+        f0=F_init[0],
         P0=np.eye(K),
     )
     f_smooth, _ = kalman_smoother(f_filt, P_filt, f_pred, P_pred, A_est)
@@ -444,19 +456,13 @@ _sufficient = (
 )
 
 if _sufficient:
-    FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm_from_data(
-        _macro_data.Y_daily,
-        primary_cols=_FACTOR_PRIMARY_COL,
-        primary_signs=_FACTOR_PRIMARY_SIGN,
-    )
+    FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm_from_data(_macro_data.Y_daily)
     # Yield block still simulated from smoothed factors until live yield data wired up
     BUND_YIELDS = _simulate_yield_block(FACTORS_SMOOTH, _rng)
 else:
-    _true_factors, _Lambda_macro, _macro_monthly = _simulate_macro_block(_rng)
-    FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm(
-        _Lambda_macro,
-        _macro_monthly,
-        _true_factors[MONTH_END_IDX],
+    _true_factors, _Lambda_sim, _Y_monthly = _simulate_macro_block(_rng)
+    FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm_sim(
+        _Lambda_sim, _Y_monthly, _true_factors[MONTH_END_IDX],
     )
     BUND_YIELDS = _simulate_yield_block(_true_factors, _rng)
 PC_SCORES, PC_LOADINGS, PC_EXPLAINED_VAR, YIELD_MEANS = _compute_pca(BUND_YIELDS)

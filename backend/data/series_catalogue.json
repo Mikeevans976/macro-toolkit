@@ -41,8 +41,9 @@
       "dfm_factor": "Growth",
       "dfm_sign": 1,
       "notes": "Use flash release date as ingestion date (~3 weeks after month-end). Final release follows ~1 week later but adds little information.",
-      "dfm_col_index": 0,
-      "dfm_primary": true
+      "dfm_col_index": 22,
+      "dfm_primary": true,
+      "heatmap_group": "Business Activity"
     },
     {
       "id": "ea_services_pmi",
@@ -63,8 +64,9 @@
       "dfm_factor": "Growth",
       "dfm_sign": 1,
       "notes": null,
-      "dfm_col_index": 5,
-      "dfm_primary": false
+      "dfm_col_index": 23,
+      "dfm_primary": false,
+      "heatmap_group": "Business Activity"
     },
     {
       "id": "ea_industrial_production_yoy",
@@ -85,8 +87,9 @@
       "dfm_factor": "Growth",
       "dfm_sign": 1,
       "notes": null,
-      "dfm_col_index": 4,
-      "dfm_primary": false
+      "dfm_col_index": 24,
+      "dfm_primary": false,
+      "heatmap_group": "Real Activity"
     },
     {
       "id": "ea_core_hicp_yoy",
@@ -107,8 +110,9 @@
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
       "notes": "Use flash release date. Flash and final are almost always identical for core.",
-      "dfm_col_index": 1,
-      "dfm_primary": true
+      "dfm_col_index": 25,
+      "dfm_primary": true,
+      "heatmap_group": "Inflation & Inflation Expectations"
     },
     {
       "id": "ea_ces_inflation_exp_1y",
@@ -129,8 +133,9 @@
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
       "notes": "Pull directly from ECB Data Portal API (dataset: ECB_CES1). Not on Bloomberg or Haver.",
-      "dfm_col_index": 6,
-      "dfm_primary": false
+      "dfm_col_index": 26,
+      "dfm_primary": false,
+      "heatmap_group": "Inflation & Inflation Expectations"
     },
     {
       "id": "ea_unemployment_rate",
@@ -151,8 +156,9 @@
       "dfm_factor": "Employment",
       "dfm_sign": -1,
       "notes": "Sign-flipped in DFM: higher unemployment = weaker Employment factor. Feed the raw rate level; the sign convention is handled in backend code.",
-      "dfm_col_index": 2,
-      "dfm_primary": true
+      "dfm_col_index": 45,
+      "dfm_primary": true,
+      "heatmap_group": "Labour Market"
     },
     {
       "id": "ea_job_vacancy_rate",
@@ -173,8 +179,9 @@
       "dfm_factor": "Employment",
       "dfm_sign": 1,
       "notes": "Quarterly; Kalman filter handles the long gaps between observations natively.",
-      "dfm_col_index": 7,
-      "dfm_primary": false
+      "dfm_col_index": 46,
+      "dfm_primary": false,
+      "heatmap_group": "Labour Market"
     },
     {
       "id": "ea_negotiated_wages_yoy",
@@ -195,8 +202,9 @@
       "dfm_factor": "Wages",
       "dfm_sign": 1,
       "notes": "Primary source is ECB SDW. Bloomberg may carry as ECNWGEUR Index — verify coverage. Quarterly with long lag makes this the slowest-updating input.",
-      "dfm_col_index": 3,
-      "dfm_primary": true
+      "dfm_col_index": 53,
+      "dfm_primary": true,
+      "heatmap_group": "Wages"
     },
     {
       "id": "bund_2y",
@@ -1535,7 +1543,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Real Activity",
-      "notes": "First flash estimate ~30 days after quarter-end; second estimate ~60 days."
+      "notes": "First flash estimate ~30 days after quarter-end; second estimate ~60 days.",
+      "dfm_col_index": 0,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "france_real_gdp",
@@ -1554,7 +1566,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Real Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 1,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "germany_real_gdp",
@@ -1573,7 +1589,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Real Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 2,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "italy_real_gdp",
@@ -1592,7 +1612,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Real Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 3,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "spain_real_gdp",
@@ -1611,7 +1635,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Real Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 4,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_domestic_demand_growth",
@@ -1630,7 +1658,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Real Activity",
-      "notes": "Released with second GDP estimate, ~60 days after quarter-end."
+      "notes": "Released with second GDP estimate, ~60 days after quarter-end.",
+      "dfm_col_index": 5,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_retail_sales_value_yoy",
@@ -1649,7 +1681,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Real Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 6,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_retail_sales_volume_yoy",
@@ -1668,7 +1704,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Real Activity",
-      "notes": "Eurostat release typically ~35 days after month-end."
+      "notes": "Eurostat release typically ~35 days after month-end.",
+      "dfm_col_index": 7,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_us_current_activity_indicator",
@@ -1687,7 +1727,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Real Activity",
-      "notes": "Verify exact source and ticker — this may be a proprietary bank index (e.g. GS, JPM)."
+      "notes": "Verify exact source and ticker — this may be a proprietary bank index (e.g. GS, JPM).",
+      "dfm_col_index": 8,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_cesi",
@@ -1706,7 +1750,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Real Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 9,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_composite_pmi_new_orders",
@@ -1725,7 +1773,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 10,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_manufacturing_pmi_new_orders",
@@ -1744,7 +1796,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": "Manufacturing PMI final released ~3 days after month-end."
+      "notes": "Manufacturing PMI final released ~3 days after month-end.",
+      "dfm_col_index": 11,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_services_pmi_new_business",
@@ -1763,7 +1819,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": "Services PMI final released ~5 days after month-end."
+      "notes": "Services PMI final released ~5 days after month-end.",
+      "dfm_col_index": 12,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_esi",
@@ -1782,7 +1842,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 13,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_consumer_confidence",
@@ -1801,7 +1865,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 14,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_retail_confidence",
@@ -1820,7 +1888,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 15,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_service_confidence",
@@ -1839,7 +1911,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 16,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_construction_confidence",
@@ -1858,7 +1934,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 17,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_industry_confidence",
@@ -1877,7 +1957,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 18,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_ip_mom",
@@ -1896,7 +1980,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": "Note: ea_industrial_production_yoy in this catalogue is the y/y version of the same series (used in DFM). This entry is the m/m SA level used for display in the heatmap."
+      "notes": "Note: ea_industrial_production_yoy in this catalogue is the y/y version of the same series (used in DFM). This entry is the m/m SA level used for display in the heatmap.",
+      "dfm_col_index": 19,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_building_permits_yoy",
@@ -1915,7 +2003,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": "Verify Bloomberg ticker — may not be available directly."
+      "notes": "Verify Bloomberg ticker — may not be available directly.",
+      "dfm_col_index": 20,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_eurocoin",
@@ -1934,7 +2026,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Business Activity",
-      "notes": "Published by CEPR / Banca d'Italia on the first business day of each month. Download directly from cepr.org. Not on Bloomberg or Haver."
+      "notes": "Published by CEPR / Banca d'Italia on the first business day of each month. Download directly from cepr.org. Not on Bloomberg or Haver.",
+      "dfm_col_index": 21,
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_employment_growth_qoq",
@@ -1953,7 +2049,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Labour Market",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 47,
+      "dfm_factor": "Employment",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_labour_participation_rate",
@@ -1972,7 +2072,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Labour Market",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 48,
+      "dfm_factor": "Employment",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_indeed_job_postings_yoy",
@@ -1991,7 +2095,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Labour Market",
-      "notes": "Download from Indeed Hiring Lab (hiringlab.org). Updated weekly; use monthly average. Not on Bloomberg or Haver."
+      "notes": "Download from Indeed Hiring Lab (hiringlab.org). Updated weekly; use monthly average. Not on Bloomberg or Haver.",
+      "dfm_col_index": 49,
+      "dfm_factor": "Employment",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_pmi_manufacturing_employment",
@@ -2010,7 +2118,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Labour Market",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 50,
+      "dfm_factor": "Employment",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_pmi_services_employment",
@@ -2029,7 +2141,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Labour Market",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 51,
+      "dfm_factor": "Employment",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_esi_employment_expectations",
@@ -2048,7 +2164,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Labour Market",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 52,
+      "dfm_factor": "Employment",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_compensation_per_employee_yoy",
@@ -2067,7 +2187,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Wages",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 54,
+      "dfm_factor": "Wages",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_unit_labour_costs_yoy",
@@ -2086,7 +2210,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Wages",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 55,
+      "dfm_factor": "Wages",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_labour_productivity_yoy",
@@ -2105,7 +2233,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Wages",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 56,
+      "dfm_factor": "Wages",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_indeed_wage_tracker_yoy",
@@ -2124,7 +2256,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Wages",
-      "notes": "Download from Indeed Hiring Lab. Covers posted wages, not economy-wide; leads official measures."
+      "notes": "Download from Indeed Hiring Lab. Covers posted wages, not economy-wide; leads official measures.",
+      "dfm_col_index": 57,
+      "dfm_factor": "Wages",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_ecb_wage_tracker_excl_oneoffs",
@@ -2143,7 +2279,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Wages",
-      "notes": "ECB publication (Economic Bulletin). Download from ecb.europa.eu. Not on Bloomberg or Haver."
+      "notes": "ECB publication (Economic Bulletin). Download from ecb.europa.eu. Not on Bloomberg or Haver.",
+      "dfm_col_index": 58,
+      "dfm_factor": "Wages",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_ecb_wage_tracker_incl_oneoffs",
@@ -2162,7 +2302,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Wages",
-      "notes": "Same source as ea_ecb_wage_tracker_excl_oneoffs. See ECB Economic Bulletin wage tracking box."
+      "notes": "Same source as ea_ecb_wage_tracker_excl_oneoffs. See ECB Economic Bulletin wage tracking box.",
+      "dfm_col_index": 59,
+      "dfm_factor": "Wages",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_headline_hicp_yoy",
@@ -2181,7 +2325,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": "Flash estimate ~30 days after month-end; final ~35 days."
+      "notes": "Flash estimate ~30 days after month-end; final ~35 days.",
+      "dfm_col_index": 27,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_hicp_services_yoy",
@@ -2200,7 +2348,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 28,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_hicp_ex_energy_food_at_yoy",
@@ -2219,7 +2371,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": "Note: ea_core_hicp_yoy in this catalogue (excl. food and energy only) is a slightly broader measure used in the DFM. Verify exact definition used here."
+      "notes": "Note: ea_core_hicp_yoy in this catalogue (excl. food and energy only) is a slightly broader measure used in the DFM. Verify exact definition used here.",
+      "dfm_col_index": 29,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_hicp_energy_yoy",
@@ -2238,7 +2394,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 30,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_hicp_food_yoy",
@@ -2257,7 +2417,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 31,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_hicp_neig_yoy",
@@ -2276,7 +2440,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 32,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_hicp_services_to_goods_ratio",
@@ -2295,7 +2463,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": "Derived: ea_hicp_services_yoy level divided by ea_hicp_neig_yoy level (or index levels, depending on implementation). Verify exact construction."
+      "notes": "Derived: ea_hicp_services_yoy level divided by ea_hicp_neig_yoy level (or index levels, depending on implementation). Verify exact construction.",
+      "dfm_col_index": 33,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_hicp_supercore_yoy",
@@ -2314,7 +2486,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": "ECB internal measure. Bloomberg may carry as ECCPSUPC Index — verify. Alternatively calculated from ECB SDW."
+      "notes": "ECB internal measure. Bloomberg may carry as ECCPSUPC Index — verify. Alternatively calculated from ECB SDW.",
+      "dfm_col_index": 34,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_hicp_weighted_median_yoy",
@@ -2333,7 +2509,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": "ECB staff calculation. Published in ECB Economic Bulletin. Not available directly on Bloomberg or Haver."
+      "notes": "ECB staff calculation. Published in ECB Economic Bulletin. Not available directly on Bloomberg or Haver.",
+      "dfm_col_index": 35,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_ppi_ex_energy_food_yoy",
@@ -2352,7 +2532,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": "Bloomberg ticker needs verification."
+      "notes": "Bloomberg ticker needs verification.",
+      "dfm_col_index": 36,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_pmi_manufacturing_input_prices",
@@ -2371,7 +2555,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 37,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_pmi_manufacturing_output_prices",
@@ -2390,7 +2578,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 38,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_pmi_services_input_prices",
@@ -2409,7 +2601,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 39,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_pmi_services_output_prices",
@@ -2428,7 +2624,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 40,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_esi_price_intentions_mfg",
@@ -2447,7 +2647,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 41,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_esi_price_intentions_services",
@@ -2466,7 +2670,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": null
+      "notes": null,
+      "dfm_col_index": 42,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_ces_inflation_exp_3y",
@@ -2485,7 +2693,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": "ECB Consumer Expectations Survey (CES). Pull from ECB Data Portal. Not on Bloomberg or Haver."
+      "notes": "ECB Consumer Expectations Survey (CES). Pull from ECB Data Portal. Not on Bloomberg or Haver.",
+      "dfm_col_index": 43,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_spf_lt_inflation_expectations",
@@ -2504,7 +2716,11 @@
       ],
       "role": "macro_indicator",
       "heatmap_group": "Inflation & Inflation Expectations",
-      "notes": "Published by ECB ~2 weeks after each quarter-end. Bloomberg may carry as ECSPF5Y Index — verify."
+      "notes": "Published by ECB ~2 weeks after each quarter-end. Bloomberg may carry as ECSPF5Y Index — verify.",
+      "dfm_col_index": 44,
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_primary": false
     },
     {
       "id": "ea_bloomberg_fci",
