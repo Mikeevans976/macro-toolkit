@@ -36,8 +36,22 @@ from dfm import (
     estimate_ar1_daily,
     estimate_loadings_ols,
 )
-from macro_data_loader import load_macro_data, MacroData
+from macro_data_loader import load_macro_data, MacroData, _load_dfm_meta
 from data_fetcher import get_fetcher
+
+# ---------------------------------------------------------------------------
+# DFM series metadata — single source of truth: series_catalogue.json
+# ---------------------------------------------------------------------------
+
+_dfm_meta = _load_dfm_meta(m_macro=8)   # raises if catalogue is missing or malformed
+
+_MACRO_SERIES_IDS    = [e["id"]         for e in _dfm_meta]
+MACRO_INDICATOR_NAMES = [e["name"]       for e in _dfm_meta]
+
+# Primary series per factor: the entry with dfm_primary=True, in factor order.
+# Used to sign-normalise PCA components so each factor has a consistent direction.
+_primary_entries     = [e for e in _dfm_meta if e.get("dfm_primary")]
+_primary_by_factor   = {e["dfm_factor"]: e for e in _primary_entries}
 
 # ---------------------------------------------------------------------------
 # Date grid
@@ -63,41 +77,16 @@ FACTOR_NAMES = ["Growth", "Inflation", "Employment", "Wages"]
 K = len(FACTOR_NAMES)
 N_TENORS = len(YIELD_TENORS)
 BUND_10Y_IDX = YIELD_TENORS.index("10y")
+M_MACRO = len(_MACRO_SERIES_IDS)
 
-# Primary series for each factor (col_index from macro_series.csv).
-# Used to sign-normalise PCA factors so each factor is interpretable:
-#   Growth ↑ = higher PMI,  Inflation ↑ = higher HICP,
-#   Employment ↑ = lower unemployment (sign=-1),  Wages ↑ = higher neg. wages
-_FACTOR_PRIMARY_COL  = [0, 1, 2, 3]   # PMI=0, HICP=1, Unemployment=2, Neg.wages=3
-_FACTOR_PRIMARY_SIGN = [1, 1, -1, 1]  # -1: higher unemployment = weaker employment
-
-# Series catalogue IDs for the 8 DFM inputs — must match macro_series.csv col_index order.
-_MACRO_SERIES_IDS = [
-    "ea_composite_pmi",            # col 0
-    "ea_core_hicp_yoy",            # col 1
-    "ea_unemployment_rate",        # col 2
-    "ea_negotiated_wages_yoy",     # col 3
-    "ea_industrial_production_yoy",# col 4
-    "ea_services_pmi",             # col 5
-    "ea_ces_inflation_exp_1y",     # col 6
-    "ea_job_vacancy_rate",         # col 7
-]
+# col_index of the primary series for each factor, and its sign convention.
+# Derived from catalogue dfm_primary=True entries, in FACTOR_NAMES order.
+_FACTOR_PRIMARY_COL  = [_primary_by_factor[f]["dfm_col_index"] for f in FACTOR_NAMES]
+_FACTOR_PRIMARY_SIGN = [int(_primary_by_factor[f]["dfm_sign"])  for f in FACTOR_NAMES]
 
 # ---------------------------------------------------------------------------
 # Block 1 — Macro DFM
 # ---------------------------------------------------------------------------
-
-MACRO_INDICATOR_NAMES = [
-    "EA Composite PMI",
-    "EA Core HICP (y/y)",
-    "EA Unemployment Rate",
-    "EA Negotiated Wages (y/y)",
-    "EA Industrial Production (y/y)",
-    "EA Services PMI",
-    "EA CES 1y Inflation Expectations",
-    "EA Job Vacancy Rate",
-]
-M_MACRO = len(MACRO_INDICATOR_NAMES)
 
 
 def _simulate_macro_block(rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
