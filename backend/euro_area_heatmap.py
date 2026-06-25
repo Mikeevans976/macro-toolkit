@@ -26,6 +26,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
+from scipy.optimize import linear_sum_assignment
 
 from dfm import (
     kalman_filter,
@@ -33,6 +34,7 @@ from dfm import (
     estimate_ar1_daily,
     estimate_loadings_ols,
 )
+from macro_data_loader import load_macro_data, MacroData
 
 # ---------------------------------------------------------------------------
 # Date grid
@@ -58,6 +60,13 @@ FACTOR_NAMES = ["Growth", "Inflation", "Employment", "Wages"]
 K = len(FACTOR_NAMES)
 N_TENORS = len(YIELD_TENORS)
 BUND_10Y_IDX = YIELD_TENORS.index("10y")
+
+# Primary series for each factor (col_index from macro_series.csv).
+# Used to sign-normalise PCA factors so each factor is interpretable:
+#   Growth ↑ = higher PMI,  Inflation ↑ = higher HICP,
+#   Employment ↑ = lower unemployment (sign=-1),  Wages ↑ = higher neg. wages
+_FACTOR_PRIMARY_COL  = [0, 1, 2, 3]   # PMI=0, HICP=1, Unemployment=2, Neg.wages=3
+_FACTOR_PRIMARY_SIGN = [1, 1, -1, 1]  # -1: higher unemployment = weaker employment
 
 # ---------------------------------------------------------------------------
 # Block 1 — Macro DFM
@@ -258,21 +267,143 @@ def _ols(y: np.ndarray, X: np.ndarray) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Block 1 (real data path) — PCA init → Kalman smoother
+# ---------------------------------------------------------------------------
+
+def _build_macro_dfm_from_data(
+    Y_daily: np.ndarray,           # [T_DAILY, M_MACRO] — NaN except on release dates
+    primary_cols: list[int],       # col_index of primary series per factor
+    primary_signs: list[int],      # +1/-1 per factor
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Fit the DFM to real macro data without ground-truth factors.
+
+    Pipeline
+    --------
+    1. Forward-fill Y_daily (LOCF) → complete matrix for PCA.
+    2. Standardise columns using statistics from actual observations.
+    3. PCA on forward-filled data → K=4 components.
+    4. Assign PCA components to named factors via the Hungarian algorithm
+       (maximise absolute loading on each factor's primary series).
+    5. Sign-normalise factors (factor ↑ ↔ primary series ↑).
+    6. Convert PCA loadings back to original units → Lambda_est [M, K].
+    7. Estimate AR(1) transition and noise matrices from PCA scores.
+    8. Run Kalman filter + RTS smoother on raw Y_daily (with NaNs).
+    """
+    T, M = Y_daily.shape
+
+    # ── Step 1: forward-fill for PCA initialisation ───────────────────────────
+    df = pd.DataFrame(Y_daily)
+    Y_ffill = df.ffill().bfill().values   # [T, M], no NaNs
+
+    # ── Step 2: standardise using statistics from actual observations ─────────
+    col_means = np.nanmean(Y_daily, axis=0)                      # [M]
+    col_stds  = np.nanstd(Y_daily, axis=0)                       # [M]
+    col_stds  = np.where(col_stds < 1e-8, 1.0, col_stds)        # guard zero-std
+
+    Y_std = (Y_ffill - col_means[None, :]) / col_stds[None, :]  # [T, M]
+
+    # ── Step 3: PCA → K components ────────────────────────────────────────────
+    cov = Y_std.T @ Y_std / (T - 1)                             # [M, M]
+    eigenvalues, eigenvectors = np.linalg.eigh(cov)
+    idx = np.argsort(eigenvalues)[::-1]
+    eigenvectors = eigenvectors[:, idx[:K]]                      # [M, K]
+    scores_pca   = Y_std @ eigenvectors                          # [T, K]
+    loadings_pca = eigenvectors.T                                # [K, M]
+
+    # ── Step 4: assign PCA components to named factors (Hungarian) ───────────
+    # Maximise total absolute loading on each factor's primary series.
+    abs_loading = np.abs(loadings_pca[:, primary_cols])          # [K, K]
+    _, col_ind  = linear_sum_assignment(-abs_loading)            # col_ind[k] → factor k
+    scores_assigned   = scores_pca[:, col_ind]                   # [T, K]
+    loadings_assigned = loadings_pca[col_ind, :]                 # [K, M]
+
+    # Fallback: if best-matched loading is too weak, keep PCA order
+    for k in range(K):
+        if abs_loading[col_ind[k], k] < 0.05:
+            scores_assigned   = scores_pca                        # [T, K]
+            loadings_assigned = loadings_pca                      # [K, M]
+            break
+
+    # ── Step 5: sign-normalise ────────────────────────────────────────────────
+    for k in range(K):
+        if loadings_assigned[k, primary_cols[k]] * primary_signs[k] < 0:
+            loadings_assigned[k]   *= -1
+            scores_assigned[:, k]  *= -1
+
+    # ── Step 6: convert loadings to original units ────────────────────────────
+    # Y_std = (Y - mean) / std ≈ scores @ loadings_assigned
+    # Y     ≈ scores @ loadings_assigned * std + mean
+    # ⟹ Lambda_est[m, k] = loadings_assigned[k, m] * col_stds[m]
+    Lambda_est = (loadings_assigned * col_stds[None, :]).T       # [M, K]
+
+    # ── Step 7: AR(1) transition + noise matrices ─────────────────────────────
+    ar_est   = estimate_ar1_daily(scores_assigned)               # [K]
+    A_est    = np.diag(ar_est)
+
+    resid_ar = scores_assigned[1:] - scores_assigned[:-1] * ar_est[None, :]
+    Q_est    = np.diag(np.maximum(np.var(resid_ar, axis=0), 1e-6))
+
+    Y_fitted = scores_assigned @ Lambda_est.T + col_means[None, :]  # [T, M]
+    resid_obs = Y_ffill - Y_fitted
+    R_est = np.diag(np.maximum(np.var(resid_obs, axis=0), 1e-6))
+
+    # ── Step 8: Kalman filter + RTS smoother on raw data ─────────────────────
+    # Demean Y_daily (NaN propagates correctly through subtraction)
+    Y_kalman = Y_daily - col_means[None, :]
+
+    f_filt, P_filt, f_pred, P_pred, _ = kalman_filter(
+        Y=Y_kalman,
+        Lambda=Lambda_est,
+        A=A_est,
+        Q=Q_est,
+        R=R_est,
+        f0=scores_assigned[0],
+        P0=np.eye(K),
+    )
+    f_smooth, _ = kalman_smoother(f_filt, P_filt, f_pred, P_pred, A_est)
+
+    return f_smooth, f_filt
+
+
+# ---------------------------------------------------------------------------
 # Main computation — run once at import
 # ---------------------------------------------------------------------------
 
 _rng = np.random.default_rng(42)
 
-# Block 1
-_true_factors, _Lambda_macro, _macro_monthly = _simulate_macro_block(_rng)
-FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm(
-    _Lambda_macro,
-    _macro_monthly,
-    _true_factors[MONTH_END_IDX],
+# ── Block 1: try real data, fall back to simulation ───────────────────────────
+_macro_data: MacroData = load_macro_data(
+    daily_dates=DAILY_DATES,
+    m_macro=M_MACRO,
 )
 
-# Block 2
-BUND_YIELDS = _simulate_yield_block(_true_factors, _rng)
+for _w in _macro_data.warnings:
+    import warnings as _w_mod
+    _w_mod.warn(f"[euro_area_heatmap] {_w}", stacklevel=1)
+
+_min_obs = 3  # minimum observations per series required to use real data
+_sufficient = (
+    _macro_data.has_data
+    and all(v >= _min_obs for v in _macro_data.n_obs_per_series.values())
+)
+
+if _sufficient:
+    FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm_from_data(
+        _macro_data.Y_daily,
+        primary_cols=_FACTOR_PRIMARY_COL,
+        primary_signs=_FACTOR_PRIMARY_SIGN,
+    )
+    # Yield block still simulated from smoothed factors until live yield data wired up
+    BUND_YIELDS = _simulate_yield_block(FACTORS_SMOOTH, _rng)
+else:
+    _true_factors, _Lambda_macro, _macro_monthly = _simulate_macro_block(_rng)
+    FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm(
+        _Lambda_macro,
+        _macro_monthly,
+        _true_factors[MONTH_END_IDX],
+    )
+    BUND_YIELDS = _simulate_yield_block(_true_factors, _rng)
 PC_SCORES, PC_LOADINGS, PC_EXPLAINED_VAR, YIELD_MEANS = _compute_pca(BUND_YIELDS)
 
 # Regressions: PC1/PC2 ~ macro factors (no intercept)
