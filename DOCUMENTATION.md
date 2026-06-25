@@ -1,6 +1,6 @@
 # Analytics Hub — Technical Documentation
 
-**Last updated:** June 2026  
+**Last updated:** June 2026 (revised: 5-factor DFM expansion)  
 **Stack:** Python 3.12 · FastAPI · React 18 · TypeScript · NumPy / Pandas / SciPy
 
 ---
@@ -24,7 +24,7 @@
 7. [Mathematical Foundations](#7-mathematical-foundations)
    - 7.1 [Mixed-Frequency Dynamic Factor Model](#71-mixed-frequency-dynamic-factor-model)
    - 7.2 [Kalman Filter and RTS Smoother](#72-kalman-filter-and-rts-smoother)
-   - 7.3 [PCA Initialisation and Hungarian Assignment](#73-pca-initialisation-and-hungarian-assignment)
+   - 7.3 [Block-PCA Initialisation](#73-block-pca-initialisation)
    - 7.4 [Par Curve Bootstrap](#74-par-curve-bootstrap)
    - 7.5 [Elastic Net Fair Value](#75-elastic-net-fair-value)
    - 7.6 [Gram-Charlier Option CDF](#76-gram-charlier-option-cdf)
@@ -305,8 +305,7 @@ Controlled by the `ANALYTICS_DATA_SOURCE` environment variable:
 |---|---|
 | `"bloomberg"` | Fetch via Bloomberg Terminal (`xbbg`) |
 | `"haver"` | Fetch via Haver DLX (`Haver` package + `HAVER_PATH`) |
-| `"csv"` | *(default)* Read from `data/macro_releases.csv` |
-| `"simulation"` | Skip data loading; use fully synthetic factors |
+| `"simulation"` | *(default)* Skip data loading; use fully synthetic factors |
 
 Fallback chain: **live fetcher → simulation** (on any fetcher error, falls back gracefully).
 
@@ -314,20 +313,18 @@ Fetch window: 2 years before the grid start to the grid end, to ensure quarterly
 
 #### DFM series (Block 1 inputs)
 
-The 8 macro series, in `dfm_col_index` order, all defined in `series_catalogue.json`:
+60 macro series (`M_MACRO = 60`), all defined in `series_catalogue.json` with `dfm_col_index` (0–59). They are grouped into five named factors:
 
-| col | Series ID | Factor | Sign | Lag (days) | Freq |
-|---|---|---|---|---|---|
-| 0 | `ea_composite_pmi` | Growth | +1 | 23 | monthly |
-| 1 | `ea_core_hicp_yoy` | Inflation | +1 | 30 | monthly |
-| 2 | `ea_unemployment_rate` | Employment | −1 | 30 | monthly |
-| 3 | `ea_negotiated_wages_yoy` | Wages | +1 | 50 | quarterly |
-| 4 | `ea_industrial_production_yoy` | Growth | +1 | 45 | monthly |
-| 5 | `ea_services_pmi` | Growth | +1 | 23 | monthly |
-| 6 | `ea_ces_inflation_exp_1y` | Inflation | +1 | 40 | monthly |
-| 7 | `ea_job_vacancy_rate` | Employment | +1 | 70 | quarterly |
+| Factor | Cols | Count | Primary anchor | Group coverage |
+|---|---|---|---|---|
+| **Growth** | 0–24 | 25 | `ea_composite_pmi` (col 22, +1) | Real Activity (10 series) + Business Activity (12) + PMIs/IP (3) |
+| **Inflation** | 25–44 | 20 | `ea_core_hicp_yoy` (col 25, +1) | Core HICP, CES expectations, Inflation & Expectations group (18) |
+| **Employment** | 45–52 | 8 | `ea_unemployment_rate` (col 45, −1) | Unemployment + Labour Market group (7) |
+| **Wages** | 53–59 | 7 | `ea_negotiated_wages_yoy` (col 53, +1) | Negotiated wages + Wages group (6) |
 
-Series metadata (`_MACRO_SERIES_IDS`, `MACRO_INDICATOR_NAMES`, `M_MACRO`, `_FACTOR_PRIMARY_COL`, `_FACTOR_PRIMARY_SIGN`) are derived at import time from the catalogue — no hardcoding in the Python file.
+The Global Macro factor uses **all 60 series**; its sign anchor is `ea_esi` (+1).
+
+All metadata (`_MACRO_SERIES_IDS`, `MACRO_INDICATOR_NAMES`, `_GROUP_COLS`, `_NAMED_PRIMARY_COL`, `_NAMED_PRIMARY_SIGN`, `_GM_PRIMARY_COL`) are derived at import time from the catalogue — no hardcoding in the Python file.
 
 #### Block 1 — Macro DFM
 
@@ -335,14 +332,14 @@ Series metadata (`_MACRO_SERIES_IDS`, `MACRO_INDICATOR_NAMES`, `M_MACRO`, `_FACT
 
 1. **Forward-fill** `Y_daily` (LOCF) to produce a complete matrix for PCA initialisation.
 2. **Standardise** columns using `nanmean` / `nanstd` of actual observations only.
-3. **PCA** via `np.linalg.eigh` on the sample covariance matrix → K=4 leading components.
-4. **Hungarian assignment** (`scipy.optimize.linear_sum_assignment`) maps PCA components to named factors (Growth, Inflation, Employment, Wages) by maximising absolute loading on each factor's primary series (`dfm_primary=True` in catalogue).
-5. **Sign normalisation**: for each factor k, if `loading[k, primary_col] × primary_sign < 0`, flip the component sign.
-6. **Un-standardise loadings**: `Λ[m,k] = loading_standardised[k,m] × col_std[m]` to recover original-unit loadings.
-7. **AR(1) transition** estimated from PCA scores; state noise `Q = diag(var(residuals))`.
-8. **Kalman filter + RTS smoother** on raw `Y_daily` (with NaNs), producing `FACTORS_SMOOTH[T, 4]`.
+3. **Within-group block-PCA** for each of the four named factors (Growth, Inflation, Employment, Wages): extract the first principal component from that factor's column block, sign-normalise via the primary series, and embed as a sparse loading vector of length M (zeros outside the group). This yields `F_init[:,1:5]` and `Lambda_std[:,1:5]` with the zero-restriction structure enforced by construction.
+4. **Full-panel PCA** for the Global Macro factor: first PC of all 60 standardised columns, sign-normalised via `ea_esi`. Yields `F_init[:,0]` and `Lambda_std[:,0]` (dense loadings across all series).
+5. **Un-standardise loadings**: `Λ[m,k] = loading_standardised[m,k] × col_std[m]` to recover original-unit loadings.
+6. **AR(1) transition** estimated per factor from PCA scores; state noise `Q = diag(σ²_k (1−ρ²_k))`.
+7. **Observation noise** `R` estimated from residual variance of the PCA fit on the ffill-completed matrix.
+8. **Kalman filter + RTS smoother** on raw `Y_daily` (with NaNs), producing `FACTORS_SMOOTH[T, 5]`.
 
-**Simulation fallback** (`_simulate_macro_block` + `_build_macro_dfm`): used when `has_data=False` or `ANALYTICS_DATA_SOURCE=simulation`. Generates synthetic AR(1) factors with prescribed loadings and runs the OLS-initialised Kalman path.
+**Simulation fallback** (`_simulate_macro_block` + `_build_macro_dfm_sim`): used when `has_data=False` or `ANALYTICS_DATA_SOURCE=simulation`. Generates synthetic AR(1) factors with the block loading structure (0.5 Global Macro loading on all series, 1.0×sign group loading for each named factor) and runs the OLS-initialised Kalman path.
 
 #### Block 2 — Yield PCA
 
@@ -358,7 +355,7 @@ Daily Bund yields for 8 tenors (2y, 3y, 5y, 7y, 10y, 15y, 20y, 30y) are decompos
 
 | Endpoint | Response |
 |---|---|
-| `/factors` | `dates`, `factors` dict (Growth / Inflation / Employment / Wages daily series) |
+| `/factors` | `dates`, `factors` dict (Global Macro / Growth / Inflation / Employment / Wages daily series) |
 | `/yield-pca` | `dates`, `pc_scores`, `loadings`, `explained_var`, `tenor_names` |
 | `/pc-regressions` | `factor_names`, `pc1` and `pc2` each with `beta`, `tstat`, `r2`, `adj_r2` |
 | `/fair-value` | `dates`, `actual`, `pca_fitted`, `macro_fair_value`, `rich_cheap_bps` |
@@ -502,10 +499,10 @@ Transition:   f_t = A f_{t-1} + η_t,    η_t ~ N(0, Q)    [K × K]
 Observation:  y_t = Λ f_t    + ε_t,    ε_t ~ N(0, R)    [M × K]
 ```
 
-- **State** `f_t ∈ ℝ^K`: K=4 daily latent factors (Growth, Inflation, Employment, Wages).
-- **Observations** `y_t ∈ ℝ^M`: M=8 macro series. `y_t` is NaN on all days except the estimated release date of each series. The Kalman filter handles this natively: when `y_t` is entirely NaN, the update step is skipped and the filter propagates on the transition equation alone.
+- **State** `f_t ∈ ℝ^K`: K=5 daily latent factors — Global Macro, Growth, Inflation, Employment, Wages.
+- **Observations** `y_t ∈ ℝ^M`: M=60 macro series. `y_t` is NaN on all days except the estimated release date of each series. The Kalman filter handles this natively: when `y_t` is entirely NaN, the update step is skipped and the filter propagates on the transition equation alone.
 - **Transition** `A = diag(ρ_1, ..., ρ_K)`: diagonal AR(1) matrix, one persistence coefficient per factor. Estimated from PCA scores via `ar[k] = (x[:-1] · x[1:]) / (x[:-1] · x[:-1])`, clipped to [0.5, 0.999].
-- **Loadings** `Λ ∈ ℝ^{M×K}`: each macro series loads on all K factors, but primarily on one. Estimated via PCA initialisation (see §7.3).
+- **Loadings** `Λ ∈ ℝ^{M×K}`: block-sparse structure. Column 0 (Global Macro) is dense — every series loads on it. Columns 1–4 (named factors) have non-zero loadings only within their respective series group. Estimated via block-PCA initialisation (see §7.3).
 - **State noise** `Q = diag(σ²_k (1 − ρ²_k))`: stationary variance of the AR(1) innovations.
 - **Observation noise** `R = diag(σ²_ε1, ..., σ²_εM)`: residual variance from PCA fit.
 
@@ -545,17 +542,31 @@ Initialised from the terminal filtered state: `f_{T|T}`, `P_{T|T}`. The smoother
 
 Initial state: `f_0 = 0`, `P_0 = 10I` (diffuse prior).
 
-### 7.3 PCA Initialisation and Hungarian Assignment
+### 7.3 Block-PCA Initialisation
 
-Before running the Kalman filter, factor loadings and initial AR coefficients are estimated from data:
+Before running the Kalman filter, factor loadings and initial AR coefficients are estimated from data. The approach uses **within-group PCA** for each named factor, which enforces the block-sparse zero restrictions in Λ by construction — no post-hoc assignment algorithm is needed.
 
-1. **Forward-fill** Y_daily (last observation carried forward) to create a complete matrix — this removes NaNs while preserving the approximate level of each series between releases.
-2. **Standardise** each column by its empirical mean and standard deviation computed over actual (non-NaN) observations only.
-3. **PCA** on the standardised complete matrix: eigen-decompose the sample covariance matrix, take the top K eigenvectors.
-4. **Hungarian algorithm** (`scipy.optimize.linear_sum_assignment`): form the K×K absolute-loading matrix `|loadings[:, primary_cols]|` where `primary_cols` is the catalogue-defined primary series for each factor. Solve the assignment problem to maximise total absolute loading — this bijects PCA components to named factors.
-5. **Fallback**: if the best-matched loading for any factor is < 0.05 (near-zero), skip re-ordering and keep PCA components in variance-descending order.
-6. **Sign normalisation**: for each factor k, if `loadings[k, primary_col] × primary_sign < 0`, multiply the component (scores and loadings) by −1. This ensures consistent directional interpretation (e.g. Growth ↑ = higher PMI, Employment ↑ = lower unemployment rate).
-7. **Un-standardise loadings**: `Λ[m,k] = loading_standardised[k,m] × std[m]` to recover loadings in the original series' units.
+**Helper: `_block_pca_1(Y_std, cols, primary_col, primary_sign)`**
+
+Extracts the first principal component from the submatrix of standardised observations at column indices `cols`:
+1. Compute the within-group sample covariance matrix and extract its leading eigenvector.
+2. Sign-normalise: if `loading[primary_col] × primary_sign < 0`, flip the eigenvector.
+3. Return the score series `F[T]` (PC scores) and a full-length loading vector `loading_full[M]` with zeros outside `cols`.
+
+**Full initialisation pipeline:**
+
+1. **Forward-fill** `Y_daily` (LOCF) → complete matrix `Y_ffill[T, 60]`.
+2. **Standardise** each column by `nanmean` / `nanstd` of actual (non-NaN) observations only → `Y_std[T, 60]`.
+3. **Named factor block-PCA** — for each of Growth, Inflation, Employment, Wages:
+   - Run `_block_pca_1` on the columns belonging to that factor's group (defined by `_GROUP_COLS`).
+   - Produces one score column in `F_init[:,1:5]` and one sparse column in `Lambda_std[:,1:5]`.
+4. **Global Macro full-panel PCA** — run `_block_pca_1` on all 60 columns, sign-anchored on `ea_esi`:
+   - Produces `F_init[:,0]` (dense score) and `Lambda_std[:,0]` (dense loadings across all series).
+5. **Un-standardise**: `Lambda_est[m,k] = Lambda_std[m,k] × col_std[m]`.
+6. **AR(1) estimation**: per-factor persistence `ρ_k` from `F_init`, clipped to [0.5, 0.999].
+7. **Noise matrices**: `Q = diag(σ²_k (1−ρ²_k))`; `R` from residual variance of the PCA fit on `Y_ffill`.
+
+This design means each named-factor column of Λ is exactly zero outside that factor's series group. The Global Macro column is dense, reflecting its role as a common driver of all 60 series.
 
 ### 7.4 Par Curve Bootstrap
 
@@ -632,7 +643,7 @@ All routes require `Authorization: Bearer <JWT>` except `/api/auth/login`.
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/tools/euro-area-heatmap/factors` | Daily factor time series (Growth, Inflation, Employment, Wages) |
+| GET | `/api/tools/euro-area-heatmap/factors` | Daily factor time series (Global Macro, Growth, Inflation, Employment, Wages) |
 | GET | `/api/tools/euro-area-heatmap/yield-pca` | Bund yield PC scores, loadings, explained variance |
 | GET | `/api/tools/euro-area-heatmap/pc-regressions` | OLS regression of yield PCs on macro factors |
 | GET | `/api/tools/euro-area-heatmap/fair-value` | 10y Bund: actual, PCA fit, macro FV, rich/cheap bps |
@@ -677,7 +688,7 @@ On mount, calls `GET /api/dashboard` and `GET /api/me`. Renders a grid of catego
 
 The most complex frontend page (~2500 lines). Calls all four heatmap API endpoints in parallel, then renders:
 
-- **Macro factor chart**: smoothed daily Growth / Inflation / Employment / Wages factors over the sample.
+- **Macro factor chart**: smoothed daily Global Macro / Growth / Inflation / Employment / Wages factors over the sample.
 - **Yield PCA panel**: PC scores time series + loading bar charts + explained variance badges.
 - **PC regression panel**: beta table and R² for PC1/PC2 on macro factors.
 - **10y Bund fair value chart**: actual vs macro FV with rich/cheap shading.
@@ -722,13 +733,13 @@ pip install -r requirements.txt
 # Create a user
 python create_user.py
 
-# Run with simulated data (default)
+# Run with simulated data (default — no external data source needed)
 python main.py
 
-# Run with Bloomberg
+# Run with Bloomberg Terminal
 ANALYTICS_DATA_SOURCE=bloomberg python main.py
 
-# Run with Haver
+# Run with Haver Analytics
 ANALYTICS_DATA_SOURCE=haver HAVER_PATH=/path/to/haver python main.py
 ```
 
@@ -774,7 +785,17 @@ The FastAPI server mounts `frontend/dist/` at `/` and serves it as a static site
 
 ### Adding a new DFM factor
 
-1. Add the new series to `series_catalogue.json` with the next available `dfm_col_index`.
-2. Update `m_macro=8` to `m_macro=9` (or N) wherever it appears.
-3. If it requires a new named factor: add the name to `FACTOR_NAMES` in `euro_area_heatmap.py` and set `dfm_primary=True` on its primary series in the catalogue.
-4. Update `_primary_by_factor` lookup — it is derived automatically from the catalogue, so no manual change is needed there.
+The DFM currently has K=5 factors and M=60 series. New series are added to the existing factors, not by creating new ones (adding a factor also changes the state dimension and requires updating `_YIELD_FACTOR_LOADINGS`).
+
+**To add a new series to an existing factor group:**
+
+1. Add an entry to `series_catalogue.json` with the next available `dfm_col_index` (currently 0–59; new series gets 60).
+2. Set `dfm_factor` to one of `"Growth"`, `"Inflation"`, `"Employment"`, `"Wages"` — this controls which block-PCA group the series belongs to.
+3. Set `dfm_sign`, `dfm_primary` (false unless replacing the primary anchor), `typical_lag_days`, and `frequency`.
+4. Update the constant `M_MACRO = 60` → `61` in `euro_area_heatmap.py`. The `_GROUP_COLS` dict is rebuilt automatically from the catalogue at import time.
+
+**To add a new named factor** (rare — changes K):
+1. Add series to the catalogue with the new `dfm_factor` name.
+2. Increment `K` and add the factor name to `FACTOR_NAMES` in `euro_area_heatmap.py`.
+3. Extend `_YIELD_FACTOR_LOADINGS` to include the new column.
+4. Add the new factor to `_GROUP_COLS` logic (it is auto-populated from the catalogue, so only `FACTOR_NAMES` and `_NAMED_FACTORS` lists need updating).
