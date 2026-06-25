@@ -23,6 +23,8 @@ Replace `_simulate_*` functions with live data pulls.
 
 from __future__ import annotations
 
+import os
+import warnings
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
@@ -35,6 +37,7 @@ from dfm import (
     estimate_loadings_ols,
 )
 from macro_data_loader import load_macro_data, MacroData
+from data_fetcher import get_fetcher
 
 # ---------------------------------------------------------------------------
 # Date grid
@@ -67,6 +70,18 @@ BUND_10Y_IDX = YIELD_TENORS.index("10y")
 #   Employment ↑ = lower unemployment (sign=-1),  Wages ↑ = higher neg. wages
 _FACTOR_PRIMARY_COL  = [0, 1, 2, 3]   # PMI=0, HICP=1, Unemployment=2, Neg.wages=3
 _FACTOR_PRIMARY_SIGN = [1, 1, -1, 1]  # -1: higher unemployment = weaker employment
+
+# Series catalogue IDs for the 8 DFM inputs — must match macro_series.csv col_index order.
+_MACRO_SERIES_IDS = [
+    "ea_composite_pmi",            # col 0
+    "ea_core_hicp_yoy",            # col 1
+    "ea_unemployment_rate",        # col 2
+    "ea_negotiated_wages_yoy",     # col 3
+    "ea_industrial_production_yoy",# col 4
+    "ea_services_pmi",             # col 5
+    "ea_ces_inflation_exp_1y",     # col 6
+    "ea_job_vacancy_rate",         # col 7
+]
 
 # ---------------------------------------------------------------------------
 # Block 1 — Macro DFM
@@ -367,24 +382,75 @@ def _build_macro_dfm_from_data(
 
 
 # ---------------------------------------------------------------------------
+# Live data fetcher helper
+# ---------------------------------------------------------------------------
+
+def _fetch_macro_data(start: str, end: str) -> dict[str, pd.Series] | None:
+    """
+    Attempt to pull macro series from Bloomberg or Haver.
+
+    Controlled by the ANALYTICS_DATA_SOURCE environment variable:
+      "bloomberg"  — fetch via Bloomberg Desktop API (requires xbbg + Terminal)
+      "haver"      — fetch via Haver DLX (requires Haver pkg + HAVER_PATH)
+      "csv"        — skip fetcher; read from data/macro_releases.csv  (default)
+      "simulation" — skip all data loading; use synthetic data
+
+    Returns dict[series_id, pd.Series] on success, or None to trigger CSV fallback.
+    """
+    source = os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower()
+
+    if source in ("csv", "simulation"):
+        return None
+
+    kwargs: dict = {}
+    if source == "haver":
+        haver_path = os.environ.get("HAVER_PATH")
+        if haver_path:
+            kwargs["path"] = haver_path
+
+    try:
+        fetcher = get_fetcher(source, **kwargs)   # type: ignore[arg-type]
+        data = fetcher.fetch(_MACRO_SERIES_IDS, start=start, end=end)
+        if not data:
+            warnings.warn(
+                "[euro_area_heatmap] Fetcher returned no data; falling back to CSV.",
+                stacklevel=1,
+            )
+            return None
+        return data
+    except Exception as exc:
+        warnings.warn(
+            f"[euro_area_heatmap] Data fetcher failed ({exc}); falling back to CSV.",
+            stacklevel=1,
+        )
+        return None
+
+
+# ---------------------------------------------------------------------------
 # Main computation — run once at import
 # ---------------------------------------------------------------------------
 
 _rng = np.random.default_rng(42)
 
 # ── Block 1: try real data, fall back to simulation ───────────────────────────
+# Fetch window: 2 years before the grid start → grid end, to capture quarterly lags.
+_fetch_start = (DAILY_DATES[0] - pd.DateOffset(years=2)).strftime("%Y-%m-%d")
+_fetch_end   = DAILY_DATES[-1].strftime("%Y-%m-%d")
+_live_data   = _fetch_macro_data(_fetch_start, _fetch_end)
+
 _macro_data: MacroData = load_macro_data(
     daily_dates=DAILY_DATES,
     m_macro=M_MACRO,
+    data=_live_data,   # None → reads macro_releases.csv; if that's empty → simulation
 )
 
 for _w in _macro_data.warnings:
-    import warnings as _w_mod
-    _w_mod.warn(f"[euro_area_heatmap] {_w}", stacklevel=1)
+    warnings.warn(f"[euro_area_heatmap] {_w}", stacklevel=1)
 
 _min_obs = 3  # minimum observations per series required to use real data
 _sufficient = (
-    _macro_data.has_data
+    os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower() != "simulation"
+    and _macro_data.has_data
     and all(v >= _min_obs for v in _macro_data.n_obs_per_series.values())
 )
 
