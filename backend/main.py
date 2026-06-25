@@ -15,6 +15,8 @@ from auth import (
     get_current_user,
 )
 from swaps_rv import compute_rv
+from global_yields import get_global_yields_data
+from fair_value_models import get_fair_value_models_data
 from euro_area_heatmap import (
     get_daily_factors,
     get_fair_value,
@@ -110,6 +112,18 @@ async def ea_pc_regressions(current_user: dict = Depends(get_current_user)):
 async def ea_fair_value(current_user: dict = Depends(get_current_user)):
     """Daily 10y Bund: actual, PCA reconstruction, macro fair value, rich/cheap."""
     return get_fair_value()
+
+
+@app.get("/api/tools/global-yields")
+async def global_yields(current_user: dict = Depends(get_current_user)):
+    """PCA factor model on global 10y yields: factors, residuals, fair-value table."""
+    return get_global_yields_data()
+
+
+@app.get("/api/tools/fair-value-models")
+async def fair_value_models(current_user: dict = Depends(get_current_user)):
+    """Rolling Elastic Net fair value models for HICPxT inflation swaps."""
+    return get_fair_value_models_data()
 
 
 @app.get("/api/tools/swaps-rv")

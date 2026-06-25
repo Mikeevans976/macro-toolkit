@@ -52,7 +52,26 @@ export default function Login() {
         {/* Logo / title */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 mb-4">
-            <span className="text-2xl">🦅</span>
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-9 h-9">
+              {/* Body */}
+              <ellipse cx="32" cy="36" rx="8" ry="13" fill="#C8A84B"/>
+              {/* Head */}
+              <circle cx="32" cy="18" r="6" fill="#C8A84B"/>
+              {/* Beak */}
+              <path d="M32 22 L29 26 L35 26 Z" fill="#8B6914"/>
+              {/* Left wing */}
+              <path d="M24 30 C16 24 4 28 2 20 C8 18 14 22 20 26 C16 20 10 12 14 8 C18 12 20 20 24 28 C22 22 20 14 24 10 C26 16 26 24 26 32Z" fill="#C8A84B"/>
+              {/* Right wing */}
+              <path d="M40 30 C48 24 60 28 62 20 C56 18 50 22 44 26 C48 20 54 12 50 8 C46 12 44 20 40 28 C42 22 44 14 40 10 C38 16 38 24 38 32Z" fill="#C8A84B"/>
+              {/* Tail feathers */}
+              <path d="M26 48 L24 58 L28 54 L32 60 L36 54 L40 58 L38 48Z" fill="#C8A84B"/>
+              {/* Left talon */}
+              <path d="M27 49 L22 56 M27 49 L24 57 M27 49 L26 57" stroke="#8B6914" strokeWidth="1.5" strokeLinecap="round"/>
+              {/* Right talon */}
+              <path d="M37 49 L42 56 M37 49 L40 57 M37 49 L38 57" stroke="#8B6914" strokeWidth="1.5" strokeLinecap="round"/>
+              {/* Eye */}
+              <circle cx="30" cy="17" r="1.5" fill="#1a1a1a"/>
+            </svg>
           </div>
           <h1
             className="text-3xl font-bold tracking-tight text-white"

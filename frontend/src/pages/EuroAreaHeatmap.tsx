@@ -640,10 +640,11 @@ function HeatmapTable() {
   }
 
   // Right-side sticky offsets (rightmost = 0): Change | Latest | As of Last MTG | Units | Last Upd
+  // Each offset = sum of widths of all columns to its right (closer to the viewport right edge).
   const R_CHANGE     = 0
   const R_LATEST     = RIGHT_COL_W
   const R_AS_OF_MTG  = RIGHT_COL_W * 2
-  const R_UNITS      = RIGHT_COL_W * 2 + UNITS_COL_W
+  const R_UNITS      = RIGHT_COL_W * 3           // NOT * 2 + UNITS_COL_W (that leaves a gap)
   const R_LASTUPD    = RIGHT_COL_W * 3 + UNITS_COL_W
 
   const unitsHeaderStyle = (rightOffset: number): React.CSSProperties => ({
@@ -710,7 +711,7 @@ function HeatmapTable() {
             ))}
             <th style={{ ...rightHeaderStyle('Last Upd', R_LASTUPD),   borderLeft: '1px solid rgba(255,255,255,0.07)' }}>Last Upd</th>
             <th style={{ ...unitsHeaderStyle(R_UNITS),                  borderLeft: '1px solid rgba(255,255,255,0.04)' }}>Units</th>
-            <th style={{ ...rightHeaderStyle('As of MTG', R_AS_OF_MTG), borderLeft: '1px solid rgba(255,255,255,0.04)' }}>As of Last MTG</th>
+            <th style={{ ...rightHeaderStyle('As of MTG', R_AS_OF_MTG), borderLeft: '1px solid rgba(255,255,255,0.04)' }}>As of MTG</th>
             <th style={{ ...rightHeaderStyle('Latest', R_LATEST),       borderLeft: '1px solid rgba(255,255,255,0.04)' }}>Latest</th>
             <th style={{ ...rightHeaderStyle('Change', R_CHANGE),       borderLeft: '1px solid rgba(255,255,255,0.04)' }}>Change</th>
           </tr>
@@ -757,7 +758,7 @@ function HeatmapTable() {
                     ...rightCellBase,
                     position: 'sticky',
                     right: R_LASTUPD,
-                    zIndex: 1,
+                    zIndex: 2,
                     color: '#64748b',
                     fontSize: 9,
                   }}>
@@ -776,7 +777,7 @@ function HeatmapTable() {
                     background: stickyBg,
                     position: 'sticky',
                     right: R_UNITS,
-                    zIndex: 1,
+                    zIndex: 2,
                     color: '#475569',
                     whiteSpace: 'nowrap',
                   }}>
@@ -787,7 +788,7 @@ function HeatmapTable() {
                     ...rightCellBase,
                     position: 'sticky',
                     right: R_AS_OF_MTG,
-                    zIndex: 1,
+                    zIndex: 2,
                     color: '#94a3b8',
                   }}>
                     {ind.asOfLastMtg}
@@ -797,7 +798,7 @@ function HeatmapTable() {
                     ...rightCellBase,
                     position: 'sticky',
                     right: R_LATEST,
-                    zIndex: 1,
+                    zIndex: 2,
                     color: '#e2e8f0',
                     fontWeight: 600,
                   }}>
@@ -808,7 +809,7 @@ function HeatmapTable() {
                     ...rightCellBase,
                     position: 'sticky',
                     right: R_CHANGE,
-                    zIndex: 1,
+                    zIndex: 2,
                     fontWeight: 600,
                     color: ind.change === '—' ? '#334155'
                          : ind.change.startsWith('+') ? '#34d399'
@@ -1190,6 +1191,91 @@ const BUND_10Y_PCA_FITTED: number[] = Array.from({ length: N_MONTHS }, (_, t) =>
 const BUND_10Y_RICHCHEAP: number[] = SYNTHETIC_YIELDS['10y'].map(
   (y, t) => Math.round((y - BUND_10Y_FAIR_VALUE[t]) * 100 * 10) / 10
 )
+
+// ─── Curve macro fair value table ─────────────────────────────────────────────
+
+interface CurveFVRow {
+  label: string
+  current: number   // % for outrights, bps for spreads
+  fv: number        // % for outrights, bps for spreads
+  resid: number     // bps
+  stddev: number    // bps
+  zscore: number
+  isSpread: boolean
+}
+
+function computeCurveFV(): CurveFVRow[] {
+  // Tenors to include, with their index in YIELD_TENORS / YIELD_PCA arrays
+  const OUTRIGHT_TENORS: { label: Tenor; idx: number }[] = [
+    { label: '2y',  idx: 0 },
+    { label: '5y',  idx: 2 },
+    { label: '10y', idx: 4 },
+    { label: '30y', idx: 7 },
+  ]
+
+  // Build per-tenor FV series  [N_MONTHS]
+  const fvSeries: Partial<Record<Tenor, number[]>> = {}
+  const rows: CurveFVRow[] = []
+
+  for (const { label, idx } of OUTRIGHT_TENORS) {
+    const fv = Array.from({ length: N_MONTHS }, (_, t) =>
+      YIELD_PCA.means[idx]
+      + YIELD_PCA.loadings[0][idx] * PC1_REG.fitted[t]
+      + YIELD_PCA.loadings[1][idx] * PC2_REG.fitted[t]
+    )
+    fvSeries[label] = fv
+
+    const residSeries = SYNTHETIC_YIELDS[label].map((y, t) => (y - fv[t]) * 100)
+    const mean = residSeries.reduce((a, b) => a + b, 0) / residSeries.length
+    const stddev = Math.sqrt(
+      residSeries.reduce((a, v) => a + (v - mean) ** 2, 0) / residSeries.length
+    )
+    const resid = residSeries[N_MONTHS - 1]
+    rows.push({
+      label,
+      current: SYNTHETIC_YIELDS[label][N_MONTHS - 1],
+      fv: fv[N_MONTHS - 1],
+      resid,
+      stddev,
+      zscore: stddev > 0 ? resid / stddev : 0,
+      isSpread: false,
+    })
+  }
+
+  // Slope instruments
+  const SLOPES: { label: string; long: Tenor; short: Tenor }[] = [
+    { label: '2s10s', long: '10y', short: '2y' },
+    { label: '5s30s', long: '30y', short: '5y' },
+  ]
+
+  for (const { label, long, short } of SLOPES) {
+    const actualSpread = Array.from({ length: N_MONTHS }, (_, t) =>
+      (SYNTHETIC_YIELDS[long][t] - SYNTHETIC_YIELDS[short][t]) * 100
+    )
+    const fvSpread = Array.from({ length: N_MONTHS }, (_, t) =>
+      (fvSeries[long]![t] - fvSeries[short]![t]) * 100
+    )
+    const residSeries = actualSpread.map((s, t) => s - fvSpread[t])
+    const mean = residSeries.reduce((a, b) => a + b, 0) / residSeries.length
+    const stddev = Math.sqrt(
+      residSeries.reduce((a, v) => a + (v - mean) ** 2, 0) / residSeries.length
+    )
+    const resid = residSeries[N_MONTHS - 1]
+    rows.push({
+      label,
+      current: actualSpread[N_MONTHS - 1],
+      fv: fvSpread[N_MONTHS - 1],
+      resid,
+      stddev,
+      zscore: stddev > 0 ? resid / stddev : 0,
+      isSpread: true,
+    })
+  }
+
+  return rows
+}
+
+const CURVE_FV_ROWS: CurveFVRow[] = computeCurveFV()
 
 // ─── Rates section components (API-driven) ────────────────────────────────────
 
@@ -1601,6 +1687,1559 @@ function BundFairValueSection() {
       <p style={{ color: '#334155', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
         Fair value = sample mean + PC1 loading × macro-fitted PC1 + PC2 loading × macro-fitted PC2. Residual captures non-macro drivers (positioning, technicals, term premium).
       </p>
+
+      {/* ── Curve macro fair value table ── */}
+      <div style={{ marginTop: 28 }}>
+        <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+          Curve macro fair value
+        </p>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+          <thead>
+            <tr>
+              {['', 'Current', 'Fair Value', 'Resid (bp)', 'StdDev (bp)', 'Z-Score'].map((h, i) => (
+                <th key={h} style={{
+                  textAlign: i === 0 ? 'left' : 'right',
+                  color: '#475569', fontWeight: 600, fontSize: 10,
+                  padding: '4px 10px 6px',
+                  borderBottom: '1px solid rgba(255,255,255,0.07)',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {CURVE_FV_ROWS.map((row, i) => {
+              const absZ = Math.abs(row.zscore)
+              const zBg = absZ >= 1.5
+                ? (row.zscore > 0 ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)')
+                : 'transparent'
+              const zColor = row.zscore > 0.5 ? '#34d399' : row.zscore < -0.5 ? '#f87171' : '#94a3b8'
+              const isSlope = row.isSpread
+              // separator before slopes
+              const topBorder = i === 4 ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(255,255,255,0.04)'
+              return (
+                <tr key={row.label} style={{ background: zBg }}>
+                  <td style={{
+                    padding: '6px 10px',
+                    borderBottom: topBorder,
+                    color: '#cbd5e1', fontWeight: 600, fontSize: 11,
+                    fontFamily: 'monospace',
+                  }}>
+                    {row.label}
+                  </td>
+                  <td style={{ textAlign: 'right', padding: '6px 10px', borderBottom: topBorder, fontFamily: 'monospace', color: '#e2e8f0' }}>
+                    {isSlope ? `${row.current.toFixed(1)} bp` : `${row.current.toFixed(2)}%`}
+                  </td>
+                  <td style={{ textAlign: 'right', padding: '6px 10px', borderBottom: topBorder, fontFamily: 'monospace', color: '#94a3b8' }}>
+                    {isSlope ? `${row.fv.toFixed(1)} bp` : `${row.fv.toFixed(2)}%`}
+                  </td>
+                  <td style={{
+                    textAlign: 'right', padding: '6px 10px', borderBottom: topBorder,
+                    fontFamily: 'monospace',
+                    color: row.resid > 0 ? '#34d399' : '#f87171',
+                  }}>
+                    {row.resid > 0 ? '+' : ''}{row.resid.toFixed(1)}
+                  </td>
+                  <td style={{ textAlign: 'right', padding: '6px 10px', borderBottom: topBorder, fontFamily: 'monospace', color: '#475569' }}>
+                    {row.stddev.toFixed(1)}
+                  </td>
+                  <td style={{
+                    textAlign: 'right', padding: '6px 10px', borderBottom: topBorder,
+                    fontFamily: 'monospace', fontWeight: 700, color: zColor,
+                  }}>
+                    {row.zscore > 0 ? '+' : ''}{row.zscore.toFixed(2)}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+        <p style={{ color: '#334155', fontSize: 9, margin: '6px 0 0', fontStyle: 'italic' }}>
+          Positive residual = actual above fair value (cheap). Negative = rich. Z-score = residual ÷ historical StdDev of residuals.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ─── 2s10s Directionality ─────────────────────────────────────────────────────
+// Synthetic daily 2y and 10y yields — linear interpolation between monthly
+// synthetic values, plus small deterministic intra-month noise.
+// Replace DAILY_2Y / DAILY_10Y with live EOD data when the pipeline is ready.
+
+const BDAYS_PER_MONTH = 21  // approximate business days per month
+const N_DAILY_DIR = (N_MONTHS - 1) * BDAYS_PER_MONTH + 1  // ≈ 505 days
+
+// Interpolate any tenor to daily frequency with deterministic noise
+const _TENOR_SEEDS: Partial<Record<Tenor, number>> = {
+  '2y': 1.1, '3y': 1.8, '5y': 2.5, '7y': 3.0,
+  '10y': 3.7, '15y': 4.2, '20y': 4.9, '30y': 5.6,
+}
+function _genDailyYield(tenor: Tenor): number[] {
+  const monthly = SYNTHETIC_YIELDS[tenor]
+  const seed = _TENOR_SEEDS[tenor] ?? 2.0
+  const out: number[] = []
+  for (let m = 0; m < N_MONTHS - 1; m++) {
+    const y0 = monthly[m], y1 = monthly[m + 1]
+    for (let d = 0; d < BDAYS_PER_MONTH; d++) {
+      const interp = y0 + (y1 - y0) * (d / BDAYS_PER_MONTH)
+      const noise = 0.018 * Math.sin((m * 7 + d) * 1.31 + seed)
+                  + 0.012 * Math.cos((m * 3 + d) * 2.73 + seed * 0.7)
+      out.push(interp + noise)
+    }
+  }
+  out.push(monthly[N_MONTHS - 1])
+  return out
+}
+
+const DAILY_2Y_DIR  = _genDailyYield('2y')
+const DAILY_10Y_DIR = _genDailyYield('10y')
+const DAILY_30Y_DIR = _genDailyYield('30y')
+
+// Rolling 63-day (≈ 3m) window: % of daily moves that are bull-steep or bear-flat
+const ROLL_DAYS = 63
+
+// ── Scalar directionality (bull-steep + bear-flat combined) ──────────────────
+
+interface DirPoint { idx: number; pct: number; monthLabel: string | null }
+
+function computeDailyDirectionality(): DirPoint[] {
+  const results: DirPoint[] = []
+  for (let t = ROLL_DAYS; t < N_DAILY_DIR; t++) {
+    let match = 0
+    for (let i = t - ROLL_DAYS + 1; i <= t; i++) {
+      const dLong   = DAILY_10Y_DIR[i] - DAILY_10Y_DIR[i - 1]
+      const dSpread = (DAILY_10Y_DIR[i] - DAILY_2Y_DIR[i]) - (DAILY_10Y_DIR[i - 1] - DAILY_2Y_DIR[i - 1])
+      if (Math.abs(dLong) < 1e-7) continue
+      if ((dLong < 0 && dSpread > 0) || (dLong > 0 && dSpread < 0)) match++
+    }
+    const monthLabel = (t % BDAYS_PER_MONTH === 0)
+      ? MONTH_COLS[Math.floor(t / BDAYS_PER_MONTH)]
+      : null
+    results.push({ idx: t - ROLL_DAYS, pct: Math.round(match / ROLL_DAYS * 1000) / 10, monthLabel })
+  }
+  return results
+}
+
+const DAILY_DIR: DirPoint[] = computeDailyDirectionality()
+const DIR_MONTH_TICKS = DAILY_DIR.filter(d => d.monthLabel !== null).map(d => d.idx)
+const DIR_CURRENT_PCT = DAILY_DIR[DAILY_DIR.length - 1].pct
+
+// ── Full 4-regime breakdown (stacked) ────────────────────────────────────────
+
+interface FullDirPoint {
+  idx: number
+  monthLabel: string | null
+  bullSteep: number  // % 0–100
+  bullFlat:  number
+  bearSteep: number
+  bearFlat:  number
+}
+
+function computeFullDailyDir(longArr: number[], shortArr: number[]): FullDirPoint[] {
+  const n = longArr.length
+  const results: FullDirPoint[] = []
+  for (let t = ROLL_DAYS; t < n; t++) {
+    let bs = 0, bf = 0, bes = 0, bef = 0
+    for (let i = t - ROLL_DAYS + 1; i <= t; i++) {
+      const dLong   = longArr[i]  - longArr[i - 1]
+      const dSpread = (longArr[i] - shortArr[i]) - (longArr[i - 1] - shortArr[i - 1])
+      if (Math.abs(dLong) < 1e-7) continue
+      if      (dLong < 0 && dSpread > 0) bs++
+      else if (dLong < 0 && dSpread <= 0) bf++
+      else if (dLong > 0 && dSpread > 0) bes++
+      else                                bef++
+    }
+    const total = bs + bf + bes + bef || 1
+    const monthLabel = (t % BDAYS_PER_MONTH === 0)
+      ? MONTH_COLS[Math.floor(t / BDAYS_PER_MONTH)]
+      : null
+    results.push({
+      idx:       t - ROLL_DAYS,
+      monthLabel,
+      bullSteep: Math.round(bs  / total * 100),
+      bullFlat:  Math.round(bf  / total * 100),
+      bearSteep: Math.round(bes / total * 100),
+      bearFlat:  Math.round(bef / total * 100),
+    })
+  }
+  return results
+}
+
+const DIR_2S10S = computeFullDailyDir(DAILY_10Y_DIR, DAILY_2Y_DIR)
+const DIR_2S30S = computeFullDailyDir(DAILY_30Y_DIR, DAILY_2Y_DIR)
+
+// ── Frequency table: breakdown over 2w / 1m / 2m / 3m look-back ─────────────
+
+type RegimeKey = 'bullSteep' | 'bullFlat' | 'bearSteep' | 'bearFlat'
+type FreqRow = { horizon: string; bullSteep: number; bullFlat: number; bearSteep: number; bearFlat: number; dispersion: number }
+
+// Normalised dispersion of 4 regime frequencies, bounded [0, 100%].
+// σ_max = sqrt([(100-25)² + 3*(0-25)²] / 4) = sqrt(1875) ≈ 43.3 → divide to normalise.
+const _DISP_MAX = Math.sqrt(1875)
+function regimeDispersion(bs: number, bf: number, bes: number, bef: number): number {
+  const vals = [bs, bf, bes, bef]
+  const sigma = Math.sqrt(vals.reduce((s, p) => s + (p - 25) ** 2, 0) / 4)
+  return Math.round(sigma / _DISP_MAX * 1000) / 10  // 0–100, 1 d.p.
+}
+
+function computeFreqTable(longArr: number[], shortArr: number[]): FreqRow[] {
+  const WINDOWS: { horizon: string; days: number }[] = [
+    { horizon: '2w', days: 10 },
+    { horizon: '1m', days: 21 },
+    { horizon: '2m', days: 42 },
+    { horizon: '3m', days: 63 },
+  ]
+  const n = longArr.length
+  return WINDOWS.map(({ horizon, days }) => {
+    let bs = 0, bf = 0, bes = 0, bef = 0
+    const start = Math.max(1, n - days)
+    for (let i = start; i < n; i++) {
+      const dLong   = longArr[i] - longArr[i - 1]
+      const dSpread = (longArr[i] - shortArr[i]) - (longArr[i - 1] - shortArr[i - 1])
+      if (Math.abs(dLong) < 1e-7) continue
+      if      (dLong < 0 && dSpread > 0) bs++
+      else if (dLong < 0 && dSpread <= 0) bf++
+      else if (dLong > 0 && dSpread > 0) bes++
+      else                                bef++
+    }
+    const total = bs + bf + bes + bef || 1
+    const bullSteep = Math.round(bs  / total * 100)
+    const bullFlat  = Math.round(bf  / total * 100)
+    const bearSteep = Math.round(bes / total * 100)
+    const bearFlat  = Math.round(bef / total * 100)
+    return { horizon, bullSteep, bullFlat, bearSteep, bearFlat, dispersion: regimeDispersion(bullSteep, bullFlat, bearSteep, bearFlat) }
+  })
+}
+
+const FREQ_2S10S = computeFreqTable(DAILY_10Y_DIR, DAILY_2Y_DIR)
+const FREQ_2S30S = computeFreqTable(DAILY_30Y_DIR, DAILY_2Y_DIR)
+
+// ── Rolling dispersion series (derived from full DIR arrays) ─────────────────
+
+interface DispPoint { idx: number; monthLabel: string | null; disp2s10s: number; disp2s30s: number }
+
+const ROLLING_DISP: DispPoint[] = DIR_2S10S.map((d, i) => ({
+  idx:       d.idx,
+  monthLabel: d.monthLabel,
+  disp2s10s: regimeDispersion(d.bullSteep, d.bullFlat, d.bearSteep, d.bearFlat),
+  disp2s30s: regimeDispersion(DIR_2S30S[i].bullSteep, DIR_2S30S[i].bullFlat, DIR_2S30S[i].bearSteep, DIR_2S30S[i].bearFlat),
+}))
+
+const DISP_AVG_2S10S = Math.round(
+  ROLLING_DISP.reduce((s, d) => s + d.disp2s10s, 0) / ROLLING_DISP.length * 10
+) / 10
+const DISP_AVG_2S30S = Math.round(
+  ROLLING_DISP.reduce((s, d) => s + d.disp2s30s, 0) / ROLLING_DISP.length * 10
+) / 10
+
+const REGIME_META = [
+  { key: 'bullSteep', label: 'Bull Steepening', color: '#34d399' },
+  { key: 'bullFlat',  label: 'Bull Flattening',  color: '#60a5fa' },
+  { key: 'bearSteep', label: 'Bear Steepening',  color: '#f59e0b' },
+  { key: 'bearFlat',  label: 'Bear Flattening',  color: '#f87171' },
+] as const
+
+function nearestMonthLabel(data: FullDirPoint[], idx: number): string {
+  const found = data.filter(d => d.monthLabel && d.idx <= idx).slice(-1)[0]
+  return found?.monthLabel ?? ''
+}
+
+function CurveDynamicsSection() {
+  const chartData = DAILY_DIR.map(d => ({ idx: d.idx, pct: d.pct }))
+
+  return (
+    <div style={cardStyle}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+            2s10s Directionality
+          </h2>
+          <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>
+            % of daily moves that are bull-steepening or bear-flattening &middot; 3-month (63-day) rolling window
+          </p>
+        </div>
+        <div style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 8, padding: '6px 14px', textAlign: 'center',
+        }}>
+          <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>
+            Current
+          </div>
+          <div style={{
+            color: DIR_CURRENT_PCT > 55 ? '#34d399' : DIR_CURRENT_PCT < 40 ? '#f87171' : '#f59e0b',
+            fontSize: 20, fontFamily: 'monospace', fontWeight: 700,
+          }}>
+            {DIR_CURRENT_PCT.toFixed(1)}%
+          </div>
+        </div>
+      </div>
+
+      <ResponsiveContainer width="100%" height={260}>
+        <LineChart data={chartData} margin={{ top: 4, right: 12, bottom: 0, left: -8 }}>
+          <defs>
+            <linearGradient id="dirGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor="#f59e0b" stopOpacity={0.15} />
+              <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}    />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+          <XAxis
+            dataKey="idx"
+            type="number"
+            scale="linear"
+            domain={[0, DAILY_DIR.length - 1]}
+            ticks={DIR_MONTH_TICKS}
+            tickFormatter={idx => {
+              const pt = DAILY_DIR.find(d => d.idx === idx)
+              return pt?.monthLabel ?? ''
+            }}
+            tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+            tickLine={false}
+            axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+            interval={0}
+          />
+          <YAxis
+            domain={[0, 100]}
+            tickFormatter={v => `${v}%`}
+            tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+            tickLine={false}
+            axisLine={false}
+            tickCount={6}
+          />
+          <ReferenceLine y={50} stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
+          <Tooltip
+            contentStyle={{
+              background: '#0f172a',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 8,
+              fontSize: 11,
+              fontFamily: 'monospace',
+              color: '#e2e8f0',
+            }}
+            labelStyle={{ color: '#64748b', marginBottom: 4 }}
+            labelFormatter={idx => {
+              const nearest = DAILY_DIR
+                .filter(d => d.monthLabel && d.idx <= (idx as number))
+                .slice(-1)[0]
+              return nearest?.monthLabel ?? String(idx)
+            }}
+            formatter={(v: number) => [`${v.toFixed(1)}%`, 'Bull-Steep + Bear-Flat']}
+          />
+          <Line
+            type="monotone"
+            dataKey="pct"
+            stroke="#f59e0b"
+            strokeWidth={1.5}
+            dot={false}
+            activeDot={{ r: 3, strokeWidth: 0, fill: '#f59e0b' }}
+            isAnimationActive={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+
+      <p style={{ color: '#334155', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
+        Bull-steepening: rates fall &amp; spread widens. Bear-flattening: rates rise &amp; spread narrows.
+        &gt;50% = curve behaving in line with macro-driven directionality; &lt;50% = atypical regime dominant.
+      </p>
+
+      {/* ── Tail likelihoods (single combined line) ── */}
+      {(() => {
+        const tailData = DIR_2S10S.map(d => ({
+          idx:  d.idx,
+          tail: d.bullSteep + d.bearFlat,
+        }))
+        const current = tailData[tailData.length - 1].tail
+        const avg = Math.round(tailData.reduce((s, d) => s + d.tail, 0) / tailData.length)
+        const ticks   = DIR_2S10S.filter(d => d.monthLabel !== null).map(d => d.idx)
+        const labelFor = (idx: number) =>
+          DIR_2S10S.filter(d => d.monthLabel && d.idx <= idx).slice(-1)[0]?.monthLabel ?? ''
+
+        return (
+          <div style={{ marginTop: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+              <div>
+                <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
+                  Tail likelihoods — 2s10s
+                </p>
+                <p style={{ color: '#334155', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
+                  Bull-steepening + bear-flattening combined &nbsp;·&nbsp; high / rising = deteriorating carry &nbsp;·&nbsp; 3m rolling
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[
+                  { label: 'Current', val: current, color: current > avg ? '#f87171' : '#34d399' },
+                  { label: 'Avg',     val: avg,      color: '#475569' },
+                ].map(({ label, val, color }) => (
+                  <div key={label} style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    borderRadius: 8, padding: '4px 12px', textAlign: 'center',
+                  }}>
+                    <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{label}</div>
+                    <div style={{ color, fontFamily: 'monospace', fontSize: 13, fontWeight: 700 }}>{val}%</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={tailData} margin={{ top: 4, right: 12, bottom: 0, left: -8 }}>
+                <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="idx"
+                  type="number"
+                  scale="linear"
+                  domain={[0, tailData.length - 1]}
+                  ticks={ticks}
+                  tickFormatter={idx => labelFor(idx as number)}
+                  tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+                  tickLine={false}
+                  axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                  interval={0}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tickFormatter={v => `${v}%`}
+                  tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickCount={6}
+                />
+                <ReferenceLine y={avg}  stroke="rgba(255,255,255,0.25)" strokeDasharray="4 4" label={{ value: 'avg', position: 'insideTopRight', fill: '#475569', fontSize: 9 }} />
+                <Tooltip
+                  contentStyle={{
+                    background: '#0f172a',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: 8, fontSize: 11, fontFamily: 'monospace', color: '#e2e8f0',
+                  }}
+                  labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                  labelFormatter={idx => labelFor(idx as number)}
+                  formatter={(v: number) => [`${v}%`, 'Tail likelihood']}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="tail"
+                  stroke="#94a3b8"
+                  strokeWidth={1.5}
+                  dot={false}
+                  activeDot={{ r: 3, strokeWidth: 0 }}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )
+      })()}
+
+      {/* ── Balance of risks: recession vs reacceleration ── */}
+      <div style={{ marginTop: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
+              Balance of risks — 2s10s curve dynamic
+            </p>
+            <p style={{ color: '#334155', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
+              Recession = bull-steepening moves &nbsp;·&nbsp; Reacceleration = bear-flattening moves &nbsp;·&nbsp; 3m rolling window
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[
+              { label: 'Recession',       val: DIR_2S10S[DIR_2S10S.length - 1].bullSteep, color: '#60a5fa' },
+              { label: 'Reacceleration',  val: DIR_2S10S[DIR_2S10S.length - 1].bearFlat,  color: '#f87171' },
+            ].map(({ label, val, color }) => (
+              <div key={label} style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 8, padding: '4px 12px', textAlign: 'center',
+              }}>
+                <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+                  {label}
+                </div>
+                <div style={{ color, fontFamily: 'monospace', fontSize: 13, fontWeight: 700 }}>
+                  {val}%
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <ResponsiveContainer width="100%" height={220}>
+          <LineChart
+            data={DIR_2S10S.map(d => ({ idx: d.idx, recession: d.bullSteep, reacceleration: d.bearFlat }))}
+            margin={{ top: 4, right: 12, bottom: 0, left: -8 }}
+          >
+            <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+            <XAxis
+              dataKey="idx"
+              type="number"
+              scale="linear"
+              domain={[0, DIR_2S10S.length - 1]}
+              ticks={DIR_2S10S.filter(d => d.monthLabel !== null).map(d => d.idx)}
+              tickFormatter={idx => {
+                const found = DIR_2S10S.filter(d => d.monthLabel && d.idx <= (idx as number)).slice(-1)[0]
+                return found?.monthLabel ?? ''
+              }}
+              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tickLine={false}
+              axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+              interval={0}
+            />
+            <YAxis
+              domain={[0, 100]}
+              tickFormatter={v => `${v}%`}
+              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tickLine={false}
+              axisLine={false}
+              tickCount={6}
+            />
+            <ReferenceLine y={25} stroke="rgba(255,255,255,0.08)" strokeDasharray="4 4" />
+            <Tooltip
+              contentStyle={{
+                background: '#0f172a',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 8, fontSize: 11, fontFamily: 'monospace', color: '#e2e8f0',
+              }}
+              labelStyle={{ color: '#64748b', marginBottom: 4 }}
+              labelFormatter={idx => {
+                const found = DIR_2S10S.filter(d => d.monthLabel && d.idx <= (idx as number)).slice(-1)[0]
+                return found?.monthLabel ?? String(idx)
+              }}
+              formatter={(v: number, name: string) => [
+                `${v}%`,
+                name === 'recession' ? 'Recession (bull-steep)' : 'Reacceleration (bear-flat)',
+              ]}
+            />
+            <Line type="monotone" dataKey="recession"      stroke="#60a5fa" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+            <Line type="monotone" dataKey="reacceleration" stroke="#f87171" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer>
+
+        <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 20, height: 2, background: '#60a5fa', borderRadius: 1 }} />
+            <span style={{ color: '#475569', fontSize: 10 }}>Recession (bull-steepening)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 20, height: 2, background: '#f87171', borderRadius: 1 }} />
+            <span style={{ color: '#475569', fontSize: 10 }}>Reacceleration (bear-flattening)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 20, height: 0, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
+            <span style={{ color: '#334155', fontSize: 10 }}>25% baseline</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Stacked regime breakdown: 2s10s and 2s30s ── */}
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginTop: 28 }}>
+        {([
+          { label: '2s10s', data: DIR_2S10S },
+          { label: '2s30s', data: DIR_2S30S },
+        ] as const).map(({ label, data }) => {
+          const current = data[data.length - 1]
+          const ticks = data.filter(d => d.monthLabel !== null).map(d => d.idx)
+          return (
+            <div key={label} style={{ flex: '1 1 420px', minWidth: 0 }}>
+              <p style={{ color: '#64748b', fontSize: 11, fontWeight: 600, margin: '0 0 10px' }}>
+                {label} — 3m rolling regime breakdown
+              </p>
+
+              <ResponsiveContainer width="100%" height={200}>
+                <AreaChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
+                  <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="idx"
+                    type="number"
+                    scale="linear"
+                    domain={[0, data.length - 1]}
+                    ticks={ticks}
+                    tickFormatter={idx => nearestMonthLabel(data, idx as number)}
+                    tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                    tickLine={false}
+                    axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                    interval={0}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tickFormatter={v => `${v}%`}
+                    tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickCount={6}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: '#0f172a',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: 8,
+                      fontSize: 10,
+                      fontFamily: 'monospace',
+                      color: '#e2e8f0',
+                    }}
+                    labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                    labelFormatter={idx => nearestMonthLabel(data, idx as number)}
+                    formatter={(v: number, name: string) => {
+                      const meta = REGIME_META.find(r => r.key === name)
+                      return [`${v}%`, meta?.label ?? name]
+                    }}
+                  />
+                  {REGIME_META.map(r => (
+                    <Area
+                      key={r.key}
+                      type="monotone"
+                      dataKey={r.key}
+                      stackId="1"
+                      stroke={r.color}
+                      strokeWidth={0}
+                      fill={r.color}
+                      fillOpacity={0.75}
+                      isAnimationActive={false}
+                    />
+                  ))}
+                </AreaChart>
+              </ResponsiveContainer>
+
+              {/* Current reading mini-badges */}
+              <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                {REGIME_META.map(r => (
+                  <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 2, background: r.color }} />
+                    <span style={{ color: '#475569', fontSize: 10 }}>{r.label}</span>
+                    <span style={{ color: r.color, fontFamily: 'monospace', fontSize: 10, fontWeight: 700 }}>
+                      {current[r.key]}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Shared regime legend */}
+      <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
+        {REGIME_META.map(r => (
+          <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ width: 10, height: 10, borderRadius: 2, background: r.color, opacity: 0.8 }} />
+            <span style={{ color: '#475569', fontSize: 10 }}>{r.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Frequency table ── */}
+      <div style={{ marginTop: 28 }}>
+        <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px' }}>
+          Frequency of curve moves by horizon
+        </p>
+        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+          {([
+            { label: '2s10s', rows: FREQ_2S10S },
+            { label: '2s30s', rows: FREQ_2S30S },
+          ] as const).map(({ label, rows }) => (
+            <div key={label} style={{ flex: '1 1 320px', minWidth: 0 }}>
+              <p style={{ color: '#64748b', fontSize: 10, fontWeight: 600, margin: '0 0 8px', fontFamily: 'monospace' }}>
+                {label}
+              </p>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', color: '#475569', fontWeight: 600, fontSize: 10, padding: '4px 10px 6px 0', borderBottom: '1px solid rgba(255,255,255,0.07)', width: 44 }}>
+                      Horizon
+                    </th>
+                    {REGIME_META.map(r => (
+                      <th key={r.key} style={{
+                        textAlign: 'right', fontWeight: 600, fontSize: 10,
+                        padding: '4px 8px 6px',
+                        borderBottom: '1px solid rgba(255,255,255,0.07)',
+                        color: r.color,
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {r.label.replace(' ', '\u00a0')}
+                      </th>
+                    ))}
+                    <th style={{
+                      textAlign: 'right', fontWeight: 600, fontSize: 10,
+                      padding: '4px 8px 6px',
+                      borderBottom: '1px solid rgba(255,255,255,0.07)',
+                      color: '#94a3b8', whiteSpace: 'nowrap',
+                      borderLeft: '1px solid rgba(255,255,255,0.07)',
+                    }}>
+                      Dispersion
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row, ri) => {
+                    const dominant: RegimeKey = (['bullSteep', 'bullFlat', 'bearSteep', 'bearFlat'] as RegimeKey[])
+                      .reduce((a, b) => row[a] >= row[b] ? a : b)
+                    // Dispersion colour: low = high conviction (green), high = low conviction (red)
+                    const dispColor = row.dispersion < 25 ? '#34d399' : row.dispersion > 50 ? '#f87171' : '#94a3b8'
+                    return (
+                      <tr key={row.horizon} style={{ background: ri % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent' }}>
+                        <td style={{
+                          padding: '6px 10px 6px 0',
+                          borderBottom: '1px solid rgba(255,255,255,0.04)',
+                          color: '#94a3b8', fontFamily: 'monospace', fontWeight: 700, fontSize: 11,
+                        }}>
+                          {row.horizon}
+                        </td>
+                        {REGIME_META.map(r => {
+                          const val = row[r.key]
+                          const isDom = r.key === dominant
+                          return (
+                            <td key={r.key} style={{
+                              textAlign: 'right',
+                              padding: '6px 8px',
+                              borderBottom: '1px solid rgba(255,255,255,0.04)',
+                              fontFamily: 'monospace',
+                              fontWeight: isDom ? 700 : 400,
+                              color: isDom ? r.color : '#475569',
+                              background: isDom ? `${r.color}14` : 'transparent',
+                            }}>
+                              {val}%
+                            </td>
+                          )
+                        })}
+                        <td style={{
+                          textAlign: 'right', padding: '6px 8px',
+                          borderBottom: '1px solid rgba(255,255,255,0.04)',
+                          borderLeft: '1px solid rgba(255,255,255,0.07)',
+                          fontFamily: 'monospace', fontWeight: 600,
+                          color: dispColor,
+                        }}>
+                          {row.dispersion.toFixed(1)}%
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+        <p style={{ color: '#334155', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
+          Dominant regime per horizon highlighted. Dispersion = σ of the 4 regime frequencies (mean = 25%); low = high conviction.
+        </p>
+      </div>
+
+      {/* ── Rolling dispersion chart ── */}
+      <div style={{ marginTop: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
+              Dispersion in curve dynamic — 3m rolling window
+            </p>
+            <p style={{ color: '#334155', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
+              ↓ dispersion = conviction &nbsp;·&nbsp; ↑ dispersion = noise / mixed signals
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            {[
+              { label: '2s10s', avg: DISP_AVG_2S10S, color: '#f59e0b' },
+              { label: '2s30s', avg: DISP_AVG_2S30S, color: '#a78bfa' },
+            ].map(({ label, avg, color }) => (
+              <div key={label} style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 8, padding: '4px 12px', textAlign: 'center',
+              }}>
+                <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+                  {label} avg
+                </div>
+                <div style={{ color, fontFamily: 'monospace', fontSize: 13, fontWeight: 700 }}>
+                  {avg.toFixed(1)}%
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={ROLLING_DISP} margin={{ top: 4, right: 12, bottom: 0, left: -8 }}>
+            <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+            <XAxis
+              dataKey="idx"
+              type="number"
+              scale="linear"
+              domain={[0, ROLLING_DISP.length - 1]}
+              ticks={ROLLING_DISP.filter(d => d.monthLabel !== null).map(d => d.idx)}
+              tickFormatter={idx => {
+                const found = ROLLING_DISP.filter(d => d.monthLabel && d.idx <= (idx as number)).slice(-1)[0]
+                return found?.monthLabel ?? ''
+              }}
+              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tickLine={false}
+              axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+              interval={0}
+            />
+            <YAxis
+              domain={[0, 100]}
+              tickFormatter={v => `${v}%`}
+              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tickLine={false}
+              axisLine={false}
+              tickCount={6}
+            />
+            <ReferenceLine y={DISP_AVG_2S10S} stroke="#f59e0b" strokeDasharray="4 4" strokeOpacity={0.4} />
+            <ReferenceLine y={DISP_AVG_2S30S} stroke="#a78bfa" strokeDasharray="4 4" strokeOpacity={0.4} />
+            <Tooltip
+              contentStyle={{
+                background: '#0f172a',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 8, fontSize: 11, fontFamily: 'monospace', color: '#e2e8f0',
+              }}
+              labelStyle={{ color: '#64748b', marginBottom: 4 }}
+              labelFormatter={idx => {
+                const found = ROLLING_DISP.filter(d => d.monthLabel && d.idx <= (idx as number)).slice(-1)[0]
+                return found?.monthLabel ?? String(idx)
+              }}
+              formatter={(v: number, name: string) => [
+                `${v.toFixed(1)}%`,
+                name === 'disp2s10s' ? '2s10s dispersion' : '2s30s dispersion',
+              ]}
+            />
+            <Line type="monotone" dataKey="disp2s10s" stroke="#f59e0b" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+            <Line type="monotone" dataKey="disp2s30s" stroke="#a78bfa" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer>
+
+        <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
+          {[{ label: '2s10s', color: '#f59e0b' }, { label: '2s30s', color: '#a78bfa' }].map(({ label, color }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 20, height: 2, background: color, borderRadius: 1 }} />
+              <span style={{ color: '#475569', fontSize: 10 }}>{label}</span>
+            </div>
+          ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 20, height: 0, borderTop: '2px dashed rgba(245,158,11,0.4)' }} />
+            <span style={{ color: '#334155', fontSize: 10 }}>2s10s avg</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 20, height: 0, borderTop: '2px dashed rgba(167,139,250,0.4)' }} />
+            <span style={{ color: '#334155', fontSize: 10 }}>2s30s avg</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── 10y BE Directionality ───────────────────────────────────────────────────
+// Synthetic monthly 10y EUR inflation swap rates (breakevens), Jun'23–Jun'25.
+// Reflects ECB hiking tail, disinflation, first cut Jun'24, Feb'25 fiscal lift.
+// Replace with live Haver/Bloomberg data when available.
+
+const SYNTHETIC_BE_10Y: number[] = [
+  //  Jun'23 Jul'23 Aug'23 Sep'23 Oct'23 Nov'23 Dec'23
+      2.45,  2.43,  2.41,  2.40,  2.38,  2.30,  2.20,
+  //  Jan'24 Feb'24 Mar'24 Apr'24 May'24 Jun'24 Jul'24
+      2.22,  2.25,  2.28,  2.25,  2.22,  2.18,  2.15,
+  //  Aug'24 Sep'24 Oct'24 Nov'24 Dec'24 Jan'25 Feb'25
+      2.12,  2.10,  2.08,  2.10,  2.15,  2.18,  2.25,
+  //  Mar'25 Apr'25 May'25 Jun'25
+      2.22,  2.20,  2.18,  2.20,
+]
+
+function _genDailyBE(): number[] {
+  const seed = 7.3
+  const out: number[] = []
+  for (let m = 0; m < N_MONTHS - 1; m++) {
+    const y0 = SYNTHETIC_BE_10Y[m], y1 = SYNTHETIC_BE_10Y[m + 1]
+    for (let d = 0; d < BDAYS_PER_MONTH; d++) {
+      const interp = y0 + (y1 - y0) * (d / BDAYS_PER_MONTH)
+      const noise = 0.010 * Math.sin((m * 5 + d) * 1.57 + seed)
+                  + 0.007 * Math.cos((m * 9 + d) * 2.11 + seed * 0.6)
+      out.push(interp + noise)
+    }
+  }
+  out.push(SYNTHETIC_BE_10Y[N_MONTHS - 1])
+  return out
+}
+
+const DAILY_BE = _genDailyBE()
+
+// Classification: Δyield × ΔBE
+// Bear-Wide (Expansion), Bull-Tight (Slowdown), Bull-Wide (Stagflation), Bear-Tight (Goldilocks)
+const BE_REGIME_META = [
+  { key: 'expansion',   label: 'Expansion',   sub: 'Bear Widening',  color: '#34d399' },
+  { key: 'slowdown',    label: 'Slowdown',     sub: 'Bull Tightening', color: '#60a5fa' },
+  { key: 'stagflation', label: 'Stagflation',  sub: 'Bull Widening',  color: '#f87171' },
+  { key: 'goldilocks',  label: 'Goldilocks',   sub: 'Bear Tightening', color: '#f59e0b' },
+] as const
+
+type BERegimeKey = typeof BE_REGIME_META[number]['key']
+
+interface BEFullPoint {
+  idx: number
+  monthLabel: string | null
+  expansion:   number
+  slowdown:    number
+  stagflation: number
+  goldilocks:  number
+}
+
+function computeBEFullDir(): BEFullPoint[] {
+  const n = DAILY_10Y_DIR.length
+  const results: BEFullPoint[] = []
+  for (let t = ROLL_DAYS; t < n; t++) {
+    let exp = 0, sl = 0, stag = 0, gold = 0
+    for (let i = t - ROLL_DAYS + 1; i <= t; i++) {
+      const dY  = DAILY_10Y_DIR[i] - DAILY_10Y_DIR[i - 1]
+      const dBE = DAILY_BE[i]      - DAILY_BE[i - 1]
+      if (Math.abs(dY) < 1e-7) continue
+      if      (dY > 0 && dBE > 0) exp++
+      else if (dY < 0 && dBE < 0) sl++
+      else if (dY < 0 && dBE > 0) stag++
+      else                         gold++
+    }
+    const total = exp + sl + stag + gold || 1
+    const monthLabel = (t % BDAYS_PER_MONTH === 0)
+      ? MONTH_COLS[Math.floor(t / BDAYS_PER_MONTH)]
+      : null
+    results.push({
+      idx: t - ROLL_DAYS, monthLabel,
+      expansion:   Math.round(exp  / total * 100),
+      slowdown:    Math.round(sl   / total * 100),
+      stagflation: Math.round(stag / total * 100),
+      goldilocks:  Math.round(gold / total * 100),
+    })
+  }
+  return results
+}
+
+const BE_DIR = computeBEFullDir()
+
+// Frequency table over 2w / 1m / 2m / 3m
+type BEFreqRow = { horizon: string; expansion: number; slowdown: number; stagflation: number; goldilocks: number; dispersion: number }
+
+function computeBEFreqTable(): BEFreqRow[] {
+  const WINDOWS = [
+    { horizon: '2w', days: 10 },
+    { horizon: '1m', days: 21 },
+    { horizon: '2m', days: 42 },
+    { horizon: '3m', days: 63 },
+  ]
+  const n = DAILY_10Y_DIR.length
+  return WINDOWS.map(({ horizon, days }) => {
+    let exp = 0, sl = 0, stag = 0, gold = 0
+    const start = Math.max(1, n - days)
+    for (let i = start; i < n; i++) {
+      const dY  = DAILY_10Y_DIR[i] - DAILY_10Y_DIR[i - 1]
+      const dBE = DAILY_BE[i]      - DAILY_BE[i - 1]
+      if (Math.abs(dY) < 1e-7) continue
+      if      (dY > 0 && dBE > 0) exp++
+      else if (dY < 0 && dBE < 0) sl++
+      else if (dY < 0 && dBE > 0) stag++
+      else                         gold++
+    }
+    const total = exp + sl + stag + gold || 1
+    const expansion   = Math.round(exp  / total * 100)
+    const slowdown    = Math.round(sl   / total * 100)
+    const stagflation = Math.round(stag / total * 100)
+    const goldilocks  = Math.round(gold / total * 100)
+    return { horizon, expansion, slowdown, stagflation, goldilocks,
+      dispersion: regimeDispersion(expansion, slowdown, stagflation, goldilocks) }
+  })
+}
+
+const BE_FREQ = computeBEFreqTable()
+
+// Rolling dispersion for BE
+const BE_ROLLING_DISP = BE_DIR.map(d => ({
+  idx: d.idx,
+  monthLabel: d.monthLabel,
+  disp: regimeDispersion(d.expansion, d.slowdown, d.stagflation, d.goldilocks),
+}))
+const BE_DISP_AVG = Math.round(
+  BE_ROLLING_DISP.reduce((s, d) => s + d.disp, 0) / BE_ROLLING_DISP.length * 10
+) / 10
+
+// ─── Scenario Probabilities ───────────────────────────────────────────────────
+// Two independent signals: curve (2s10s regime frequencies) and BE (10y breakeven).
+// Each signal maps regime frequencies → scenario raw scores → normalise to 100%.
+//
+// Curve mapping:
+//   Bull Steep  → Hard Landing (1.0)
+//   Bull Flat   → Soft Landing (0.7) + No Landing (0.3)
+//   Bear Steep  → No Landing (0.5) + Reacceleration (0.5)
+//   Bear Flat   → Reacceleration (1.0)
+//
+// BE mapping:
+//   Slowdown    (bull-tight) → Hard Landing (0.6) + Soft Landing (0.4)
+//   Goldilocks  (bear-tight) → Soft Landing (0.5) + No Landing (0.5)
+//   Expansion   (bear-wide)  → No Landing (0.4) + Reacceleration (0.6)
+//   Stagflation (bull-wide)  → Hard Landing (0.5) + Reacceleration (0.5)
+
+interface ScenarioProbs {
+  hardLanding:    number   // 0–100
+  softLanding:    number
+  noLanding:      number
+  reacceleration: number
+}
+
+function _curveScenarioProbs(bs: number, bf: number, bes: number, bef: number): ScenarioProbs {
+  const raw = {
+    hardLanding:    bs  * 1.0,
+    softLanding:    bf  * 0.7,
+    noLanding:      bf  * 0.3 + bes * 0.5,
+    reacceleration: bes * 0.5 + bef * 1.0,
+  }
+  const sum = raw.hardLanding + raw.softLanding + raw.noLanding + raw.reacceleration || 1
+  return {
+    hardLanding:    Math.round(raw.hardLanding    / sum * 100),
+    softLanding:    Math.round(raw.softLanding    / sum * 100),
+    noLanding:      Math.round(raw.noLanding      / sum * 100),
+    reacceleration: Math.round(raw.reacceleration / sum * 100),
+  }
+}
+
+function _beScenarioProbs(exp: number, sl: number, stag: number, gold: number): ScenarioProbs {
+  const raw = {
+    hardLanding:    sl   * 0.6 + stag * 0.5,
+    softLanding:    sl   * 0.4 + gold * 0.5,
+    noLanding:      exp  * 0.4 + gold * 0.5,
+    reacceleration: exp  * 0.6 + stag * 0.5,
+  }
+  const sum = raw.hardLanding + raw.softLanding + raw.noLanding + raw.reacceleration || 1
+  return {
+    hardLanding:    Math.round(raw.hardLanding    / sum * 100),
+    softLanding:    Math.round(raw.softLanding    / sum * 100),
+    noLanding:      Math.round(raw.noLanding      / sum * 100),
+    reacceleration: Math.round(raw.reacceleration / sum * 100),
+  }
+}
+
+// Current probabilities — derived from 3m look-back (index 3 in freq tables)
+const CURVE_PROBS_NOW: ScenarioProbs = _curveScenarioProbs(
+  FREQ_2S10S[3].bullSteep, FREQ_2S10S[3].bullFlat,
+  FREQ_2S10S[3].bearSteep, FREQ_2S10S[3].bearFlat,
+)
+const BE_PROBS_NOW: ScenarioProbs = _beScenarioProbs(
+  BE_FREQ[3].expansion, BE_FREQ[3].slowdown,
+  BE_FREQ[3].stagflation, BE_FREQ[3].goldilocks,
+)
+
+// Rolling daily series aligned with DIR_2S10S / BE_DIR
+interface ScenarioProbsPoint {
+  idx:        number
+  monthLabel: string | null
+  // Curve-derived
+  curveHard:    number
+  curveSoft:    number
+  curveNo:      number
+  curveReaccel: number
+  // BE-derived
+  beHard:    number
+  beSoft:    number
+  beNo:      number
+  beReaccel: number
+}
+
+const SCENARIO_ROLLING: ScenarioProbsPoint[] = DIR_2S10S.map((c, i) => {
+  const b  = BE_DIR[i]
+  const cp = _curveScenarioProbs(c.bullSteep, c.bullFlat, c.bearSteep, c.bearFlat)
+  const bp = _beScenarioProbs(b.expansion, b.slowdown, b.stagflation, b.goldilocks)
+  return {
+    idx:          c.idx,
+    monthLabel:   c.monthLabel,
+    curveHard:    cp.hardLanding,
+    curveSoft:    cp.softLanding,
+    curveNo:      cp.noLanding,
+    curveReaccel: cp.reacceleration,
+    beHard:       bp.hardLanding,
+    beSoft:       bp.softLanding,
+    beNo:         bp.noLanding,
+    beReaccel:    bp.reacceleration,
+  }
+})
+
+const SCENARIO_META = [
+  { key: 'hardLanding',    label: 'Hard Landing',   desc: 'Recessionary bull steepening / growth shock',   color: '#60a5fa' },
+  { key: 'softLanding',    label: 'Soft Landing',   desc: 'Mild disinflation with orderly curve flattening', color: '#34d399' },
+  { key: 'noLanding',      label: 'No Landing',     desc: 'Resilient growth, rates rangebound / bear steep', color: '#f59e0b' },
+  { key: 'reacceleration', label: 'Reacceleration', desc: 'Reflation — bear flattening or expansion regime', color: '#f87171' },
+] as const
+
+type ScenarioKey = typeof SCENARIO_META[number]['key']
+
+function ScenarioProbabilitiesSection() {
+  const scTicks  = SCENARIO_ROLLING.filter(d => d.monthLabel !== null).map(d => d.idx)
+  const labelFor = (idx: number) =>
+    SCENARIO_ROLLING.filter(d => d.monthLabel && d.idx <= idx).slice(-1)[0]?.monthLabel ?? ''
+
+  return (
+    <div style={cardStyle}>
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+          Scenario Probabilities
+        </h2>
+        <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>
+          Discretised from 3m regime frequencies &middot; two independent signals: 2s10s curve dynamics &amp; 10y breakeven
+        </p>
+      </div>
+
+      {/* ── Current probability panels ── */}
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 32 }}>
+        {([
+          { label: '2s10s Curve Signal', probs: CURVE_PROBS_NOW, note: 'Derived from bull-steep / bear-flat / bear-steep / bull-flat frequencies' },
+          { label: '10y Breakeven Signal', probs: BE_PROBS_NOW,  note: 'Derived from bear-wide / bull-tight / bull-wide / bear-tight frequencies' },
+        ] as const).map(({ label, probs, note }) => (
+          <div key={label} style={{
+            flex: '1 1 340px', minWidth: 0,
+            background: 'rgba(255,255,255,0.02)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 10,
+            padding: '16px 20px',
+          }}>
+            <p style={{ color: '#64748b', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 14px' }}>
+              {label}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {SCENARIO_META.map(sc => {
+                const pct = probs[sc.key as ScenarioKey]
+                return (
+                  <div key={sc.key}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: 2, background: sc.color, flexShrink: 0 }} />
+                        <span style={{ color: '#cbd5e1', fontSize: 11, fontWeight: 600 }}>{sc.label}</span>
+                      </div>
+                      <span style={{
+                        color: sc.color,
+                        fontFamily: 'monospace',
+                        fontSize: 13,
+                        fontWeight: 700,
+                      }}>
+                        {pct}%
+                      </span>
+                    </div>
+                    {/* Bar */}
+                    <div style={{
+                      height: 6, borderRadius: 3,
+                      background: 'rgba(255,255,255,0.06)',
+                      overflow: 'hidden',
+                    }}>
+                      <div style={{
+                        height: '100%',
+                        width: `${pct}%`,
+                        background: sc.color,
+                        opacity: 0.75,
+                        borderRadius: 3,
+                        transition: 'width 0.4s ease',
+                      }} />
+                    </div>
+                    <p style={{ color: '#334155', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
+                      {sc.desc}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+            <p style={{ color: '#334155', fontSize: 9, margin: '12px 0 0', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 8 }}>
+              {note}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Rolling scenario probability charts ── */}
+      <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 16px' }}>
+        Rolling scenario probabilities — 3m window
+      </p>
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+
+        {/* Curve-derived rolling */}
+        <div style={{ flex: '1 1 420px', minWidth: 0 }}>
+          <p style={{ color: '#64748b', fontSize: 10, fontWeight: 600, margin: '0 0 8px' }}>
+            2s10s Curve signal
+          </p>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={SCENARIO_ROLLING} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
+              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+              <XAxis
+                dataKey="idx"
+                type="number" scale="linear"
+                domain={[0, SCENARIO_ROLLING.length - 1]}
+                ticks={scTicks}
+                tickFormatter={idx => labelFor(idx as number)}
+                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={0}
+              />
+              <YAxis
+                domain={[0, 100]} tickFormatter={v => `${v}%`}
+                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tickLine={false} axisLine={false} tickCount={6}
+              />
+              <ReferenceLine y={25} stroke="rgba(255,255,255,0.08)" strokeDasharray="4 4" />
+              <Tooltip
+                contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }}
+                labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                labelFormatter={idx => labelFor(idx as number)}
+                formatter={(v: number, name: string) => {
+                  const sc = SCENARIO_META.find(s => `curve${s.key.charAt(0).toUpperCase()}${s.key.slice(1)}` === name
+                    || `curve${s.label.replace(/\s/g, '')}` === name
+                    || name === `curve${s.key.charAt(0).toUpperCase() + s.key.slice(1)}`)
+                  return [`${v}%`, sc?.label ?? name]
+                }}
+              />
+              <Line type="monotone" dataKey="curveHard"    stroke="#60a5fa" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="curveSoft"    stroke="#34d399" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="curveNo"      stroke="#f59e0b" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="curveReaccel" stroke="#f87171" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* BE-derived rolling */}
+        <div style={{ flex: '1 1 420px', minWidth: 0 }}>
+          <p style={{ color: '#64748b', fontSize: 10, fontWeight: 600, margin: '0 0 8px' }}>
+            10y Breakeven signal
+          </p>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={SCENARIO_ROLLING} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
+              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+              <XAxis
+                dataKey="idx"
+                type="number" scale="linear"
+                domain={[0, SCENARIO_ROLLING.length - 1]}
+                ticks={scTicks}
+                tickFormatter={idx => labelFor(idx as number)}
+                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={0}
+              />
+              <YAxis
+                domain={[0, 100]} tickFormatter={v => `${v}%`}
+                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tickLine={false} axisLine={false} tickCount={6}
+              />
+              <ReferenceLine y={25} stroke="rgba(255,255,255,0.08)" strokeDasharray="4 4" />
+              <Tooltip
+                contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }}
+                labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                labelFormatter={idx => labelFor(idx as number)}
+                formatter={(v: number, name: string) => {
+                  const map: Record<string, string> = {
+                    beHard: 'Hard Landing', beSoft: 'Soft Landing',
+                    beNo: 'No Landing', beReaccel: 'Reacceleration',
+                  }
+                  return [`${v}%`, map[name] ?? name]
+                }}
+              />
+              <Line type="monotone" dataKey="beHard"    stroke="#60a5fa" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="beSoft"    stroke="#34d399" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="beNo"      stroke="#f59e0b" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="beReaccel" stroke="#f87171" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Shared legend */}
+      <div style={{ display: 'flex', gap: 20, marginTop: 10, flexWrap: 'wrap' }}>
+        {SCENARIO_META.map(sc => (
+          <div key={sc.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 20, height: 2, background: sc.color, borderRadius: 1 }} />
+            <span style={{ color: '#475569', fontSize: 10 }}>{sc.label}</span>
+          </div>
+        ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 20, height: 0, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
+          <span style={{ color: '#334155', fontSize: 10 }}>25% uniform baseline</span>
+        </div>
+      </div>
+
+      <p style={{ color: '#334155', fontSize: 9, margin: '12px 0 0', fontStyle: 'italic' }}>
+        Probabilities derived by mapping regime frequencies through fixed scenario weight matrices and normalising to 100%.
+        Curve weights: bull-steep→hard (1.0), bull-flat→soft (0.7)/no (0.3), bear-steep→no (0.5)/reaccel (0.5), bear-flat→reaccel (1.0).
+        BE weights: slowdown→hard (0.6)/soft (0.4), goldilocks→soft (0.5)/no (0.5), expansion→no (0.4)/reaccel (0.6), stagflation→hard (0.5)/reaccel (0.5).
+      </p>
+    </div>
+  )
+}
+
+function BEDynamicsSection() {
+  const beTicks   = BE_DIR.filter(d => d.monthLabel !== null).map(d => d.idx)
+  const labelFor  = (idx: number) =>
+    BE_DIR.filter(d => d.monthLabel && d.idx <= idx).slice(-1)[0]?.monthLabel ?? ''
+  const currentBE = BE_DIR[BE_DIR.length - 1]
+
+  return (
+    <div style={cardStyle}>
+      {/* Header */}
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+          10y Breakeven Directionality
+        </h2>
+        <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>
+          Comovement of 10y Bund yield &amp; 10y EUR inflation breakeven &middot; 4 macro scenarios &middot; 3m rolling window
+        </p>
+      </div>
+
+      {/* Regime legend */}
+      <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
+        {BE_REGIME_META.map(r => (
+          <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 10, height: 10, borderRadius: 2, background: r.color }} />
+            <div>
+              <span style={{ color: r.color, fontSize: 11, fontWeight: 600 }}>{r.label}</span>
+              <span style={{ color: '#334155', fontSize: 10 }}> · {r.sub}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Frequency table ── */}
+      <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+        Likelihood of different scenarios
+      </p>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, marginBottom: 28 }}>
+        <thead>
+          {/* Row 1: correlation group headers */}
+          <tr>
+            <th style={{ width: 60 }} />
+            <th colSpan={2} style={{
+              textAlign: 'center', fontWeight: 700, fontSize: 10,
+              padding: '4px 8px 4px',
+              color: '#34d399',
+              borderBottom: '1px solid rgba(52,211,153,0.25)',
+              borderLeft: '1px solid rgba(255,255,255,0.07)',
+              letterSpacing: '0.04em',
+            }}>
+              Correl &gt; 0
+            </th>
+            <th colSpan={2} style={{
+              textAlign: 'center', fontWeight: 700, fontSize: 10,
+              padding: '4px 8px 4px',
+              color: '#f87171',
+              borderBottom: '1px solid rgba(248,113,113,0.25)',
+              borderLeft: '1px solid rgba(255,255,255,0.07)',
+              letterSpacing: '0.04em',
+            }}>
+              Correl &lt; 0
+            </th>
+            <th style={{ borderLeft: '1px solid rgba(255,255,255,0.07)' }} />
+          </tr>
+          {/* Row 2: regime names + sub-labels */}
+          <tr>
+            <th style={{ textAlign: 'left', color: '#475569', fontWeight: 600, fontSize: 10, padding: '2px 10px 6px 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              Horizon
+            </th>
+            {BE_REGIME_META.map((r, i) => (
+              <th key={r.key} style={{
+                textAlign: 'right', fontWeight: 600, fontSize: 10,
+                padding: '2px 8px 6px',
+                borderBottom: '1px solid rgba(255,255,255,0.07)',
+                borderLeft: (i === 0 || i === 2) ? '1px solid rgba(255,255,255,0.07)' : undefined,
+                color: r.color, whiteSpace: 'nowrap', lineHeight: 1.35,
+              }}>
+                {r.label}<br />
+                <span style={{ color: '#334155', fontWeight: 400, fontSize: 9 }}>{r.sub}</span>
+              </th>
+            ))}
+            <th style={{
+              textAlign: 'right', fontWeight: 600, fontSize: 10,
+              padding: '2px 8px 6px',
+              borderBottom: '1px solid rgba(255,255,255,0.07)',
+              color: '#94a3b8', whiteSpace: 'nowrap',
+              borderLeft: '1px solid rgba(255,255,255,0.07)',
+            }}>
+              Dispersion
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {BE_FREQ.map((row, ri) => {
+            const dominant = (['expansion','slowdown','stagflation','goldilocks'] as BERegimeKey[])
+              .reduce((a, b) => row[a] >= row[b] ? a : b)
+            const domMeta  = BE_REGIME_META.find(r => r.key === dominant)!
+            const dispColor = row.dispersion < 25 ? '#34d399' : row.dispersion > 50 ? '#f87171' : '#94a3b8'
+            return (
+              <tr key={row.horizon} style={{ background: ri % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent' }}>
+                <td style={{ padding: '6px 10px 6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#94a3b8', fontFamily: 'monospace', fontWeight: 700, fontSize: 11 }}>
+                  {row.horizon}
+                </td>
+                {BE_REGIME_META.map(r => {
+                  const val   = row[r.key]
+                  const isDom = r.key === dominant
+                  return (
+                    <td key={r.key} style={{
+                      textAlign: 'right', padding: '6px 8px',
+                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      fontFamily: 'monospace',
+                      fontWeight: isDom ? 700 : 400,
+                      color: isDom ? domMeta.color : '#475569',
+                      background: isDom ? `${domMeta.color}14` : 'transparent',
+                    }}>
+                      {val}%
+                    </td>
+                  )
+                })}
+                <td style={{
+                  textAlign: 'right', padding: '6px 8px',
+                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                  borderLeft: '1px solid rgba(255,255,255,0.07)',
+                  fontFamily: 'monospace', fontWeight: 600, color: dispColor,
+                }}>
+                  {row.dispersion.toFixed(1)}%
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+
+      {/* ── Orthodox vs non-orthodox breakdown chart ── */}
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+
+        {/* Expansion + Slowdown line chart */}
+        <div style={{ flex: '1 1 420px', minWidth: 0 }}>
+          <p style={{ color: '#64748b', fontSize: 10, fontWeight: 600, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Orthodox moves — normalised (Expansion + Slowdown = 100%)
+          </p>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart
+              data={BE_DIR.map(d => {
+                const tot = (d.expansion + d.slowdown) || 1
+                return {
+                  idx:       d.idx,
+                  expansion: Math.round(d.expansion / tot * 100),
+                  slowdown:  Math.round(d.slowdown  / tot * 100),
+                }
+              })}
+              margin={{ top: 4, right: 8, bottom: 0, left: -12 }}
+            >
+              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+              <XAxis dataKey="idx" type="number" scale="linear"
+                domain={[0, BE_DIR.length - 1]}
+                ticks={beTicks}
+                tickFormatter={idx => labelFor(idx as number)}
+                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={0}
+              />
+              <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`}
+                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tickLine={false} axisLine={false} tickCount={6}
+              />
+              <ReferenceLine y={50} stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
+              <Tooltip
+                contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }}
+                labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                labelFormatter={idx => labelFor(idx as number)}
+                formatter={(v: number, name: string) => [
+                  `${v}%`,
+                  name === 'expansion' ? 'Expansion (normalised)' : 'Slowdown (normalised)',
+                ]}
+              />
+              <Line type="monotone" dataKey="expansion" stroke="#34d399" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="slowdown"  stroke="#60a5fa" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+            </LineChart>
+          </ResponsiveContainer>
+          <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 2, background: '#34d399', borderRadius: 1 }} /><span style={{ color: '#475569', fontSize: 10 }}>Expansion</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 2, background: '#60a5fa', borderRadius: 1 }} /><span style={{ color: '#475569', fontSize: 10 }}>Slowdown</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 0, borderTop: '1px dashed rgba(255,255,255,0.12)' }} /><span style={{ color: '#334155', fontSize: 10 }}>50% baseline</span></div>
+          </div>
+        </div>
+
+        {/* Stacked full-breakdown chart */}
+        <div style={{ flex: '1 1 420px', minWidth: 0 }}>
+          <p style={{ color: '#64748b', fontSize: 10, fontWeight: 600, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            All four scenarios — 3m rolling
+          </p>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={BE_DIR} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
+              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+              <XAxis dataKey="idx" type="number" scale="linear"
+                domain={[0, BE_DIR.length - 1]}
+                ticks={beTicks}
+                tickFormatter={idx => labelFor(idx as number)}
+                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={0}
+              />
+              <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`}
+                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tickLine={false} axisLine={false} tickCount={6}
+              />
+              <Tooltip
+                contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }}
+                labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                labelFormatter={idx => labelFor(idx as number)}
+                formatter={(v: number, name: string) => {
+                  const meta = BE_REGIME_META.find(r => r.key === name)
+                  return [`${v}%`, meta?.label ?? name]
+                }}
+              />
+              {BE_REGIME_META.map(r => (
+                <Area key={r.key} type="monotone" dataKey={r.key}
+                  stackId="1" stroke={r.color} strokeWidth={0}
+                  fill={r.color} fillOpacity={0.75} isAnimationActive={false}
+                />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+          <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
+            {BE_REGIME_META.map(r => (
+              <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: r.color, opacity: 0.8 }} />
+                <span style={{ color: '#475569', fontSize: 10 }}>{r.label}</span>
+                <span style={{ color: r.color, fontFamily: 'monospace', fontSize: 10, fontWeight: 700 }}>
+                  {currentBE[r.key]}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Dispersion chart ── */}
+      <div style={{ marginTop: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
+              Dispersion in BE dynamic — 3m rolling
+            </p>
+            <p style={{ color: '#334155', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>↓ dispersion = conviction &nbsp;·&nbsp; ↑ dispersion = mixed signals</p>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8, padding: '4px 12px', textAlign: 'center' }}>
+            <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>avg</div>
+            <div style={{ color: '#34d399', fontFamily: 'monospace', fontSize: 13, fontWeight: 700 }}>{BE_DISP_AVG.toFixed(1)}%</div>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={180}>
+          <LineChart data={BE_ROLLING_DISP} margin={{ top: 4, right: 12, bottom: 0, left: -8 }}>
+            <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+            <XAxis dataKey="idx" type="number" scale="linear"
+              domain={[0, BE_ROLLING_DISP.length - 1]}
+              ticks={beTicks}
+              tickFormatter={idx => labelFor(idx as number)}
+              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={0}
+            />
+            <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`}
+              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tickLine={false} axisLine={false} tickCount={6}
+            />
+            <ReferenceLine y={BE_DISP_AVG} stroke="rgba(52,211,153,0.3)" strokeDasharray="4 4" />
+            <Tooltip
+              contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11, fontFamily: 'monospace', color: '#e2e8f0' }}
+              labelStyle={{ color: '#64748b', marginBottom: 4 }}
+              labelFormatter={idx => labelFor(idx as number)}
+              formatter={(v: number) => [`${v.toFixed(1)}%`, 'BE dispersion']}
+            />
+            <Line type="monotone" dataKey="disp" stroke="#34d399" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      <p style={{ color: '#334155', fontSize: 9, margin: '10px 0 0', fontStyle: 'italic' }}>
+        Orthodox moves (positive correlation): Expansion (bear-wide) + Slowdown (bull-tight) dominate c.72–96% of the cycle.
+        Non-orthodox: Stagflation (bull-wide) = growth shock; Goldilocks (bear-tight) = early-cycle re-rating.
+      </p>
     </div>
   )
 }
@@ -1756,6 +3395,15 @@ export default function EuroAreaHeatmap() {
 
         {/* 10y Bund fair value */}
         <BundFairValueSection />
+
+        {/* 2s10s curve directionality */}
+        <CurveDynamicsSection />
+
+        {/* 10y BE directionality */}
+        <BEDynamicsSection />
+
+        {/* Scenario probabilities */}
+        <ScenarioProbabilitiesSection />
 
         {/* Legend card */}
         <div style={cardStyle}>

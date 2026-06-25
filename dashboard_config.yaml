@@ -156,3 +156,20 @@ categories:
         name: Euro Area Heatmap
         icon: "🇪🇺"
         url: /tools/euro-area-heatmap
+      - id: global-yields
+        name: Factor Model for Global Yields
+        icon: "🌐"
+        url: /tools/global-yields
+      - id: option-derived-cdf
+        name: Option-Implied Macro Scenario Probabilities
+        icon: "📐"
+        url: /tools/option-derived-cdf
+
+  - id: inflation-markets
+    name: Inflation Markets
+    color: "#F97316"
+    tools:
+      - id: fair-value-models
+        name: Fair Value Models
+        icon: "⚖️"
+        url: /tools/fair-value-models
