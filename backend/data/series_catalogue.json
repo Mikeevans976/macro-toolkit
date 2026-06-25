@@ -1,0 +1,314 @@
+{
+  "_meta": {
+    "description": "Master catalogue of all time series used across the Analytics Hub. Single source of truth for series identity, source, and ingestion metadata.",
+    "field_reference": {
+      "id": "Unique machine-readable slug. Used to cross-reference series across tools and config files.",
+      "name": "Human-readable short label.",
+      "description": "What the series measures and why it matters.",
+      "source": "Data vendor: bloomberg | haver | ecb | eurostat | derived.",
+      "ticker_bloomberg": "Bloomberg ticker string (e.g. 'GDBR10 Index'). null if not available on Bloomberg.",
+      "ticker_haver": "Haver mnemonic (e.g. 'CPIEZXFE@EUDATA'). null if not available on Haver.",
+      "frequency": "Observation frequency: daily | monthly | quarterly.",
+      "units": "Unit/scale of the raw series as pulled from source.",
+      "typical_lag_days": "Calendar days from reference period end to typical publication date. null for daily market data (no publication lag).",
+      "asset_class": "Grouping: macro_survey | macro_activity | macro_inflation | macro_labour | government_bonds | rates_swaps | inflation_swaps | commodities | volatility.",
+      "geography": "Primary geographic scope of the series.",
+      "tools": "List of tool IDs in the hub that consume this series.",
+      "role": "How the series is used: factor_input (DFM macro block) | target (y-variable in regression model) | predictor (x-variable) | market_data (general market series).",
+      "internal_key": "Internal variable name used in backend Python code when it differs from id.",
+      "dfm_factor": "For factor_input series: which DFM factor this series primarily identifies (Growth | Inflation | Employment | Wages).",
+      "dfm_sign": "For factor_input series: +1 if series moves in the same direction as the factor, -1 if inverse (e.g. unemployment rate is -1 for Employment factor).",
+      "notes": "Free-text caveats, data quirks, or ingestion instructions."
+    }
+  },
+
+  "series": [
+
+    {
+      "id": "ea_composite_pmi",
+      "name": "EA Composite PMI",
+      "description": "S&P Global Euro Area Composite PMI Output Index. Covers manufacturing and services. Above 50 = expansion. Flash estimate is the market-moving release.",
+      "source": "haver",
+      "ticker_bloomberg": "MAPMEROZ Index",
+      "ticker_haver": "PMIEZCO@EMERGE",
+      "frequency": "monthly",
+      "units": "index",
+      "typical_lag_days": 23,
+      "asset_class": "macro_survey",
+      "geography": "euro_area",
+      "tools": ["euro_area_heatmap"],
+      "role": "factor_input",
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "notes": "Use flash release date as ingestion date (~3 weeks after month-end). Final release follows ~1 week later but adds little information."
+    },
+
+    {
+      "id": "ea_services_pmi",
+      "name": "EA Services PMI",
+      "description": "S&P Global Euro Area Services PMI Business Activity Index. Flash released ~3 weeks after month-end.",
+      "source": "haver",
+      "ticker_bloomberg": "MPMIEZCS Index",
+      "ticker_haver": "PMIEZSE@EMERGE",
+      "frequency": "monthly",
+      "units": "index",
+      "typical_lag_days": 23,
+      "asset_class": "macro_survey",
+      "geography": "euro_area",
+      "tools": ["euro_area_heatmap"],
+      "role": "factor_input",
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "notes": null
+    },
+
+    {
+      "id": "ea_industrial_production_yoy",
+      "name": "EA Industrial Production (y/y)",
+      "description": "Eurostat Euro Area industrial production index, year-on-year % change. Covers manufacturing, mining, and energy. Hard activity data complementing the PMI surveys.",
+      "source": "haver",
+      "ticker_bloomberg": "EUITEMUM Index",
+      "ticker_haver": "IPIDEZM@EUDATA",
+      "frequency": "monthly",
+      "units": "yoy_pct",
+      "typical_lag_days": 45,
+      "asset_class": "macro_activity",
+      "geography": "euro_area",
+      "tools": ["euro_area_heatmap"],
+      "role": "factor_input",
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "notes": null
+    },
+
+    {
+      "id": "ea_core_hicp_yoy",
+      "name": "EA Core HICP (y/y)",
+      "description": "Eurostat Euro Area HICP excluding food and energy, year-on-year % change. Primary inflation gauge tracked by the ECB. Flash estimate released ~30 days after month-end.",
+      "source": "haver",
+      "ticker_bloomberg": "ECCPEXFE Index",
+      "ticker_haver": "CPIEZXFE@EUDATA",
+      "frequency": "monthly",
+      "units": "yoy_pct",
+      "typical_lag_days": 30,
+      "asset_class": "macro_inflation",
+      "geography": "euro_area",
+      "tools": ["euro_area_heatmap"],
+      "role": "factor_input",
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "notes": "Use flash release date. Flash and final are almost always identical for core."
+    },
+
+    {
+      "id": "ea_ces_inflation_exp_1y",
+      "name": "EA CES 1Y Inflation Expectations",
+      "description": "ECB Consumer Expectations Survey: mean 1-year ahead inflation expectations (%). Released ~5-6 weeks after the reference month. Available monthly since 2020.",
+      "source": "ecb",
+      "ticker_bloomberg": null,
+      "ticker_haver": null,
+      "frequency": "monthly",
+      "units": "pct",
+      "typical_lag_days": 40,
+      "asset_class": "macro_survey",
+      "geography": "euro_area",
+      "tools": ["euro_area_heatmap"],
+      "role": "factor_input",
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "notes": "Pull directly from ECB Data Portal API (dataset: ECB_CES1). Not on Bloomberg or Haver."
+    },
+
+    {
+      "id": "ea_unemployment_rate",
+      "name": "EA Unemployment Rate",
+      "description": "Eurostat Euro Area harmonised unemployment rate (% of labour force), seasonally adjusted. Released ~30 days after month-end.",
+      "source": "haver",
+      "ticker_bloomberg": "UMRTEMU Index",
+      "ticker_haver": "UNEMEZM@EUDATA",
+      "frequency": "monthly",
+      "units": "pct",
+      "typical_lag_days": 30,
+      "asset_class": "macro_labour",
+      "geography": "euro_area",
+      "tools": ["euro_area_heatmap"],
+      "role": "factor_input",
+      "dfm_factor": "Employment",
+      "dfm_sign": -1,
+      "notes": "Sign-flipped in DFM: higher unemployment = weaker Employment factor. Feed the raw rate level; the sign convention is handled in backend code."
+    },
+
+    {
+      "id": "ea_job_vacancy_rate",
+      "name": "EA Job Vacancy Rate",
+      "description": "Eurostat Euro Area job vacancy rate (% of total posts). Quarterly. Released ~70 days after quarter-end.",
+      "source": "haver",
+      "ticker_bloomberg": "EUJVRATE Index",
+      "ticker_haver": "JVREZQ@EUDATA",
+      "frequency": "quarterly",
+      "units": "pct",
+      "typical_lag_days": 70,
+      "asset_class": "macro_labour",
+      "geography": "euro_area",
+      "tools": ["euro_area_heatmap"],
+      "role": "factor_input",
+      "dfm_factor": "Employment",
+      "dfm_sign": 1,
+      "notes": "Quarterly; Kalman filter handles the long gaps between observations natively."
+    },
+
+    {
+      "id": "ea_negotiated_wages_yoy",
+      "name": "EA Negotiated Wages (y/y)",
+      "description": "ECB indicator of negotiated wage rates for the Euro Area, year-on-year % change. Quarterly. Key ECB wage-watching indicator, released ~6-8 weeks after quarter-end.",
+      "source": "ecb",
+      "ticker_bloomberg": "ECNWGEUR Index",
+      "ticker_haver": null,
+      "frequency": "quarterly",
+      "units": "yoy_pct",
+      "typical_lag_days": 50,
+      "asset_class": "macro_labour",
+      "geography": "euro_area",
+      "tools": ["euro_area_heatmap"],
+      "role": "factor_input",
+      "dfm_factor": "Wages",
+      "dfm_sign": 1,
+      "notes": "Primary source is ECB SDW. Bloomberg may carry as ECNWGEUR Index — verify coverage. Quarterly with long lag makes this the slowest-updating input."
+    },
+
+    {
+      "id": "bund_2y",  "name": "Germany 2Y Bund Yield",  "description": "Generic German 2Y government bond yield (benchmark on-the-run). Block 2 of the Euro Area Heatmap (yield curve PCA).", "source": "bloomberg", "ticker_bloomberg": "GDBR2 Index",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "germany", "tools": ["euro_area_heatmap"], "role": "market_data", "notes": null
+    },
+    {
+      "id": "bund_3y",  "name": "Germany 3Y Bund Yield",  "description": "Generic German 3Y government bond yield.", "source": "bloomberg", "ticker_bloomberg": "GDBR3 Index",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "germany", "tools": ["euro_area_heatmap"], "role": "market_data", "notes": null
+    },
+    {
+      "id": "bund_5y",  "name": "Germany 5Y Bund Yield",  "description": "Generic German 5Y government bond yield.", "source": "bloomberg", "ticker_bloomberg": "GDBR5 Index",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "germany", "tools": ["euro_area_heatmap"], "role": "market_data", "notes": null
+    },
+    {
+      "id": "bund_7y",  "name": "Germany 7Y Bund Yield",  "description": "Generic German 7Y government bond yield.", "source": "bloomberg", "ticker_bloomberg": "GDBR7 Index",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "germany", "tools": ["euro_area_heatmap"], "role": "market_data", "notes": null
+    },
+    {
+      "id": "bund_10y", "name": "Germany 10Y Bund Yield", "description": "Generic German 10Y government bond yield. Primary output of the fair-value model. Shared between the Bund yield PCA (Euro Area Heatmap) and the Global Yields factor model.", "source": "bloomberg", "ticker_bloomberg": "GDBR10 Index", "ticker_haver": "BNDEZQ10@EUDATA", "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "germany", "tools": ["euro_area_heatmap", "global_yields"], "role": "market_data", "notes": null
+    },
+    {
+      "id": "bund_15y", "name": "Germany 15Y Bund Yield", "description": "Generic German 15Y government bond yield.", "source": "bloomberg", "ticker_bloomberg": "GDBR15 Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "germany", "tools": ["euro_area_heatmap"], "role": "market_data", "notes": null
+    },
+    {
+      "id": "bund_20y", "name": "Germany 20Y Bund Yield", "description": "Generic German 20Y government bond yield.", "source": "bloomberg", "ticker_bloomberg": "GDBR20 Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "germany", "tools": ["euro_area_heatmap"], "role": "market_data", "notes": null
+    },
+    {
+      "id": "bund_30y", "name": "Germany 30Y Bund Yield", "description": "Generic German 30Y government bond yield.", "source": "bloomberg", "ticker_bloomberg": "GDBR30 Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "germany", "tools": ["euro_area_heatmap"], "role": "market_data", "notes": null
+    },
+
+    { "id": "gov10y_us",           "name": "US 10Y Treasury Yield",                   "description": "Generic 10Y US Treasury yield.",                          "source": "bloomberg", "ticker_bloomberg": "USGG10YR Index",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "us",             "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_uk",           "name": "UK 10Y Gilt Yield",                        "description": "Generic 10Y UK Gilt yield.",                             "source": "bloomberg", "ticker_bloomberg": "GUKG10 Index",    "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "uk",             "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_canada",       "name": "Canada 10Y Government Bond Yield",         "description": "Generic 10Y Canadian government bond yield.",             "source": "bloomberg", "ticker_bloomberg": "GCAN10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "canada",         "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_japan",        "name": "Japan 10Y JGB Yield",                      "description": "Generic 10Y Japanese Government Bond yield.",             "source": "bloomberg", "ticker_bloomberg": "GJGB10 Index",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "japan",          "tools": ["global_yields"], "role": "market_data", "notes": "BoJ yield curve control means this series had extended periods of near-zero values. Handle outliers carefully." },
+    { "id": "gov10y_australia",    "name": "Australia 10Y Government Bond Yield",      "description": "Generic 10Y Australian government bond yield.",           "source": "bloomberg", "ticker_bloomberg": "GACGB10 Index",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "australia",      "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_switzerland",  "name": "Switzerland 10Y Government Bond Yield",    "description": "Generic 10Y Swiss Confederation bond yield.",             "source": "bloomberg", "ticker_bloomberg": "GSWISS10 Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "switzerland",    "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_france",       "name": "France 10Y OAT Yield",                     "description": "Generic 10Y French OAT yield.",                          "source": "bloomberg", "ticker_bloomberg": "GFRN10 Index",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "france",         "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_austria",      "name": "Austria 10Y Government Bond Yield",        "description": "Generic 10Y Austrian government bond yield.",             "source": "bloomberg", "ticker_bloomberg": "GAGB10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "austria",        "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_netherlands",  "name": "Netherlands 10Y Government Bond Yield",    "description": "Generic 10Y Dutch government bond yield.",               "source": "bloomberg", "ticker_bloomberg": "GNTH10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "netherlands",    "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_belgium",      "name": "Belgium 10Y Government Bond Yield",        "description": "Generic 10Y Belgian OLO yield.",                         "source": "bloomberg", "ticker_bloomberg": "GBGB10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "belgium",        "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_italy",        "name": "Italy 10Y BTP Yield",                      "description": "Generic 10Y Italian BTP yield.",                         "source": "bloomberg", "ticker_bloomberg": "GBTPGR10 Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "italy",          "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_greece",       "name": "Greece 10Y Government Bond Yield",         "description": "Generic 10Y Greek government bond yield.",               "source": "bloomberg", "ticker_bloomberg": "GGGB10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "greece",         "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_ireland",      "name": "Ireland 10Y Government Bond Yield",        "description": "Generic 10Y Irish government bond yield.",               "source": "bloomberg", "ticker_bloomberg": "GIGB10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "ireland",        "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_portugal",     "name": "Portugal 10Y Government Bond Yield",       "description": "Generic 10Y Portuguese government bond yield.",           "source": "bloomberg", "ticker_bloomberg": "GSPT10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "portugal",       "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_spain",        "name": "Spain 10Y Bonos Yield",                    "description": "Generic 10Y Spanish Bonos yield.",                       "source": "bloomberg", "ticker_bloomberg": "GSPG10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "spain",          "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_brazil",       "name": "Brazil 10Y Government Bond Yield",         "description": "Generic 10Y Brazilian local currency government bond.",   "source": "bloomberg", "ticker_bloomberg": "GEBR10Y Index",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "brazil",         "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_mexico",       "name": "Mexico 10Y Government Bond Yield",         "description": "Generic 10Y Mexican Mbono yield.",                       "source": "bloomberg", "ticker_bloomberg": "GMXN10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "mexico",         "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_india",        "name": "India 10Y Government Bond Yield",          "description": "Generic 10Y Indian government bond yield.",               "source": "bloomberg", "ticker_bloomberg": "GIND10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "india",          "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_south_korea",  "name": "South Korea 10Y Government Bond Yield",   "description": "Generic 10Y South Korean KTB yield.",                    "source": "bloomberg", "ticker_bloomberg": "GKOR10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "south_korea",    "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_indonesia",    "name": "Indonesia 10Y Government Bond Yield",      "description": "Generic 10Y Indonesian government bond yield.",           "source": "bloomberg", "ticker_bloomberg": "GIDN10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "indonesia",      "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_south_africa", "name": "South Africa 10Y Government Bond Yield",  "description": "Generic 10Y South African government bond yield.",        "source": "bloomberg", "ticker_bloomberg": "GSAF10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "south_africa",   "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_poland",       "name": "Poland 10Y Government Bond Yield",         "description": "Generic 10Y Polish government bond yield.",               "source": "bloomberg", "ticker_bloomberg": "GPOL10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "poland",         "tools": ["global_yields"], "role": "market_data", "notes": null },
+    { "id": "gov10y_czech",        "name": "Czech Republic 10Y Government Bond Yield", "description": "Generic 10Y Czech government bond yield.",               "source": "bloomberg", "ticker_bloomberg": "GCZK10YR Index", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "government_bonds", "geography": "czech_republic", "tools": ["global_yields"], "role": "market_data", "notes": null },
+
+    { "id": "eur_swap_1y",  "name": "EUR ESTR IRS 1Y",  "description": "EUR ESTR-indexed interest rate swap, 1Y par rate. Predictor in HICPxT outright models; also used for carry in Swaps RV.",  "source": "bloomberg", "ticker_bloomberg": "EUSA1 Curncy",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "EESWE1",  "notes": null },
+    { "id": "eur_swap_2y",  "name": "EUR ESTR IRS 2Y",  "description": "EUR ESTR-indexed interest rate swap, 2Y par rate.",  "source": "bloomberg", "ticker_bloomberg": "EUSA2 Curncy",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "EESWE2",  "notes": null },
+    { "id": "eur_swap_5y",  "name": "EUR ESTR IRS 5Y",  "description": "EUR ESTR-indexed interest rate swap, 5Y par rate.",  "source": "bloomberg", "ticker_bloomberg": "EUSA5 Curncy",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "EESWE5",  "notes": null },
+    { "id": "eur_swap_10y", "name": "EUR ESTR IRS 10Y", "description": "EUR ESTR-indexed interest rate swap, 10Y par rate.", "source": "bloomberg", "ticker_bloomberg": "EUSA10 Curncy", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "EESWE10", "notes": null },
+    { "id": "eur_swap_15y", "name": "EUR ESTR IRS 15Y", "description": "EUR ESTR-indexed interest rate swap, 15Y par rate.", "source": "bloomberg", "ticker_bloomberg": "EUSA15 Curncy", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "EESWE15", "notes": null },
+    { "id": "eur_swap_20y", "name": "EUR ESTR IRS 20Y", "description": "EUR ESTR-indexed interest rate swap, 20Y par rate.", "source": "bloomberg", "ticker_bloomberg": "EUSA20 Curncy", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "EESWE20", "notes": null },
+    { "id": "eur_swap_30y", "name": "EUR ESTR IRS 30Y", "description": "EUR ESTR-indexed interest rate swap, 30Y par rate.", "source": "bloomberg", "ticker_bloomberg": "EUSA30 Curncy", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "EESWE30", "notes": null },
+
+    { "id": "estr_fwd_1y1y",   "name": "EUR ESTR 1Y1Y Forward",   "description": "EUR ESTR forward swap: 1Y into 1Y. Key ECB pricing point.",   "source": "bloomberg", "ticker_bloomberg": "EUSW1F1 Curncy",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "ESTR_1Y1Y",   "notes": null },
+    { "id": "estr_fwd_2y1y",   "name": "EUR ESTR 2Y1Y Forward",   "description": "EUR ESTR forward swap: 2Y into 1Y.",                          "source": "bloomberg", "ticker_bloomberg": "EUSW2F1 Curncy",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "ESTR_2Y1Y",   "notes": null },
+    { "id": "estr_fwd_2y2y",   "name": "EUR ESTR 2Y2Y Forward",   "description": "EUR ESTR forward swap: 2Y into 2Y.",                          "source": "bloomberg", "ticker_bloomberg": "EUSW2F2 Curncy",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "ESTR_2Y2Y",   "notes": null },
+    { "id": "estr_fwd_2y3y",   "name": "EUR ESTR 2Y3Y Forward",   "description": "EUR ESTR forward swap: 2Y into 3Y.",                          "source": "bloomberg", "ticker_bloomberg": "EUSW2F3 Curncy",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "ESTR_2Y3Y",   "notes": null },
+    { "id": "estr_fwd_5y5y",   "name": "EUR ESTR 5Y5Y Forward",   "description": "EUR ESTR forward swap: 5Y into 5Y. Key long-end ECB pricing point.", "source": "bloomberg", "ticker_bloomberg": "EUSW5F5 Curncy",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "ESTR_5Y5Y",   "notes": null },
+    { "id": "estr_fwd_10y10y", "name": "EUR ESTR 10Y10Y Forward", "description": "EUR ESTR forward swap: 10Y into 10Y.",                        "source": "bloomberg", "ticker_bloomberg": "EUSW10F10 Curncy", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "ESTR_10Y10Y", "notes": null },
+    { "id": "estr_fwd_20y10y", "name": "EUR ESTR 20Y10Y Forward", "description": "EUR ESTR forward swap: 20Y into 10Y.",                        "source": "bloomberg", "ticker_bloomberg": "EUSW20F10 Curncy", "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "rates_swaps", "geography": "euro_area", "tools": ["fair_value_models", "swaps_rv"], "role": "predictor", "internal_key": "ESTR_20Y10Y", "notes": null },
+
+    { "id": "hicp_swap_1y",     "name": "EUR HICPxT Swap 1Y",     "description": "EUR zero-coupon inflation swap referencing HICPxT ex-tobacco, 1Y tenor.",     "source": "bloomberg", "ticker_bloomberg": "EUSWI1 Curncy",    "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "EUSWI1",     "notes": null },
+    { "id": "hicp_swap_2y",     "name": "EUR HICPxT Swap 2Y",     "description": "EUR zero-coupon HICPxT inflation swap, 2Y.",                                "source": "bloomberg", "ticker_bloomberg": "EUSWI2 Curncy",    "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "EUSWI2",     "notes": null },
+    { "id": "hicp_swap_5y",     "name": "EUR HICPxT Swap 5Y",     "description": "EUR zero-coupon HICPxT inflation swap, 5Y.",                                "source": "bloomberg", "ticker_bloomberg": "EUSWI5 Curncy",    "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "EUSWI5",     "notes": null },
+    { "id": "hicp_swap_10y",    "name": "EUR HICPxT Swap 10Y",    "description": "EUR zero-coupon HICPxT inflation swap, 10Y.",                               "source": "bloomberg", "ticker_bloomberg": "EUSWI10 Curncy",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "EUSWI10",    "notes": null },
+    { "id": "hicp_swap_15y",    "name": "EUR HICPxT Swap 15Y",    "description": "EUR zero-coupon HICPxT inflation swap, 15Y.",                               "source": "bloomberg", "ticker_bloomberg": "EUSWI15 Curncy",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "EUSWI15",    "notes": null },
+    { "id": "hicp_swap_20y",    "name": "EUR HICPxT Swap 20Y",    "description": "EUR zero-coupon HICPxT inflation swap, 20Y.",                               "source": "bloomberg", "ticker_bloomberg": "EUSWI20 Curncy",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "EUSWI20",    "notes": null },
+    { "id": "hicp_swap_30y",    "name": "EUR HICPxT Swap 30Y",    "description": "EUR zero-coupon HICPxT inflation swap, 30Y.",                               "source": "bloomberg", "ticker_bloomberg": "EUSWI30 Curncy",   "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "EUSWI30",    "notes": null },
+    { "id": "hicp_swap_1y1y",   "name": "EUR HICPxT Swap 1Y1Y",  "description": "EUR HICPxT forward inflation swap: 1Y into 1Y.",                           "source": "bloomberg", "ticker_bloomberg": "EUSWI1F1 Curncy",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "HICP_1Y1Y",   "notes": null },
+    { "id": "hicp_swap_2y1y",   "name": "EUR HICPxT Swap 2Y1Y",  "description": "EUR HICPxT forward inflation swap: 2Y into 1Y.",                           "source": "bloomberg", "ticker_bloomberg": "EUSWI2F1 Curncy",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "HICP_2Y1Y",   "notes": null },
+    { "id": "hicp_swap_2y2y",   "name": "EUR HICPxT Swap 2Y2Y",  "description": "EUR HICPxT forward inflation swap: 2Y into 2Y.",                           "source": "bloomberg", "ticker_bloomberg": "EUSWI2F2 Curncy",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "HICP_2Y2Y",   "notes": null },
+    { "id": "hicp_swap_2y3y",   "name": "EUR HICPxT Swap 2Y3Y",  "description": "EUR HICPxT forward inflation swap: 2Y into 3Y.",                           "source": "bloomberg", "ticker_bloomberg": "EUSWI2F3 Curncy",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "HICP_2Y3Y",   "notes": null },
+    { "id": "hicp_swap_5y5y",   "name": "EUR HICPxT Swap 5Y5Y",  "description": "EUR HICPxT forward inflation swap: 5Y into 5Y.",                           "source": "bloomberg", "ticker_bloomberg": "EUSWI5F5 Curncy",  "ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "HICP_5Y5Y",   "notes": null },
+    { "id": "hicp_swap_10y10y", "name": "EUR HICPxT Swap 10Y10Y", "description": "EUR HICPxT forward inflation swap: 10Y into 10Y. Swaption vol also enters this model.", "source": "bloomberg", "ticker_bloomberg": "EUSWI10F10 Curncy","ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "HICP_10Y10Y", "notes": null },
+    { "id": "hicp_swap_20y10y", "name": "EUR HICPxT Swap 20Y10Y", "description": "EUR HICPxT forward inflation swap: 20Y into 10Y. Swaption vol also enters this model.", "source": "bloomberg", "ticker_bloomberg": "EUSWI20F10 Curncy","ticker_haver": null, "frequency": "daily", "units": "pct", "typical_lag_days": null, "asset_class": "inflation_swaps", "geography": "euro_area", "tools": ["fair_value_models"], "role": "target", "internal_key": "HICP_20Y10Y", "notes": null },
+
+    {
+      "id": "brent_crude",
+      "name": "Brent Crude Oil (Front Month)",
+      "description": "ICE Brent crude oil front-month futures price (USD/bbl). Enters HICPxT fair value models in log form. Strong driver of short-end inflation expectations.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "CO1 Comdty",
+      "ticker_haver": null,
+      "frequency": "daily",
+      "units": "usd_per_bbl",
+      "typical_lag_days": null,
+      "asset_class": "commodities",
+      "geography": "global",
+      "tools": ["fair_value_models"],
+      "role": "predictor",
+      "internal_key": "log_Brent",
+      "notes": "Used as log(Brent) in all HICPxT models. Log-transform applied at ingestion in the backend."
+    },
+
+    {
+      "id": "ttf_gas",
+      "name": "TTF Natural Gas (Front Month)",
+      "description": "TTF (Title Transfer Facility) natural gas front-month futures price (EUR/MWh). Key driver of European energy inflation. Enters models in log form.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "TTFMH1 Comdty",
+      "ticker_haver": null,
+      "frequency": "daily",
+      "units": "eur_per_mwh",
+      "typical_lag_days": null,
+      "asset_class": "commodities",
+      "geography": "europe",
+      "tools": ["fair_value_models"],
+      "role": "predictor",
+      "internal_key": "log_Gas",
+      "notes": "Used as log(Gas) in all HICPxT models. High volatility series; especially important for the long-end forwards (10Y10Y, 20Y10Y)."
+    },
+
+    {
+      "id": "eur_swaption_vol_1m",
+      "name": "EUR Rates Swaption Vol 1M",
+      "description": "EUR interest rate swaption implied vol, 1-month expiry (normalised vol in bps). Enters only the long-end HICPxT forward models (10Y10Y, 20Y10Y) to capture convexity and vol risk premium.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "SMOVEU1M Index",
+      "ticker_haver": null,
+      "frequency": "daily",
+      "units": "bps",
+      "typical_lag_days": null,
+      "asset_class": "volatility",
+      "geography": "euro_area",
+      "tools": ["fair_value_models"],
+      "role": "predictor",
+      "internal_key": "SMOVEU1M",
+      "notes": "Only used in hicp_10y10y and hicp_20y10y models."
+    }
+
+  ]
+}
