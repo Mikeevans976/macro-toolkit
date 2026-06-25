@@ -1,56 +1,58 @@
-series_id,reference_period,release_date,value,vintage
+series_id,reference_period,value
 # ---------------------------------------------------------------------------
 # HOW TO USE THIS FILE
 # ---------------------------------------------------------------------------
-# series_id       : must match an id in macro_series.csv
-# reference_period: the period the observation COVERS
-#                   monthly   → "YYYY-MM"  e.g. "2024-03"
-#                   quarterly → "YYYY-QN"  e.g. "2024-Q1"
-# release_date    : the calendar date the data was PUBLISHED (YYYY-MM-DD)
-#                   This is what gets placed on the daily time grid.
-#                   Weekend dates are snapped forward to the next business day.
-# value           : the observation in the units specified in macro_series.csv
-# vintage         : 1 = first release, 2 = first revision, etc.
-#                   Only vintage=1 is used by the model (real-time data principle).
-#                   Include revisions for record-keeping; loader drops them.
+# series_id        : must match an id in macro_series.csv
+# reference_period : the period the observation COVERS
+#                    monthly   → "YYYY-MM"  e.g. "2024-03"
+#                    quarterly → "YYYY-QN"  e.g. "2024-Q1"
+#                    pandas Period strings are also accepted.
+# value            : the observation in the units specified in macro_series.csv
+#
+# The release date is estimated as:
+#   period_end_date + typical_lag_days  (from macro_series.csv)
+# and snapped to the next business day.
+#
+# If you later obtain actual release dates, pass the data as a
+# dict[series_id, pd.Series] with a DatetimeIndex to load_macro_data()
+# — that bypasses the lag estimation entirely.
 # ---------------------------------------------------------------------------
 # ILLUSTRATIVE EXAMPLE ROWS — replace with real data from Bloomberg/Haver/ECB
 # ---------------------------------------------------------------------------
-ea_composite_pmi,2024-01,2024-01-23,47.9,1
-ea_composite_pmi,2024-02,2024-02-22,48.9,1
-ea_composite_pmi,2024-03,2024-03-21,49.9,1
-ea_composite_pmi,2024-04,2024-04-23,51.4,1
-ea_composite_pmi,2024-05,2024-05-23,52.2,1
-ea_composite_pmi,2024-06,2024-06-21,50.8,1
-ea_services_pmi,2024-01,2024-01-23,48.4,1
-ea_services_pmi,2024-02,2024-02-22,50.2,1
-ea_services_pmi,2024-03,2024-03-21,51.5,1
-ea_services_pmi,2024-04,2024-04-23,53.3,1
-ea_services_pmi,2024-05,2024-05-23,53.2,1
-ea_services_pmi,2024-06,2024-06-21,52.6,1
-ea_core_hicp_yoy,2024-01,2024-02-01,3.3,1
-ea_core_hicp_yoy,2024-02,2024-03-01,3.1,1
-ea_core_hicp_yoy,2024-02,2024-03-20,3.1,2
-ea_core_hicp_yoy,2024-03,2024-04-03,2.9,1
-ea_core_hicp_yoy,2024-04,2024-05-02,2.7,1
-ea_core_hicp_yoy,2024-05,2024-06-04,2.6,1
-ea_unemployment_rate,2024-01,2024-02-29,6.4,1
-ea_unemployment_rate,2024-02,2024-04-02,6.5,1
-ea_unemployment_rate,2024-03,2024-04-30,6.4,1
-ea_unemployment_rate,2024-04,2024-05-31,6.4,1
-ea_unemployment_rate,2024-05,2024-07-02,6.4,1
-ea_industrial_production_yoy,2024-01,2024-03-13,-6.4,1
-ea_industrial_production_yoy,2024-02,2024-04-12,-4.2,1
-ea_industrial_production_yoy,2024-03,2024-05-15,-3.0,1
-ea_industrial_production_yoy,2024-04,2024-06-13,-2.9,1
-ea_ces_inflation_exp_1y,2024-01,2024-02-08,3.3,1
-ea_ces_inflation_exp_1y,2024-02,2024-03-07,3.1,1
-ea_ces_inflation_exp_1y,2024-03,2024-04-11,2.9,1
-ea_ces_inflation_exp_1y,2024-04,2024-05-09,2.8,1
-ea_ces_inflation_exp_1y,2024-05,2024-06-13,2.7,1
-ea_negotiated_wages_yoy,2024-Q1,2024-05-23,4.69,1
-ea_negotiated_wages_yoy,2024-Q2,2024-08-22,3.55,1
-ea_negotiated_wages_yoy,2024-Q3,2024-11-21,5.42,1
-ea_job_vacancy_rate,2024-Q1,2024-06-10,2.9,1
-ea_job_vacancy_rate,2024-Q2,2024-09-10,2.8,1
-ea_job_vacancy_rate,2024-Q3,2024-12-10,2.7,1
+ea_composite_pmi,2024-01,47.9
+ea_composite_pmi,2024-02,48.9
+ea_composite_pmi,2024-03,49.9
+ea_composite_pmi,2024-04,51.4
+ea_composite_pmi,2024-05,52.2
+ea_composite_pmi,2024-06,50.8
+ea_services_pmi,2024-01,48.4
+ea_services_pmi,2024-02,50.2
+ea_services_pmi,2024-03,51.5
+ea_services_pmi,2024-04,53.3
+ea_services_pmi,2024-05,53.2
+ea_services_pmi,2024-06,52.6
+ea_core_hicp_yoy,2024-01,3.3
+ea_core_hicp_yoy,2024-02,3.1
+ea_core_hicp_yoy,2024-03,2.9
+ea_core_hicp_yoy,2024-04,2.7
+ea_core_hicp_yoy,2024-05,2.6
+ea_unemployment_rate,2024-01,6.4
+ea_unemployment_rate,2024-02,6.5
+ea_unemployment_rate,2024-03,6.4
+ea_unemployment_rate,2024-04,6.4
+ea_unemployment_rate,2024-05,6.4
+ea_industrial_production_yoy,2024-01,-6.4
+ea_industrial_production_yoy,2024-02,-4.2
+ea_industrial_production_yoy,2024-03,-3.0
+ea_industrial_production_yoy,2024-04,-2.9
+ea_ces_inflation_exp_1y,2024-01,3.3
+ea_ces_inflation_exp_1y,2024-02,3.1
+ea_ces_inflation_exp_1y,2024-03,2.9
+ea_ces_inflation_exp_1y,2024-04,2.8
+ea_ces_inflation_exp_1y,2024-05,2.7
+ea_negotiated_wages_yoy,2024-Q1,4.69
+ea_negotiated_wages_yoy,2024-Q2,3.55
+ea_negotiated_wages_yoy,2024-Q3,5.42
+ea_job_vacancy_rate,2024-Q1,2.9
+ea_job_vacancy_rate,2024-Q2,2.8
+ea_job_vacancy_rate,2024-Q3,2.7
