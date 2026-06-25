@@ -2,151 +2,31 @@ categories:
   - id: supply
     name: Supply
     color: "#3B82F6"
-    tools:
-      - id: supply-monitor
-        name: Supply Monitor
-        icon: "📊"
-        url: /tools/supply-monitor
-      - id: buybacks-monitor
-        name: Buybacks Monitor
-        icon: "🔄"
-        url: /tools/buybacks-monitor
-      - id: ig-issuance-monitor
-        name: IG Issuance Monitor
-        icon: "🏦"
-        url: /tools/ig-issuance-monitor
-      - id: mbs-etf-monitor
-        name: MBS ETF Monitor
-        icon: "🏠"
-        url: /tools/mbs-etf-monitor
-      - id: tic-data-monitor
-        name: TIC Data Monitor
-        icon: "🌍"
-        url: /tools/tic-data-monitor
-      - id: strips-scenarios
-        name: STRIPS Scenarios
-        icon: "📈"
-        url: /tools/strips-scenarios
-      - id: strips-data
-        name: STRIPS Data
-        icon: "📉"
-        url: /tools/strips-data
+    tools: []
 
   - id: funding
     name: Funding
     color: "#8B5CF6"
-    tools:
-      - id: funding-monitor
-        name: Funding Monitor
-        icon: "💰"
-        url: /tools/funding-monitor
-      - id: curve-data-monitor
-        name: Curve Data Monitor
-        icon: "📐"
-        url: /tools/curve-data-monitor
-      - id: commercial-bank-monitor
-        name: Commercial Bank Monitor
-        icon: "🏛️"
-        url: /tools/commercial-bank-monitor
-      - id: pension-fund-monitor
-        name: Pension Fund Monitor
-        icon: "👴"
-        url: /tools/pension-fund-monitor
-      - id: bond-fund-monitor
-        name: Bond Fund Monitor
-        icon: "📋"
-        url: /tools/bond-fund-monitor
-      - id: primary-dealer-monitor
-        name: Primary Dealer Monitor
-        icon: "🤝"
-        url: /tools/primary-dealer-monitor
+    tools: []
 
   - id: futures-swaps-vol
     name: Futures / Swaps / Vol
     color: "#10B981"
     tools:
-      - id: commitment-of-traders
-        name: Commitment of Traders
-        icon: "⚖️"
-        url: /tools/commitment-of-traders
       - id: swaps-rv
         name: Swap RV Monitor
         icon: "📐"
         url: /tools/swaps-rv
-      - id: vol-monitor
-        name: Vol Monitor
-        icon: "📡"
-        url: /tools/vol-monitor
-      - id: adr-carry-monitor
-        name: ADR Carry Monitor
-        icon: "🎯"
-        url: /tools/adr-carry-monitor
-      - id: central-bank-runs
-        name: Central Bank Runs
-        icon: "🏦"
-        url: /tools/central-bank-runs
-      - id: landing-zone-monitor
-        name: Landing Zone Monitor
-        icon: "🛬"
-        url: /tools/landing-zone-monitor
-      - id: curve-monitor
-        name: Curve Monitor
-        icon: "〰️"
-        url: /tools/curve-monitor
-      - id: ci-monitor
-        name: CI Monitor
-        icon: "🔍"
-        url: /tools/ci-monitor
 
   - id: backtesters
     name: Backtesters
     color: "#06B6D4"
-    tools:
-      - id: seasonality-tool
-        name: Seasonality Tool
-        icon: "🌊"
-        url: /tools/seasonality-tool
-      - id: swap-pca-monitor
-        name: Swap PCA Monitor
-        icon: "🔮"
-        url: /tools/swap-pca-monitor
-      - id: intraday-backtesting
-        name: Intraday Backtesting
-        icon: "⏱️"
-        url: /tools/intraday-backtesting
-      - id: technical-analysis
-        name: Technical Analysis
-        icon: "📊"
-        url: /tools/technical-analysis
+    tools: []
 
   - id: global
     name: Global
     color: "#F59E0B"
-    tools:
-      - id: bills-monitor
-        name: Bills Monitor
-        icon: "💵"
-        url: /tools/bills-monitor
-      - id: xccy-monitor
-        name: XCCY Monitor
-        icon: "💱"
-        url: /tools/xccy-monitor
-      - id: eu-sustainability-monitor
-        name: EU Sustainability Monitor
-        icon: "🌱"
-        url: /tools/eu-sustainability-monitor
-      - id: gbx-tax-monitor
-        name: GBx Tax Monitor
-        icon: "🇬🇧"
-        url: /tools/gbx-tax-monitor
-      - id: mean-reversion-monitor
-        name: Mean Reversion Monitor
-        icon: "↩️"
-        url: /tools/mean-reversion-monitor
-      - id: eu-qmt-monitor
-        name: EU QMT Monitor
-        icon: "🇪🇺"
-        url: /tools/eu-qmt-monitor
+    tools: []
 
   - id: macro-fundamentals
     name: Macro Fundamentals
