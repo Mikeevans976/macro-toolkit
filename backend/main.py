@@ -5,6 +5,7 @@ from pathlib import Path
 import yaml
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 
@@ -23,6 +24,20 @@ from euro_area_heatmap import (
     get_yield_pca,
     get_pc_regressions,
 )
+from uk_heatmap import (
+    get_uk_daily_factors,
+    get_uk_fair_value,
+    get_uk_yield_pca,
+    get_uk_pc_regressions,
+)
+from seasonality_backtester import (
+    fetch_bbg_expression,
+    get_seasonality_stats,
+    get_seasonality_heatmap,
+    run_seasonality_backtest,
+)
+from print_analysis import fetch_print_vs_consensus, fetch_market_reaction
+from momentum import compute_cta_signals
 
 app = FastAPI(title="Analytics Hub API", version="1.0.0")
 
@@ -114,6 +129,30 @@ async def ea_fair_value(current_user: dict = Depends(get_current_user)):
     return get_fair_value()
 
 
+@app.get("/api/tools/uk-heatmap/factors")
+async def uk_daily_factors(current_user: dict = Depends(get_current_user)):
+    """Daily macro factor estimates from the UK mixed-frequency DFM (Block 1)."""
+    return get_uk_daily_factors()
+
+
+@app.get("/api/tools/uk-heatmap/yield-pca")
+async def uk_yield_pca(current_user: dict = Depends(get_current_user)):
+    """Daily Gilt yield PC scores, loadings and explained variance (Block 2)."""
+    return get_uk_yield_pca()
+
+
+@app.get("/api/tools/uk-heatmap/pc-regressions")
+async def uk_pc_regressions(current_user: dict = Depends(get_current_user)):
+    """OLS regression of Gilt yield PCs on UK macro factors (no intercept)."""
+    return get_uk_pc_regressions()
+
+
+@app.get("/api/tools/uk-heatmap/fair-value")
+async def uk_fair_value(current_user: dict = Depends(get_current_user)):
+    """Daily 10y Gilt: actual, PCA reconstruction, macro fair value, rich/cheap."""
+    return get_uk_fair_value()
+
+
 @app.get("/api/tools/global-yields")
 async def global_yields(current_user: dict = Depends(get_current_user)):
     """PCA factor model on global 10y yields: factors, residuals, fair-value table."""
@@ -124,6 +163,93 @@ async def global_yields(current_user: dict = Depends(get_current_user)):
 async def fair_value_models(current_user: dict = Depends(get_current_user)):
     """Rolling Elastic Net fair value models for HICPxT inflation swaps."""
     return get_fair_value_models_data()
+
+
+@app.get("/api/tools/seasonality/data")
+async def seasonality_data(
+    expression: str,
+    start: str = "2010-01-01",
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Fetch and evaluate a Bloomberg expression, returning a daily time series.
+    expression examples:
+      'GDBR10 Index'
+      'GDBR10 Index - GDBR2 Index'
+      'GDBR30 Index - 2 * GDBR10 Index + GDBR2 Index'
+    """
+    return fetch_bbg_expression(expression, start=start)
+
+
+@app.post("/api/tools/seasonality/stats")
+async def seasonality_stats(
+    payload: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Seasonal statistics across all dimensions for a fetched time series."""
+    dates  = payload["dates"]
+    values = payload["values"]
+    return get_seasonality_stats(dates, values)
+
+
+@app.post("/api/tools/seasonality/heatmap")
+async def seasonality_heatmap(
+    payload: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Month × day-of-week mean return matrix."""
+    dates  = payload["dates"]
+    values = payload["values"]
+    return get_seasonality_heatmap(dates, values)
+
+
+@app.post("/api/tools/seasonality/backtest")
+async def seasonality_backtest(
+    payload: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Run a seasonality-driven backtest given a rule definition."""
+    dates  = payload["dates"]
+    values = payload["values"]
+    rule   = payload.get("rule", {"type": "dow", "bins": [0], "direction": 1})
+    return run_seasonality_backtest(dates, values, rule)
+
+
+@app.get("/api/tools/print-analysis/print-vs-consensus")
+async def print_vs_consensus(
+    ticker: str,
+    start: str = "2010-01-01",
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Fetch historical economic prints + Bloomberg survey consensus for a ticker.
+    ticker: Bloomberg ticker with yellow key, e.g. "UKPRIC YOY Index"
+    """
+    return fetch_print_vs_consensus(ticker=ticker, start=start)
+
+
+@app.post("/api/tools/print-analysis/market-reaction")
+async def market_reaction(
+    payload: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Compute day-of-release market moves for a given instrument.
+    payload: { market_ticker: str, releases: [{period, release_date, surprise}] }
+    """
+    return fetch_market_reaction(
+        market_ticker=payload["market_ticker"],
+        releases=payload.get("releases", []),
+    )
+
+
+@app.get("/api/tools/momentum/cta-signals")
+async def cta_signals(
+    ticker: str,
+    start: str = "2010-01-01",
+    current_user: dict = Depends(get_current_user),
+):
+    return compute_cta_signals(ticker=ticker, start=start)
 
 
 @app.get("/api/tools/swaps-rv")
@@ -141,7 +267,14 @@ async def get_swaps_rv(
 FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
 
 if FRONTEND_DIST.exists():
-    app.mount("/", StaticFiles(directory=str(FRONTEND_DIST), html=True), name="static")
+    # Serve static assets (JS, CSS, images) first
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST / "assets")), name="assets")
+
+    # Catch-all: serve index.html for any non-API path so React Router handles routing
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        index = FRONTEND_DIST / "index.html"
+        return FileResponse(str(index))
 
 
 if __name__ == "__main__":

@@ -49,19 +49,26 @@ class MacroData:
 # Catalogue loader — replaces macro_series.csv
 # ---------------------------------------------------------------------------
 
-def _load_dfm_meta(m_macro: int) -> list[dict]:
+def _load_dfm_meta(m_macro: int, catalogue_path: Path | None = None) -> list[dict]:
     """
-    Read DFM series metadata from series_catalogue.json.
+    Read DFM series metadata from series_catalogue.json (or a custom catalogue).
+
+    Parameters
+    ----------
+    m_macro        : expected number of DFM series (must match dfm_col_index range)
+    catalogue_path : path to the JSON catalogue file. Defaults to the EA catalogue
+                     (series_catalogue.json) when None.
 
     Returns a list of length m_macro, sorted by dfm_col_index, each entry:
       id, name, factor (dfm_factor), sign (dfm_sign), frequency, typical_lag_days
     """
-    if not _CATALOGUE_PATH.exists():
+    path = catalogue_path or _CATALOGUE_PATH
+    if not path.exists():
         raise FileNotFoundError(
-            f"series_catalogue.json not found at {_CATALOGUE_PATH}"
+            f"series catalogue not found at {path}"
         )
 
-    with open(_CATALOGUE_PATH, encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         catalogue = json.load(f)
 
     dfm_entries = [
@@ -71,7 +78,7 @@ def _load_dfm_meta(m_macro: int) -> list[dict]:
 
     if not dfm_entries:
         raise ValueError(
-            "No entries with 'dfm_col_index' found in series_catalogue.json. "
+            f"No entries with 'dfm_col_index' found in {path.name}. "
             "Add dfm_col_index to the DFM input series."
         )
 
@@ -80,7 +87,7 @@ def _load_dfm_meta(m_macro: int) -> list[dict]:
     col_indices = [e["dfm_col_index"] for e in dfm_entries]
     if col_indices != list(range(m_macro)):
         raise ValueError(
-            f"dfm_col_index values {col_indices} in series_catalogue.json must be "
+            f"dfm_col_index values {col_indices} in {path.name} must be "
             f"exactly 0..{m_macro - 1}."
         )
 
@@ -222,16 +229,19 @@ def load_macro_data(
     daily_dates: pd.DatetimeIndex,
     m_macro: int,
     data: dict[str, pd.Series] | None = None,
+    catalogue_path: Path | None = None,
 ) -> MacroData:
     """
     Build the daily observation matrix Y_daily from macro release data.
 
     Parameters
     ----------
-    daily_dates : business-day date index for the full sample
-    m_macro     : expected number of series (must match dfm_col_index range in catalogue)
-    data        : dict[series_id, pd.Series] from data_fetcher.fetch().
-                  If None or empty, returns MacroData with has_data=False.
+    daily_dates    : business-day date index for the full sample
+    m_macro        : expected number of series (must match dfm_col_index range in catalogue)
+    data           : dict[series_id, pd.Series] from data_fetcher.fetch().
+                     If None or empty, returns MacroData with has_data=False.
+    catalogue_path : path to the JSON catalogue file. Defaults to the EA catalogue
+                     (series_catalogue.json) when None.
 
     Returns
     -------
@@ -239,7 +249,7 @@ def load_macro_data(
     """
     warn_log: list[str] = []
 
-    meta = _load_dfm_meta(m_macro)
+    meta = _load_dfm_meta(m_macro, catalogue_path=catalogue_path)
 
     series_ids   = [e["id"]          for e in meta]
     series_names = [e["name"]        for e in meta]

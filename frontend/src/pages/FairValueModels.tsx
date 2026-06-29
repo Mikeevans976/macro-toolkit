@@ -32,10 +32,12 @@ interface ModelResult {
   sigma2_hi: number[]
   sigma2_lo: number[]
   rolling_r2: number[]
+  oos_r2: (number | null)[]
+  bench_r2: (number | null)[]
   coef_names: string[]
   coef_series: Record<string, number[]>
   latest_coefs: Record<string, number>
-  scatter: { residuals: number[]; fwd20d: number[]; fwd200d: number[]; fwd400d: number[] }
+  scatter: { residuals: number[]; fwd5d: (number | null)[]; fwd10d: (number | null)[]; fwd20d: (number | null)[]; fwd100d: (number | null)[] }
   scatter_trend: Record<string, { x: number[]; y: number[] }>
 }
 
@@ -198,6 +200,16 @@ export default function FairValueModels() {
     }))
   }, [model])
 
+  const oosR2Data = useMemo(() => {
+    if (!model) return []
+    return model.dates.map((d, i) => ({
+      date: d,
+      oos_r2: model.oos_r2[i],
+      bench_r2: model.bench_r2[i],
+      r2: model.rolling_r2[i],
+    }))
+  }, [model])
+
   const coefData = useMemo(() => {
     if (!model) return []
     return model.dates.map((d, i) => {
@@ -218,6 +230,20 @@ export default function FairValueModels() {
   }, [model])
 
   // Scatter data sets
+  const scatter5 = useMemo(() => {
+    if (!model) return []
+    return model.scatter.residuals
+      .map((r, i) => ({ x: r, y: model.scatter.fwd5d[i] }))
+      .filter(p => p.y !== null && p.y !== undefined)
+  }, [model])
+
+  const scatter10 = useMemo(() => {
+    if (!model) return []
+    return model.scatter.residuals
+      .map((r, i) => ({ x: r, y: model.scatter.fwd10d[i] }))
+      .filter(p => p.y !== null && p.y !== undefined)
+  }, [model])
+
   const scatter20 = useMemo(() => {
     if (!model) return []
     return model.scatter.residuals
@@ -225,18 +251,35 @@ export default function FairValueModels() {
       .filter(p => p.y !== null && p.y !== undefined)
   }, [model])
 
-  const scatter200 = useMemo(() => {
+  const scatter100 = useMemo(() => {
     if (!model) return []
     return model.scatter.residuals
-      .map((r, i) => ({ x: r, y: model.scatter.fwd200d[i] }))
+      .map((r, i) => ({ x: r, y: model.scatter.fwd100d[i] }))
       .filter(p => p.y !== null && p.y !== undefined)
   }, [model])
 
-  const scatter400 = useMemo(() => {
+  const trend5 = useMemo(() => {
     if (!model) return []
-    return model.scatter.residuals
-      .map((r, i) => ({ x: r, y: model.scatter.fwd400d[i] }))
-      .filter(p => p.y !== null && p.y !== undefined)
+    const t = model.scatter_trend['5d']
+    return t.x.map((x, i) => ({ x, y: t.y[i] }))
+  }, [model])
+
+  const trend10 = useMemo(() => {
+    if (!model) return []
+    const t = model.scatter_trend['10d']
+    return t.x.map((x, i) => ({ x, y: t.y[i] }))
+  }, [model])
+
+  const trend20 = useMemo(() => {
+    if (!model) return []
+    const t = model.scatter_trend['20d']
+    return t.x.map((x, i) => ({ x, y: t.y[i] }))
+  }, [model])
+
+  const trend100 = useMemo(() => {
+    if (!model) return []
+    const t = model.scatter_trend['100d']
+    return t.x.map((x, i) => ({ x, y: t.y[i] }))
   }, [model])
 
   // ── Loading ───────────────────────────────────────────────────────────────
@@ -359,7 +402,7 @@ export default function FairValueModels() {
           {/* Panel 1: Actual vs Fitted */}
           <div style={cardStyle}>
             <div style={sectionLabel}>Actual vs In-Sample Fit</div>
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={fitData} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis
@@ -404,7 +447,7 @@ export default function FairValueModels() {
           {/* Panel 2: Residuals with sigma bands */}
           <div style={cardStyle}>
             <div style={sectionLabel}>Residuals ± 1σ / 2σ Rolling Bands</div>
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={residData} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis
@@ -437,7 +480,7 @@ export default function FairValueModels() {
           {/* Panel 3: Mean Reversion Scatter */}
           <div style={cardStyle}>
             <div style={sectionLabel}>Mean Reversion Test (premium vs forward return)</div>
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={300}>
               <ScatterChart margin={{ top: 4, right: 8, bottom: 20, left: -12 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis
@@ -480,9 +523,14 @@ export default function FairValueModels() {
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
-                <Scatter name="20d fwd" data={scatter20} fill="#3b82f6" opacity={0.5} />
-                <Scatter name="200d fwd" data={scatter200} fill="#f97316" opacity={0.5} />
-                <Scatter name="400d fwd" data={scatter400} fill="#22c55e" opacity={0.5} />
+                <Scatter name="5d fwd" data={scatter5} fill="#a78bfa" opacity={0.4} />
+                <Scatter name="10d fwd" data={scatter10} fill="#3b82f6" opacity={0.4} />
+                <Scatter name="20d fwd" data={scatter20} fill="#f97316" opacity={0.4} />
+                <Scatter name="100d fwd" data={scatter100} fill="#22c55e" opacity={0.4} />
+                <Scatter name="5d trend" data={trend5} fill="transparent" line={{ stroke: '#a78bfa', strokeWidth: 1.5 }} shape={() => <g />} legendType="none" />
+                <Scatter name="10d trend" data={trend10} fill="transparent" line={{ stroke: '#3b82f6', strokeWidth: 1.5 }} shape={() => <g />} legendType="none" />
+                <Scatter name="20d trend" data={trend20} fill="transparent" line={{ stroke: '#f97316', strokeWidth: 1.5 }} shape={() => <g />} legendType="none" />
+                <Scatter name="100d trend" data={trend100} fill="transparent" line={{ stroke: '#22c55e', strokeWidth: 1.5 }} shape={() => <g />} legendType="none" />
               </ScatterChart>
             </ResponsiveContainer>
           </div>
@@ -490,7 +538,7 @@ export default function FairValueModels() {
           {/* Panel 4: Elastic Net Coefficients */}
           <div style={cardStyle}>
             <div style={sectionLabel}>Elastic Net Coefficients (Rolling)</div>
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height={340}>
               <LineChart data={coefData} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis
@@ -534,7 +582,7 @@ export default function FairValueModels() {
           {/* Panel 5: Rolling R² */}
           <div style={cardStyle}>
             <div style={sectionLabel}>Rolling R²</div>
-            <ResponsiveContainer width="100%" height={180}>
+            <ResponsiveContainer width="100%" height={260}>
               <LineChart data={r2Data} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis
@@ -571,7 +619,7 @@ export default function FairValueModels() {
           {/* Panel 6: Latest Elastic Net Coefficients (Bar) */}
           <div style={cardStyle}>
             <div style={sectionLabel}>Latest Elastic Net Coefficients</div>
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={latestCoefData}
                 margin={{ top: 4, right: 8, bottom: 60, left: -12 }}
@@ -624,6 +672,44 @@ export default function FairValueModels() {
           </div>
 
         </div>
+
+        {/* OOS R² panel — full width below the grid */}
+        <div style={{ ...cardStyle, marginTop: 16 }}>
+          <div style={sectionLabel}>Rolling OOS R² vs In-Sample R² vs Random-Walk Benchmark (252-day window)</div>
+          <div style={{ fontSize: 11, color: '#475569', marginBottom: 12 }}>
+            OOS R²: model trained on [t−500, t−1], predicts t.&ensp;
+            Benchmark: random walk (predict today = yesterday).&ensp;
+            Values below 0 mean the model is worse than using the historical mean.
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={oosR2Data} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <XAxis
+                dataKey="date"
+                ticks={xTicks}
+                tickFormatter={fmtTick}
+                tick={{ fill: '#475569', fontSize: 10 }}
+                axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: '#475569', fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                domain={(['auto', 1] as [string, number])}
+                tickFormatter={v => v.toFixed(2)}
+              />
+              <ReferenceLine y={0} stroke="rgba(255,255,255,0.25)" strokeDasharray="4 4" label={{ value: 'R²=0', position: 'insideTopLeft', fill: '#475569', fontSize: 10 }} />
+              <ReferenceLine y={1} stroke="rgba(255,255,255,0.10)" strokeDasharray="2 2" />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.10)' }} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
+              <Line type="monotone" dataKey="oos_r2"   name="OOS R²"        stroke="#22c55e" strokeWidth={1.5} dot={false} activeDot={{ r: 3 }} connectNulls={false} />
+              <Line type="monotone" dataKey="r2"       name="In-sample R²"  stroke="#f97316" strokeWidth={1}   dot={false} activeDot={{ r: 3 }} strokeDasharray="5 3" connectNulls={false} />
+              <Line type="monotone" dataKey="bench_r2" name="RW benchmark"  stroke="#64748b" strokeWidth={1}   dot={false} activeDot={{ r: 3 }} strokeDasharray="3 3" connectNulls={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
       </main>
     </div>
   )

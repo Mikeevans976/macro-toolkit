@@ -6,6 +6,13 @@ import EuroAreaHeatmap from './pages/EuroAreaHeatmap'
 import GlobalYields from './pages/GlobalYields'
 import OptionDerivedCDF from './pages/OptionDerivedCDF'
 import FairValueModels from './pages/FairValueModels'
+import UKHeatmap from './pages/UKHeatmap'
+import SeasonalityBacktester from './pages/SeasonalityBacktester'
+import PrintAnalysis from './pages/PrintAnalysis'
+import Momentum from './pages/Momentum'
+import Positioning from './pages/Positioning'
+import InflationPCA from './pages/InflationPCA'
+import InflationFixingsMonitor from './pages/InflationFixingsMonitor'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('access_token')
@@ -30,9 +37,16 @@ export default function App() {
         />
         <Route path="/tools/swaps-rv" element={<ProtectedRoute><SwapsRV /></ProtectedRoute>} />
         <Route path="/tools/euro-area-heatmap" element={<ProtectedRoute><EuroAreaHeatmap /></ProtectedRoute>} />
+        <Route path="/tools/uk-heatmap" element={<ProtectedRoute><UKHeatmap /></ProtectedRoute>} />
         <Route path="/tools/global-yields" element={<ProtectedRoute><GlobalYields /></ProtectedRoute>} />
         <Route path="/tools/option-derived-cdf" element={<ProtectedRoute><OptionDerivedCDF /></ProtectedRoute>} />
         <Route path="/tools/fair-value-models" element={<ProtectedRoute><FairValueModels /></ProtectedRoute>} />
+        <Route path="/tools/seasonality" element={<ProtectedRoute><SeasonalityBacktester /></ProtectedRoute>} />
+        <Route path="/tools/print-analysis" element={<ProtectedRoute><PrintAnalysis /></ProtectedRoute>} />
+        <Route path="/tools/momentum" element={<ProtectedRoute><Momentum /></ProtectedRoute>} />
+        <Route path="/tools/positioning" element={<ProtectedRoute><Positioning /></ProtectedRoute>} />
+        <Route path="/tools/inflation-pca" element={<ProtectedRoute><InflationPCA /></ProtectedRoute>} />
+        <Route path="/tools/inflation-fixings" element={<ProtectedRoute><InflationFixingsMonitor /></ProtectedRoute>} />
         {/* Catch-all: redirect unknown paths to dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

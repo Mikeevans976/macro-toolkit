@@ -21,7 +21,11 @@ categories:
   - id: backtesters
     name: Backtesters
     color: "#06B6D4"
-    tools: []
+    tools:
+      - id: seasonality
+        name: Seasonality Backtester
+        icon: "📅"
+        url: /tools/seasonality
 
   - id: global
     name: Global
@@ -36,6 +40,10 @@ categories:
         name: Euro Area Heatmap
         icon: "🇪🇺"
         url: /tools/euro-area-heatmap
+      - id: uk-heatmap
+        name: UK Heatmap
+        icon: "🇬🇧"
+        url: /tools/uk-heatmap
       - id: global-yields
         name: Factor Model for Global Yields
         icon: "🌐"
@@ -45,6 +53,23 @@ categories:
         icon: "📐"
         url: /tools/option-derived-cdf
 
+  - id: technicals
+    name: Technicals
+    color: "#6366F1"
+    tools:
+      - id: print-analysis
+        name: Print Analysis
+        icon: "🖨️"
+        url: /tools/print-analysis
+      - id: momentum
+        name: Momentum
+        icon: "📈"
+        url: /tools/momentum
+      - id: positioning
+        name: Positioning
+        icon: "📊"
+        url: /tools/positioning
+
   - id: inflation-markets
     name: Inflation Markets
     color: "#F97316"
@@ -53,3 +78,11 @@ categories:
         name: Fair Value Models
         icon: "⚖️"
         url: /tools/fair-value-models
+      - id: inflation-pca
+        name: PCA Analysis
+        icon: "📉"
+        url: /tools/inflation-pca
+      - id: inflation-fixings
+        name: Fixings Monitor
+        icon: "📋"
+        url: /tools/inflation-fixings

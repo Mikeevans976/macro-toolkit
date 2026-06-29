@@ -65,22 +65,28 @@ _CATALOGUE_PATH = Path(__file__).parent / "data" / "series_catalogue.json"
 
 class _CatalogueResolver:
     """
-    Loads series_catalogue.json once and answers ticker lookups.
+    Loads a series catalogue JSON once and answers ticker lookups.
 
     Attributes exposed per series_id:
       - ticker_bloomberg : str | None
       - ticker_haver     : str | None
       - frequency        : "daily" | "monthly" | "quarterly"
       - source           : "bloomberg" | "haver" | "ecb" | "derived" | ...
+
+    Parameters
+    ----------
+    path : path to the JSON catalogue file. Defaults to the EA catalogue
+           (series_catalogue.json) when None.
     """
 
-    def __init__(self) -> None:
-        if not _CATALOGUE_PATH.exists():
+    def __init__(self, path: Path | None = None) -> None:
+        catalogue_path = path or _CATALOGUE_PATH
+        if not catalogue_path.exists():
             raise FileNotFoundError(
-                f"series_catalogue.json not found at {_CATALOGUE_PATH}. "
+                f"series catalogue not found at {catalogue_path}. "
                 "Run the catalogue build step first."
             )
-        with open(_CATALOGUE_PATH, encoding="utf-8") as f:
+        with open(catalogue_path, encoding="utf-8") as f:
             raw = json.load(f)
 
         # The catalogue has a _meta key at the top level; skip it.
@@ -143,7 +149,15 @@ class DataFetcher(ABC):
     Subclasses implement _fetch_raw() which returns a raw DataFrame
     (DatetimeIndex, one column per series_id).  The base class then
     resamples macro series to their native PeriodIndex.
+
+    Parameters
+    ----------
+    catalogue_path : path to the JSON catalogue file used for ticker resolution.
+                     Defaults to the EA catalogue (series_catalogue.json) when None.
     """
+
+    def __init__(self, catalogue_path: Path | None = None) -> None:
+        self._resolver = _CatalogueResolver(catalogue_path) if catalogue_path else _resolver
 
     def fetch(
         self,
@@ -167,7 +181,7 @@ class DataFetcher(ABC):
           - macro series  : PeriodIndex ('M' or 'Q')
         Derived series and those without tickers for this source are omitted.
         """
-        ticker_map, freq_map, skipped = _resolver.resolve(series_ids, self._source)
+        ticker_map, freq_map, skipped = self._resolver.resolve(series_ids, self._source)
 
         if not ticker_map:
             return {}
@@ -250,7 +264,8 @@ class BloombergFetcher(DataFetcher):
     Pass fld="FIELD_NAME" to override (e.g. fld="LAST_PRICE").
     """
 
-    def __init__(self, fld: str = "PX_LAST") -> None:
+    def __init__(self, fld: str = "PX_LAST", catalogue_path: Path | None = None) -> None:
+        super().__init__(catalogue_path)
         self._fld = fld
         try:
             from xbbg import blp as _blp   # noqa: F401 — validate at construction
@@ -326,7 +341,8 @@ class HaverFetcher(DataFetcher):
     The fetcher splits on "@" to get the series code and database name.
     """
 
-    def __init__(self, path: str | None = None) -> None:
+    def __init__(self, path: str | None = None, catalogue_path: Path | None = None) -> None:
+        super().__init__(catalogue_path)
         try:
             import Haver as _haver
             self._haver = _haver
@@ -414,9 +430,10 @@ def get_fetcher(
             end="2025-12-31",
         )
     """
+    catalogue_path: Path | None = kwargs.get("catalogue_path")
     if source == "bloomberg":
-        return BloombergFetcher(fld=kwargs.get("fld", "PX_LAST"))
+        return BloombergFetcher(fld=kwargs.get("fld", "PX_LAST"), catalogue_path=catalogue_path)
     elif source == "haver":
-        return HaverFetcher(path=kwargs.get("path"))
+        return HaverFetcher(path=kwargs.get("path"), catalogue_path=catalogue_path)
     else:
         raise ValueError(f"Unknown source '{source}'. Choose 'bloomberg' or 'haver'.")

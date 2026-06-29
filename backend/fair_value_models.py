@@ -17,7 +17,8 @@ _RNG = np.random.default_rng(20240101)
 
 ROLL_WINDOW: int = 500   # ~2 calendar years
 MIN_WINDOW:  int = 252   # minimum obs before first fit
-OUTPUT_STEP: int = 5     # subsample every N days for API response
+FIT_STEP:    int = 1     # refit every N days
+OUTPUT_STEP: int = 1     # output every N days
 
 _GROUPS = [
     {"id": "outright", "label": "Outright HICPxT",
@@ -28,62 +29,67 @@ _GROUPS = [
 
 _MODEL_DEFS: list[dict] = [
     # Group 1: Outright
+    # 1Y/2Y: include EURIBOR 3M (policy anchor dominates at short end) + full macro set
     {"id": "hicp_1y",    "title": "EUR 1Y HICPxT",    "group": "outright",
-     "x_names": ["1Y Swap",    "log(Brent)", "log(Gas)"],
-     "x_keys":  ["EESWE1",     "log_Brent",  "log_Gas"],
+     "x_names": ["1Y Swap",  "log(Brent)", "log(Gas)", "EURIBOR 3M", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["EESWE1",   "log_Brent",  "log_Gas",  "EUR003M",    "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "EUSWI1"},
     {"id": "hicp_2y",    "title": "EUR 2Y HICPxT",    "group": "outright",
-     "x_names": ["2Y Swap",    "log(Brent)", "log(Gas)"],
-     "x_keys":  ["EESWE2",     "log_Brent",  "log_Gas"],
+     "x_names": ["2Y Swap",  "log(Brent)", "log(Gas)", "EURIBOR 3M", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["EESWE2",   "log_Brent",  "log_Gas",  "EUR003M",    "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "EUSWI2"},
+    # 5Y–30Y: no EURIBOR 3M (too far from policy anchor); full macro + slope
     {"id": "hicp_5y",    "title": "EUR 5Y HICPxT",    "group": "outright",
-     "x_names": ["5Y Swap",    "log(Brent)", "log(Gas)"],
-     "x_keys":  ["EESWE5",     "log_Brent",  "log_Gas"],
+     "x_names": ["5Y Swap",  "log(Brent)", "log(Gas)", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["EESWE5",   "log_Brent",  "log_Gas",  "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "EUSWI5"},
     {"id": "hicp_10y",   "title": "EUR 10Y HICPxT",   "group": "outright",
-     "x_names": ["10Y Swap",   "log(Brent)", "log(Gas)"],
-     "x_keys":  ["EESWE10",    "log_Brent",  "log_Gas"],
+     "x_names": ["10Y Swap", "log(Brent)", "log(Gas)", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["EESWE10",  "log_Brent",  "log_Gas",  "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "EUSWI10"},
     {"id": "hicp_15y",   "title": "EUR 15Y HICPxT",   "group": "outright",
-     "x_names": ["15Y Swap",   "log(Brent)", "log(Gas)"],
-     "x_keys":  ["EESWE15",    "log_Brent",  "log_Gas"],
+     "x_names": ["15Y Swap", "log(Brent)", "log(Gas)", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["EESWE15",  "log_Brent",  "log_Gas",  "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "EUSWI15"},
     {"id": "hicp_20y",   "title": "EUR 20Y HICPxT",   "group": "outright",
-     "x_names": ["20Y Swap",   "log(Brent)", "log(Gas)"],
-     "x_keys":  ["EESWE20",    "log_Brent",  "log_Gas"],
+     "x_names": ["20Y Swap", "log(Brent)", "log(Gas)", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["EESWE20",  "log_Brent",  "log_Gas",  "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "EUSWI20"},
     {"id": "hicp_30y",   "title": "EUR 30Y HICPxT",   "group": "outright",
-     "x_names": ["30Y Swap",   "log(Brent)", "log(Gas)"],
-     "x_keys":  ["EESWE30",    "log_Brent",  "log_Gas"],
+     "x_names": ["30Y Swap", "log(Brent)", "log(Gas)", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["EESWE30",  "log_Brent",  "log_Gas",  "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "EUSWI30"},
     # Group 2: Forward Swaps
+    # Short forwards: include EURIBOR 3M alongside full macro set
     {"id": "hicp_1y1y",   "title": "EUR 1Y1Y HICPxT",   "group": "forward",
-     "x_names": ["1Y1Y ESTR",   "log(Brent)", "log(Gas)"],
-     "x_keys":  ["ESTR_1Y1Y",   "log_Brent",  "log_Gas"],
+     "x_names": ["1Y1Y ESTR", "log(Brent)", "log(Gas)", "EURIBOR 3M", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["ESTR_1Y1Y", "log_Brent",  "log_Gas",  "EUR003M",    "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "HICP_1Y1Y"},
     {"id": "hicp_2y1y",   "title": "EUR 2Y1Y HICPxT",   "group": "forward",
-     "x_names": ["2Y1Y ESTR",   "log(Brent)", "log(Gas)"],
-     "x_keys":  ["ESTR_2Y1Y",   "log_Brent",  "log_Gas"],
+     "x_names": ["2Y1Y ESTR", "log(Brent)", "log(Gas)", "EURIBOR 3M", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["ESTR_2Y1Y", "log_Brent",  "log_Gas",  "EUR003M",    "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "HICP_2Y1Y"},
     {"id": "hicp_2y2y",   "title": "EUR 2Y2Y HICPxT",   "group": "forward",
-     "x_names": ["2Y2Y ESTR",   "log(Brent)", "log(Gas)"],
-     "x_keys":  ["ESTR_2Y2Y",   "log_Brent",  "log_Gas"],
+     "x_names": ["2Y2Y ESTR", "log(Brent)", "log(Gas)", "EURIBOR 3M", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["ESTR_2Y2Y", "log_Brent",  "log_Gas",  "EUR003M",    "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "HICP_2Y2Y"},
+    # Medium forwards: no EURIBOR 3M, full macro + slope + Citi ESI
     {"id": "hicp_2y3y",   "title": "EUR 2Y3Y HICPxT",   "group": "forward",
-     "x_names": ["2Y3Y ESTR",   "log(Brent)", "log(Gas)"],
-     "x_keys":  ["ESTR_2Y3Y",   "log_Brent",  "log_Gas"],
+     "x_names": ["2Y3Y ESTR", "log(Brent)", "log(Gas)", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["ESTR_2Y3Y", "log_Brent",  "log_Gas",  "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "HICP_2Y3Y"},
     {"id": "hicp_5y5y",   "title": "EUR 5Y5Y HICPxT",   "group": "forward",
-     "x_names": ["5Y5Y ESTR",   "log(Brent)", "log(Gas)"],
-     "x_keys":  ["ESTR_5Y5Y",   "log_Brent",  "log_Gas"],
+     "x_names": ["5Y5Y ESTR", "log(Brent)", "log(Gas)", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "Citi ESI", "3M10Y Slope"],
+     "x_keys":  ["ESTR_5Y5Y", "log_Brent",  "log_Gas",  "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "CESIEUR",  "slope_3m10y"],
      "y_key":   "HICP_5Y5Y"},
+    # Ultra-long forwards: swaption vol retained; Citi ESI dropped (macro newsflow less relevant)
     {"id": "hicp_10y10y", "title": "EUR 10Y10Y HICPxT", "group": "forward",
-     "x_names": ["10Y10Y ESTR", "log(Brent)", "log(Gas)", "1M Swaption Vol"],
-     "x_keys":  ["ESTR_10Y10Y", "log_Brent",  "log_Gas",  "SMOVEU1M"],
+     "x_names": ["10Y10Y ESTR", "log(Brent)", "log(Gas)", "1M Swaption Vol", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "3M10Y Slope"],
+     "x_keys":  ["ESTR_10Y10Y", "log_Brent",  "log_Gas",  "SMOVEU1M",        "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "slope_3m10y"],
      "y_key":   "HICP_10Y10Y"},
     {"id": "hicp_20y10y", "title": "EUR 20Y10Y HICPxT", "group": "forward",
-     "x_names": ["20Y10Y ESTR", "log(Brent)", "log(Gas)", "1M Swaption Vol"],
-     "x_keys":  ["ESTR_20Y10Y", "log_Brent",  "log_Gas",  "SMOVEU1M"],
+     "x_names": ["20Y10Y ESTR", "log(Brent)", "log(Gas)", "1M Swaption Vol", "log(BCOM)", "EUR TWI", "GS FCI", "iTraxx 5Y", "3M10Y Slope"],
+     "x_keys":  ["ESTR_20Y10Y", "log_Brent",  "log_Gas",  "SMOVEU1M",        "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "slope_3m10y"],
      "y_key":   "HICP_20Y10Y"},
 ]
 
@@ -165,7 +171,7 @@ def _simulate() -> dict[str, np.ndarray]:
         for t in range(1, T):
             idio[t] = 0.990 * idio[t - 1] + _RNG.normal(0, idio_std)
         series = mean_level + sens * 0.01 * F_rates + idio
-        out[key] = np.clip(series, -0.01, 0.065)
+        out[key] = np.clip(series, -0.015, 0.10)
 
     # ── ESTR forward rates ──────────────────────────────────────────────────
     # ESTR forwards slightly below corresponding nominal (no term premium)
@@ -183,7 +189,7 @@ def _simulate() -> dict[str, np.ndarray]:
         for t in range(1, T):
             idio[t] = 0.990 * idio[t - 1] + _RNG.normal(0, idio_std)
         series = mean_level + sens * 0.01 * F_rates + idio
-        out[key] = np.clip(series, -0.01, 0.060)
+        out[key] = np.clip(series, -0.015, 0.095)
 
     # ── Brent crude ─────────────────────────────────────────────────────────
     # Simulate log-Brent directly, then exponentiate
@@ -252,32 +258,105 @@ def _simulate() -> dict[str, np.ndarray]:
     smoveu = 70.0 + 15.0 * F_risk + vol_idio
     out["SMOVEU1M"] = np.clip(smoveu, 45.0, 130.0)
 
+    # ── EURIBOR 3M (EUR003M) ────────────────────────────────────────────────
+    # Tracks ECB policy rates closely; slightly above EESWE1 by the EURIBOR-OIS spread
+    # The spread widens in stress episodes (F_risk loading)
+    euribor_spread_idio = np.zeros(T)
+    for t in range(1, T):
+        euribor_spread_idio[t] = 0.950 * euribor_spread_idio[t - 1] + _RNG.normal(0, 0.0015)
+    euribor_spread = 0.0010 + 0.004 * np.clip(F_risk / (F_risk.std() + 1e-8), -2, 3)
+    out["EUR003M"] = np.clip(out["EESWE1"] + euribor_spread + euribor_spread_idio, -0.010, 0.060)
+
+    # ── Bloomberg Commodity Index — log(BCOM) ────────────────────────────────
+    # Broad basket (energy ~30%, metals ~25%, agri ~45%); correlated with F_energy + Brent
+    bcom_idio = np.zeros(T)
+    for t in range(1, T):
+        bcom_idio[t] = 0.982 * bcom_idio[t - 1] + _RNG.normal(0, 0.018)
+    log_bcom_raw = np.log(200) + 0.20 * F_energy + 0.25 * (out["log_Brent"] - np.log(50)) + bcom_idio
+    out["log_BCOM"] = np.log(np.clip(np.exp(log_bcom_raw), 100, 350))
+
+    # ── EUR Trade-Weighted Index (EUR_TWI) ───────────────────────────────────
+    # ECB NEER; weakens when energy prices surge (terms-of-trade shock)
+    # and when global risk-off hits EUR vs safe havens
+    twi_idio = np.zeros(T)
+    for t in range(1, T):
+        twi_idio[t] = 0.985 * twi_idio[t - 1] + _RNG.normal(0, 0.50)
+    out["EUR_TWI"] = np.clip(102 - 1.5 * F_energy + 0.8 * F_rates + twi_idio, 88, 115)
+
+    # ── GS Euro Area Financial Conditions Index (GSEAFCI) ───────────────────
+    # Higher = tighter financial conditions; spikes in stress episodes (F_risk)
+    fci_idio = np.zeros(T)
+    for t in range(1, T):
+        fci_idio[t] = 0.975 * fci_idio[t - 1] + _RNG.normal(0, 0.15)
+    out["GSEAFCI"] = np.clip(100 + 0.40 * F_risk - 0.15 * F_rates + fci_idio, 97.0, 104.0)
+
+    # ── iTraxx Europe 5Y (ITRX5Y, spread in bps) ────────────────────────────
+    # EUR IG credit default swap index; dominant loading on F_risk
+    itrx_idio = np.zeros(T)
+    for t in range(1, T):
+        itrx_idio[t] = 0.978 * itrx_idio[t - 1] + _RNG.normal(0, 4.0)
+    out["ITRX5Y"] = np.clip(65 + 30 * F_risk + itrx_idio, 30, 250)
+
+    # ── Citi Economic Surprise Index EUR (CESIEUR) ───────────────────────────
+    # Mean-reverting by construction (surprises vs consensus); no persistent trend
+    cesi_idio = np.zeros(T)
+    for t in range(1, T):
+        cesi_idio[t] = 0.70 * cesi_idio[t - 1] + _RNG.normal(0, 30)
+    out["CESIEUR"] = np.clip(cesi_idio, -150, 150)
+
+    # ── 3M10Y Slope (slope_3m10y) ────────────────────────────────────────────
+    # Derived: 10Y ESTR par swap minus EURIBOR 3M
+    # Steepens in easing cycles (3M falls faster); flattens/inverts ahead of recession
+    out["slope_3m10y"] = out["EESWE10"] - out["EUR003M"]
+
     # ── HICPxT outright rates (EUSWI1..30) ──────────────────────────────────
+    # Energy inputs are DEMEANED so the regression sees deviations from a long-run
+    # neutral price, not raw log-levels (which are large constants that cause clipping).
+    # Long-run neutral: Brent $70/bbl, TTF Gas €25/MWh.
+    _BRENT_LRM = np.log(70.0)
+    _GAS_LRM   = np.log(25.0)
+    brent_dev = out["log_Brent"] - _BRENT_LRM
+    gas_dev   = out["log_Gas"]   - _GAS_LRM
+
+    # (swap_key, b_swap, b_brent_dev, b_gas_dev, idio_std)
+    # b_brent calibrated so a 1% move in log_Brent → ~2bp in 1Y HICP (empirical rule of thumb)
     hicp_out_params = {
-        "EUSWI1":  ("EESWE1",  0.88, 0.22, 0.13, 0.015),
-        "EUSWI2":  ("EESWE2",  0.87, 0.21, 0.12, 0.015),
-        "EUSWI5":  ("EESWE5",  0.86, 0.20, 0.12, 0.016),
-        "EUSWI10": ("EESWE10", 0.85, 0.18, 0.11, 0.016),
-        "EUSWI15": ("EESWE15", 0.84, 0.17, 0.11, 0.017),
-        "EUSWI20": ("EESWE20", 0.83, 0.16, 0.10, 0.017),
-        "EUSWI30": ("EESWE30", 0.82, 0.15, 0.10, 0.018),
+        "EUSWI1":  ("EESWE1",  0.90, 0.022, 0.012, 0.0020),
+        "EUSWI2":  ("EESWE2",  0.88, 0.021, 0.011, 0.0020),
+        "EUSWI5":  ("EESWE5",  0.86, 0.019, 0.010, 0.0022),
+        "EUSWI10": ("EESWE10", 0.84, 0.017, 0.009, 0.0022),
+        "EUSWI15": ("EESWE15", 0.83, 0.015, 0.008, 0.0024),
+        "EUSWI20": ("EESWE20", 0.82, 0.013, 0.007, 0.0024),
+        "EUSWI30": ("EESWE30", 0.80, 0.011, 0.006, 0.0026),
     }
     for key, (swap_key, b1, b2, b3, idio_std) in hicp_out_params.items():
         idio = np.zeros(T)
         for t in range(1, T):
             idio[t] = 0.960 * idio[t - 1] + _RNG.normal(0, idio_std)
-        series = b1 * out[swap_key] + b2 * out["log_Brent"] * 0.1 + b3 * out["log_Gas"] * 0.05 + idio
-        out[key] = np.clip(series + 0.005, -0.005, 0.060)
+        series = (
+            b1 * out[swap_key]
+            + b2 * brent_dev                               # Brent deviation from $70
+            + b3 * gas_dev                                 # Gas deviation from €25
+            + 0.003   * (out["log_BCOM"] - np.log(200))   # broad commodity pass-through
+            - 0.00015 * (out["EUR_TWI"] - 102)             # stronger EUR → lower import prices
+            - 0.0010  * (out["GSEAFCI"] - 100)             # tighter FCI → lower inflation expectations
+            - 0.000025 * (out["ITRX5Y"] - 65)              # wider credit → risk-off compression
+            + 0.000008 * out["CESIEUR"]                    # positive data surprise → higher expectations
+            + idio
+        )
+        out[key] = np.clip(series + 0.005, -0.04, 0.15)
 
     # ── HICPxT forward rates ─────────────────────────────────────────────────
+    # Same demeaned energy convention; energy sensitivity declines at longer forward tenors
+    # (swap_key, b_swap, b_brent_dev, b_gas_dev, b_vol, idio_std)
     hicp_fwd_params = {
-        "HICP_1Y1Y":   ("ESTR_1Y1Y",   0.85, 0.18, 0.12, None, 0.0180),
-        "HICP_2Y1Y":   ("ESTR_2Y1Y",   0.84, 0.17, 0.11, None, 0.0180),
-        "HICP_2Y2Y":   ("ESTR_2Y2Y",   0.83, 0.16, 0.11, None, 0.0185),
-        "HICP_2Y3Y":   ("ESTR_2Y3Y",   0.82, 0.16, 0.10, None, 0.0185),
-        "HICP_5Y5Y":   ("ESTR_5Y5Y",   0.82, 0.15, 0.10, None, 0.0190),
-        "HICP_10Y10Y": ("ESTR_10Y10Y", 0.81, 0.14, 0.09, -0.0015, 0.0200),
-        "HICP_20Y10Y": ("ESTR_20Y10Y", 0.80, 0.13, 0.09, -0.0015, 0.0200),
+        "HICP_1Y1Y":   ("ESTR_1Y1Y",   0.87, 0.018, 0.010, None,    0.0022),
+        "HICP_2Y1Y":   ("ESTR_2Y1Y",   0.85, 0.016, 0.009, None,    0.0022),
+        "HICP_2Y2Y":   ("ESTR_2Y2Y",   0.84, 0.015, 0.008, None,    0.0024),
+        "HICP_2Y3Y":   ("ESTR_2Y3Y",   0.83, 0.014, 0.008, None,    0.0024),
+        "HICP_5Y5Y":   ("ESTR_5Y5Y",   0.82, 0.010, 0.006, None,    0.0026),
+        "HICP_10Y10Y": ("ESTR_10Y10Y", 0.80, 0.005, 0.003, -0.0015, 0.0028),
+        "HICP_20Y10Y": ("ESTR_20Y10Y", 0.78, 0.003, 0.002, -0.0015, 0.0028),
     }
     for key, (estr_key, b1, b2, b3, b4_vol, idio_std) in hicp_fwd_params.items():
         idio = np.zeros(T)
@@ -285,13 +364,18 @@ def _simulate() -> dict[str, np.ndarray]:
             idio[t] = 0.960 * idio[t - 1] + _RNG.normal(0, idio_std)
         series = (
             b1 * out[estr_key]
-            + b2 * out["log_Brent"] * 0.10
-            + b3 * out["log_Gas"] * 0.05
+            + b2 * brent_dev
+            + b3 * gas_dev
+            + 0.003   * (out["log_BCOM"] - np.log(200))
+            - 0.00015 * (out["EUR_TWI"] - 102)
+            - 0.0010  * (out["GSEAFCI"] - 100)
+            - 0.000025 * (out["ITRX5Y"] - 65)
+            + 0.000008 * out["CESIEUR"]
             + idio
         )
         if b4_vol is not None:
             series += b4_vol * (out["SMOVEU1M"] - 70.0) * 0.001
-        out[key] = np.clip(series + 0.008, 0.002, 0.065)
+        out[key] = np.clip(series + 0.008, -0.010, 0.10)
 
     # Verify no NaN
     for k, v in out.items():
@@ -309,45 +393,45 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
     scaler = StandardScaler()
 
     n = len(y)
-    fitted_full = np.full(n, np.nan)
-    residuals_full = np.full(n, np.nan)
-    r2_full = np.full(n, np.nan)
-    coef_full = np.full((n, len(feature_names)), np.nan)
+    fitted_full    = np.full(n, np.nan)   # OOS predictions (train on [t-500, t-1], predict t)
+    residuals_full = np.full(n, np.nan)   # OOS residuals
+    r2_is_full     = np.full(n, np.nan)   # in-sample R² on training window
+    coef_full      = np.full((n, len(feature_names)), np.nan)
 
-    fit_indices = list(range(MIN_WINDOW, n, OUTPUT_STEP))
+    fit_indices = list(range(MIN_WINDOW, n, FIT_STEP))
     if fit_indices and fit_indices[-1] != n - 1:
         fit_indices.append(n - 1)
 
     for t in fit_indices:
-        start = max(0, t - ROLL_WINDOW + 1)
-        Xw = X[start : t + 1]
-        yw = y[start : t + 1]
+        # Train on [t-ROLL_WINDOW, t-1] — excludes t → genuine OOS prediction at t
+        start = max(0, t - ROLL_WINDOW)
+        Xw = X[start : t]
+        yw = y[start : t]
 
         Xw_sc = scaler.fit_transform(Xw)
         en.fit(Xw_sc, yw)
 
-        # Predict on last point
-        x_last = scaler.transform(X[t : t + 1])
-        fitted_full[t] = float(en.predict(x_last)[0])
+        # OOS prediction at t
+        x_curr = scaler.transform(X[t : t + 1])
+        fitted_full[t]    = float(en.predict(x_curr)[0])
         residuals_full[t] = y[t] - fitted_full[t]
-        coef_full[t] = en.coef_
+        coef_full[t]      = en.coef_
 
-        # In-sample R²
+        # In-sample R² on training window (not t)
         y_pred_w = en.predict(Xw_sc)
         ss_res = np.sum((yw - y_pred_w) ** 2)
         ss_tot = np.sum((yw - yw.mean()) ** 2)
-        r2_full[t] = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
+        r2_is_full[t] = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
 
-    # Forward-fill between steps using pandas
     idx = pd.RangeIndex(n)
     fitted_s = pd.Series(fitted_full, index=idx).ffill().bfill()
-    resid_s = pd.Series(residuals_full, index=idx).ffill().bfill()
-    r2_s = pd.Series(r2_full, index=idx).ffill().bfill()
+    resid_s  = pd.Series(residuals_full, index=idx).ffill().bfill()
+    r2_s     = pd.Series(r2_is_full, index=idx).ffill().bfill()
 
     coef_df = pd.DataFrame(coef_full, columns=feature_names)
     coef_df = coef_df.ffill().bfill()
 
-    # Rolling sigma bands — centre on rolling mean, bfill then ffill to avoid NaN
+    # Rolling sigma bands on OOS residuals
     resid_roll_mean = resid_s.rolling(252, min_periods=60).mean().bfill().ffill()
     resid_roll_std  = resid_s.rolling(252, min_periods=60).std().bfill().ffill()
     sigma1_hi = (resid_roll_mean + 1.0 * resid_roll_std)
@@ -355,24 +439,53 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
     sigma2_hi = (resid_roll_mean + 2.0 * resid_roll_std)
     sigma2_lo = (resid_roll_mean - 2.0 * resid_roll_std)
 
-    # Subsample for output
-    step_idx = list(range(MIN_WINDOW, n, OUTPUT_STEP))
+    # ── Rolling OOS R² and random-walk benchmark ────────────────────────────
+    y_s = pd.Series(y, index=idx)
+    oos_resid_s = pd.Series(residuals_full, index=idx)  # NaN before MIN_WINDOW
+
+    # Benchmark: random walk (predict today = yesterday)
+    rw_resid = np.full(n, np.nan)
+    rw_resid[1:] = y[1:] - y[:-1]
+    rw_resid_s = pd.Series(rw_resid, index=idx)
+
+    RW = 252  # rolling window for OOS R²
+    MP = 60   # min periods
+
+    ss_res_oos  = oos_resid_s.pow(2).rolling(RW, min_periods=MP).sum()
+    ss_res_rw   = rw_resid_s.pow(2).rolling(RW, min_periods=MP).sum()
+    y_mean_roll = y_s.rolling(RW, min_periods=MP).mean()
+    ss_tot_roll = (y_s - y_mean_roll).pow(2).rolling(RW, min_periods=MP).sum()
+
+    # Clip at -2 to keep chart readable when model is badly wrong early on
+    oos_r2_s  = (1 - ss_res_oos  / ss_tot_roll).clip(-2, 1).ffill().bfill()
+    bench_r2_s = (1 - ss_res_rw  / ss_tot_roll).clip(-2, 1).ffill().bfill()
+
+    # Subsample for output — actual from day 0; fitted/residuals/bands/r2/coefs from MIN_WINDOW
+    step_idx = list(range(0, n, OUTPUT_STEP))
     if step_idx and step_idx[-1] != n - 1:
         step_idx.append(n - 1)
 
+    def _val(s: pd.Series, i: int, guard: bool = True) -> float | None:
+        if guard and i < MIN_WINDOW:
+            return None
+        v = float(s.iloc[i])
+        return round(v, 4) if not (v != v) else None  # NaN check
+
     dates_out = [DATES[i].strftime("%Y-%m-%d") for i in step_idx]
     actual_out = [round(float(y[i]), 4) for i in step_idx]
-    fitted_out = [round(float(fitted_s.iloc[i]), 4) for i in step_idx]
-    resid_out = [round(float(resid_s.iloc[i]), 4) for i in step_idx]
-    s1hi = [round(float(sigma1_hi.iloc[i]), 4) for i in step_idx]
-    s1lo = [round(float(sigma1_lo.iloc[i]), 4) for i in step_idx]
-    s2hi = [round(float(sigma2_hi.iloc[i]), 4) for i in step_idx]
-    s2lo = [round(float(sigma2_lo.iloc[i]), 4) for i in step_idx]
-    r2_out = [round(float(r2_s.iloc[i]), 4) for i in step_idx]
+    fitted_out = [_val(fitted_s, i) for i in step_idx]
+    resid_out  = [_val(resid_s, i) for i in step_idx]
+    s1hi = [_val(sigma1_hi, i) for i in step_idx]
+    s1lo = [_val(sigma1_lo, i) for i in step_idx]
+    s2hi = [_val(sigma2_hi, i) for i in step_idx]
+    s2lo = [_val(sigma2_lo, i) for i in step_idx]
+    r2_out      = [_val(r2_s,      i) for i in step_idx]
+    oos_r2_out  = [_val(oos_r2_s,  i) for i in step_idx]
+    bench_r2_out = [_val(bench_r2_s, i) for i in step_idx]
 
-    coef_series: dict[str, list[float]] = {}
+    coef_series: dict[str, list[float | None]] = {}
     for name in feature_names:
-        coef_series[name] = [round(float(coef_df[name].iloc[i]), 4) for i in step_idx]
+        coef_series[name] = [_val(coef_df[name], i) for i in step_idx]
 
     last_valid_mask = ~np.isnan(coef_full[:, 0])
     last_valid = int(np.where(last_valid_mask)[0][-1]) if last_valid_mask.any() else -1
@@ -383,21 +496,23 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
     else:
         latest_coefs = {name: 0.0 for name in feature_names}
 
-    # Scatter: residual vs forward returns
+    # Scatter: residual vs forward returns at 5 / 10 / 20 / 100 days
     SCATTER_STEP = max(1, n // 400)
     scatter_idx = list(range(MIN_WINDOW, n, SCATTER_STEP))
-    sc_resid, sc_fwd20, sc_fwd200, sc_fwd400 = [], [], [], []
+    sc_resid: list[float] = []
+    sc_fwd5: list[float | None] = []
+    sc_fwd10: list[float | None] = []
+    sc_fwd20: list[float | None] = []
+    sc_fwd100: list[float | None] = []
     for i in scatter_idx:
         r = resid_s.iloc[i]
         if np.isnan(r):
             continue
-        for fwd_list, horizon in [(sc_fwd20, 20), (sc_fwd200, 200), (sc_fwd400, 400)]:
+        for fwd_list, horizon in [(sc_fwd5, 5), (sc_fwd10, 10), (sc_fwd20, 20), (sc_fwd100, 100)]:
             if i + horizon < n:
-                fwd_ret = round(float(y[i + horizon] - y[i]), 4)
-                fwd_list.append(fwd_ret)
+                fwd_list.append(round(float(y[i + horizon] - y[i]), 4))
             else:
-                fwd_list.append(None)  # type: ignore[arg-type]
-
+                fwd_list.append(None)
         sc_resid.append(round(float(r), 4))
 
     # OLS trend lines for scatter
@@ -415,9 +530,10 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
                 "y": [round(float(v), 4) for v in y_line]}
 
     scatter_trend = {
+        "5d":   _ols_line(sc_resid, sc_fwd5),
+        "10d":  _ols_line(sc_resid, sc_fwd10),
         "20d":  _ols_line(sc_resid, sc_fwd20),
-        "200d": _ols_line(sc_resid, sc_fwd200),
-        "400d": _ols_line(sc_resid, sc_fwd400),
+        "100d": _ols_line(sc_resid, sc_fwd100),
     }
 
     return {
@@ -430,14 +546,17 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
         "sigma2_hi":    s2hi,
         "sigma2_lo":    s2lo,
         "rolling_r2":   r2_out,
+        "oos_r2":       oos_r2_out,
+        "bench_r2":     bench_r2_out,
         "coef_names":   feature_names,
         "coef_series":  coef_series,
         "latest_coefs": latest_coefs,
         "scatter": {
             "residuals": sc_resid,
-            "fwd20d":  [v if v is not None else None for v in sc_fwd20],
-            "fwd200d": [v if v is not None else None for v in sc_fwd200],
-            "fwd400d": [v if v is not None else None for v in sc_fwd400],
+            "fwd5d":   sc_fwd5,
+            "fwd10d":  sc_fwd10,
+            "fwd20d":  sc_fwd20,
+            "fwd100d": sc_fwd100,
         },
         "scatter_trend": scatter_trend,
     }
