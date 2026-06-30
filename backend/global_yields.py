@@ -15,7 +15,7 @@ Z-Score: (current residual − 1y mean residual) / 1y std residual
 
 Data pipeline
 -------------
-Live data is fetched via BloombergFetcher when xbbg is installed and a
+Live data is fetched via BloombergFetcher when blpapi is installed and a
 Bloomberg Terminal is running.  Falls back to _simulate_yields() automatically
 on any import or fetch failure — no code changes required to switch modes.
 
@@ -293,7 +293,7 @@ def _fetch_yields(start: str, end: str) -> np.ndarray | None:
     Fetch live 10y yields from Bloomberg and return a [T, N] daily matrix
     aligned to DAILY_DATES and ALL_COUNTRIES.
 
-    Returns None on any failure (missing xbbg, Terminal not running, etc.)
+    Returns None on any failure (missing blpapi, Terminal not running, etc.)
     so the caller can fall back to simulation.
     """
     try:

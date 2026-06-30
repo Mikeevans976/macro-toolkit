@@ -160,7 +160,7 @@ def fetch_print_vs_consensus(
     }
     """
     try:
-        from xbbg import blp
+        from bbg import blp
     except ImportError:
         # Bloomberg not available — fall back to simulated data for UI testing
         return _simulate_releases(ticker, start)
@@ -293,7 +293,7 @@ def fetch_market_reaction(market_ticker: str, releases: list[dict]) -> dict:
         return {"market_ticker": ticker, "reactions": []}
 
     try:
-        from xbbg import blp
+        from bbg import blp
     except ImportError:
         return _simulate_market_reaction(ticker, valid)
 

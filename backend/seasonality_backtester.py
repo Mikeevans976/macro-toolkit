@@ -69,11 +69,11 @@ def fetch_bbg_expression(
     }
     """
     try:
-        from xbbg import blp
+        from bbg import blp
     except ImportError as e:
         raise RuntimeError(
-            "xbbg is required for Bloomberg data. "
-            "Install with: pip install xbbg  (Bloomberg Terminal must be running)."
+            "blpapi is required for Bloomberg data. "
+            "Install with: pip install blpapi  (Bloomberg Terminal must be running)."
         ) from e
 
     tickers = _extract_tickers(expression)

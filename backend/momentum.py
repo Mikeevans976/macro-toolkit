@@ -3,7 +3,7 @@ momentum.py — Multi-lookback, volatility-scaled CTA signal engine.
 
 No external dependencies beyond numpy, pandas, scipy.
 Bloomberg fetch is attempted; falls back to deterministic simulation when
-xbbg is not importable or Bloomberg is not connected.
+blpapi is not importable or Bloomberg is not connected.
 """
 from __future__ import annotations
 
@@ -75,10 +75,10 @@ def _simulate_series(ticker: str, start: str = "2010-01-01") -> pd.Series:
 
 def _fetch_bloomberg(ticker: str, start: str) -> pd.Series | None:
     """
-    Attempt to fetch via xbbg.  Returns None on any failure.
+    Attempt to fetch via blpapi.  Returns None on any failure.
     """
     try:
-        from xbbg import blp  # type: ignore
+        from bbg import blp  # type: ignore
         today = pd.Timestamp.today().strftime("%Y-%m-%d")
         raw = blp.bdh(
             tickers=[ticker],

@@ -2,7 +2,7 @@
 Time series data fetcher for the analytics hub.
 
 Resolves series IDs from series_catalogue.json to vendor tickers and fetches
-historical data from Bloomberg (via xbbg) or Haver Analytics.
+historical data from Bloomberg (via blpapi) or Haver Analytics.
 
 Output format
 -------------
@@ -25,7 +25,7 @@ Usage
 -----
     from data_fetcher import get_fetcher
 
-    # Bloomberg (requires Bloomberg Terminal + xbbg installed)
+    # Bloomberg (requires Bloomberg Terminal + blpapi installed)
     fetcher = get_fetcher("bloomberg")
 
     # Haver (requires Haver DLX installed; path to database directory)
@@ -40,7 +40,7 @@ Usage
 
 Dependencies
 ------------
-Bloomberg : pip install xbbg          (requires Bloomberg Desktop API running)
+Bloomberg : pip install blpapi         (requires Bloomberg Desktop API running)
 Haver     : pip install Haver          (requires Haver DLX; typically Windows)
 
 Both are optional — an ImportError with a clear message is raised if not installed.
@@ -248,17 +248,17 @@ class DataFetcher(ABC):
 
 
 # ---------------------------------------------------------------------------
-# Bloomberg fetcher  (requires: pip install xbbg)
+# Bloomberg fetcher  (requires: pip install blpapi)
 # ---------------------------------------------------------------------------
 
 class BloombergFetcher(DataFetcher):
     """
-    Fetches data from Bloomberg via the xbbg wrapper around the Desktop API.
+    Fetches data from Bloomberg via the blpapi SDK.
 
     Requirements
     ------------
     - Bloomberg Terminal must be running and logged in.
-    - pip install xbbg
+    - pip install blpapi
 
     The standard price/level field used is PX_LAST.
     Pass fld="FIELD_NAME" to override (e.g. fld="LAST_PRICE").
@@ -268,11 +268,11 @@ class BloombergFetcher(DataFetcher):
         super().__init__(catalogue_path)
         self._fld = fld
         try:
-            from xbbg import blp as _blp   # noqa: F401 — validate at construction
+            from bbg import blp as _blp   # noqa: F401 — validate at construction
             self._blp = _blp
         except ImportError as e:
             raise ImportError(
-                "xbbg is required for Bloomberg data. Install with: pip install xbbg\n"
+                "blpapi is required for Bloomberg data. Install with: pip install blpapi\n"
                 "Bloomberg Terminal must also be running."
             ) from e
 
@@ -295,7 +295,7 @@ class BloombergFetcher(DataFetcher):
             start_date=start,
             end_date=end,
         )
-        # xbbg returns a DataFrame with MultiIndex columns: (ticker, field)
+        # blpapi returns a DataFrame with MultiIndex columns: (ticker, field)
         # or single-level columns if only one field.
         if df.empty:
             return {}

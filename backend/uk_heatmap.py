@@ -419,7 +419,7 @@ def _fetch_macro_data_uk(start: str, end: str) -> dict[str, pd.Series] | None:
     Attempt to pull UK macro series from Bloomberg or Haver.
 
     Controlled by the ANALYTICS_DATA_SOURCE environment variable:
-      "bloomberg"  — fetch via Bloomberg Desktop API (requires xbbg + Terminal)
+      "bloomberg"  — fetch via Bloomberg Desktop API (requires blpapi + Terminal)
       "haver"      — fetch via Haver DLX (requires Haver pkg + HAVER_PATH)
       "csv"        — skip fetcher; read from data/macro_releases.csv  (default)
       "simulation" — skip all data loading; use synthetic data
