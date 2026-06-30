@@ -18,7 +18,7 @@
       "dfm_factor": "For factor_input series: which DFM factor this series primarily identifies (Growth | Inflation | Employment | Wages). Housing series are assigned Growth.",
       "dfm_sign": "For factor_input series: +1 if series moves in the same direction as the factor, -1 if inverse (e.g. unemployment rate is -1 for Employment factor).",
       "dfm_col_index": "Zero-based column index in the DFM observation matrix Y_daily. Must be contiguous 0-47.",
-      "dfm_primary": "True for exactly one series per factor group — the sign-anchor series used for PCA orientation.",
+      "dfm_primary": "True for exactly one series per factor group \u2014 the sign-anchor series used for PCA orientation.",
       "heatmap_group": "Display grouping label used in the UK heatmap UI.",
       "notes": "Free-text caveats, data quirks, or ingestion instructions."
     }
@@ -36,7 +36,9 @@
       "typical_lag_days": 23,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -57,7 +59,9 @@
       "typical_lag_days": 23,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -78,7 +82,9 @@
       "typical_lag_days": 23,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -99,7 +105,9 @@
       "typical_lag_days": 28,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -120,7 +128,9 @@
       "typical_lag_days": 40,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -141,7 +151,9 @@
       "typical_lag_days": 40,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -162,7 +174,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -183,7 +197,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -204,7 +220,9 @@
       "typical_lag_days": 25,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -225,7 +243,9 @@
       "typical_lag_days": 25,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -246,7 +266,9 @@
       "typical_lag_days": 7,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -267,7 +289,9 @@
       "typical_lag_days": 28,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -288,7 +312,9 @@
       "typical_lag_days": 28,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -309,7 +335,9 @@
       "typical_lag_days": 7,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -330,7 +358,9 @@
       "typical_lag_days": 90,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -342,7 +372,7 @@
     {
       "id": "uk_services_cpi_yoy",
       "name": "UK Services CPI (y/y)",
-      "description": "ONS CPI services component year-on-year % change — primary BoE inflation watchpoint.",
+      "description": "ONS CPI services component year-on-year % change \u2014 primary BoE inflation watchpoint.",
       "source": "haver",
       "ticker_bloomberg": "UKCPSSYOY Index",
       "ticker_haver": "CPIUKSVY@UKDATA",
@@ -351,7 +381,9 @@
       "typical_lag_days": 17,
       "asset_class": "macro_inflation",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
@@ -372,7 +404,9 @@
       "typical_lag_days": 17,
       "asset_class": "macro_inflation",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
@@ -393,7 +427,9 @@
       "typical_lag_days": 17,
       "asset_class": "macro_inflation",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
@@ -414,7 +450,9 @@
       "typical_lag_days": 17,
       "asset_class": "macro_inflation",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
@@ -426,7 +464,7 @@
     {
       "id": "uk_rpi_yoy",
       "name": "UK RPI (y/y)",
-      "description": "ONS Retail Prices Index year-on-year % change — used in index-linked Gilt coupon calculations.",
+      "description": "ONS Retail Prices Index year-on-year % change \u2014 used in index-linked Gilt coupon calculations.",
       "source": "haver",
       "ticker_bloomberg": "UKRPIYOY Index",
       "ticker_haver": "RPIY@UKDATA",
@@ -435,7 +473,9 @@
       "typical_lag_days": 17,
       "asset_class": "macro_inflation",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
@@ -447,7 +487,7 @@
     {
       "id": "uk_ppi_input_yoy",
       "name": "UK PPI Input (y/y)",
-      "description": "ONS input prices to UK manufacturers year-on-year % change — leading indicator for consumer prices.",
+      "description": "ONS input prices to UK manufacturers year-on-year % change \u2014 leading indicator for consumer prices.",
       "source": "haver",
       "ticker_bloomberg": "UKPPIIOYY Index",
       "ticker_haver": "PPIIUK@UKDATA",
@@ -456,7 +496,9 @@
       "typical_lag_days": 17,
       "asset_class": "macro_inflation",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
@@ -477,7 +519,9 @@
       "typical_lag_days": 17,
       "asset_class": "macro_inflation",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
@@ -489,7 +533,7 @@
     {
       "id": "uk_brc_shop_price_index_yoy",
       "name": "BRC Shop Price Index (y/y)",
-      "description": "BRC Shop Price Index year-on-year % change — timely indicator of retail price inflation.",
+      "description": "BRC Shop Price Index year-on-year % change \u2014 timely indicator of retail price inflation.",
       "source": "bloomberg",
       "ticker_bloomberg": "BRCSPIYN Index",
       "ticker_haver": null,
@@ -498,7 +542,9 @@
       "typical_lag_days": 7,
       "asset_class": "macro_inflation",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
@@ -510,7 +556,7 @@
     {
       "id": "uk_import_prices_yoy",
       "name": "UK Import Prices (y/y)",
-      "description": "ONS import price index year-on-year % change — pass-through from global prices and sterling.",
+      "description": "ONS import price index year-on-year % change \u2014 pass-through from global prices and sterling.",
       "source": "haver",
       "ticker_bloomberg": "UKIPIMYOY Index",
       "ticker_haver": "IMPPY@UKDATA",
@@ -519,7 +565,9 @@
       "typical_lag_days": 17,
       "asset_class": "macro_inflation",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
@@ -540,7 +588,9 @@
       "typical_lag_days": 30,
       "asset_class": "macro_inflation",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Inflation",
       "dfm_sign": 1,
@@ -552,7 +602,7 @@
     {
       "id": "uk_unemployment_rate",
       "name": "UK ILO Unemployment Rate",
-      "description": "ONS Labour Force Survey ILO unemployment rate (3-month rolling) — primary employment indicator.",
+      "description": "ONS Labour Force Survey ILO unemployment rate (3-month rolling) \u2014 primary employment indicator.",
       "source": "haver",
       "ticker_bloomberg": "UKUEILOR Index",
       "ticker_haver": "LRUNUK@UKDATA",
@@ -561,7 +611,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Employment",
       "dfm_sign": -1,
@@ -573,7 +625,7 @@
     {
       "id": "uk_claimant_count_change",
       "name": "UK Claimant Count Change",
-      "description": "ONS/DWP claimant count monthly change (thousands) — timely flow indicator for labour market.",
+      "description": "ONS/DWP claimant count monthly change (thousands) \u2014 timely flow indicator for labour market.",
       "source": "haver",
       "ticker_bloomberg": "UKCLAIM Index",
       "ticker_haver": "CLAIMUK@UKDATA",
@@ -582,7 +634,9 @@
       "typical_lag_days": 17,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Employment",
       "dfm_sign": -1,
@@ -603,7 +657,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Employment",
       "dfm_sign": 1,
@@ -624,7 +680,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Employment",
       "dfm_sign": 1,
@@ -636,7 +694,7 @@
     {
       "id": "uk_economic_inactivity_rate",
       "name": "UK Economic Inactivity Rate",
-      "description": "ONS LFS economically inactive aged 16-64 as % of population — structurally elevated post-Covid.",
+      "description": "ONS LFS economically inactive aged 16-64 as % of population \u2014 structurally elevated post-Covid.",
       "source": "haver",
       "ticker_bloomberg": "UKINACRT Index",
       "ticker_haver": "INACUK@UKDATA",
@@ -645,7 +703,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Employment",
       "dfm_sign": -1,
@@ -657,7 +717,7 @@
     {
       "id": "uk_payrolled_employees_change",
       "name": "UK Payrolled Employees (m/m change)",
-      "description": "HMRC PAYE payrolled employees month-on-month change (thousands) — more timely than LFS.",
+      "description": "HMRC PAYE payrolled employees month-on-month change (thousands) \u2014 more timely than LFS.",
       "source": "haver",
       "ticker_bloomberg": "UKPAYRCHM Index",
       "ticker_haver": "PAYEUK@UKDATA",
@@ -666,7 +726,9 @@
       "typical_lag_days": 17,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Employment",
       "dfm_sign": 1,
@@ -687,7 +749,9 @@
       "typical_lag_days": 7,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Employment",
       "dfm_sign": 1,
@@ -699,7 +763,7 @@
     {
       "id": "uk_rec_staff_availability",
       "name": "KPMG/REC Staff Availability",
-      "description": "KPMG/REC UK Report on Jobs: permanent candidate availability index — higher = more workers available = looser labour market.",
+      "description": "KPMG/REC UK Report on Jobs: permanent candidate availability index \u2014 higher = more workers available = looser labour market.",
       "source": "bloomberg",
       "ticker_bloomberg": "RECSTAFAV Index",
       "ticker_haver": null,
@@ -708,7 +772,9 @@
       "typical_lag_days": 7,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Employment",
       "dfm_sign": -1,
@@ -720,7 +786,7 @@
     {
       "id": "uk_awe_regular_yoy",
       "name": "UK AWE Regular Pay (y/y)",
-      "description": "ONS Average Weekly Earnings excluding bonuses year-on-year % change — primary BoE wage tracker (private sector component drives BoE modal).",
+      "description": "ONS Average Weekly Earnings excluding bonuses year-on-year % change \u2014 primary BoE wage tracker (private sector component drives BoE modal).",
       "source": "haver",
       "ticker_bloomberg": "UKAWEXBYOY Index",
       "ticker_haver": "AWEXBUK@UKDATA",
@@ -729,7 +795,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Wages",
       "dfm_sign": 1,
@@ -750,7 +818,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Wages",
       "dfm_sign": 1,
@@ -762,7 +832,7 @@
     {
       "id": "uk_awe_private_regular_yoy",
       "name": "UK AWE Private Sector Regular Pay (y/y)",
-      "description": "ONS AWE private sector excluding bonuses year-on-year % change — most BoE-relevant wage gauge.",
+      "description": "ONS AWE private sector excluding bonuses year-on-year % change \u2014 most BoE-relevant wage gauge.",
       "source": "haver",
       "ticker_bloomberg": "UKAWEPRYOY Index",
       "ticker_haver": "AWEPVUK@UKDATA",
@@ -771,7 +841,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Wages",
       "dfm_sign": 1,
@@ -783,7 +855,7 @@
     {
       "id": "uk_awe_public_regular_yoy",
       "name": "UK AWE Public Sector Regular Pay (y/y)",
-      "description": "ONS AWE public sector excluding bonuses year-on-year % change — tracks negotiated pay settlements.",
+      "description": "ONS AWE public sector excluding bonuses year-on-year % change \u2014 tracks negotiated pay settlements.",
       "source": "haver",
       "ticker_bloomberg": "UKAWEPUYOY Index",
       "ticker_haver": "AWEPUUK@UKDATA",
@@ -792,7 +864,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Wages",
       "dfm_sign": 1,
@@ -804,7 +878,7 @@
     {
       "id": "uk_awe_services_yoy",
       "name": "UK AWE Services Sector Pay (y/y)",
-      "description": "ONS AWE services industries total pay year-on-year % change — dominant sector of UK economy.",
+      "description": "ONS AWE services industries total pay year-on-year % change \u2014 dominant sector of UK economy.",
       "source": "haver",
       "ticker_bloomberg": "UKAWESEYOY Index",
       "ticker_haver": "AWESRUK@UKDATA",
@@ -813,7 +887,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Wages",
       "dfm_sign": 1,
@@ -825,7 +901,7 @@
     {
       "id": "uk_rec_starting_salaries",
       "name": "KPMG/REC Starting Salaries Index",
-      "description": "KPMG/REC UK Report on Jobs: permanent starting salaries index — leading wage indicator.",
+      "description": "KPMG/REC UK Report on Jobs: permanent starting salaries index \u2014 leading wage indicator.",
       "source": "bloomberg",
       "ticker_bloomberg": "RECSTSAL Index",
       "ticker_haver": null,
@@ -834,7 +910,9 @@
       "typical_lag_days": 7,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Wages",
       "dfm_sign": 1,
@@ -846,7 +924,7 @@
     {
       "id": "uk_unit_labour_costs_yoy",
       "name": "UK Unit Labour Costs (y/y)",
-      "description": "ONS unit labour costs whole economy year-on-year % change — wages adjusted for productivity.",
+      "description": "ONS unit labour costs whole economy year-on-year % change \u2014 wages adjusted for productivity.",
       "source": "haver",
       "ticker_bloomberg": "UKULCYOY Index",
       "ticker_haver": "ULCUK@UKDATA",
@@ -855,7 +933,9 @@
       "typical_lag_days": 90,
       "asset_class": "macro_labour",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Wages",
       "dfm_sign": 1,
@@ -867,7 +947,7 @@
     {
       "id": "uk_rics_house_price_balance",
       "name": "RICS House Price Balance",
-      "description": "RICS Residential Market Survey net balance of surveyors reporting price rises — leading housing indicator.",
+      "description": "RICS Residential Market Survey net balance of surveyors reporting price rises \u2014 leading housing indicator.",
       "source": "haver",
       "ticker_bloomberg": "RICS5HPC Index",
       "ticker_haver": "RICSHPB@SURVEYS",
@@ -876,7 +956,9 @@
       "typical_lag_days": 35,
       "asset_class": "macro_survey",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -888,7 +970,7 @@
     {
       "id": "uk_halifax_hpi_yoy",
       "name": "Halifax HPI (y/y)",
-      "description": "Halifax House Price Index year-on-year % change — longest running UK house price series.",
+      "description": "Halifax House Price Index year-on-year % change \u2014 longest running UK house price series.",
       "source": "haver",
       "ticker_bloomberg": "HLFXHPYY Index",
       "ticker_haver": "HPIHLFX@UKDATA",
@@ -897,7 +979,9 @@
       "typical_lag_days": 10,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -918,7 +1002,9 @@
       "typical_lag_days": 5,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -930,7 +1016,7 @@
     {
       "id": "uk_mortgage_approvals",
       "name": "UK Mortgage Approvals",
-      "description": "BoE mortgage approvals for house purchase (thousands) — leading indicator of housing activity with ~3-6 month lead.",
+      "description": "BoE mortgage approvals for house purchase (thousands) \u2014 leading indicator of housing activity with ~3-6 month lead.",
       "source": "haver",
       "ticker_bloomberg": "UKMOAPPS Index",
       "ticker_haver": "MOAPPUK@BOE",
@@ -939,7 +1025,9 @@
       "typical_lag_days": 35,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -951,7 +1039,7 @@
     {
       "id": "uk_property_transactions",
       "name": "UK Property Transactions",
-      "description": "HMRC UK residential property transactions (thousands) — realised housing demand.",
+      "description": "HMRC UK residential property transactions (thousands) \u2014 realised housing demand.",
       "source": "haver",
       "ticker_bloomberg": "UKPROPTX Index",
       "ticker_haver": "PROPTUK@UKDATA",
@@ -960,7 +1048,9 @@
       "typical_lag_days": 45,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -972,7 +1062,7 @@
     {
       "id": "uk_land_registry_hpi_yoy",
       "name": "UK Land Registry HPI (y/y)",
-      "description": "ONS/HMLR UK House Price Index year-on-year % change — covers all transactions including cash buyers.",
+      "description": "ONS/HMLR UK House Price Index year-on-year % change \u2014 covers all transactions including cash buyers.",
       "source": "haver",
       "ticker_bloomberg": "LRUKDHPI Index",
       "ticker_haver": "HPILRUK@UKDATA",
@@ -981,7 +1071,9 @@
       "typical_lag_days": 90,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -993,7 +1085,7 @@
     {
       "id": "uk_housebuilding_starts",
       "name": "UK Housebuilding Starts",
-      "description": "MHCLG new-build dwelling starts England (thousands) — supply-side housing indicator.",
+      "description": "MHCLG new-build dwelling starts England (thousands) \u2014 supply-side housing indicator.",
       "source": "haver",
       "ticker_bloomberg": "UKHOUSBST Index",
       "ticker_haver": "HBSTUKEN@UKDATA",
@@ -1002,7 +1094,9 @@
       "typical_lag_days": 90,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -1014,7 +1108,7 @@
     {
       "id": "uk_mortgage_net_lending_mom",
       "name": "UK Mortgage Net Lending (m/m)",
-      "description": "BoE net mortgage lending month-on-month change (GBP bn) — flow of new credit into housing.",
+      "description": "BoE net mortgage lending month-on-month change (GBP bn) \u2014 flow of new credit into housing.",
       "source": "haver",
       "ticker_bloomberg": "UKNMLMOM Index",
       "ticker_haver": "NMLUK@BOE",
@@ -1023,7 +1117,9 @@
       "typical_lag_days": 35,
       "asset_class": "macro_activity",
       "geography": "uk",
-      "tools": ["uk_heatmap"],
+      "tools": [
+        "uk_heatmap"
+      ],
       "role": "factor_input",
       "dfm_factor": "Growth",
       "dfm_sign": 1,
@@ -1031,6 +1127,121 @@
       "dfm_primary": false,
       "heatmap_group": "Housing Market",
       "notes": "Housing series assigned Growth factor per design rationale."
+    },
+    {
+      "id": "gilt_2y",
+      "name": "UK Gilt 2y Yield",
+      "description": "UK Government (Gilt) 2-year benchmark yield.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "GUKG2 Index",
+      "ticker_haver": "GY2@UKDATA",
+      "frequency": "daily",
+      "units": "percent",
+      "typical_lag_days": 0,
+      "asset_class": "rates",
+      "geography": "uk",
+      "tools": [
+        "uk_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": false,
+      "heatmap_group": "Yields",
+      "notes": "Benchmark Gilt 2y. BBG: GUKG2 Index."
+    },
+    {
+      "id": "gilt_5y",
+      "name": "UK Gilt 5y Yield",
+      "description": "UK Government (Gilt) 5-year benchmark yield.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "GUKG5 Index",
+      "ticker_haver": "GY5@UKDATA",
+      "frequency": "daily",
+      "units": "percent",
+      "typical_lag_days": 0,
+      "asset_class": "rates",
+      "geography": "uk",
+      "tools": [
+        "uk_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": false,
+      "heatmap_group": "Yields",
+      "notes": "Benchmark Gilt 5y. BBG: GUKG5 Index."
+    },
+    {
+      "id": "gilt_10y",
+      "name": "UK Gilt 10y Yield",
+      "description": "UK Government (Gilt) 10-year benchmark yield.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "GUKG10 Index",
+      "ticker_haver": "GY10@UKDATA",
+      "frequency": "daily",
+      "units": "percent",
+      "typical_lag_days": 0,
+      "asset_class": "rates",
+      "geography": "uk",
+      "tools": [
+        "uk_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": false,
+      "heatmap_group": "Yields",
+      "notes": "Benchmark Gilt 10y. BBG: GUKG10 Index."
+    },
+    {
+      "id": "gilt_20y",
+      "name": "UK Gilt 20y Yield",
+      "description": "UK Government (Gilt) 20-year benchmark yield.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "GUKG20 Index",
+      "ticker_haver": "GY20@UKDATA",
+      "frequency": "daily",
+      "units": "percent",
+      "typical_lag_days": 0,
+      "asset_class": "rates",
+      "geography": "uk",
+      "tools": [
+        "uk_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": false,
+      "heatmap_group": "Yields",
+      "notes": "Benchmark Gilt 20y. BBG: GUKG20 Index."
+    },
+    {
+      "id": "gilt_30y",
+      "name": "UK Gilt 30y Yield",
+      "description": "UK Government (Gilt) 30-year benchmark yield.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "GUKG30 Index",
+      "ticker_haver": "GY30@UKDATA",
+      "frequency": "daily",
+      "units": "percent",
+      "typical_lag_days": 0,
+      "asset_class": "rates",
+      "geography": "uk",
+      "tools": [
+        "uk_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": false,
+      "heatmap_group": "Yields",
+      "notes": "Benchmark Gilt 30y. BBG: GUKG30 Index."
     }
   ]
 }

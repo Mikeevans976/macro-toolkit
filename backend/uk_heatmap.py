@@ -457,17 +457,71 @@ def _fetch_macro_data_uk(start: str, end: str) -> dict[str, pd.Series] | None:
         return None
 
 
+# Series IDs for Gilt yields (must match GILT_TENORS order)
+_YIELD_SERIES_IDS = ["gilt_2y", "gilt_5y", "gilt_10y", "gilt_20y", "gilt_30y"]
+
+
+def _fetch_yield_data_uk(start: str, end: str) -> "np.ndarray | None":
+    """
+    Fetch daily Gilt yields from Bloomberg or Haver.
+    Returns [T_DAILY, N_TENORS] array aligned to DAILY_DATES, or None to simulate.
+    """
+    source = os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower()
+    if source in ("csv", "simulation"):
+        return None
+
+    kwargs: dict = {"catalogue_path": _UK_CATALOGUE_PATH}
+    if source == "haver":
+        haver_path = os.environ.get("HAVER_PATH")
+        if haver_path:
+            kwargs["path"] = haver_path
+
+    try:
+        fetcher = get_fetcher(source, **kwargs)   # type: ignore[arg-type]
+        data = fetcher.fetch(_YIELD_SERIES_IDS, start=start, end=end)
+        if not data:
+            warnings.warn("[uk_heatmap] No yield data from fetcher; simulating yields.", stacklevel=1)
+            return None
+
+        daily_arr = np.array(DAILY_DATES, dtype="datetime64[D]")
+        yield_mat = np.full((T_DAILY, N_TENORS), np.nan)
+
+        for k, sid in enumerate(_YIELD_SERIES_IDS):
+            series = data.get(sid)
+            if series is None or series.empty:
+                continue
+            for ts, val in series.items():
+                if pd.isna(val):
+                    continue
+                d = np.datetime64(pd.Timestamp(ts).date(), "D")
+                idx = int(np.searchsorted(daily_arr, d, side="left"))
+                if 0 <= idx < T_DAILY:
+                    yield_mat[idx, k] = val
+
+        yield_mat = pd.DataFrame(yield_mat).ffill().bfill().values
+
+        if np.isnan(yield_mat).any():
+            warnings.warn("[uk_heatmap] Yield matrix still has NaNs after fill; simulating.", stacklevel=1)
+            return None
+
+        return yield_mat
+
+    except Exception as exc:
+        warnings.warn(f"[uk_heatmap] Yield fetch failed ({exc}); simulating yields.", stacklevel=1)
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Main computation — run once at import
 # ---------------------------------------------------------------------------
 
 _rng = np.random.default_rng(99)
 
-# ── Block 1: try real data, fall back to simulation ───────────────────────────
-# Fetch window: 2 years before the grid start → grid end, to capture quarterly lags.
 _fetch_start = (DAILY_DATES[0] - pd.DateOffset(years=2)).strftime("%Y-%m-%d")
 _fetch_end   = DAILY_DATES[-1].strftime("%Y-%m-%d")
-_live_data   = _fetch_macro_data_uk(_fetch_start, _fetch_end)
+
+# ── Block 1: macro DFM ────────────────────────────────────────────────────────
+_live_data = _fetch_macro_data_uk(_fetch_start, _fetch_end)
 
 _macro_data: MacroData = load_macro_data(
     daily_dates=DAILY_DATES,
@@ -488,14 +542,20 @@ _sufficient = (
 
 if _sufficient:
     FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm_from_data(_macro_data.Y_daily)
-    # Yield block still simulated from smoothed factors until live yield data wired up
-    GILT_YIELDS = _simulate_yield_block(FACTORS_SMOOTH, _rng)
 else:
     _true_factors, _Lambda_sim, _Y_monthly = _simulate_macro_block(_rng)
     FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm_sim(
         _Lambda_sim, _Y_monthly, _true_factors[MONTH_END_IDX],
     )
-    GILT_YIELDS = _simulate_yield_block(_true_factors, _rng)
+
+# ── Block 2: yield PCA ────────────────────────────────────────────────────────
+_live_yields = _fetch_yield_data_uk(_fetch_start, _fetch_end)
+
+if _live_yields is not None:
+    GILT_YIELDS = _live_yields
+else:
+    _sim_src = _true_factors if not _sufficient else FACTORS_SMOOTH
+    GILT_YIELDS = _simulate_yield_block(_sim_src, _rng)
 
 PC_SCORES, PC_LOADINGS, PC_EXPLAINED_VAR, YIELD_MEANS = _compute_pca(GILT_YIELDS)
 

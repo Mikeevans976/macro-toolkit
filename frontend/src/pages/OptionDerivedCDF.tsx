@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LineChart,
@@ -117,6 +117,21 @@ function computeProbs(
   const c2 = gcCDF(b2, forward, vol, skew)
   const c3 = gcCDF(b3, forward, vol, skew)
   return [Math.max(0, c1), Math.max(0, c2 - c1), Math.max(0, c3 - c2), Math.max(0, 1 - c3)]
+}
+
+// ─── API types ────────────────────────────────────────────────────────────────
+
+interface ApiExpiry {
+  forward: number
+  vol:     number
+  skew:    number
+}
+
+interface ApiParamsResponse {
+  ccy:         string
+  tail:        string
+  data_source: 'bloomberg' | 'simulation'
+  params:      Record<string, ApiExpiry>  // keyed by expiry string e.g. "6m"
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -312,13 +327,14 @@ function LegendLine({ color, label, dashed }: { color: string; label: string; da
 
 function HorizonPanel({
   title, lineColor, dashed,
-  ccy, tail, state, onChange, onReset,
+  ccy, tail, state, onChange, onReset, getParams,
 }: {
   title: string; lineColor: string; dashed: boolean
   ccy: Currency; tail: Tail
   state: HorizonState
   onChange: (patch: Partial<HorizonState>) => void
   onReset: () => void
+  getParams: (c: Currency, t: Tail, e: Expiry) => { forward: number; vol: number; skew: number }
 }) {
   return (
     <div style={card}>
@@ -345,7 +361,7 @@ function HorizonPanel({
             key={e} label={e} active={state.expiry === e}
             accentColor={lineColor}
             onClick={() => {
-              const p = estimateParams(ccy, tail, e)
+              const p = getParams(ccy, tail, e)
               onChange({ expiry: e, ...p })
             }}
           />
@@ -393,6 +409,30 @@ export default function OptionDerivedCDF() {
   }
   const [breaks, setBreaks] = useState<[number, number, number]>(initBreaks)
 
+  // ── API state ──────────────────────────────────────────────────────────────
+  const [apiData, setApiData]       = useState<ApiParamsResponse | null>(null)
+  const [apiLoading, setApiLoading] = useState(false)
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    if (!token) return
+    setApiLoading(true)
+    fetch(`/api/tools/option-cdf/${ccy}/${tail}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: ApiParamsResponse | null) => { setApiData(d); setApiLoading(false) })
+      .catch(() => setApiLoading(false))
+  }, [ccy, tail])
+
+  // Resolve params for a given expiry — API data takes priority over static table
+  const resolveParams = useCallback((c: Currency, t: Tail, exp: Expiry) => {
+    if (apiData && apiData.ccy === c && apiData.tail === t && apiData.params[exp]) {
+      return apiData.params[exp]
+    }
+    return estimateParams(c, t, exp)
+  }, [apiData])
+
   // When currency changes: reset both horizons, keep expiries
   const handleCcy = (c: Currency) => {
     setCcy(c)
@@ -412,6 +452,16 @@ export default function OptionDerivedCDF() {
     setH2({ ...h2, ...p2 })
     setBreaks(defaultBreaks(p1.forward, p1.vol))
   }
+
+  // When API data arrives, refresh both horizons with live params (preserving expiry)
+  useEffect(() => {
+    if (!apiData) return
+    const p1 = resolveParams(ccy, tail, h1.expiry)
+    const p2 = resolveParams(ccy, tail, h2.expiry)
+    setH1(prev => ({ ...prev, ...p1 }))
+    setH2(prev => ({ ...prev, ...p2 }))
+    setBreaks(defaultBreaks(p1.forward, p1.vol))
+  }, [apiData])  // eslint-disable-line react-hooks/exhaustive-deps
 
   const setBreak = (idx: 0 | 1 | 2, val: number) => {
     const next: [number, number, number] = [...breaks] as [number, number, number]
@@ -491,7 +541,15 @@ export default function OptionDerivedCDF() {
               Option-Implied Macro Scenario Probabilities
             </div>
             <div style={{ color: '#475569', fontSize: 11, marginTop: 1 }}>
-              Option-implied scenario probabilities · Gram-Charlier expansion
+              Option-implied scenario probabilities · Gram-Charlier expansion ·{' '}
+              {apiLoading
+                ? <span style={{ color: '#64748b' }}>loading…</span>
+                : apiData
+                  ? <span style={{ color: apiData.data_source === 'bloomberg' ? '#22c55e' : '#f59e0b' }}>
+                      {apiData.data_source === 'bloomberg' ? 'Live (Bloomberg)' : 'Simulated parameters'}
+                    </span>
+                  : <span style={{ color: '#64748b' }}>Simulated parameters</span>
+              }
             </div>
           </div>
         </div>
@@ -552,9 +610,10 @@ export default function OptionDerivedCDF() {
             dashed={false}
             ccy={ccy} tail={tail}
             state={h1}
+            getParams={resolveParams}
             onChange={patch => setH1(prev => ({ ...prev, ...patch }))}
             onReset={() => {
-              const p = estimateParams(ccy, tail, h1.expiry)
+              const p = resolveParams(ccy, tail, h1.expiry)
               setH1(prev => ({ ...prev, ...p }))
             }}
           />
@@ -566,9 +625,10 @@ export default function OptionDerivedCDF() {
             dashed
             ccy={ccy} tail={tail}
             state={h2}
+            getParams={resolveParams}
             onChange={patch => setH2(prev => ({ ...prev, ...patch }))}
             onReset={() => {
-              const p = estimateParams(ccy, tail, h2.expiry)
+              const p = resolveParams(ccy, tail, h2.expiry)
               setH2(prev => ({ ...prev, ...p }))
             }}
           />

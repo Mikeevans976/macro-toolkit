@@ -430,6 +430,60 @@ def _fetch_macro_data_au(start: str, end: str) -> dict[str, pd.Series] | None:
         return None
 
 
+
+# Series IDs for government bond yields (must match YIELD_TENORS order)
+_YIELD_SERIES_IDS_AU = ['au_acgb_2y', 'au_acgb_5y', 'au_acgb_10y', 'au_acgb_20y', 'au_acgb_30y']
+
+
+def _fetch_yield_data_au(start: str, end: str) -> "np.ndarray | None":
+    """
+    Fetch daily government bond yields from Bloomberg or Haver.
+    Returns [T_DAILY, N_TENORS] array aligned to DAILY_DATES, or None to simulate.
+    """
+    source = os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower()
+    if source in ("csv", "simulation"):
+        return None
+
+    kwargs: dict = {"catalogue_path": _AU_CATALOGUE_PATH}
+    if source == "haver":
+        haver_path = os.environ.get("HAVER_PATH")
+        if haver_path:
+            kwargs["path"] = haver_path
+
+    try:
+        fetcher = get_fetcher(source, **kwargs)   # type: ignore[arg-type]
+        data = fetcher.fetch(_YIELD_SERIES_IDS_AU, start=start, end=end)
+        if not data:
+            warnings.warn("[au_heatmap] No yield data from fetcher; simulating yields.", stacklevel=1)
+            return None
+
+        daily_arr = np.array(DAILY_DATES, dtype="datetime64[D]")
+        yield_mat = np.full((T_DAILY, N_TENORS), np.nan)
+
+        for k, sid in enumerate(_YIELD_SERIES_IDS_AU):
+            series = data.get(sid)
+            if series is None or series.empty:
+                continue
+            for ts, val in series.items():
+                if pd.isna(val):
+                    continue
+                d = np.datetime64(pd.Timestamp(ts).date(), "D")
+                idx = int(np.searchsorted(daily_arr, d, side="left"))
+                if 0 <= idx < T_DAILY:
+                    yield_mat[idx, k] = val
+
+        yield_mat = pd.DataFrame(yield_mat).ffill().bfill().values
+
+        if np.isnan(yield_mat).any():
+            warnings.warn("[au_heatmap] Yield matrix still has NaNs after fill; simulating.", stacklevel=1)
+            return None
+
+        return yield_mat
+
+    except Exception as exc:
+        warnings.warn(f"[au_heatmap] Yield fetch failed ({exc}); simulating yields.", stacklevel=1)
+        return None
+
 # ---------------------------------------------------------------------------
 # Main computation — run once at import
 # ---------------------------------------------------------------------------
@@ -460,14 +514,20 @@ _sufficient = (
 
 if _sufficient:
     FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm_from_data(_macro_data.Y_daily)
-    # Yield block still simulated from smoothed factors until live yield data wired up
-    ACGB_YIELDS = _simulate_yield_block(FACTORS_SMOOTH, _rng)
 else:
     _true_factors, _Lambda_sim, _Y_monthly = _simulate_macro_block(_rng)
     FACTORS_SMOOTH, FACTORS_FILT = _build_macro_dfm_sim(
         _Lambda_sim, _Y_monthly, _true_factors[MONTH_END_IDX],
     )
-    ACGB_YIELDS = _simulate_yield_block(_true_factors, _rng)
+
+# ── Block 2: yield PCA ────────────────────────────────────────────────────────
+_live_yields = _fetch_yield_data_au(_fetch_start, _fetch_end)
+
+if _live_yields is not None:
+    ACGB_YIELDS = _live_yields
+else:
+    _sim_src = _true_factors if not _sufficient else FACTORS_SMOOTH
+    ACGB_YIELDS = _simulate_yield_block(_sim_src, _rng)
 
 PC_SCORES, PC_LOADINGS, PC_EXPLAINED_VAR, YIELD_MEANS = _compute_pca(ACGB_YIELDS)
 

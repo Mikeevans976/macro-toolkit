@@ -1,11 +1,18 @@
 """
-HICPxT Inflation Swap Fair Value Models — synthetic data.
-Rolling Elastic Net. Replace _simulate() with live BBG pulls when ready.
+HICPxT Inflation Swap Fair Value Models.
+Rolling Elastic Net on 14 EUR inflation swap instruments.
+
+Live data path: set ANALYTICS_DATA_SOURCE=bloomberg.
+Simulation fallback: synthetic data seeded for reproducibility.
 """
 from __future__ import annotations
 
+import os
+import warnings
+
 import numpy as np
 import pandas as pd
+from scipy.interpolate import CubicSpline
 from sklearn.linear_model import ElasticNet
 from sklearn.preprocessing import StandardScaler
 
@@ -92,6 +99,231 @@ _MODEL_DEFS: list[dict] = [
      "x_keys":  ["ESTR_20Y10Y", "log_Brent",  "log_Gas",  "SMOVEU1M",        "log_BCOM",  "EUR_TWI", "GSEAFCI", "ITRX5Y",   "slope_3m10y"],
      "y_key":   "HICP_20Y10Y"},
 ]
+
+# ─── Bloomberg Ticker Map ─────────────────────────────────────────────────────
+
+# Raw series fetched from BBG via PX_LAST.
+# Rates (EUSWI*, EESWE*, EUR003M) → divided by 100 to get decimals.
+# Commodity/index series → kept at level then log-transformed or used as-is.
+_BBG_RAW: dict[str, str] = {
+    # HICPxT inflation swap outrights — Y targets (& inputs for forward derivation)
+    "EUSWI1":   "EUSWI1 Curncy",
+    "EUSWI2":   "EUSWI2 Curncy",
+    "EUSWI3":   "EUSWI3 Curncy",    # needed for HICP_2Y1Y
+    "EUSWI4":   "EUSWI4 Curncy",    # needed for HICP_2Y2Y
+    "EUSWI5":   "EUSWI5 Curncy",
+    "EUSWI10":  "EUSWI10 Curncy",
+    "EUSWI15":  "EUSWI15 Curncy",
+    "EUSWI20":  "EUSWI20 Curncy",
+    "EUSWI30":  "EUSWI30 Curncy",
+    # ESTR par OIS swap rates — X regressors + forward bootstrap
+    "EESWE1":   "EUSWF1 Curncy",
+    "EESWE2":   "EUSWF2 Curncy",
+    "EESWE3":   "EUSWF3 Curncy",    # needed for ESTR_2Y1Y bootstrap
+    "EESWE4":   "EUSWF4 Curncy",    # needed for ESTR_2Y2Y bootstrap
+    "EESWE5":   "EUSWF5 Curncy",
+    "EESWE10":  "EUSWF10 Curncy",
+    "EESWE15":  "EUSWF15 Curncy",
+    "EESWE20":  "EUSWF20 Curncy",
+    "EESWE30":  "EUSWF30 Curncy",
+    # Macro regressors
+    "Brent":    "CO1 Comdty",        # Brent crude front-month, USD/bbl → log_Brent
+    "Gas":      "TTF1 Comdty",       # TTF nat gas front-month, EUR/MWh → log_Gas
+    "BCOM_raw": "BCOM Index",        # Bloomberg Commodity Index → log_BCOM
+    "EUR003M":  "EUR003M Index",     # EURIBOR 3M, %
+    "EUR_TWI":  "EURR002W Index",    # ECB broad NEER, index level
+    "GSEAFCI":  "GSEAFCI Index",     # GS Euro Area FCI (needs GS data subscription)
+    "ITRX5Y":   "ITRXEBE5 Index",    # iTraxx Europe 5Y on-the-run, bps
+    "CESIEUR":  "CESIEUR Index",     # Citi Economic Surprise EUR
+    "SMOVEU1M": "EUSV0001 Index",    # EUR 1M10Y swaption normal vol, bps
+}
+
+# Series that are essential — if any are missing, fall back to simulation.
+_REQUIRED_BBG = {
+    "EUSWI1", "EUSWI2", "EUSWI5", "EUSWI10", "EUSWI20", "EUSWI30",
+    "EESWE1", "EESWE2", "EESWE5", "EESWE10", "EESWE20", "EESWE30",
+    "Brent", "Gas", "BCOM_raw", "EUR003M",
+}
+
+# Optional — filled with zeros if unavailable (model assigns near-zero coefficient)
+_OPTIONAL_BBG = {"EUR_TWI", "GSEAFCI", "ITRX5Y", "CESIEUR", "SMOVEU1M"}
+
+
+# ─── Forward derivation helpers ───────────────────────────────────────────────
+
+def _estr_discount_factors(par_rates: dict[int, float]) -> np.ndarray:
+    """
+    Bootstrap discount factors D[0..30] from available ESTR par OIS tenors.
+    par_rates: {tenor_years: rate_decimal}.  Cubic-spline gap-fill before bootstrap.
+    """
+    tenors = sorted(par_rates)
+    rates_pct = [par_rates[t] * 100.0 for t in tenors]
+    cs = CubicSpline(tenors, rates_pct, bc_type="not-a-knot")
+    all_pct = cs(np.arange(1, 31, dtype=float))
+
+    D = np.zeros(31)
+    D[0] = 1.0
+    ann = 0.0
+    for n in range(1, 31):
+        r = all_pct[n - 1] / 100.0
+        D[n] = (1.0 - r * ann) / (1.0 + r)
+        ann += D[n]
+    return D
+
+
+def _estr_fwd(D: np.ndarray, s: int, t: int) -> float:
+    """Forward par OIS rate (decimal) for swap starting in s years, tenor t years."""
+    num = D[s] - D[s + t]
+    den = sum(D[s + k] for k in range(1, t + 1))
+    return num / den
+
+
+def _hicp_fwd(r_near: float, r_far: float, s: int, t: int) -> float:
+    """
+    Zero-coupon HICPxT forward rate (decimal).
+    r_near: spot rate to year s; r_far: spot rate to year s+t; both decimal.
+    """
+    return ((1.0 + r_far) ** (s + t) / (1.0 + r_near) ** s) ** (1.0 / t) - 1.0
+
+
+# ─── Live data fetch ──────────────────────────────────────────────────────────
+
+def _fetch_live_data(
+    start: str, end: str
+) -> "tuple[dict[str, np.ndarray], pd.DatetimeIndex] | None":
+    """
+    Fetch all Fair Value Model inputs from Bloomberg.
+
+    Returns (vars_dict, DatetimeIndex) with the same keys as _simulate(), or None
+    on any failure.  Caller should fall back to _simulate() when None is returned.
+    """
+    try:
+        from bbg import blp
+    except ImportError:
+        return None
+
+    try:
+        tickers = list(_BBG_RAW.values())
+        id_by_tick = {v: k for k, v in _BBG_RAW.items()}
+
+        raw_df = blp.bdh(tickers, "PX_LAST", start, end)
+        if raw_df is None or raw_df.empty:
+            warnings.warn("[fair_value_models] BBG returned no data.", stacklevel=1)
+            return None
+
+        if isinstance(raw_df.columns, pd.MultiIndex):
+            raw_df = raw_df.xs("PX_LAST", axis=1, level=1)
+
+        raw_df = raw_df.rename(columns=id_by_tick)
+
+        # Check required series
+        missing = _REQUIRED_BBG - set(raw_df.columns)
+        if missing:
+            warnings.warn(
+                f"[fair_value_models] Missing required BBG series: {missing}; "
+                "falling back to simulation.",
+                stacklevel=1,
+            )
+            return None
+
+        # Drop rows where any required series is NaN
+        raw_df = raw_df.dropna(subset=list(_REQUIRED_BBG))
+        if raw_df.empty:
+            return None
+
+        n = len(raw_df)
+        dates = pd.DatetimeIndex(raw_df.index)
+        out: dict[str, np.ndarray] = {}
+
+        # ── Swap rates → decimal ─────────────────────────────────────────────
+        rate_cols = [c for c in raw_df.columns
+                     if c.startswith("EUSWI") or c.startswith("EESWE") or c == "EUR003M"]
+        for col in rate_cols:
+            out[col] = raw_df[col].values / 100.0
+
+        # ── Log commodity prices ──────────────────────────────────────────────
+        out["log_Brent"] = np.log(np.clip(raw_df["Brent"].values,    5.0,  500.0))
+        out["log_Gas"]   = np.log(np.clip(raw_df["Gas"].values,      1.0,  500.0))
+        out["log_BCOM"]  = np.log(np.clip(raw_df["BCOM_raw"].values, 50.0, 600.0))
+
+        # ── Optional macro series (zeros if absent) ───────────────────────────
+        for col in _OPTIONAL_BBG:
+            if col in raw_df.columns:
+                out[col] = raw_df[col].values
+            else:
+                out[col] = np.zeros(n)
+                warnings.warn(
+                    f"[fair_value_models] {col} not in BBG response; using zeros.",
+                    stacklevel=1,
+                )
+
+        # ── Derived: 3M10Y slope ──────────────────────────────────────────────
+        out["slope_3m10y"] = out["EESWE10"] - out["EUR003M"]
+
+        # ── ESTR forward rates (bootstrapped per row) ─────────────────────────
+        _estr_fwd_specs = {
+            "ESTR_1Y1Y":   (1, 1),
+            "ESTR_2Y1Y":   (2, 1),
+            "ESTR_2Y2Y":   (2, 2),
+            "ESTR_2Y3Y":   (2, 3),
+            "ESTR_5Y5Y":   (5, 5),
+            "ESTR_10Y10Y": (10, 10),
+            "ESTR_20Y10Y": (20, 10),
+        }
+        _estr_par_map = {
+            1: "EESWE1", 2: "EESWE2", 3: "EESWE3", 4: "EESWE4",
+            5: "EESWE5", 10: "EESWE10", 15: "EESWE15", 20: "EESWE20", 30: "EESWE30",
+        }
+        for fk in _estr_fwd_specs:
+            out[fk] = np.full(n, np.nan)
+
+        for i in range(n):
+            par = {t: out[k][i] for t, k in _estr_par_map.items() if k in out}
+            if len(par) < 4:
+                continue
+            try:
+                D = _estr_discount_factors(par)
+                for fk, (s, t) in _estr_fwd_specs.items():
+                    if s + t <= 30:
+                        out[fk][i] = _estr_fwd(D, s, t)
+            except Exception:
+                pass
+
+        for fk in _estr_fwd_specs:
+            out[fk] = pd.Series(out[fk]).ffill().bfill().values
+
+        # ── HICPxT forward rates (zero-coupon algebra) ────────────────────────
+        _hicp_fwd_specs = {
+            "HICP_1Y1Y":   (1, 1,  "EUSWI1",  "EUSWI2"),
+            "HICP_2Y1Y":   (2, 1,  "EUSWI2",  "EUSWI3"),
+            "HICP_2Y2Y":   (2, 2,  "EUSWI2",  "EUSWI4"),
+            "HICP_2Y3Y":   (2, 3,  "EUSWI2",  "EUSWI5"),
+            "HICP_5Y5Y":   (5, 5,  "EUSWI5",  "EUSWI10"),
+            "HICP_10Y10Y": (10, 10, "EUSWI10", "EUSWI20"),
+            "HICP_20Y10Y": (20, 10, "EUSWI20", "EUSWI30"),
+        }
+        for fk, (s, t, near_k, far_k) in _hicp_fwd_specs.items():
+            if near_k in out and far_k in out:
+                r_n = out[near_k]
+                r_f = out[far_k]
+                valid = (~np.isnan(r_n)) & (~np.isnan(r_f)) & (r_n > -0.05) & (r_f > -0.05)
+                arr = np.full(n, np.nan)
+                arr[valid] = _hicp_fwd(r_n[valid], r_f[valid], s, t)
+                out[fk] = pd.Series(arr).ffill().bfill().values
+            else:
+                out[fk] = np.zeros(n)
+                warnings.warn(
+                    f"[fair_value_models] Cannot compute {fk}: "
+                    f"missing {near_k} or {far_k}.",
+                    stacklevel=1,
+                )
+
+        return out, dates
+
+    except Exception as exc:
+        warnings.warn(f"[fair_value_models] BBG fetch failed: {exc}", stacklevel=1)
+        return None
+
 
 # ─── Simulation ───────────────────────────────────────────────────────────────
 
@@ -563,8 +795,25 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
 
 
 # ─── Pre-compute ──────────────────────────────────────────────────────────────
+# Try Bloomberg live data first; fall back to simulation on any failure.
 
-_VARS = _simulate()
+_source = os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower()
+_live_result = None
+
+if _source == "bloomberg":
+    _live_result = _fetch_live_data(
+        start="2004-01-01",
+        end=pd.Timestamp.today().strftime("%Y-%m-%d"),
+    )
+
+if _live_result is not None:
+    _VARS, _live_dates = _live_result
+    DATES = _live_dates    # override module-level DATES with live date range
+    T = len(DATES)         # override T
+    data_source = "bloomberg"
+else:
+    _VARS = _simulate()
+    data_source = "simulation"
 
 _RESULTS: dict[str, dict] = {}
 for _m in _MODEL_DEFS:
@@ -579,7 +828,8 @@ for _m in _MODEL_DEFS:
 
 def get_fair_value_models_data() -> dict:
     return {
-        "groups":    _GROUPS,
-        "model_ids": [m["id"] for m in _MODEL_DEFS],
-        "models":    _RESULTS,
+        "groups":      _GROUPS,
+        "model_ids":   [m["id"] for m in _MODEL_DEFS],
+        "models":      _RESULTS,
+        "data_source": data_source,
     }

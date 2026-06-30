@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid,
@@ -30,6 +30,30 @@ interface FlyResult {
 }
 
 type YieldType = 'real' | 'breakeven' | 'iota'
+
+// ─── API response types ───────────────────────────────────────────────────────
+
+interface ApiYieldBlock {
+  levels:       number[][]   // [T, N] in %
+  loadings:     number[][]   // [nPCs, N]
+  var_explained: number[]    // [nPCs]
+  flies: {
+    name: string; left_idx: number; belly_idx: number; right_idx: number
+    w_left: number; w_right: number; spreads: number[]
+    current: number; avg3m: number; std3m: number; zscore: number
+    signal: string; net_dv01: number
+  }[]
+}
+
+interface ApiResponse {
+  curve:       string
+  bonds:       BondSpec[]
+  dates:       string[]
+  data_source: 'bloomberg' | 'simulation'
+  real:        ApiYieldBlock
+  breakeven:   ApiYieldBlock
+  iota:        ApiYieldBlock
+}
 
 const YIELD_TYPES: { id: YieldType; label: string; description: string }[] = [
   { id: 'real',      label: 'Real Yield',  description: 'Real yield of the inflation-linked bond'          },
@@ -409,12 +433,47 @@ export default function InflationPCA() {
 
   const cfg = CURVES[curveId]
 
+  const [apiData, setApiData]       = useState<ApiResponse | null>(null)
+  const [apiLoading, setApiLoading] = useState(false)
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    if (!token) return
+    setApiLoading(true)
+    setApiData(null)
+    fetch(`/api/tools/inflation-pca/${curveId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: ApiResponse | null) => { setApiData(d); setApiLoading(false) })
+      .catch(() => setApiLoading(false))
+  }, [curveId])
+
   const { levels, loadings, varExplained, flies } = useMemo(() => {
+    const block = apiData?.[yieldType]
+    if (block) {
+      const flies: FlyResult[] = block.flies.map(f => ({
+        name:      f.name,
+        leftIdx:   f.left_idx,
+        bellyIdx:  f.belly_idx,
+        rightIdx:  f.right_idx,
+        wLeft:     f.w_left,
+        wRight:    f.w_right,
+        spreads:   f.spreads,
+        current:   f.current,
+        avg3m:     f.avg3m,
+        std3m:     f.std3m,
+        zscore:    f.zscore,
+        signal:    f.signal as FlyResult['signal'],
+        netDV01:   f.net_dv01,
+      }))
+      return { levels: block.levels, loadings: block.loadings, varExplained: block.var_explained, flies }
+    }
     const levels      = generateYieldLevels(curveId, yieldType)
     const { loadings, varExplained } = runPCA(levels)
     const flies       = computeFlies(levels, loadings, cfg.bonds)
     return { levels, loadings, varExplained, flies }
-  }, [curveId, yieldType])   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [curveId, yieldType, apiData])   // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeFly = flies.find(f => f.name === selectedFly) ?? flies[0] ?? null
 
@@ -433,8 +492,13 @@ export default function InflationPCA() {
     return { displayRows: [...rich, ...cheap], richCount: rich.length }
   }, [flies, showAll, nameFilter])
 
+  // Dynamic length — API may return a different T than N_DAYS
+  const T_actual = levels.length
+  const dates = apiData?.dates ?? BDATES.slice(BDATES.length - T_actual)
+  const bonds = apiData?.bonds ?? cfg.bonds
+
   // PC loadings bar chart data
-  const loadingsData = cfg.bonds.map((b, j) => ({
+  const loadingsData = bonds.map((b, j) => ({
     bond: String(b.maturity % 100),
     PC1:  +loadings[0][j].toFixed(4),
     PC2:  +loadings[1][j].toFixed(4),
@@ -442,17 +506,17 @@ export default function InflationPCA() {
   }))
 
   // Current real yield curve snapshot
-  const curveData = cfg.bonds.map((b, j) => ({
+  const curveData = bonds.map((b, j) => ({
     bond:    String(b.maturity % 100),
-    current: +(levels[N_DAYS - 1][j] * 100).toFixed(1),   // in bps for display
-    threeM:  +(levels[Math.max(0, N_DAYS - 63)][j] * 100).toFixed(1),
+    current: +(levels[T_actual - 1][j] * 100).toFixed(1),   // in bps for display
+    threeM:  +(levels[Math.max(0, T_actual - 63)][j] * 100).toFixed(1),
   }))
 
   // Selected fly spread — subsampled every 5 days
   const flyChartData = activeFly
-    ? BDATES
+    ? dates
         .map((date, i) => ({ date, i, spread: +activeFly.spreads[i].toFixed(2) }))
-        .filter(({ i }) => i % 5 === 0 || i === N_DAYS - 1)
+        .filter(({ i }) => i % 5 === 0 || i === T_actual - 1)
         .map(({ date, spread }) => ({ date: date.slice(5), spread }))
     : []
 
@@ -467,7 +531,17 @@ export default function InflationPCA() {
         </button>
         <div>
           <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>Inflation PCA</div>
-          <div style={{ color: MUTED, fontSize: 11, marginTop: 1 }}>Inflation Markets · Simulated data · PCA on 1y daily yield changes</div>
+          <div style={{ color: MUTED, fontSize: 11, marginTop: 1 }}>
+            Inflation Markets · PCA on 1y daily yield changes ·{' '}
+            {apiLoading
+              ? <span style={{ color: '#64748b' }}>loading…</span>
+              : apiData
+                ? <span style={{ color: apiData.data_source === 'bloomberg' ? '#22c55e' : '#f59e0b' }}>
+                    {apiData.data_source === 'bloomberg' ? 'Live (Bloomberg)' : 'Simulated data'}
+                  </span>
+                : <span style={{ color: '#64748b' }}>Simulated data</span>
+            }
+          </div>
         </div>
       </div>
 

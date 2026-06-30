@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -103,20 +104,150 @@ FORWARD_GROUPS = {
     "25/30y": {"labels": ["2y25y","5y25y","2y30y","5y30y"],                                 "color": "#EC4899"},
 }
 
+# ---------------------------------------------------------------------------
+# Bloomberg ticker maps
+# ---------------------------------------------------------------------------
+
+# Par OIS swap rate tickers: {currency: {tenor_years: bbg_ticker}}
+_OIS_TICKERS: dict[str, dict[int, str]] = {
+    "EUR": {n: f"EUSWF{n} Curncy"   for n in _SWAP_TENORS},   # ESTR OIS
+    "GBP": {n: f"BPSWS{n} Curncy"   for n in _SWAP_TENORS},   # SONIA OIS
+    "USD": {n: f"USOSFR{n} Curncy"  for n in _SWAP_TENORS},   # SOFR OIS
+}
+
+# Swaption normal vol tickers (bps): {currency: {label: bbg_ticker}}
+_VOL_TICKERS: dict[str, dict[str, str]] = {
+    "EUR": {"1m10y": "EUSV0001 Index", "1y10y": "EUSV0110 Index"},
+    "GBP": {"1m10y": "BPSV0001 Index", "1y10y": "BPSV0110 Index"},
+    "USD": {"1m10y": "USSV0001 Index", "1y10y": "USSV0110 Index"},
+}
+
+# ---------------------------------------------------------------------------
+# BBG helpers
+# ---------------------------------------------------------------------------
+
+def _fwd_labels_for_ccy(ccy: str) -> list[str]:
+    """Collect every unique forward label referenced by curves, flies, and snapshot."""
+    labels: set[str] = set()
+    for group_info in FORWARD_GROUPS.values():
+        labels.update(group_info["labels"])
+    for _, front, back in CURVES_BY_CCY[ccy]:
+        labels.add(front)
+        labels.add(back)
+    for _, front, belly, back in FLIES_BY_CCY[ccy]:
+        labels.add(front)
+        labels.add(belly)
+        labels.add(back)
+    return sorted(labels)
+
+
+def _fetch_from_bbg(
+    ccy: str, start: str, end: str
+) -> "tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame] | None":
+    """
+    Fetch par OIS rates + swaption vols from Bloomberg; bootstrap all forward rates.
+    Returns (fwd_df, beta_df, swap_df) or None on any failure.
+
+    fwd_df  — columns = forward labels (e.g. "1y10y"), values in %
+    beta_df — columns: 1y10y_fwd, 2y1y_fwd (%), 1m10y_vol, 1y10y_vol (bps normal vol)
+    swap_df — columns = tenor ints in _SWAP_TENORS order, values = par rates in %
+    """
+    try:
+        from bbg import blp
+    except ImportError:
+        return None
+
+    try:
+        # ── 1. Fetch par OIS rates ──────────────────────────────────────────
+        ois_tickers = list(_OIS_TICKERS[ccy].values())
+        raw_ois = blp.bdh(ois_tickers, "PX_LAST", start, end)
+        if raw_ois is None or raw_ois.empty:
+            warnings.warn(f"[swaps_rv] No OIS data from BBG for {ccy}")
+            return None
+
+        if isinstance(raw_ois.columns, pd.MultiIndex):
+            par = raw_ois.xs("PX_LAST", axis=1, level=1)
+        else:
+            par = raw_ois.copy()
+
+        inv_ois = {v: k for k, v in _OIS_TICKERS[ccy].items()}
+        par = par.rename(columns=inv_ois)
+        # Keep columns in _SWAP_TENORS order; drop rows with any NaN par rate
+        par = par[[n for n in _SWAP_TENORS if n in par.columns]].dropna()
+        if par.empty:
+            warnings.warn(f"[swaps_rv] OIS data empty after cleaning for {ccy}")
+            return None
+
+        swap_df = par.copy()   # par rates, integer-keyed columns
+
+        # ── 2. Bootstrap forward rates for every business day ───────────────
+        fwd_labels = _fwd_labels_for_ccy(ccy)
+        fwd_rows: list[dict] = []
+        for date, row in par.iterrows():
+            D = _build_discount_factors(row.values.astype(float))
+            rec: dict = {}
+            for label in fwd_labels:
+                s, t = _parse_label(label)
+                if s >= 1 and s + t <= _MAX_TENOR:
+                    rec[label] = _fwd_rate(s, t, D)   # already in %
+            fwd_rows.append(rec)
+
+        fwd_df = pd.DataFrame(fwd_rows, index=par.index)
+
+        # ── 3. Fetch swaption vols (beta explanatory variables) ─────────────
+        vol_tickers = list(_VOL_TICKERS[ccy].values())
+        raw_vol = blp.bdh(vol_tickers, "PX_LAST", start, end)
+        if raw_vol is None or raw_vol.empty:
+            warnings.warn(f"[swaps_rv] No vol data from BBG for {ccy}; falling back to CSV")
+            return None
+
+        if isinstance(raw_vol.columns, pd.MultiIndex):
+            vol = raw_vol.xs("PX_LAST", axis=1, level=1)
+        else:
+            vol = raw_vol.copy()
+
+        inv_vol = {v: k for k, v in _VOL_TICKERS[ccy].items()}
+        vol = vol.rename(columns=inv_vol)
+
+        # ── 4. Build beta_df ────────────────────────────────────────────────
+        common_dates = fwd_df.index.intersection(vol.index)
+        beta_df = pd.DataFrame(index=common_dates)
+        beta_df["1y10y_fwd"] = fwd_df.loc[common_dates, "1y10y"] if "1y10y" in fwd_df.columns else np.nan
+        beta_df["2y1y_fwd"]  = fwd_df.loc[common_dates, "2y1y"]  if "2y1y"  in fwd_df.columns else np.nan
+        beta_df["1m10y_vol"] = vol.loc[common_dates, "1m10y"]    if "1m10y" in vol.columns    else np.nan
+        beta_df["1y10y_vol"] = vol.loc[common_dates, "1y10y"]    if "1y10y" in vol.columns    else np.nan
+        beta_df = beta_df.dropna()
+
+        if beta_df.empty:
+            warnings.warn(f"[swaps_rv] beta_df empty after join for {ccy}")
+            return None
+
+        return fwd_df, beta_df, swap_df
+
+    except Exception as exc:
+        warnings.warn(f"[swaps_rv] BBG fetch failed for {ccy}: {exc}")
+        return None
+
 
 def compute_rv(currency: str = "EUR", as_of_date: str | None = None) -> dict:
     ccy = currency.upper()
     if ccy not in _CCY_FILES:
         raise ValueError(f"Unsupported currency: {currency}")
 
-    files = _CCY_FILES[ccy]
+    files  = _CCY_FILES[ccy]
     curves = CURVES_BY_CCY[ccy]
     flies  = FLIES_BY_CCY[ccy]
 
-    # 1. Load CSVs
-    fwd_df  = pd.read_csv(DATA_DIR / files["forwards"], parse_dates=["date"], index_col="date")
-    beta_df = pd.read_csv(DATA_DIR / files["betas"],    parse_dates=["date"], index_col="date")
-    swap_df = pd.read_csv(DATA_DIR / files["swaps"],    parse_dates=["date"], index_col="date")
+    # 1. Load data — try Bloomberg live feed first, fall back to CSV
+    _end   = (pd.Timestamp(as_of_date) if as_of_date else pd.Timestamp.today()).strftime("%Y-%m-%d")
+    _start = (pd.Timestamp(_end) - pd.DateOffset(years=5)).strftime("%Y-%m-%d")
+    bbg_result = _fetch_from_bbg(ccy, _start, _end)
+    if bbg_result is not None:
+        fwd_df, beta_df, swap_df = bbg_result
+    else:
+        fwd_df  = pd.read_csv(DATA_DIR / files["forwards"], parse_dates=["date"], index_col="date")
+        beta_df = pd.read_csv(DATA_DIR / files["betas"],    parse_dates=["date"], index_col="date")
+        swap_df = pd.read_csv(DATA_DIR / files["swaps"],    parse_dates=["date"], index_col="date")
 
     # 2. Align on common dates
     common_idx = fwd_df.index.intersection(beta_df.index)

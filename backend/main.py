@@ -86,6 +86,8 @@ from seasonality_backtester import (
 )
 from print_analysis import fetch_print_vs_consensus, fetch_market_reaction
 from momentum import compute_cta_signals
+from inflation_pca import get_inflation_pca_data
+from option_derived_cdf import get_option_cdf_params
 
 app = FastAPI(title="Analytics Hub API", version="1.0.0")
 
@@ -448,6 +450,18 @@ async def cta_signals(
     current_user: dict = Depends(get_current_user),
 ):
     return compute_cta_signals(ticker=ticker, start=start)
+
+
+@app.get("/api/tools/option-cdf/{ccy}/{tail}")
+async def option_cdf_params(ccy: str, tail: str, current_user: dict = Depends(get_current_user)):
+    """Swaption market parameters for Option-Implied CDF tool."""
+    return get_option_cdf_params(ccy, tail)
+
+
+@app.get("/api/tools/inflation-pca/{curve_id}")
+async def inflation_pca(curve_id: str, current_user: dict = Depends(get_current_user)):
+    """PCA-neutral butterfly analysis for EUR/GBP ILB curves."""
+    return get_inflation_pca_data(curve_id)
 
 
 @app.get("/api/tools/swaps-rv")
