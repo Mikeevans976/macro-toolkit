@@ -30,6 +30,12 @@ from uk_heatmap import (
     get_uk_yield_pca,
     get_uk_pc_regressions,
 )
+from us_heatmap import (
+    get_us_daily_factors,
+    get_us_fair_value,
+    get_us_yield_pca,
+    get_us_pc_regressions,
+)
 from seasonality_backtester import (
     fetch_bbg_expression,
     get_seasonality_stats,
@@ -151,6 +157,30 @@ async def uk_pc_regressions(current_user: dict = Depends(get_current_user)):
 async def uk_fair_value(current_user: dict = Depends(get_current_user)):
     """Daily 10y Gilt: actual, PCA reconstruction, macro fair value, rich/cheap."""
     return get_uk_fair_value()
+
+
+@app.get("/api/tools/us-heatmap/factors")
+async def us_daily_factors(current_user: dict = Depends(get_current_user)):
+    """Daily macro factor estimates from the US mixed-frequency DFM (Block 1)."""
+    return get_us_daily_factors()
+
+
+@app.get("/api/tools/us-heatmap/yield-pca")
+async def us_yield_pca(current_user: dict = Depends(get_current_user)):
+    """Daily UST yield PC scores, loadings and explained variance (Block 2)."""
+    return get_us_yield_pca()
+
+
+@app.get("/api/tools/us-heatmap/pc-regressions")
+async def us_pc_regressions(current_user: dict = Depends(get_current_user)):
+    """OLS regression of UST yield PCs on US macro factors (no intercept)."""
+    return get_us_pc_regressions()
+
+
+@app.get("/api/tools/us-heatmap/fair-value")
+async def us_fair_value(current_user: dict = Depends(get_current_user)):
+    """Daily 10y UST: actual, PCA reconstruction, macro fair value, rich/cheap."""
+    return get_us_fair_value()
 
 
 @app.get("/api/tools/global-yields")
