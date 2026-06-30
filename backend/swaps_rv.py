@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from scipy.interpolate import CubicSpline
-from curves_flies_config import CURVES, FLIES
+from curves_flies_config import CURVES_BY_CCY, FLIES_BY_CCY
 
 # ---------------------------------------------------------------------------
 # Zero-curve helpers (carry computation)
@@ -71,6 +71,28 @@ def _carry_expr_bps(legs: tuple, weights: tuple, D: np.ndarray) -> float:
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
+# ---------------------------------------------------------------------------
+# Per-currency data file map
+# ---------------------------------------------------------------------------
+
+_CCY_FILES = {
+    "EUR": {
+        "forwards": "eur_estr_forwards.csv",
+        "betas":    "eur_beta_variables.csv",
+        "swaps":    "eur_estr_swaps.csv",
+    },
+    "GBP": {
+        "forwards": "gbp_sonia_forwards.csv",
+        "betas":    "gbp_beta_variables.csv",
+        "swaps":    "gbp_sonia_swaps.csv",
+    },
+    "USD": {
+        "forwards": "usd_sofr_forwards.csv",
+        "betas":    "usd_beta_variables.csv",
+        "swaps":    "usd_sofr_swaps.csv",
+    },
+}
+
 FORWARD_GROUPS = {
     "1y":     {"labels": ["1y1y","2y1y","3y1y","4y1y","5y1y","6y1y","7y1y","8y1y","9y1y"], "color": "#3B82F6"},
     "2y":     {"labels": ["1y2y","2y2y","3y2y","5y2y"],                                     "color": "#8B5CF6"},
@@ -82,16 +104,27 @@ FORWARD_GROUPS = {
 }
 
 
-def compute_rv(as_of_date: str | None = None) -> dict:
+def compute_rv(currency: str = "EUR", as_of_date: str | None = None) -> dict:
+    ccy = currency.upper()
+    if ccy not in _CCY_FILES:
+        raise ValueError(f"Unsupported currency: {currency}")
+
+    files = _CCY_FILES[ccy]
+    curves = CURVES_BY_CCY[ccy]
+    flies  = FLIES_BY_CCY[ccy]
+
     # 1. Load CSVs
-    fwd_df  = pd.read_csv(DATA_DIR / "eur_estr_forwards.csv",  parse_dates=["date"], index_col="date")
-    beta_df = pd.read_csv(DATA_DIR / "eur_beta_variables.csv", parse_dates=["date"], index_col="date")
-    swap_df = pd.read_csv(DATA_DIR / "eur_estr_swaps.csv",     parse_dates=["date"], index_col="date")
+    fwd_df  = pd.read_csv(DATA_DIR / files["forwards"], parse_dates=["date"], index_col="date")
+    beta_df = pd.read_csv(DATA_DIR / files["betas"],    parse_dates=["date"], index_col="date")
+    swap_df = pd.read_csv(DATA_DIR / files["swaps"],    parse_dates=["date"], index_col="date")
 
     # 2. Align on common dates
     common_idx = fwd_df.index.intersection(beta_df.index)
     fwd_df = fwd_df.loc[common_idx].sort_index()
     beta_df = beta_df.loc[common_idx].sort_index()
+
+    if fwd_df.empty:
+        raise ValueError(f"No data available for {ccy}")
 
     min_date = fwd_df.index[0].strftime("%Y-%m-%d")
     max_date = fwd_df.index[-1].strftime("%Y-%m-%d")
@@ -111,7 +144,7 @@ def compute_rv(as_of_date: str | None = None) -> dict:
     swap_row   = swap_df.loc[swap_df.index <= as_of_ts].iloc[-1].values.astype(float)
     D          = _build_discount_factors(swap_row)
 
-    # 3. Curve snapshot
+    # 4. Curve snapshot
     curve_snapshot = {}
     latest = fwd_df.iloc[-1]
     for group_key, group_info in FORWARD_GROUPS.items():
@@ -129,7 +162,7 @@ def compute_rv(as_of_date: str | None = None) -> dict:
             "points": points,
         }
 
-    # 4. Build curve and fly time series
+    # 5. Build curve and fly time series
     def curve_series(front, back):
         return (fwd_df[back] - fwd_df[front]) * 100  # bps
 
@@ -138,12 +171,12 @@ def compute_rv(as_of_date: str | None = None) -> dict:
 
     # Collect all series: list of (label, group, series, legs, weights)
     all_series = []
-    for label, front, back in CURVES:
+    for label, front, back in curves:
         if front not in fwd_df.columns or back not in fwd_df.columns:
             continue
         all_series.append((label, "curve", curve_series(front, back),
                            (front, back), (-1, 1)))
-    for label, front, belly, back in FLIES:
+    for label, front, belly, back in flies:
         if any(leg not in fwd_df.columns for leg in (front, belly, back)):
             continue
         all_series.append((label, "fly", fly_series(front, belly, back),
@@ -182,7 +215,7 @@ def compute_rv(as_of_date: str | None = None) -> dict:
             "carry_vol_ratio": carry_vol_ratio,
         })
 
-    # 5. Beta Monitor — regress each curve/fly daily change on beta variable daily changes
+    # 6. Beta Monitor — regress each curve/fly daily change on beta variable daily changes
     beta_changes = pd.DataFrame(index=beta_df.index)
     beta_changes["1y10y_fwd"] = beta_df["1y10y_fwd"].diff() * 100
     beta_changes["2y1y_fwd"]  = beta_df["2y1y_fwd"].diff()  * 100
@@ -217,7 +250,7 @@ def compute_rv(as_of_date: str | None = None) -> dict:
             "residual_zscore": residual_zscore,
         })
 
-    # 6. 1y time series for each expression (for detail chart)
+    # 7. 1y time series for each expression (for detail chart)
     series_out: dict = {}
     for label, group, series, legs, weights in all_series:
         window = series.iloc[-win_1y:]

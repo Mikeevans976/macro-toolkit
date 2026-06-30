@@ -44,6 +44,38 @@ categories:
         name: UK Heatmap
         icon: "🇬🇧"
         url: /tools/uk-heatmap
+      - id: us-heatmap
+        name: US Heatmap
+        icon: "🇺🇸"
+        url: /tools/us-heatmap
+      - id: japan-heatmap
+        name: Japan Heatmap
+        icon: "🇯🇵"
+        url: /tools/japan-heatmap
+      - id: canada-heatmap
+        name: Canada Heatmap
+        icon: "🇨🇦"
+        url: /tools/canada-heatmap
+      - id: sweden-heatmap
+        name: Sweden Heatmap
+        icon: "🇸🇪"
+        url: /tools/sweden-heatmap
+      - id: norway-heatmap
+        name: Norway Heatmap
+        icon: "🇳🇴"
+        url: /tools/norway-heatmap
+      - id: switzerland-heatmap
+        name: Switzerland Heatmap
+        icon: "🇨🇭"
+        url: /tools/switzerland-heatmap
+      - id: australia-heatmap
+        name: Australia Heatmap
+        icon: "🇦🇺"
+        url: /tools/australia-heatmap
+      - id: new-zealand-heatmap
+        name: New Zealand Heatmap
+        icon: "🇳🇿"
+        url: /tools/new-zealand-heatmap
       - id: global-yields
         name: Factor Model for Global Yields
         icon: "🌐"

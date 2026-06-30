@@ -7,10 +7,18 @@ import GlobalYields from './pages/GlobalYields'
 import OptionDerivedCDF from './pages/OptionDerivedCDF'
 import FairValueModels from './pages/FairValueModels'
 import UKHeatmap from './pages/UKHeatmap'
+import USHeatmap from './pages/USHeatmap'
+import JapanHeatmap from './pages/JapanHeatmap'
 import SeasonalityBacktester from './pages/SeasonalityBacktester'
 import PrintAnalysis from './pages/PrintAnalysis'
 import Momentum from './pages/Momentum'
 import Positioning from './pages/Positioning'
+import CanadaHeatmap from './pages/CanadaHeatmap'
+import SwedenHeatmap from './pages/SwedenHeatmap'
+import NorwayHeatmap from './pages/NorwayHeatmap'
+import SwitzerlandHeatmap from './pages/SwitzerlandHeatmap'
+import AustraliaHeatmap from './pages/AustraliaHeatmap'
+import NewZealandHeatmap from './pages/NewZealandHeatmap'
 import InflationPCA from './pages/InflationPCA'
 import InflationFixingsMonitor from './pages/InflationFixingsMonitor'
 
@@ -38,6 +46,14 @@ export default function App() {
         <Route path="/tools/swaps-rv" element={<ProtectedRoute><SwapsRV /></ProtectedRoute>} />
         <Route path="/tools/euro-area-heatmap" element={<ProtectedRoute><EuroAreaHeatmap /></ProtectedRoute>} />
         <Route path="/tools/uk-heatmap" element={<ProtectedRoute><UKHeatmap /></ProtectedRoute>} />
+        <Route path="/tools/us-heatmap" element={<ProtectedRoute><USHeatmap /></ProtectedRoute>} />
+        <Route path="/tools/japan-heatmap" element={<ProtectedRoute><JapanHeatmap /></ProtectedRoute>} />
+        <Route path="/tools/canada-heatmap" element={<ProtectedRoute><CanadaHeatmap /></ProtectedRoute>} />
+        <Route path="/tools/sweden-heatmap" element={<ProtectedRoute><SwedenHeatmap /></ProtectedRoute>} />
+        <Route path="/tools/norway-heatmap" element={<ProtectedRoute><NorwayHeatmap /></ProtectedRoute>} />
+        <Route path="/tools/switzerland-heatmap" element={<ProtectedRoute><SwitzerlandHeatmap /></ProtectedRoute>} />
+        <Route path="/tools/australia-heatmap" element={<ProtectedRoute><AustraliaHeatmap /></ProtectedRoute>} />
+        <Route path="/tools/new-zealand-heatmap" element={<ProtectedRoute><NewZealandHeatmap /></ProtectedRoute>} />
         <Route path="/tools/global-yields" element={<ProtectedRoute><GlobalYields /></ProtectedRoute>} />
         <Route path="/tools/option-derived-cdf" element={<ProtectedRoute><OptionDerivedCDF /></ProtectedRoute>} />
         <Route path="/tools/fair-value-models" element={<ProtectedRoute><FairValueModels /></ProtectedRoute>} />

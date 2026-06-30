@@ -255,9 +255,10 @@ async def cta_signals(
 @app.get("/api/tools/swaps-rv")
 async def get_swaps_rv(
     date: str | None = None,
+    currency: str = "EUR",
     current_user: dict = Depends(get_current_user),
 ):
-    return compute_rv(as_of_date=date)
+    return compute_rv(currency=currency, as_of_date=date)
 
 
 # ---------------------------------------------------------------------------

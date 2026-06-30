@@ -828,15 +828,16 @@ function BetaMonitorTable({ rows }: { rows: BetaRow[] }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const CURRENCIES = [
-  { key: 'EUR', label: 'EUR', available: true },
-  { key: 'GBP', label: 'GBP', available: false },
-  { key: 'USD', label: 'USD', available: false },
+  { key: 'EUR', label: 'EUR' },
+  { key: 'GBP', label: 'GBP' },
+  { key: 'USD', label: 'USD' },
 ]
 
 export default function SwapsRV() {
   const [data, setData] = useState<SwapsRVData | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [noData, setNoData] = useState(false)
   const [currency, setCurrency] = useState('EUR')
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [focusLabel, setFocusLabel] = useState<string | null>(null)
@@ -844,7 +845,7 @@ export default function SwapsRV() {
   const [betaVar, setBetaVar] = useState<string>('beta_1y10y_fwd')
   const navigate = useNavigate()
 
-  function fetchData(isRefresh = false, date?: string) {
+  function fetchData(isRefresh = false, date?: string, ccy?: string) {
     const token = localStorage.getItem('access_token')
     if (!token) {
       navigate('/login', { replace: true })
@@ -853,10 +854,13 @@ export default function SwapsRV() {
 
     if (isRefresh) setRefreshing(true)
     else setLoading(true)
+    setNoData(false)
 
-    const params = date ? `?date=${date}` : ''
+    const activeCcy = ccy ?? currency
+    const params = new URLSearchParams({ currency: activeCcy })
+    if (date) params.set('date', date)
     axios
-      .get<SwapsRVData>(`/api/tools/swaps-rv${params}`, {
+      .get<SwapsRVData>(`/api/tools/swaps-rv?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -867,12 +871,25 @@ export default function SwapsRV() {
         if (axios.isAxiosError(err) && err.response?.status === 401) {
           localStorage.removeItem('access_token')
           navigate('/login', { replace: true })
+        } else {
+          setData(null)
+          setNoData(true)
         }
       })
       .finally(() => {
         setLoading(false)
         setRefreshing(false)
       })
+  }
+
+  function switchCurrency(ccy: string) {
+    setCurrency(ccy)
+    setData(null)
+    setSelectedDate('')
+    setFocusLabel(null)
+    setDetailLabel(null)
+    setBetaVar('beta_1y10y_fwd')
+    fetchData(false, undefined, ccy)
   }
 
   useEffect(() => { fetchData() }, [navigate])
@@ -935,26 +952,22 @@ export default function SwapsRV() {
             gap: 2,
           }}
         >
-          {CURRENCIES.map(({ key, label, available }) => (
+          {CURRENCIES.map(({ key, label }) => (
             <button
               key={key}
-              disabled={!available}
-              onClick={() => available && setCurrency(key)}
-              title={!available ? 'Coming soon' : undefined}
+              onClick={() => currency !== key && switchCurrency(key)}
               style={{
                 padding: '4px 14px',
                 borderRadius: 6,
                 fontSize: 12,
                 fontWeight: 600,
                 border: 'none',
-                cursor: available ? 'pointer' : 'not-allowed',
+                cursor: currency === key ? 'default' : 'pointer',
                 transition: 'all 0.15s',
                 background: currency === key
                   ? 'rgba(59,130,246,0.25)'
                   : 'transparent',
-                color: currency === key
-                  ? '#93c5fd'
-                  : available ? '#64748b' : '#334155',
+                color: currency === key ? '#93c5fd' : '#64748b',
                 outline: currency === key ? '1px solid rgba(59,130,246,0.35)' : 'none',
               }}
             >
@@ -1025,7 +1038,21 @@ export default function SwapsRV() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-32 text-slate-500 text-sm">
-          <span className="animate-pulse">Loading swaps RV data…</span>
+          <span className="animate-pulse">Loading {currency} swaps RV data…</span>
+        </div>
+      )}
+
+      {/* No data */}
+      {!loading && noData && (
+        <div className="flex flex-col items-center justify-center py-32 gap-4">
+          <div style={{ color: '#475569', fontSize: 14 }}>
+            No {currency} data available yet.
+          </div>
+          <div style={{ color: '#334155', fontSize: 12, textAlign: 'center', maxWidth: 420 }}>
+            Populate <code style={{ color: '#64748b' }}>data/{currency.toLowerCase() === 'gbp' ? 'gbp_sonia' : 'usd_sofr'}_forwards.csv</code>,&nbsp;
+            <code style={{ color: '#64748b' }}>{currency.toLowerCase()}_beta_variables.csv</code> and&nbsp;
+            <code style={{ color: '#64748b' }}>{currency.toLowerCase() === 'gbp' ? 'gbp_sonia' : 'usd_sofr'}_swaps.csv</code> to enable this view.
+          </div>
         </div>
       )}
 
