@@ -13,10 +13,20 @@ Per-country model:
 Residual (rich/cheap): actual_i − fitted_i, in bps.
 Z-Score: (current residual − 1y mean residual) / 1y std residual
 
-All series are simulated. Replace _simulate_yields() with live data pulls.
+Data pipeline
+-------------
+Live data is fetched via BloombergFetcher when xbbg is installed and a
+Bloomberg Terminal is running.  Falls back to _simulate_yields() automatically
+on any import or fetch failure — no code changes required to switch modes.
+
+All 24 series are catalogued in backend/data/series_catalogue.json under
+tools: ["global_yields"].  The COUNTRY_SERIES map below links each country
+in ALL_COUNTRIES to its catalogue series_id.
 """
 
 from __future__ import annotations
+
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -238,11 +248,121 @@ def _run_pca(yields: np.ndarray, n_components: int = 3) -> tuple:
 
 
 # ---------------------------------------------------------------------------
+# Country → catalogue series_id mapping
+# Order must match ALL_COUNTRIES exactly.
+# ---------------------------------------------------------------------------
+
+COUNTRY_SERIES: dict[str, str] = {
+    # DM
+    "US":             "gov10y_us",
+    "UK":             "gov10y_uk",
+    "Canada":         "gov10y_canada",
+    "Japan":          "gov10y_japan",
+    "Australia":      "gov10y_australia",
+    "Switzerland":    "gov10y_switzerland",
+    "Germany":        "bund_10y",
+    "France":         "gov10y_france",
+    "Austria":        "gov10y_austria",
+    "Netherlands":    "gov10y_netherlands",
+    "Belgium":        "gov10y_belgium",
+    "Italy":          "gov10y_italy",
+    "Greece":         "gov10y_greece",
+    "Ireland":        "gov10y_ireland",
+    "Portugal":       "gov10y_portugal",
+    "Spain":          "gov10y_spain",
+    # EM
+    "Brazil":         "gov10y_brazil",
+    "Mexico":         "gov10y_mexico",
+    "India":          "gov10y_india",
+    "South Korea":    "gov10y_south_korea",
+    "Indonesia":      "gov10y_indonesia",
+    "South Africa":   "gov10y_south_africa",
+    "Poland":         "gov10y_poland",
+    "Czech Republic": "gov10y_czech",
+}
+
+_SERIES_IDS = [COUNTRY_SERIES[c] for c in ALL_COUNTRIES]
+
+
+# ---------------------------------------------------------------------------
+# Live data fetch + matrix builder
+# ---------------------------------------------------------------------------
+
+def _fetch_yields(start: str, end: str) -> np.ndarray | None:
+    """
+    Fetch live 10y yields from Bloomberg and return a [T, N] daily matrix
+    aligned to DAILY_DATES and ALL_COUNTRIES.
+
+    Returns None on any failure (missing xbbg, Terminal not running, etc.)
+    so the caller can fall back to simulation.
+    """
+    try:
+        from data_fetcher import get_fetcher  # noqa: PLC0415
+    except ImportError:
+        warnings.warn("global_yields: data_fetcher not importable — using simulation.")
+        return None
+
+    try:
+        fetcher = get_fetcher("bloomberg")
+        raw: dict[str, pd.Series] = fetcher.fetch(
+            series_ids=_SERIES_IDS,
+            start=start,
+            end=end,
+        )
+    except Exception as exc:
+        warnings.warn(f"global_yields: Bloomberg fetch failed ({exc}) — using simulation.")
+        return None
+
+    if not raw:
+        warnings.warn("global_yields: Bloomberg returned no data — using simulation.")
+        return None
+
+    # Align each series to DAILY_DATES; forward-fill up to 5 business days
+    # to handle holiday gaps; countries with no data default to their long-run mean.
+    matrix = np.full((len(DAILY_DATES), N), np.nan)
+    date_index = pd.DatetimeIndex(DAILY_DATES)
+
+    for col, country in enumerate(ALL_COUNTRIES):
+        sid = COUNTRY_SERIES[country]
+        series = raw.get(sid)
+        if series is None or series.empty:
+            warnings.warn(f"global_yields: no data for {country} ({sid}) — using mean fill.")
+            matrix[:, col] = _MEANS[col]
+            continue
+
+        # Reindex to our date grid, forward-fill gaps up to 5 days
+        aligned = (
+            series
+            .reindex(date_index, method="ffill", limit=5)
+        )
+        matrix[:, col] = aligned.values
+
+    # For any remaining NaNs (e.g. series starts late) fill with long-run mean
+    for col in range(N):
+        mask = np.isnan(matrix[:, col])
+        if mask.any():
+            matrix[mask, col] = _MEANS[col]
+
+    return matrix
+
+
+# ---------------------------------------------------------------------------
 # Run model at module import
 # ---------------------------------------------------------------------------
 
-_rng = np.random.default_rng(20240101)
-YIELDS = _simulate_yields(_rng)
+_START = DAILY_DATES[0].strftime("%Y-%m-%d")
+_END   = DAILY_DATES[-1].strftime("%Y-%m-%d")
+
+_live = _fetch_yields(_START, _END)
+
+if _live is not None:
+    YIELDS = _live
+    _source = "bloomberg"
+else:
+    _rng = np.random.default_rng(20240101)
+    YIELDS = _simulate_yields(_rng)
+    _source = "simulation"
+
 (PC_SCORES, PC_LOADINGS, PC_EXPLAINED_VAR,
  YIELD_MEANS, YIELD_STDS, FITTED_YIELDS, RESIDUALS_BPS) = _run_pca(YIELDS)
 
@@ -319,4 +439,5 @@ def get_global_yields_data() -> dict:
         explained_var=explained_var,
         residuals=residuals,
         table=_build_table(),
+        data_source=_source,   # "bloomberg" | "simulation"
     )
