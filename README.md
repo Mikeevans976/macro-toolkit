@@ -1,4 +1,4 @@
-Analytics Hub
+# Analytics Hub
 
 A dark space-themed analytics dashboard for the financial analytics team. Built with FastAPI (backend) and React + Vite + TypeScript + Tailwind CSS (frontend).
 
