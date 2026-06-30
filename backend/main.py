@@ -36,6 +36,48 @@ from us_heatmap import (
     get_us_yield_pca,
     get_us_pc_regressions,
 )
+from japan_heatmap import (
+    get_jp_daily_factors,
+    get_jp_fair_value,
+    get_jp_yield_pca,
+    get_jp_pc_regressions,
+)
+from canada_heatmap import (
+    get_ca_daily_factors,
+    get_ca_fair_value,
+    get_ca_yield_pca,
+    get_ca_pc_regressions,
+)
+from sweden_heatmap import (
+    get_se_daily_factors,
+    get_se_fair_value,
+    get_se_yield_pca,
+    get_se_pc_regressions,
+)
+from norway_heatmap import (
+    get_no_daily_factors,
+    get_no_fair_value,
+    get_no_yield_pca,
+    get_no_pc_regressions,
+)
+from switzerland_heatmap import (
+    get_ch_daily_factors,
+    get_ch_fair_value,
+    get_ch_yield_pca,
+    get_ch_pc_regressions,
+)
+from australia_heatmap import (
+    get_au_daily_factors,
+    get_au_fair_value,
+    get_au_yield_pca,
+    get_au_pc_regressions,
+)
+from new_zealand_heatmap import (
+    get_nz_daily_factors,
+    get_nz_fair_value,
+    get_nz_yield_pca,
+    get_nz_pc_regressions,
+)
 from seasonality_backtester import (
     fetch_bbg_expression,
     get_seasonality_stats,
@@ -181,6 +223,132 @@ async def us_pc_regressions(current_user: dict = Depends(get_current_user)):
 async def us_fair_value(current_user: dict = Depends(get_current_user)):
     """Daily 10y UST: actual, PCA reconstruction, macro fair value, rich/cheap."""
     return get_us_fair_value()
+
+
+@app.get("/api/tools/japan-heatmap/factors")
+async def jp_daily_factors(current_user: dict = Depends(get_current_user)):
+    """Daily macro factor estimates from the Japan mixed-frequency DFM (Block 1)."""
+    return get_jp_daily_factors()
+
+
+@app.get("/api/tools/japan-heatmap/yield-pca")
+async def jp_yield_pca(current_user: dict = Depends(get_current_user)):
+    """Daily JGB yield PC scores, loadings and explained variance (Block 2)."""
+    return get_jp_yield_pca()
+
+
+@app.get("/api/tools/japan-heatmap/pc-regressions")
+async def jp_pc_regressions(current_user: dict = Depends(get_current_user)):
+    """OLS regression of JGB yield PCs on Japan macro factors (no intercept)."""
+    return get_jp_pc_regressions()
+
+
+@app.get("/api/tools/japan-heatmap/fair-value")
+async def jp_fair_value(current_user: dict = Depends(get_current_user)):
+    """Daily 10y JGB: actual, PCA reconstruction, macro fair value, rich/cheap."""
+    return get_jp_fair_value()
+
+
+@app.get("/api/tools/canada-heatmap/factors")
+async def ca_daily_factors(current_user: dict = Depends(get_current_user)):
+    return get_ca_daily_factors()
+
+@app.get("/api/tools/canada-heatmap/yield-pca")
+async def ca_yield_pca(current_user: dict = Depends(get_current_user)):
+    return get_ca_yield_pca()
+
+@app.get("/api/tools/canada-heatmap/pc-regressions")
+async def ca_pc_regressions(current_user: dict = Depends(get_current_user)):
+    return get_ca_pc_regressions()
+
+@app.get("/api/tools/canada-heatmap/fair-value")
+async def ca_fair_value(current_user: dict = Depends(get_current_user)):
+    return get_ca_fair_value()
+
+
+@app.get("/api/tools/sweden-heatmap/factors")
+async def se_daily_factors(current_user: dict = Depends(get_current_user)):
+    return get_se_daily_factors()
+
+@app.get("/api/tools/sweden-heatmap/yield-pca")
+async def se_yield_pca(current_user: dict = Depends(get_current_user)):
+    return get_se_yield_pca()
+
+@app.get("/api/tools/sweden-heatmap/pc-regressions")
+async def se_pc_regressions(current_user: dict = Depends(get_current_user)):
+    return get_se_pc_regressions()
+
+@app.get("/api/tools/sweden-heatmap/fair-value")
+async def se_fair_value(current_user: dict = Depends(get_current_user)):
+    return get_se_fair_value()
+
+
+@app.get("/api/tools/norway-heatmap/factors")
+async def no_daily_factors(current_user: dict = Depends(get_current_user)):
+    return get_no_daily_factors()
+
+@app.get("/api/tools/norway-heatmap/yield-pca")
+async def no_yield_pca(current_user: dict = Depends(get_current_user)):
+    return get_no_yield_pca()
+
+@app.get("/api/tools/norway-heatmap/pc-regressions")
+async def no_pc_regressions(current_user: dict = Depends(get_current_user)):
+    return get_no_pc_regressions()
+
+@app.get("/api/tools/norway-heatmap/fair-value")
+async def no_fair_value(current_user: dict = Depends(get_current_user)):
+    return get_no_fair_value()
+
+
+@app.get("/api/tools/switzerland-heatmap/factors")
+async def ch_daily_factors(current_user: dict = Depends(get_current_user)):
+    return get_ch_daily_factors()
+
+@app.get("/api/tools/switzerland-heatmap/yield-pca")
+async def ch_yield_pca(current_user: dict = Depends(get_current_user)):
+    return get_ch_yield_pca()
+
+@app.get("/api/tools/switzerland-heatmap/pc-regressions")
+async def ch_pc_regressions(current_user: dict = Depends(get_current_user)):
+    return get_ch_pc_regressions()
+
+@app.get("/api/tools/switzerland-heatmap/fair-value")
+async def ch_fair_value(current_user: dict = Depends(get_current_user)):
+    return get_ch_fair_value()
+
+
+@app.get("/api/tools/australia-heatmap/factors")
+async def au_daily_factors(current_user: dict = Depends(get_current_user)):
+    return get_au_daily_factors()
+
+@app.get("/api/tools/australia-heatmap/yield-pca")
+async def au_yield_pca(current_user: dict = Depends(get_current_user)):
+    return get_au_yield_pca()
+
+@app.get("/api/tools/australia-heatmap/pc-regressions")
+async def au_pc_regressions(current_user: dict = Depends(get_current_user)):
+    return get_au_pc_regressions()
+
+@app.get("/api/tools/australia-heatmap/fair-value")
+async def au_fair_value(current_user: dict = Depends(get_current_user)):
+    return get_au_fair_value()
+
+
+@app.get("/api/tools/new-zealand-heatmap/factors")
+async def nz_daily_factors(current_user: dict = Depends(get_current_user)):
+    return get_nz_daily_factors()
+
+@app.get("/api/tools/new-zealand-heatmap/yield-pca")
+async def nz_yield_pca(current_user: dict = Depends(get_current_user)):
+    return get_nz_yield_pca()
+
+@app.get("/api/tools/new-zealand-heatmap/pc-regressions")
+async def nz_pc_regressions(current_user: dict = Depends(get_current_user)):
+    return get_nz_pc_regressions()
+
+@app.get("/api/tools/new-zealand-heatmap/fair-value")
+async def nz_fair_value(current_user: dict = Depends(get_current_user)):
+    return get_nz_fair_value()
 
 
 @app.get("/api/tools/global-yields")
