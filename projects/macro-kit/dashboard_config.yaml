@@ -1,0 +1,120 @@
+categories:
+  - id: supply
+    name: Supply
+    color: "#3B82F6"
+    tools: []
+
+  - id: funding
+    name: Funding
+    color: "#8B5CF6"
+    tools: []
+
+  - id: futures-swaps-vol
+    name: Futures / Swaps / Vol
+    color: "#10B981"
+    tools:
+      - id: swaps-rv
+        name: Swap RV Monitor
+        icon: "📐"
+        url: /tools/swaps-rv
+
+  - id: backtesters
+    name: Backtesters
+    color: "#06B6D4"
+    tools:
+      - id: seasonality
+        name: Seasonality Backtester
+        icon: "📅"
+        url: /tools/seasonality
+
+  - id: global
+    name: Global
+    color: "#F59E0B"
+    tools: []
+
+  - id: macro-fundamentals
+    name: Macro Fundamentals
+    color: "#EF4444"
+    tools:
+      - id: euro-area-heatmap
+        name: Euro Area Heatmap
+        icon: "🇪🇺"
+        url: /tools/euro-area-heatmap
+      - id: uk-heatmap
+        name: UK Heatmap
+        icon: "🇬🇧"
+        url: /tools/uk-heatmap
+      - id: us-heatmap
+        name: US Heatmap
+        icon: "🇺🇸"
+        url: /tools/us-heatmap
+      - id: japan-heatmap
+        name: Japan Heatmap
+        icon: "🇯🇵"
+        url: /tools/japan-heatmap
+      - id: canada-heatmap
+        name: Canada Heatmap
+        icon: "🇨🇦"
+        url: /tools/canada-heatmap
+      - id: sweden-heatmap
+        name: Sweden Heatmap
+        icon: "🇸🇪"
+        url: /tools/sweden-heatmap
+      - id: norway-heatmap
+        name: Norway Heatmap
+        icon: "🇳🇴"
+        url: /tools/norway-heatmap
+      - id: switzerland-heatmap
+        name: Switzerland Heatmap
+        icon: "🇨🇭"
+        url: /tools/switzerland-heatmap
+      - id: australia-heatmap
+        name: Australia Heatmap
+        icon: "🇦🇺"
+        url: /tools/australia-heatmap
+      - id: new-zealand-heatmap
+        name: New Zealand Heatmap
+        icon: "🇳🇿"
+        url: /tools/new-zealand-heatmap
+      - id: global-yields
+        name: Factor Model for Global Yields
+        icon: "🌐"
+        url: /tools/global-yields
+      - id: option-derived-cdf
+        name: Option-Implied Macro Scenario Probabilities
+        icon: "📐"
+        url: /tools/option-derived-cdf
+
+  - id: technicals
+    name: Technicals
+    color: "#6366F1"
+    tools:
+      - id: print-analysis
+        name: Print Analysis
+        icon: "🖨️"
+        url: /tools/print-analysis
+      - id: momentum
+        name: Momentum
+        icon: "📈"
+        url: /tools/momentum
+      - id: positioning
+        name: Positioning
+        icon: "📊"
+        url: /tools/positioning
+
+  - id: inflation-markets
+    name: Inflation Markets
+    color: "#F97316"
+    tools:
+      - id: fair-value-models
+        name: Fair Value Models
+        icon: "⚖️"
+        url: /tools/fair-value-models
+      - id: inflation-pca
+        name: PCA Analysis
+        icon: "📉"
+        url: /tools/inflation-pca
+      - id: inflation-fixings
+        name: Fixings Monitor
+        icon: "📋"
+        url: /tools/inflation-fixings

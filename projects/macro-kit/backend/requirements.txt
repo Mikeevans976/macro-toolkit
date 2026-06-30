@@ -1,0 +1,15 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-jose[cryptography]==3.3.0
+bcrypt>=4.0.0
+pyyaml>=6.0.1
+python-multipart>=0.0.9
+pydantic>=2.9.0
+numpy>=1.26.0
+pandas>=2.2.0
+scipy>=1.13.0
+scikit-learn>=1.4.0
+
+# Optional: data source connectors (install whichever you use)
+# blpapi            # Bloomberg blpapi SDK        — pip install blpapi (Bloomberg Terminal must be running)
+# Haver>=2.1       # Haver Analytics DLX        — pip install Haver
