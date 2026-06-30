@@ -12,9 +12,13 @@ from fastapi.staticfiles import StaticFiles
 from auth import (
     ACCESS_TOKEN_EXPIRE_HOURS,
     authenticate_user,
+    bootstrap_admin,
     create_access_token,
     get_current_user,
 )
+
+# Create admin user from env vars on first deploy (no-op if users.json exists)
+bootstrap_admin()
 from swaps_rv import compute_rv
 from global_yields import get_global_yields_data
 from fair_value_models import get_fair_value_models_data
@@ -493,4 +497,5 @@ if FRONTEND_DIST.exists():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)

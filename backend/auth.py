@@ -21,6 +21,24 @@ USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
+def bootstrap_admin() -> None:
+    """
+    On first deploy, create an admin user from env vars if users.json doesn't exist.
+    Set ADMIN_USERNAME, ADMIN_PASSWORD, and optionally ADMIN_NAME before starting.
+    No-op if users.json already exists or env vars are unset.
+    """
+    if os.path.exists(USERS_FILE):
+        return
+    username = os.environ.get("ADMIN_USERNAME", "").strip()
+    password = os.environ.get("ADMIN_PASSWORD", "").strip()
+    if not username or not password:
+        return
+    full_name = os.environ.get("ADMIN_NAME", username).strip()
+    hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    with open(USERS_FILE, "w") as f:
+        json.dump({username: {"username": username, "full_name": full_name, "hashed_password": hashed}}, f)
+
+
 def load_users() -> dict:
     if not os.path.exists(USERS_FILE):
         return {}
