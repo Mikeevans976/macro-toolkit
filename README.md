@@ -4,80 +4,100 @@ A dark space-themed analytics dashboard for the financial analytics team. Built 
 
 ---
 
-## Project Structure
+## Prerequisites
 
-```
-dashboard_config.yaml   # Edit this to add/remove categories and tools
-backend/
-  main.py               # FastAPI app
-  auth.py               # JWT + bcrypt auth
-  requirements.txt
-  create_user.py        # Script to add/update users
-  users.json            # User store (gitignored — create with create_user.py)
-frontend/
-  src/
-    App.tsx
-    components/
-      Login.tsx
-      Dashboard.tsx
-      CategoryCard.tsx
-      ToolTile.tsx
-    types.ts
-```
+| Tool | Version | Check |
+|------|---------|-------|
+| Python | 3.12+ | `python3 --version` |
+| Node.js | 20+ | `node --version` |
+| npm | 10+ | `npm --version` |
 
 ---
 
-## Setup
+## Quick Start (local)
 
-### 1. Backend
+These steps clone the repo, install all dependencies, create your login, and launch the app.
 
 ```bash
-# Create and activate a virtual environment (recommended)
-python3 -m venv .venv
-source .venv/bin/activate
+# 1. Clone and enter the repo
+git clone <repo-url>
+cd Team-Massimo-Marzeglia-Analytics
 
-# Install dependencies
+# 2. Create a Python virtual environment and install backend dependencies
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r backend/requirements.txt
 
-# Create the initial admin user
-python backend/create_user.py admin admin123 "Admin User"
+# 3. Create your login (replace the placeholder values)
+python backend/create_user.py yourname yourpassword "Your Full Name"
 
-# Start the API server
-uvicorn backend.main:app --reload --port 8000
-# or
+# 4. Build the frontend
+cd frontend && npm install && npm run build && cd ..
+
+# 5. Start the app
 python backend/main.py
 ```
 
-> **Production**: Set the `SECRET_KEY` environment variable to a long random string before running.
+Open **http://localhost:8000** in your browser and log in with the credentials you set in step 3.
 
-### 2. Frontend
+---
+
+## Data source
+
+By default the app runs in **simulation mode** — all charts render with realistic synthetic data, no Bloomberg or Haver connection required.
+
+To switch to live data, set the environment variable before starting:
 
 ```bash
-cd frontend
-npm install
-npm run dev        # Dev server at http://localhost:5173 (proxies /api to :8000)
-npm run build      # Build to frontend/dist/ (served by FastAPI in production)
+ANALYTICS_DATA_SOURCE=bloomberg python backend/main.py
+# or
+ANALYTICS_DATA_SOURCE=haver python backend/main.py
 ```
 
-### 3. Production (serving everything from FastAPI)
+---
+
+## Project structure
+
+```
+dashboard_config.yaml      # Edit to add/remove/reorder tool tiles (no restart needed)
+backend/
+  main.py                  # FastAPI app + all API routes
+  auth.py                  # JWT + bcrypt auth
+  requirements.txt
+  create_user.py           # Script to add/update users
+  users.json               # User store (gitignored — create with create_user.py)
+frontend/
+  src/
+    App.tsx
+    pages/                 # One file per tool page
+    components/
+```
+
+---
+
+## Adding users
 
 ```bash
+source .venv/bin/activate
+python backend/create_user.py <username> <password> "<Full Name>"
+```
+
+Tokens expire after 8 hours. `users.json` is gitignored — never commit it.
+
+---
+
+## Developer workflow
+
+```bash
+# Backend dev server (auto-reload)
+source .venv/bin/activate
+uvicorn backend.main:app --reload --port 8000
+
+# Frontend dev server (hot-reload, proxies /api → :8000)
+cd frontend && npm run dev   # http://localhost:5173
+
+# After editing any .tsx file, always verify it builds cleanly
 cd frontend && npm run build
-cd ..
-python backend/main.py   # Serves API + built frontend at http://localhost:8000
 ```
 
----
-
-## Customisation
-
-Edit `dashboard_config.yaml` to add, remove, or reorganise categories and tools. The dashboard reads this file on every request, so changes take effect immediately without restarting.
-
----
-
-## Auth
-
-- Default credentials: `admin` / `admin123` (change immediately in production)
-- To add more users: `python backend/create_user.py <username> <password> "<Full Name>"`
-- Tokens expire after 8 hours
-- `users.json` is gitignored — never commit it
+> **Production note**: set `SECRET_KEY` to a long random string via environment variable before deploying.
