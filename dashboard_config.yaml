@@ -17,6 +17,10 @@ categories:
         name: Swap RV Monitor
         icon: "📐"
         url: /tools/swaps-rv
+      - id: egb-rv
+        name: EGB RV Monitor
+        icon: "🏛️"
+        url: /tools/egb-rv
 
   - id: backtesters
     name: Backtesters
