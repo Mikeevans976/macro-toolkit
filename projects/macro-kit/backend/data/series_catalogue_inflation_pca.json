@@ -1,0 +1,106 @@
+{
+  "tool": "Inflation PCA",
+  "file": "backend/inflation_pca.py",
+  "bloomberg_fetch": "bdh",
+  "fallback": "simulation",
+  "note": "ILB real yields use field YLD_YTM_MID. All swap and OIS tickers use PX_LAST. Edit _fetch_real_yields() and _fetch_rate_curve() in Python to change.",
+  "series": [
+    {
+      "id": "btpei_real_yields",
+      "bloomberg_tickers": [
+        "ITIL28 Index",
+        "ITIL30 Index",
+        "ITIL32 Index",
+        "ITIL35 Index",
+        "ITIL38 Index",
+        "ITIL41 Index",
+        "ITIL51 Index"
+      ],
+      "field": "YLD_YTM_MID",
+      "description": "Italian BTPei inflation-linked government bond real yields (individual ISINs by maturity)",
+      "unit": "%",
+      "verified": false
+    },
+    {
+      "id": "oatei_real_yields",
+      "bloomberg_tickers": [
+        "FROB27I Index",
+        "FROB29I Index",
+        "FROB32I Index",
+        "FROB36I Index",
+        "FROB40I Index",
+        "FROB47I Index"
+      ],
+      "field": "YLD_YTM_MID",
+      "description": "French OATei inflation-linked government bond real yields (individual ISINs by maturity)",
+      "unit": "%",
+      "verified": false
+    },
+    {
+      "id": "dbrei_real_yields",
+      "bloomberg_tickers": [
+        "DBIBL26 Index",
+        "DBIBL30 Index",
+        "DBIBL33 Index",
+        "DBIBL40 Index",
+        "DBIBL46 Index"
+      ],
+      "field": "YLD_YTM_MID",
+      "description": "German DBRei (Bund inflation-linked) real yields (individual ISINs by maturity)",
+      "unit": "%",
+      "verified": false
+    },
+    {
+      "id": "uki_real_yields",
+      "bloomberg_tickers": [
+        "UKTIIL27 Index",
+        "UKTIIL30 Index",
+        "UKTIIL32 Index",
+        "UKTIIL35 Index",
+        "UKTIIL40 Index",
+        "UKTIIL47 Index",
+        "UKTIIL55 Index"
+      ],
+      "field": "YLD_YTM_MID",
+      "description": "UK index-linked Gilt real yields (individual ISINs by maturity)",
+      "unit": "%",
+      "verified": false
+    },
+    {
+      "id": "eur_hicp_inflation_swaps",
+      "bloomberg_ticker": "EUSWI{n} Curncy",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
+      "field": "PX_LAST",
+      "description": "EUR HICPxT zero-coupon inflation swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "gbp_rpi_inflation_swaps",
+      "bloomberg_ticker": "BPSWIS{n} Curncy",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
+      "field": "PX_LAST",
+      "description": "GBP RPI zero-coupon inflation swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "eur_estr_ois",
+      "bloomberg_ticker": "EUSWF{n} Curncy",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS par swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "gbp_sonia_ois",
+      "bloomberg_ticker": "BPSWS{n} Curncy",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
+      "field": "PX_LAST",
+      "description": "GBP SONIA OIS par swap rates",
+      "unit": "%",
+      "verified": true
+    }
+  ]
+}

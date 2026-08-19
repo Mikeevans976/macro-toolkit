@@ -1,0 +1,84 @@
+{
+  "tool": "Swaps RV",
+  "file": "backend/swaps_rv.py",
+  "bloomberg_fetch": "bdh",
+  "fallback": "CSV files in backend/data/",
+  "note": "Tickers hardcoded in _OIS_TICKERS and _VOL_TICKERS — edit Python to change",
+  "series": [
+    {
+      "id": "eur_estr_ois",
+      "bloomberg_ticker": "EUSWF{n} Curncy",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS par swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "gbp_sonia_ois",
+      "bloomberg_ticker": "BPSWS{n} Curncy",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
+      "field": "PX_LAST",
+      "description": "GBP SONIA OIS par swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "usd_sofr_ois",
+      "bloomberg_ticker": "USOSFR{n} Curncy",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
+      "field": "PX_LAST",
+      "description": "USD SOFR OIS par swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "eur_swaption_vol_1m10y",
+      "bloomberg_ticker": "EUSV0001 Index",
+      "field": "PX_LAST",
+      "description": "EUR swaption ATM normal vol, 1m expiry 10y tail",
+      "unit": "bps",
+      "verified": true
+    },
+    {
+      "id": "eur_swaption_vol_1y10y",
+      "bloomberg_ticker": "EUSV0110 Index",
+      "field": "PX_LAST",
+      "description": "EUR swaption ATM normal vol, 1y expiry 10y tail",
+      "unit": "bps",
+      "verified": true
+    },
+    {
+      "id": "gbp_swaption_vol_1m10y",
+      "bloomberg_ticker": "BPSV0001 Index",
+      "field": "PX_LAST",
+      "description": "GBP swaption ATM normal vol, 1m expiry 10y tail",
+      "unit": "bps",
+      "verified": true
+    },
+    {
+      "id": "gbp_swaption_vol_1y10y",
+      "bloomberg_ticker": "BPSV0110 Index",
+      "field": "PX_LAST",
+      "description": "GBP swaption ATM normal vol, 1y expiry 10y tail",
+      "unit": "bps",
+      "verified": true
+    },
+    {
+      "id": "usd_swaption_vol_1m10y",
+      "bloomberg_ticker": "USSV0001 Index",
+      "field": "PX_LAST",
+      "description": "USD swaption ATM normal vol, 1m expiry 10y tail",
+      "unit": "bps",
+      "verified": true
+    },
+    {
+      "id": "usd_swaption_vol_1y10y",
+      "bloomberg_ticker": "USSV0110 Index",
+      "field": "PX_LAST",
+      "description": "USD swaption ATM normal vol, 1y expiry 10y tail",
+      "unit": "bps",
+      "verified": true
+    }
+  ]
+}
