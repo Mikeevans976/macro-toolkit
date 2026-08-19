@@ -1,0 +1,42 @@
+{
+  "tool": "Print Analysis",
+  "file": "backend/print_analysis.py",
+  "bloomberg_fetch": "bdh",
+  "fallback": "simulation",
+  "note": "Economic indicator tickers, date ranges, and market reaction ticker are all user-supplied at runtime. Fields are fetched automatically by the module — users do not need to specify them.",
+  "series": [
+    {
+      "id": "economic_indicator",
+      "bloomberg_ticker": "user_supplied",
+      "field": "ECO_SURVEY_AVG",
+      "description": "Consensus average forecast for the user-supplied economic indicator. Also fetches ECO_SURVEY_MEDIAN, ECO_SURVEY_HIGH, ECO_SURVEY_LOW, BN_SURVEY_NUMBER, ECO_RELEASE_DT.",
+      "unit": "varies",
+      "verified": true
+    },
+    {
+      "id": "economic_indicator_actual",
+      "bloomberg_ticker": "user_supplied",
+      "field": "PX_LAST",
+      "description": "Realized/actual release value for the user-supplied economic indicator",
+      "unit": "varies",
+      "verified": true
+    },
+    {
+      "id": "market_reaction",
+      "bloomberg_ticker": "user_supplied",
+      "field": "PX_LAST",
+      "description": "Market instrument to measure price reaction around the release (e.g. a bond yield, FX rate, equity index). Ticker entered separately by the user.",
+      "unit": "varies",
+      "verified": true
+    }
+  ],
+  "fields_fetched": [
+    "PX_LAST",
+    "ECO_SURVEY_AVG",
+    "ECO_SURVEY_MEDIAN",
+    "ECO_SURVEY_HIGH",
+    "ECO_SURVEY_LOW",
+    "BN_SURVEY_NUMBER",
+    "ECO_RELEASE_DT"
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "tool": "Global Yields",
+  "file": "backend/global_yields.py",
+  "bloomberg_fetch": "data_fetcher",
+  "fallback": "simulation",
+  "note": "Tickers for this tool live in series_catalogue.json (the main Euro Area catalogue) — NOT hardcoded in global_yields.py. global_yields.py reads from that catalogue via data_fetcher. This file documents the 24 countries covered and what to look for in the catalogue.",
+  "series": [
+    {
+      "id": "us_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "United States 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "uk_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "United Kingdom 10y Gilt generic yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "canada_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Canada 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "japan_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Japan 10y JGB generic yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "australia_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Australia 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "switzerland_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Switzerland 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "germany_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Germany 10y Bund generic yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "france_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "France 10y OAT generic yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "austria_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Austria 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "netherlands_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Netherlands 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "belgium_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Belgium 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "italy_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Italy 10y BTP generic yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "greece_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Greece 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "ireland_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Ireland 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "portugal_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Portugal 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "spain_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Spain 10y Bonos generic yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "brazil_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Brazil 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "mexico_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Mexico 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "india_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "India 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "south_korea_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "South Korea 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "indonesia_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Indonesia 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "south_africa_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "South Africa 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "poland_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Poland 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "czech_republic_10y_yield",
+      "bloomberg_ticker": "see series_catalogue.json",
+      "field": "PX_LAST",
+      "description": "Czech Republic 10y generic government bond yield",
+      "unit": "%",
+      "verified": true
+    }
+  ]
+}
