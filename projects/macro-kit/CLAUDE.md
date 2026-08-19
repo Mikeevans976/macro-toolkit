@@ -1,8 +1,14 @@
-# CLAUDE.md
+# CLAUDE.md — macro-kit
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Context — where you are
+
+This project lives inside a monorepo at `projects/macro-kit/`. All paths below are relative to this folder. The root-level `CLAUDE.md` describes the overall repo structure and git workflow.
+
 ## Commands
+
+All commands must be run from inside `projects/macro-kit/` (this folder).
 
 ### Backend
 ```bash
@@ -10,7 +16,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 source .venv/bin/activate
 
 # Run API server (dev, auto-reload)
-uvicorn backend.main:app --reload --port 8000
+# IMPORTANT: run from inside backend/ — not from the project root
+cd backend && uvicorn main:app --reload --port 8000
 
 # Run backend tests
 cd backend && pytest tests/test_analytics.py -v
