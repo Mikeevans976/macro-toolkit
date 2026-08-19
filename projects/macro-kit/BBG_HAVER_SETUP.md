@@ -562,10 +562,97 @@ Fully client-side with synthetic data. No backend pipeline planned.
 
 ### 3.20 Inflation Fixings Monitor
 
-**File:** `frontend/src/pages/InflationFixingsMonitor.tsx` (frontend-only)  
-**Status:** ❌ Simulated (no backend)
+**Files:** `backend/hicp_fixings.py`, `frontend/src/pages/InflationFixingsMonitor.tsx`  
+**API endpoint:** `GET /api/tools/inflation-fixings/eur`  
+**Status:** 🔧 Needs tickers verified (pipeline implemented; tickers are standard but unconfirmed in live Terminal)
 
-Fully client-side with synthetic data. No backend pipeline planned.
+Fetches 24 EUR HICP monthly fixing levels via **BDP snapshot** (not BDH historical).
+
+**Ticker convention:**
+```
+EUSWIF{n} Comdty   — F-series: 12-month cycle starting one year ahead of today
+EUSWIT{n} Comdty   — T-series: following 12-month cycle
+```
+where `n` is the **calendar month number** (1=Jan … 12=Dec), not a sequential position.
+
+**Example (today = Aug 2026):**
+```
+EUSWIF8  = Aug 2027  (nearest)
+EUSWIF9  = Sep 2027
+...
+EUSWIF7  = Jul 2028  (12th)
+EUSWIT8  = Aug 2028  (13th)
+...
+EUSWIT7  = Jul 2029  (24th)
+```
+
+**Fetch pattern — BDP, not BDH:**
+```python
+from bbg import blp
+tickers = ["EUSWIF8 Comdty", "EUSWIF9 Comdty", ...]   # 24 tickers
+df = blp.bdp(tickers, "PX_LAST")   # snapshot, no date range
+```
+
+This module does **not** use `get_fetcher()` or the series catalogue — it calls `blp.bdp()` directly.
+
+Fallback: deterministic simulation based on current date and tenor position.
+
+**To verify in Terminal:** type `EUSWIF8 Comdty <GO>` and check `PX_LAST` field.
+
+---
+
+### 3.21 EGB RV Monitor
+
+**Files:** `backend/egb_rv.py`, `backend/egb_expressions_config.py`, `frontend/src/pages/EGBRV.tsx`  
+**API endpoint:** `GET /api/tools/egb-rv`  
+**Status:** 🔧 Needs tickers verified (yield and ESTR tickers reliable; ASW tickers unconfirmed)
+
+Fetches ~60 days of daily data via **BDH** across three data blocks:
+
+**Block 1 — Sovereign yields (9 countries × multiple tenors)**
+
+| Country | Ticker format | Example |
+|---------|--------------|---------|
+| Bund | `GDBR{t} Index` | `GDBR10 Index` |
+| OAT | `GFRN{t} Index` | `GFRN10 Index` |
+| BTP | `GBTPGR{t} Index` | `GBTPGR10 Index` |
+| Bonos | `GSPG{t}YR Index` | `GSPG10YR Index` |
+| Belgium | `GBGB{t}YR Index` | `GBGB10YR Index` |
+| Portugal | `GPTIT{t}YR Index` | `GPTIT10YR Index` |
+| Netherlands | `GNETH{t}YR Index` | `GNETH10YR Index` |
+| Austria | `GAGB{t}YR Index` | `GAGB10YR Index` |
+| Finland | `GFINGB{t} Index` | `GFINGB10 Index` |
+
+where `{t}` is tenor in years (2, 5, 10, 30 etc. per country).
+
+**Block 2 — ESTR fixing**
+
+```
+ESTRON Index    field: PX_LAST
+```
+
+**Block 3 — Asset swap spreads ⚠️ UNVERIFIED — confirm before live use**
+
+| Country | Ticker format | Tenors available |
+|---------|--------------|-----------------|
+| Bund | `DASW{t} Index` | 2, 5, 10, 30y |
+| OAT | `FOASW{t} Index` | 2, 5, 10, 30y |
+| BTP | `ITASW{t} Index` | 5, 10, 30y |
+| Bonos | `SPASW{t} Index` | 5, 10y |
+| Belgium | `BEASW{t} Index` | 10y |
+| Netherlands | `NLASW{t} Index` | 10y |
+
+**Block 4 — Vol (for carry normalisation)**
+
+```
+EUSV0001 Index   # EUR 1m10y swaption normal vol (bps)
+```
+
+This module does **not** use `get_fetcher()` or the series catalogue — it calls `blp.bdh()` directly via an internal `_fetch_from_bbg()` function.
+
+Fallback: full simulation of all four blocks.
+
+**To verify ASW tickers in Terminal:** type e.g. `DASW10 Index <GO>` and confirm the field `PX_LAST` returns a live spread in bps.
 
 ---
 

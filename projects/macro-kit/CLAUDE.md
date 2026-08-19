@@ -42,6 +42,24 @@ cd frontend && npm run build && cd .. && python backend/main.py
 # Serves API + built frontend at http://localhost:8000
 ```
 
+### Switching to real data (Bloomberg / Haver)
+
+All tools default to **deterministic simulation** — no external data needed to run.
+
+To switch to live data, set the `ANALYTICS_DATA_SOURCE` env var before starting the backend:
+
+```bash
+# Bloomberg (Terminal must be open and logged in)
+cd backend && ANALYTICS_DATA_SOURCE=bloomberg uvicorn main:app --reload --port 8000
+
+# Haver (Windows only, DLX must be installed)
+cd backend && ANALYTICS_DATA_SOURCE=haver HAVER_PATH=/path/to/haver uvicorn main:app --reload --port 8000
+```
+
+**Full reference — tickers, per-module status, troubleshooting:** `BBG_HAVER_SETUP.md`
+
+Read that file before touching any data-fetching code. It documents every ticker, which ones are unverified, and how each module handles fallback.
+
 ---
 
 ## Architecture
