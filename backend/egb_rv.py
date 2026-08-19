@@ -1,27 +1,36 @@
 """
-EGB RV Monitor — Bund and OAT relative value engine.
+EGB RV Monitor — Bund, OAT, BTP, Bonos, Belgium, Portugal, Netherlands, Austria, Finland.
 
 Carry methodology (yield expressions):
-  leg_carry_bps = ((y_T − ESTR) / dur_T + roll_T) × 100
+  leg_carry_bps = ((y_T − repo_bloc) / dur_T + roll_T) × 100
   where:
-    y_T    = yield at tenor T in %
-    ESTR   = ECB overnight rate (repo proxy) in %
-    dur_T  = modified duration ≈ T × (1 − y_T / 200)  [rough par-bond approximation]
-    roll_T = y(T) − y(T−1) from cubic spline [% per year; positive = upward-sloping curve]
+    y_T       = yield at tenor T in %
+    repo_bloc = repo rate for the country's repo bloc (ESTR baseline + user spread)
+    dur_T     = modified duration ≈ T × (1 − y_T / 200)  [rough par-bond approximation]
+    roll_T    = y(T) − y(T−1) from cubic spline [% per year]
   expression_carry = Σ weight_i × leg_carry_bps_i
+
+Repo blocs:
+  "Bund"  — Bund (often trades special)
+  "OAT"   — OAT, Belgium, Netherlands, Austria, Finland (near GC)
+  "BTP"   — Italy
+  "Bonos" — Spain, Portugal (peripheral GC proxy)
 
 For ASW expressions:
   carry_bps = ASW_level_bps + roll_bond_bps
   where roll_bond_bps = (y(T) − y(T−1)) × 100
 
-Beta regression variables: Bund 10y, OAT−Bund 10y spread, Bund 2s10s slope, EUR 1m10y vol.
-
 Bloomberg tickers (⚠️ verify ASW tickers before live use):
-  Bund yields : GDBR{T} Index   (T = 2, 5, 7, 10, 15, 20, 30)
-  OAT yields  : GFRN{T} Index
+  Bund        : GDBR{T} Index
+  OAT         : GFRN{T} Index
+  BTP         : GBTPGR{T} Index
+  Bonos       : GSPG{T}YR Index
+  Belgium     : GBGB{T}YR Index      ⚠️
+  Portugal    : GPTIT{T}YR Index     ⚠️
+  Netherlands : GNETH{T}YR Index     ⚠️
+  Austria     : GAGB{T}YR Index      ⚠️
+  Finland     : GFINGB{T} Index      ⚠️
   ESTR        : ESTRON Index
-  Bund ASW    : DASW{T} Index   ⚠️ verify
-  OAT ASW     : FOASW{T} Index  ⚠️ verify
   EUR 1m10y vol: EUSV0001 Index
 """
 
@@ -33,25 +42,39 @@ import pandas as pd
 from scipy import stats
 from scipy.interpolate import CubicSpline
 
-from egb_expressions_config import ALL_EXPRESSIONS, GROUP_META
+from egb_expressions_config import (
+    ALL_EXPRESSIONS, GROUP_META,
+    REPO_BLOC, REPO_BLOCS, COUNTRY_TENORS,
+)
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
-TENORS = [2, 5, 7, 10, 15, 20, 30]   # benchmark tenors for yield curve
+ALL_TENORS = [2, 5, 7, 10, 15, 20, 30]   # union of all benchmark tenors
 
 # ─── Bloomberg ticker maps ────────────────────────────────────────────────────
 
 _YIELD_TICKERS: dict[str, dict[int, str]] = {
-    "Bund": {t: f"GDBR{t} Index"  for t in TENORS},
-    "OAT":  {t: f"GFRN{t} Index"  for t in TENORS},
+    "Bund":        {t: f"GDBR{t} Index"     for t in COUNTRY_TENORS["Bund"]},
+    "OAT":         {t: f"GFRN{t} Index"     for t in COUNTRY_TENORS["OAT"]},
+    "BTP":         {t: f"GBTPGR{t} Index"   for t in COUNTRY_TENORS["BTP"]},
+    "Bonos":       {t: f"GSPG{t}YR Index"   for t in COUNTRY_TENORS["Bonos"]},
+    "Belgium":     {t: f"GBGB{t}YR Index"   for t in COUNTRY_TENORS["Belgium"]},
+    "Portugal":    {t: f"GPTIT{t}YR Index"  for t in COUNTRY_TENORS["Portugal"]},
+    "Netherlands": {t: f"GNETH{t}YR Index"  for t in COUNTRY_TENORS["Netherlands"]},
+    "Austria":     {t: f"GAGB{t}YR Index"   for t in COUNTRY_TENORS["Austria"]},
+    "Finland":     {t: f"GFINGB{t} Index"   for t in COUNTRY_TENORS["Finland"]},
 }
 
 _ESTR_TICKER = "ESTRON Index"
 
 # ⚠️ Verify these before live use
 _ASW_TICKERS: dict[str, dict[int, str]] = {
-    "Bund": {t: f"DASW{t} Index"  for t in [2, 5, 10, 30]},
-    "OAT":  {t: f"FOASW{t} Index" for t in [2, 5, 10, 30]},
+    "Bund":        {t: f"DASW{t} Index"   for t in [2, 5, 10, 30]},
+    "OAT":         {t: f"FOASW{t} Index"  for t in [2, 5, 10, 30]},
+    "BTP":         {t: f"ITASW{t} Index"  for t in [5, 10, 30]},
+    "Bonos":       {t: f"SPASW{t} Index"  for t in [5, 10]},
+    "Belgium":     {t: f"BEASW{t} Index"  for t in [10]},
+    "Netherlands": {t: f"NLASW{t} Index"  for t in [10]},
 }
 
 _VOL_TICKER = "EUSV0001 Index"   # EUR 1m10y swaption normal vol (bps)
@@ -68,42 +91,87 @@ def _build_spline(tenors: list[int], yields: np.ndarray) -> CubicSpline:
     return CubicSpline(tenors, yields, bc_type="not-a-knot", extrapolate=True)
 
 
-def _leg_carry_bps(country: str, T: int, splines: dict, repo: float) -> float:
+def _leg_carry_components(country: str, T: int, splines: dict, repo: float) -> tuple[float, float]:
     """
-    Carry for a single yield leg in bps/yr per unit DV01.
-      carry = ((y_T − repo) / dur_T + roll_T) × 100
+    Returns (income_carry_bps, roll_bps) for a single yield leg.
+      income_carry = (y_T − repo) / dur_T × 100   [repo = ESTR baseline]
+      roll         = (y_T − y_{T-1}) × 100
+    Total carry = income_carry + roll.
+    Repo sensitivity per bloc is captured separately by _repo_sensitivity().
     """
     cs = splines[country]
     y_T  = float(cs(T))
-    y_T1 = float(cs(max(T - 1.0, 0.5)))   # yield 1yr earlier on the curve
-    roll = y_T - y_T1                       # % per year; positive on upward-sloping curve
+    y_T1 = float(cs(max(T - 1.0, 0.5)))
+    roll = y_T - y_T1
     dur  = _modified_duration(T, y_T)
-    return ((y_T - repo) / dur + roll) * 100.0
+    income_carry = (y_T - repo) / dur * 100.0
+    roll_bps     = roll * 100.0
+    return income_carry, roll_bps
 
 
-def _asw_carry_bps(country_base: str, T: int, splines: dict, asw_level: float) -> float:
+def _leg_carry_bps(country: str, T: int, splines: dict, repo: float) -> float:
+    """Full carry (income + roll) for a single yield leg in bps/yr."""
+    ic, roll = _leg_carry_components(country, T, splines, repo)
+    return ic + roll
+
+
+def _asw_carry_components(country_base: str, T: int, splines: dict, asw_level: float) -> tuple[float, float]:
     """
-    Carry for an ASW position in bps/yr.
-      carry = ASW_level_bps + bond_roll_bps
+    Returns (income_carry_bps, roll_bps) for an ASW leg.
+      income_carry = ASW_level_bps
+      roll         = bond roll-down in bps
     """
     cs = splines[country_base]
     y_T  = float(cs(T))
     y_T1 = float(cs(max(T - 1.0, 0.5)))
     roll_bps = (y_T - y_T1) * 100.0
-    return asw_level + roll_bps
+    return asw_level, roll_bps
 
 
-def _expression_carry(legs: list, splines: dict, asw_latest: dict, repo: float) -> float:
-    """Aggregate carry across all legs of an expression."""
-    total = 0.0
+def _repo_sensitivity(legs: list, splines: dict) -> dict[str, float]:
+    """
+    Carry change (bps) per 1% change in repo rate for each repo bloc.
+    δcarry / δrepo_bloc = Σ_{legs in bloc} weight_i × (−100 / dur_i)
+
+    Positive value → carry increases when that bloc's repo rises (net short that bloc).
+    Negative value → carry decreases when repo rises (net long that bloc).
+    """
+    sens: dict[str, float] = {bloc: 0.0 for bloc in REPO_BLOCS}
+    for country, tenor, weight in legs:
+        if country.endswith("_ASW"):
+            continue  # ASW carry does not depend on repo directly
+        bloc = REPO_BLOC.get(country)
+        if bloc is None:
+            continue
+        cs = splines.get(country)
+        if cs is None:
+            continue
+        y_T = float(cs(tenor))
+        dur = _modified_duration(tenor, y_T)
+        sens[bloc] += weight * (-100.0 / dur)
+    return {k: round(v, 4) for k, v in sens.items()}
+
+
+def _expression_carry_components(
+    legs: list, splines: dict, asw_latest: dict, repo: float
+) -> tuple[float, float]:
+    """
+    Returns (income_carry_bps, roll_bps) for a composite expression.
+    income_carry is affected by repo assumptions; roll is not.
+    repo is the ESTR baseline (user adjustments applied via sensitivity on frontend).
+    """
+    total_income = 0.0
+    total_roll   = 0.0
     for country, tenor, weight in legs:
         if country.endswith("_ASW"):
             base = country.replace("_ASW", "")
             level = asw_latest.get((base, tenor), 0.0)
-            total += weight * _asw_carry_bps(base, tenor, splines, level)
+            ic, roll = _asw_carry_components(base, tenor, splines, level)
         else:
-            total += weight * _leg_carry_bps(country, tenor, splines, repo)
-    return total
+            ic, roll = _leg_carry_components(country, tenor, splines, repo)
+        total_income += weight * ic
+        total_roll   += weight * roll
+    return total_income, total_roll
 
 
 def _expression_level(legs: list, yield_row: dict, asw_row: dict) -> float:
@@ -114,14 +182,17 @@ def _expression_level(legs: list, yield_row: dict, asw_row: dict) -> float:
             base = country.replace("_ASW", "")
             total += weight * asw_row.get((base, tenor), np.nan)
         else:
-            total += weight * yield_row.get((country, tenor), np.nan) * 100.0
+            v = yield_row.get((country, tenor), np.nan)
+            if np.isnan(v):
+                return np.nan
+            total += weight * v * 100.0
     return total
 
 # ─── Bloomberg fetch ──────────────────────────────────────────────────────────
 
 def _fetch_from_bbg(start: str, end: str):
     """
-    Fetch Bund/OAT yields, ESTR, ASW spreads, EUR 1m10y vol from Bloomberg.
+    Fetch EGB yields (all 9 countries), ESTR, ASW spreads, EUR 1m10y vol from Bloomberg.
     Returns (yield_df, estr_s, asw_df, vol_s) or None on failure.
 
     yield_df : DatetimeIndex, MultiIndex columns (country, tenor), values in %
@@ -148,7 +219,6 @@ def _fetch_from_bbg(start: str, end: str):
         if isinstance(raw_y.columns, pd.MultiIndex):
             raw_y = raw_y.xs("PX_LAST", axis=1, level=1)
 
-        # Build MultiIndex DataFrame
         records: list[tuple] = []
         for ticker, (country, tenor) in yield_ticker_map.items():
             if ticker in raw_y.columns:
@@ -216,20 +286,55 @@ def _fetch_from_bbg(start: str, end: str):
 
 # ─── Simulation fallback ──────────────────────────────────────────────────────
 
+# Spread parameters vs Bund (at ALL_TENORS = [2,5,7,10,15,20,30])
+# Format: mean_spreads_pct, sigma_pct_per_rootday, mr_speed, min_clip_pct
+_SPREAD_PARAMS: dict[str, tuple[list, float, float, float]] = {
+    "OAT":         ([0.55, 0.60, 0.65, 0.68, 0.70, 0.72, 0.75], 0.013 / 252**0.5, 0.005,  0.10),
+    "BTP":         ([1.20, 1.40, 1.55, 1.60, 1.65, 1.70, 1.75], 0.025 / 252**0.5, 0.004,  0.20),
+    "Bonos":       ([0.80, 0.90, 0.98, 1.05, 1.10, 1.12, 1.15], 0.018 / 252**0.5, 0.005,  0.10),
+    "Belgium":     ([0.30, 0.35, 0.40, 0.42, 0.44, 0.46, 0.48], 0.008 / 252**0.5, 0.005,  0.00),
+    "Portugal":    ([0.75, 0.85, 0.95, 1.00, 1.05, 1.10, 1.12], 0.016 / 252**0.5, 0.005,  0.10),
+    "Netherlands": ([0.05, 0.07, 0.08, 0.10, 0.11, 0.12, 0.13], 0.004 / 252**0.5, 0.008, -0.10),
+    "Austria":     ([0.15, 0.18, 0.20, 0.23, 0.24, 0.25, 0.26], 0.006 / 252**0.5, 0.007, -0.05),
+    "Finland":     ([0.10, 0.12, 0.14, 0.15, 0.16, 0.17, 0.18], 0.005 / 252**0.5, 0.007, -0.05),
+}
+
+
+def _simulate_spread_path(
+    rng: np.random.Generator,
+    n_days: int,
+    mean: list[float],
+    sigma: float,
+    mr: float,
+    min_clip: float,
+) -> np.ndarray:
+    """Simulate a correlated mean-reverting spread path across ALL_TENORS tenors."""
+    n = len(mean)
+    # High intra-country correlation (decays with tenor distance)
+    corr = np.array([[0.97 ** abs(i - j) for j in range(n)] for i in range(n)])
+    cov  = (sigma ** 2) * corr
+    L    = np.linalg.cholesky(cov)
+    shocks = (L @ rng.standard_normal((n, n_days))).T  # (n_days, n)
+    path = np.zeros((n_days, n))
+    mean_arr = np.array(mean)
+    path[0] = mean_arr * 0.8
+    for t in range(1, n_days):
+        path[t] = path[t - 1] + mr * (mean_arr - path[t - 1]) + shocks[t]
+    return np.clip(path, min_clip, None)
+
+
 def _simulate_data(n_days: int = 1260, seed: int = 42) -> tuple:
     """
-    Generate ~5y of realistic synthetic daily EGB data.
+    Generate ~5y of realistic synthetic daily EGB data for all 9 countries.
     Returns (yield_df, estr_s, asw_df, vol_s).
     """
     rng = np.random.default_rng(seed)
     dates = pd.bdate_range(end="2025-06-30", periods=n_days)
 
     # ── Bund curve (levels in %) ───────────────────────────────────────────
-    # Start low, rise over history; mild upward slope
-    bund_mean = np.array([1.50, 2.00, 2.30, 2.50, 2.62, 2.72, 2.80])  # 2,5,7,10,15,20,30
-    # Correlated random walk for yield levels
-    sigma_bund = np.array([0.05, 0.04, 0.035, 0.03, 0.025, 0.022, 0.020]) / np.sqrt(252)
-    corr_bund = np.array([
+    bund_mean  = np.array([1.50, 2.00, 2.30, 2.50, 2.62, 2.72, 2.80])
+    sigma_bund = np.array([0.05, 0.04, 0.035, 0.03, 0.025, 0.022, 0.020]) / 252**0.5
+    corr_bund  = np.array([
         [1.00, 0.97, 0.95, 0.92, 0.88, 0.85, 0.82],
         [0.97, 1.00, 0.98, 0.96, 0.93, 0.90, 0.87],
         [0.95, 0.98, 1.00, 0.99, 0.96, 0.93, 0.90],
@@ -239,44 +344,34 @@ def _simulate_data(n_days: int = 1260, seed: int = 42) -> tuple:
         [0.82, 0.87, 0.90, 0.93, 0.97, 0.99, 1.00],
     ])
     cov_bund = np.outer(sigma_bund, sigma_bund) * corr_bund
-    L_bund = np.linalg.cholesky(cov_bund)
-
-    shocks_bund = (L_bund @ rng.standard_normal((7, n_days))).T
-    # mean-revert toward bund_mean
+    L_bund   = np.linalg.cholesky(cov_bund)
+    shocks_b = (L_bund @ rng.standard_normal((7, n_days))).T
     bund_path = np.zeros((n_days, 7))
-    bund_path[0] = bund_mean - 0.80  # start 80bp below current
+    bund_path[0] = bund_mean - 0.80
     for t in range(1, n_days):
-        bund_path[t] = bund_path[t-1] + 0.004 * (bund_mean - bund_path[t-1]) + shocks_bund[t]
+        bund_path[t] = bund_path[t-1] + 0.004 * (bund_mean - bund_path[t-1]) + shocks_b[t]
 
-    # ── OAT-Bund spread (in %) ────────────────────────────────────────────
-    oat_spread_mean = np.array([0.55, 0.60, 0.65, 0.68, 0.70, 0.72, 0.75])  # ~55-75bps
-    sigma_spread = np.array([0.015, 0.013, 0.012, 0.010, 0.010, 0.010, 0.010]) / np.sqrt(252)
-    corr_spread = np.array([
-        [1.00, 0.95, 0.92, 0.90, 0.88, 0.85, 0.82],
-        [0.95, 1.00, 0.97, 0.95, 0.92, 0.90, 0.87],
-        [0.92, 0.97, 1.00, 0.98, 0.95, 0.93, 0.90],
-        [0.90, 0.95, 0.98, 1.00, 0.98, 0.96, 0.93],
-        [0.88, 0.92, 0.95, 0.98, 1.00, 0.99, 0.97],
-        [0.85, 0.90, 0.93, 0.96, 0.99, 1.00, 0.99],
-        [0.82, 0.87, 0.90, 0.93, 0.97, 0.99, 1.00],
-    ])
-    cov_spread = np.outer(sigma_spread, sigma_spread) * corr_spread
-    L_spread = np.linalg.cholesky(cov_spread)
-    shocks_spread = (L_spread @ rng.standard_normal((7, n_days))).T
-    spread_path = np.zeros((n_days, 7))
-    spread_path[0] = oat_spread_mean * 0.8
-    for t in range(1, n_days):
-        spread_path[t] = spread_path[t-1] + 0.005 * (oat_spread_mean - spread_path[t-1]) + shocks_spread[t]
-    spread_path = np.clip(spread_path, 0.10, 2.00)
+    # ── All-tenor Bund interpolator (for subsetting other countries) ───────
+    def bund_at_tenor(t_idx: int) -> np.ndarray:
+        """Return Bund path for ALL_TENORS index t_idx (column of bund_path)."""
+        return bund_path[:, t_idx]
 
-    oat_path = bund_path + spread_path
+    # ── Spread paths for all other countries (at ALL_TENORS) ──────────────
+    all_cols: list[tuple] = [("Bund", t) for t in ALL_TENORS]
+    all_data: list[np.ndarray] = [bund_path[:, i] for i in range(7)]
+
+    for country, (mean_spreads, sigma, mr, min_clip) in _SPREAD_PARAMS.items():
+        spread = _simulate_spread_path(rng, n_days, mean_spreads, sigma, mr, min_clip)
+        country_yields = bund_path + spread   # (n_days, 7) at ALL_TENORS
+        # Keep only tenors in COUNTRY_TENORS[country]
+        for i, t in enumerate(ALL_TENORS):
+            if t in COUNTRY_TENORS[country]:
+                all_cols.append((country, t))
+                all_data.append(country_yields[:, i])
 
     # ── Build MultiIndex DataFrame ─────────────────────────────────────────
-    cols = pd.MultiIndex.from_tuples(
-        [("Bund", t) for t in TENORS] + [("OAT", t) for t in TENORS]
-    )
-    yield_data = np.hstack([bund_path, oat_path])
-    yield_df = pd.DataFrame(yield_data, index=dates, columns=cols)
+    cols     = pd.MultiIndex.from_tuples(all_cols)
+    yield_df = pd.DataFrame(np.column_stack(all_data), index=dates, columns=cols)
 
     # ── ESTR: starts at 4%, mean-reverts to 2.5% ──────────────────────────
     estr_path = np.zeros(n_days)
@@ -286,31 +381,34 @@ def _simulate_data(n_days: int = 1260, seed: int = 42) -> tuple:
         estr_path[t] = estr_path[t-1] + 0.003 * (2.5 - estr_path[t-1]) + estr_shock[t]
     estr_s = pd.Series(estr_path, index=dates)
 
-    # ── ASW: Bund negative (~−30 to −50), OAT near-zero ──────────────────
-    asw_tenors = [2, 5, 10, 30]
-    bund_asw_mean = np.array([-35.0, -40.0, -45.0, -38.0])
-    oat_asw_mean  = np.array([ 20.0,  12.0,   5.0,   2.0])
-    sigma_asw = 2.0 / np.sqrt(252)
+    # ── ASW: Bund negative, OAT near-zero, others with realistic levels ────
+    asw_specs = {
+        "Bund":        ([2, 5, 10, 30],  [-35.0, -40.0, -45.0, -38.0], 2.0),
+        "OAT":         ([2, 5, 10, 30],  [ 20.0,  12.0,   5.0,   2.0], 1.8),
+        "BTP":         ([5, 10, 30],     [ -5.0,  -8.0, -15.0],        3.5),
+        "Bonos":       ([5, 10],         [  8.0,   3.0],               2.5),
+        "Belgium":     ([10],            [ 15.0],                       1.5),
+        "Netherlands": ([10],            [  5.0],                       1.2),
+    }
 
-    bund_asw_path = np.zeros((n_days, 4))
-    oat_asw_path  = np.zeros((n_days, 4))
-    bund_asw_path[0] = bund_asw_mean + rng.standard_normal(4) * 5
-    oat_asw_path[0]  = oat_asw_mean  + rng.standard_normal(4) * 3
-    for t in range(1, n_days):
-        bund_asw_path[t] = (bund_asw_path[t-1]
-                             + 0.003 * (bund_asw_mean - bund_asw_path[t-1])
-                             + rng.standard_normal(4) * sigma_asw)
-        oat_asw_path[t]  = (oat_asw_path[t-1]
-                             + 0.003 * (oat_asw_mean - oat_asw_path[t-1])
-                             + rng.standard_normal(4) * sigma_asw * 0.8)
+    asw_cols_list: list[tuple] = []
+    asw_data_list: list[np.ndarray] = []
+    sigma_asw_base = 1.0 / 252**0.5
+    for country, (tenors, means, sigma_mult) in asw_specs.items():
+        n_t = len(tenors)
+        sigma_a = sigma_asw_base * sigma_mult
+        path = np.zeros((n_days, n_t))
+        path[0] = np.array(means) + rng.standard_normal(n_t) * sigma_mult * 2
+        for t in range(1, n_days):
+            path[t] = path[t-1] + 0.003 * (np.array(means) - path[t-1]) + rng.standard_normal(n_t) * sigma_a
+        for i, tenor in enumerate(tenors):
+            asw_cols_list.append((country, tenor))
+            asw_data_list.append(path[:, i])
 
-    asw_cols = pd.MultiIndex.from_tuples(
-        [("Bund", t) for t in asw_tenors] + [("OAT", t) for t in asw_tenors]
-    )
     asw_df = pd.DataFrame(
-        np.hstack([bund_asw_path, oat_asw_path]),
+        np.column_stack(asw_data_list),
         index=dates,
-        columns=asw_cols,
+        columns=pd.MultiIndex.from_tuples(asw_cols_list),
     )
 
     # ── EUR 1m10y vol (bps normal) ────────────────────────────────────────
@@ -327,11 +425,12 @@ def _simulate_data(n_days: int = 1260, seed: int = 42) -> tuple:
 
 def compute_egb_rv(as_of_date: Optional[str] = None) -> dict:
     """
-    Compute EGB RV monitor for Bund and OAT.
+    Compute EGB RV monitor for Bund, OAT, BTP, Bonos, Belgium, Portugal,
+    Netherlands, Austria, Finland.
 
     Returns:
       as_of, min_date, max_date, data_source,
-      rv_monitor   : list of RV rows (level, changes, z-score, pctile, vol, carry)
+      rv_monitor   : list of RV rows (level, changes, z-score, pctile, vol, carry, repo sensitivities)
       beta_monitor : list of beta regression rows
       series       : 1y daily series per expression
       groups       : group metadata for display
@@ -375,55 +474,66 @@ def compute_egb_rv(as_of_date: Optional[str] = None) -> dict:
     # ── Build cubic splines for the as-of date (for carry) ───────────────
     latest_yields = yield_df.iloc[-1]
     latest_repo   = float(estr_s.iloc[-1])
-    latest_asw    = {}
+    latest_asw: dict[tuple, float] = {}
     if not asw_df.empty:
         for col in asw_df.columns:
-            country, tenor = col
-            val = asw_df.iloc[-1].get(col, np.nan)
+            val = float(asw_df.iloc[-1].get(col, np.nan))
             if not np.isnan(val):
-                latest_asw[(country, tenor)] = float(val)
+                latest_asw[tuple(col)] = val
 
     splines: dict[str, CubicSpline] = {}
-    for country in ("Bund", "OAT"):
-        ys = np.array([float(latest_yields.get((country, t), np.nan)) for t in TENORS])
+    for country, tenors in COUNTRY_TENORS.items():
+        ys = np.array([float(latest_yields.get((country, t), np.nan)) for t in tenors])
         valid = ~np.isnan(ys)
         if valid.sum() >= 3:
-            ts_valid = np.array(TENORS)[valid]
+            ts_valid = np.array(tenors)[valid]
             ys_valid = ys[valid]
             splines[country] = _build_spline(list(ts_valid), ys_valid)
 
-    # ── Build time series for all expressions ─────────────────────────────
+    # ── Build expression time series — fully vectorised ───────────────────
+    # yield_df columns are (country, tenor) MultiIndex; values in %.
+    # Express all levels in bps: yield legs × 100, ASW legs in bps already.
+    yield_bps = yield_df * 100.0   # shape (n_days, n_yield_cols)
+
+    # Pre-build an ASW bps DataFrame aligned to yield_df.index
+    asw_bps = asw_df.reindex(yield_df.index, method="ffill") if not asw_df.empty else pd.DataFrame(index=yield_df.index)
+
     expr_series: dict[str, pd.Series] = {}
     for label, group, legs in ALL_EXPRESSIONS:
-        vals = []
-        for date, row in yield_df.iterrows():
-            y_row = {(c, t): float(row.get((c, t), np.nan))
-                     for c in ("Bund", "OAT") for t in TENORS}
-            a_row = {}
-            if not asw_df.empty and date in asw_df.index:
-                for col in asw_df.columns:
-                    v = asw_df.at[date, col]
-                    if not np.isnan(v):
-                        a_row[tuple(col)] = float(v)
-            v = _expression_level(legs, y_row, a_row)
-            vals.append(v)
-        expr_series[label] = pd.Series(vals, index=yield_df.index, name=label)
+        s = pd.Series(0.0, index=yield_df.index, dtype=float)
+        valid = True
+        for country, tenor, weight in legs:
+            if country.endswith("_ASW"):
+                base = country.replace("_ASW", "")
+                col  = (base, tenor)
+                if col not in asw_bps.columns:
+                    valid = False; break
+                s = s + weight * asw_bps[col]
+            else:
+                col = (country, tenor)
+                if col not in yield_bps.columns:
+                    valid = False; break
+                s = s + weight * yield_bps[col]
+        if valid:
+            expr_series[label] = s.rename(label)
+        else:
+            expr_series[label] = pd.Series(np.nan, index=yield_df.index, name=label)
 
     # ── Beta explanatory variables ─────────────────────────────────────────
-    def _safe_series(country_a, t_a, w_a, country_b=None, t_b=None, w_b=None):
-        s = yield_df.get((country_a, t_a))
+    def _safe_series(ca, ta, wa, cb=None, tb=None, wb=None):
+        s = yield_df.get((ca, ta))
         if s is None:
             return pd.Series(np.nan, index=yield_df.index)
-        result = s * w_a * 100.0
-        if country_b is not None:
-            sb = yield_df.get((country_b, t_b))
+        result = s * wa * 100.0
+        if cb is not None:
+            sb = yield_df.get((cb, tb))
             if sb is not None:
-                result = result + sb * w_b * 100.0
+                result = result + sb * wb * 100.0
         return result
 
-    bund10y_s  = _safe_series("Bund", 10, +1)                            # Bund 10y yield (bps)
-    spread10y_s = _safe_series("OAT", 10, +1, "Bund", 10, -1)           # OAT-Bund 10y (bps)
-    slope_s    = _safe_series("Bund", 10, +1, "Bund",  2, -1)           # Bund 2s10s (bps)
+    bund10y_s   = _safe_series("Bund", 10, +1)
+    spread10y_s = _safe_series("OAT",  10, +1, "Bund", 10, -1)
+    slope_s     = _safe_series("Bund", 10, +1, "Bund",  2, -1)
 
     beta_df = pd.DataFrame({
         "bund10y":   bund10y_s,
@@ -446,9 +556,8 @@ def compute_egb_rv(as_of_date: Optional[str] = None) -> dict:
         is_asw_expr = all(c.endswith("_ASW") for c, _, _ in legs)
         if is_asw_expr and asw_df.empty:
             continue
-        has_yield_legs = any(not c.endswith("_ASW") for c, _, _ in legs)
-        if has_yield_legs and not all(c.replace("_ASW", "") in splines
-                                      for c, _, _ in legs if not c.endswith("_ASW")):
+        yield_countries = [c for c, _, _ in legs if not c.endswith("_ASW")]
+        if not all(c in splines for c in yield_countries):
             continue
 
         current = float(series.iloc[-1])
@@ -466,28 +575,39 @@ def compute_egb_rv(as_of_date: Optional[str] = None) -> dict:
         daily_ch_3m = series.diff().iloc[-win_3m:]
         vol3m = round(float(daily_ch_3m.std()) * (252 ** 0.5), 2)
 
-        # Carry
-        carry = 0.0
+        # Carry — split into income carry and roll components
+        income_carry, roll_bps = 0.0, 0.0
         try:
-            carry = round(
-                _expression_carry(legs, splines, latest_asw, latest_repo), 2
+            income_carry, roll_bps = _expression_carry_components(
+                legs, splines, latest_asw, latest_repo
             )
+            income_carry = round(income_carry, 2)
+            roll_bps     = round(roll_bps, 2)
         except Exception:
-            carry = 0.0
+            pass
+        carry = round(income_carry + roll_bps, 2)
         carry_vol_ratio = round(carry / vol3m, 2) if vol3m > 0 else None
 
+        repo_sens = _repo_sensitivity(legs, splines)
+
         rv_monitor.append({
-            "label":           label,
-            "group":           group,
-            "value_bps":       round(current, 2),
-            "d1d_bps":         d1d,
-            "d1w_bps":         d1w,
-            "d1m_bps":         d1m,
-            "zscore_1y":       zscore,
-            "pctile_1y":       pctile,
-            "vol3m_bps":       vol3m,
-            "carry1y_bps":     carry,
-            "carry_vol_ratio": carry_vol_ratio,
+            "label":             label,
+            "group":             group,
+            "value_bps":         round(current, 2),
+            "d1d_bps":           d1d,
+            "d1w_bps":           d1w,
+            "d1m_bps":           d1m,
+            "zscore_1y":         zscore,
+            "pctile_1y":         pctile,
+            "vol3m_bps":         vol3m,
+            "carry1y_bps":       carry,
+            "income_carry_bps":  income_carry,
+            "roll_bps":          roll_bps,
+            "carry_vol_ratio":   carry_vol_ratio,
+            "bund_repo_sens":    repo_sens["Bund"],
+            "oat_repo_sens":     repo_sens["OAT"],
+            "btp_repo_sens":     repo_sens["BTP"],
+            "bonos_repo_sens":   repo_sens["Bonos"],
         })
 
         # 1y time series

@@ -27,7 +27,49 @@ interface RVRow {
   pctile_1y: number
   vol3m_bps: number
   carry1y_bps: number
+  income_carry_bps: number
+  roll_bps: number
   carry_vol_ratio: number | null
+  bund_repo_sens: number
+  oat_repo_sens: number
+  btp_repo_sens: number
+  bonos_repo_sens: number
+}
+
+type CarryMode = 'total' | 'income' | 'roll'
+
+// Repo adjustment only affects income carry, not roll
+function repoAdj(
+  row: RVRow,
+  bundSpreadBps: number, oatSpreadBps: number,
+  btpSpreadBps: number,  bonosSpreadBps: number,
+): number {
+  return row.bund_repo_sens  * (bundSpreadBps  / 100)
+       + row.oat_repo_sens   * (oatSpreadBps   / 100)
+       + row.btp_repo_sens   * (btpSpreadBps   / 100)
+       + row.bonos_repo_sens * (bonosSpreadBps / 100)
+}
+
+function adjCarry(
+  row: RVRow,
+  bundSpreadBps: number, oatSpreadBps: number,
+  btpSpreadBps: number,  bonosSpreadBps: number,
+  mode: CarryMode,
+): number {
+  const adj = repoAdj(row, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps)
+  if (mode === 'income') return row.income_carry_bps + adj
+  if (mode === 'roll')   return row.roll_bps   // repo doesn't affect roll
+  return row.carry1y_bps + adj                 // total = income + roll
+}
+
+function adjCarryVolRatio(
+  row: RVRow,
+  bundSpreadBps: number, oatSpreadBps: number,
+  btpSpreadBps: number,  bonosSpreadBps: number,
+  mode: CarryMode,
+): number | null {
+  if (row.vol3m_bps <= 0) return null
+  return adjCarry(row, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, mode) / row.vol3m_bps
 }
 
 interface BetaRow {
@@ -368,11 +410,17 @@ function DetailChart({ series, label, color }: { series: SeriesPoint[]; label: s
 
 function RVTable({
   rows, focusLabel, onRowClick, groups,
+  bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode,
 }: {
   rows: RVRow[]
   focusLabel: string | null
   onRowClick: (label: string) => void
   groups: Record<string, GroupMeta>
+  bundSpreadBps: number
+  oatSpreadBps: number
+  btpSpreadBps: number
+  bonosSpreadBps: number
+  carryMode: CarryMode
 }) {
   const th: React.CSSProperties = {
     padding: '8px 10px', textAlign: 'right', fontSize: 11, color: '#475569',
@@ -400,15 +448,17 @@ function RVTable({
             <th style={th}>Z (1y)</th>
             <th style={th}>Pctile</th>
             <th style={th}>3m RVol</th>
-            <th style={th}>Carry/yr</th>
+            <th style={th}>{carryMode === 'total' ? 'Carry+Roll' : carryMode === 'income' ? 'Carry only' : 'Roll only'}/yr</th>
             <th style={th}>C/V</th>
           </tr>
         </thead>
         <tbody>
           {rows.map(r => {
-            const zs  = zscoreStyle(r.zscore_1y)
-            const col = groupColor(r.group, groups)
+            const zs    = zscoreStyle(r.zscore_1y)
+            const col   = groupColor(r.group, groups)
             const isSel = focusLabel === r.label
+            const carry = adjCarry(r, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode)
+            const cv    = adjCarryVolRatio(r, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode)
             return (
               <tr key={r.label}
                 onClick={() => onRowClick(r.label)}
@@ -429,11 +479,11 @@ function RVTable({
                   </div>
                 </td>
                 <td style={{ ...td, color: '#94a3b8' }}>{r.vol3m_bps.toFixed(1)}</td>
-                <td style={{ ...td, color: r.carry1y_bps > 0 ? '#34d399' : '#f87171' }}>
-                  {r.carry1y_bps > 0 ? '+' : ''}{r.carry1y_bps.toFixed(1)}
+                <td style={{ ...td, color: carry > 0 ? '#34d399' : '#f87171' }}>
+                  {carry > 0 ? '+' : ''}{carry.toFixed(1)}
                 </td>
-                <td style={{ ...td, color: r.carry_vol_ratio !== null && r.carry_vol_ratio > 0 ? '#34d399' : '#f87171' }}>
-                  {r.carry_vol_ratio !== null ? (r.carry_vol_ratio > 0 ? '+' : '') + r.carry_vol_ratio.toFixed(2) : '—'}
+                <td style={{ ...td, color: cv !== null && cv > 0 ? '#34d399' : '#f87171' }}>
+                  {cv !== null ? (cv > 0 ? '+' : '') + cv.toFixed(2) : '—'}
                 </td>
               </tr>
             )
@@ -500,10 +550,18 @@ function BetaTable({ rows, groups }: { rows: BetaRow[]; groups: Record<string, G
 // ─── Carry Decomposition Table ────────────────────────────────────────────────
 // Shows carry ranked by C/V ratio — useful for identifying the best-carry trades
 
-function CarryRankTable({ rows, groups }: { rows: RVRow[]; groups: Record<string, GroupMeta> }) {
+function CarryRankTable({ rows, groups, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode }: {
+  rows: RVRow[]
+  groups: Record<string, GroupMeta>
+  bundSpreadBps: number
+  oatSpreadBps: number
+  btpSpreadBps: number
+  bonosSpreadBps: number
+  carryMode: CarryMode
+}) {
   const sorted = [...rows]
     .filter(r => r.carry_vol_ratio !== null)
-    .sort((a, b) => (b.carry_vol_ratio as number) - (a.carry_vol_ratio as number))
+    .sort((a, b) => (adjCarryVolRatio(b, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode) ?? 0) - (adjCarryVolRatio(a, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode) ?? 0))
 
   const th: React.CSSProperties = {
     padding: '8px 10px', textAlign: 'right', fontSize: 11, color: '#475569',
@@ -534,8 +592,9 @@ function CarryRankTable({ rows, groups }: { rows: RVRow[]; groups: Record<string
         </thead>
         <tbody>
           {sorted.map((r, i) => {
-            const cv = r.carry_vol_ratio as number
-            const col = groupColor(r.group, groups)
+            const carry = adjCarry(r, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode)
+            const cv    = adjCarryVolRatio(r, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode) ?? 0
+            const col   = groupColor(r.group, groups)
             return (
               <tr key={r.label}>
                 <td style={{ ...td, textAlign: 'center', color: '#475569' }}>{i + 1}</td>
@@ -543,8 +602,8 @@ function CarryRankTable({ rows, groups }: { rows: RVRow[]; groups: Record<string
                 <td style={{ ...td, color: col, fontSize: 10 }}>{groups[r.group]?.label ?? r.group}</td>
                 <td style={{ ...td, color: '#e2e8f0' }}>{r.value_bps.toFixed(1)}</td>
                 <td style={{ ...td, ...zscoreStyle(r.zscore_1y) }}>{r.zscore_1y.toFixed(2)}</td>
-                <td style={{ ...td, color: r.carry1y_bps > 0 ? '#34d399' : '#f87171' }}>
-                  {r.carry1y_bps > 0 ? '+' : ''}{r.carry1y_bps.toFixed(1)} bp
+                <td style={{ ...td, color: carry > 0 ? '#34d399' : '#f87171' }}>
+                  {carry > 0 ? '+' : ''}{carry.toFixed(1)} bp
                 </td>
                 <td style={{ ...td, color: '#94a3b8' }}>{r.vol3m_bps.toFixed(1)}</td>
                 <td style={{ ...td, color: cv > 0 ? '#34d399' : '#f87171', fontWeight: 600 }}>
@@ -585,6 +644,12 @@ export default function EGBRV() {
   const [focusLabel, setFocusLabel]   = useState<string | null>(null)
   const [betaVar, setBetaVar]         = useState<string>('beta_bund10y')
   const [groupFilter, setGroupFilter] = useState<string>('all')
+  const [bundSpreadBps, setBundSpreadBps]   = useState<number>(0)
+  const [oatSpreadBps, setOatSpreadBps]     = useState<number>(0)
+  const [btpSpreadBps, setBtpSpreadBps]     = useState<number>(0)
+  const [bonosSpreadBps, setBonosSpreadBps] = useState<number>(0)
+  const [showAssumptions, setShowAssumptions] = useState(false)
+  const [carryMode, setCarryMode] = useState<CarryMode>('total')
 
   // Filtered rows for the current group selection
   const filteredRV   = useMemo(() =>
@@ -595,10 +660,19 @@ export default function EGBRV() {
          : [], [data, groupFilter])
 
   useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    if (!token) { navigate('/login', { replace: true }); return }
     setLoading(true)
-    axios.get('/api/tools/egb-rv')
+    axios.get('/api/tools/egb-rv', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => { setData(res.data); setError(null) })
-      .catch(err => setError(err.response?.data?.detail ?? err.message))
+      .catch(err => {
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          localStorage.removeItem('access_token')
+          navigate('/login', { replace: true })
+        } else {
+          setError(err.response?.data?.detail ?? err.message)
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -643,7 +717,7 @@ export default function EGBRV() {
           ←
         </button>
         <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.5px' }}>EGB RV Monitor</span>
-        <span style={{ fontSize: 12, color: '#475569' }}>Bund · OAT</span>
+        <span style={{ fontSize: 12, color: '#475569' }}>Bund · OAT · BTP · Bonos · BE · PGB · NL · AT · FI</span>
         {data && (
           <span style={{ marginLeft: 'auto', fontSize: 11, color: '#475569' }}>as of {data.as_of}</span>
         )}
@@ -694,6 +768,80 @@ export default function EGBRV() {
               </div>
             </div>
 
+            {/* Repo Assumptions Panel */}
+            <div style={{ ...cardStyle, marginBottom: 16, padding: '14px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>Carry view:</span>
+                {([['total', 'Carry + Roll'], ['income', 'Carry only'], ['roll', 'Roll only']] as [CarryMode, string][]).map(([mode, label]) => (
+                  <button key={mode} onClick={() => setCarryMode(mode)}
+                    style={{ fontSize: 11, padding: '3px 10px', borderRadius: 5, cursor: 'pointer',
+                      border: '1px solid',
+                      borderColor: carryMode === mode ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)',
+                      background:  carryMode === mode ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)',
+                      color:       carryMode === mode ? '#a5b4fc' : '#64748b' }}>
+                    {label}
+                  </button>
+                ))}
+                <span style={{ marginLeft: 8, fontSize: 12, color: '#64748b', fontWeight: 500 }}>Repo assumptions</span>
+                <button onClick={() => setShowAssumptions(s => !s)}
+                  style={{ fontSize: 11, padding: '2px 10px', borderRadius: 5, border: '1px solid rgba(255,255,255,0.1)',
+                    background: showAssumptions ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)',
+                    color: '#64748b', cursor: 'pointer' }}>
+                  {showAssumptions ? 'Hide' : 'Edit'}
+                </button>
+                {(bundSpreadBps !== 0 || oatSpreadBps !== 0 || btpSpreadBps !== 0 || bonosSpreadBps !== 0) && (
+                  <span style={{ fontSize: 11, color: '#fbbf24' }}>
+                    {[['Bund', bundSpreadBps], ['OAT', oatSpreadBps], ['BTP', btpSpreadBps], ['Bonos', bonosSpreadBps]]
+                      .filter(([, v]) => (v as number) !== 0)
+                      .map(([lbl, v]) => `${lbl}: ${(v as number) > 0 ? '+' : ''}${v} bp`)
+                      .join(' | ')
+                    } vs ESTR
+                  </span>
+                )}
+                {(bundSpreadBps !== 0 || oatSpreadBps !== 0 || btpSpreadBps !== 0 || bonosSpreadBps !== 0) && (
+                  <button onClick={() => { setBundSpreadBps(0); setOatSpreadBps(0); setBtpSpreadBps(0); setBonosSpreadBps(0) }}
+                    style={{ fontSize: 11, padding: '2px 8px', borderRadius: 5, border: '1px solid rgba(255,255,255,0.1)',
+                      background: 'transparent', color: '#475569', cursor: 'pointer' }}>
+                    Reset
+                  </button>
+                )}
+              </div>
+              {showAssumptions && (
+                <div style={{ marginTop: 14, display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+                  {([
+                    { label: 'Bund repo vs ESTR (bp)',  value: bundSpreadBps,  set: setBundSpreadBps,  color: '#3b82f6' },
+                    { label: 'OAT repo vs ESTR (bp)',   value: oatSpreadBps,   set: setOatSpreadBps,   color: '#8b5cf6' },
+                    { label: 'BTP repo vs ESTR (bp)',   value: btpSpreadBps,   set: setBtpSpreadBps,   color: '#10b981' },
+                    { label: 'Bonos repo vs ESTR (bp)', value: bonosSpreadBps, set: setBonosSpreadBps, color: '#f59e0b' },
+                  ] as { label: string; value: number; set: (v: number) => void; color: string }[]).map(({ label, value, set, color }) => (
+                    <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <span style={{ fontSize: 11, color: '#64748b' }}>{label}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input type="range" min={-100} max={50} step={1} value={value}
+                          onChange={e => set(Number(e.target.value))}
+                          style={{ width: 140, accentColor: color }} />
+                        <input type="number" value={value} min={-100} max={50} step={1}
+                          onChange={e => set(Number(e.target.value))}
+                          style={{ width: 56, padding: '3px 6px', borderRadius: 5, fontSize: 12,
+                            border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)',
+                            color: value < 0 ? '#34d399' : value > 0 ? '#f87171' : '#94a3b8',
+                            textAlign: 'right', fontFamily: 'monospace' }} />
+                        <span style={{ fontSize: 11, color: '#475569' }}>bp</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', width: 140, fontSize: 10, color: '#334155' }}>
+                        <span>−100</span><span>0</span><span>+50</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: 11, color: '#334155', alignSelf: 'flex-end', maxWidth: 280, lineHeight: 1.5 }}>
+                    Negative = repo below ESTR (e.g. Bund special).
+                    OAT bloc covers BE/NL/AT/FI. Bonos bloc covers Portugal.
+                    Carry adjusts instantly — no refetch needed.
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* RV Monitor tab */}
             {tab === 'rv' && (
               <div style={cardStyle}>
@@ -701,7 +849,9 @@ export default function EGBRV() {
                   Click a row to view its 1-year history below.
                   Carry = coupon carry + roll-down per unit DV01, annualised (bps/yr).
                 </div>
-                <RVTable rows={filteredRV} focusLabel={focusLabel} onRowClick={handleRowClick} groups={data.groups} />
+                <RVTable rows={filteredRV} focusLabel={focusLabel} onRowClick={handleRowClick}
+                  groups={data.groups} bundSpreadBps={bundSpreadBps} oatSpreadBps={oatSpreadBps}
+                  btpSpreadBps={btpSpreadBps} bonosSpreadBps={bonosSpreadBps} carryMode={carryMode} />
                 {focusSeries && focusRow && (
                   <DetailChart
                     series={focusSeries} label={focusLabel!}
@@ -717,7 +867,9 @@ export default function EGBRV() {
                   Expressions ranked by carry-to-vol ratio (highest first).
                   C/V &gt; 0 = the carry works in your favour at current z-score.
                 </div>
-                <CarryRankTable rows={filteredRV} groups={data.groups} />
+                <CarryRankTable rows={filteredRV} groups={data.groups}
+                  bundSpreadBps={bundSpreadBps} oatSpreadBps={oatSpreadBps}
+                  btpSpreadBps={btpSpreadBps} bonosSpreadBps={bonosSpreadBps} carryMode={carryMode} />
               </div>
             )}
 
