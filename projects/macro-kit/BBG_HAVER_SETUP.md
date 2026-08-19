@@ -4,6 +4,52 @@ Complete reference for switching the analytics platform from simulated data to l
 
 ---
 
+## How tickers are defined — read this first
+
+There are **two distinct patterns** in this codebase. Knowing which applies to a tool tells you exactly where to look or edit.
+
+### Pattern 1 — Series catalogue JSON (heatmap tools)
+
+Used by: Euro Area, UK, US, Japan, Canada, Sweden, Norway, Switzerland, Australia, New Zealand heatmaps.
+
+Tickers live in `backend/data/series_catalogue_<region>.json`. Each entry has a `bloomberg_ticker` and optionally a `haver_mnemonic`:
+
+```json
+{
+  "id": "ea_gdp_yoy",
+  "bloomberg_ticker": "EUGNEMUQ Index",
+  "haver_mnemonic": "EUGDP@EUDATA",
+  "dfm_col_index": 0
+}
+```
+
+The shared `get_fetcher("bloomberg")` abstraction reads the catalogue, resolves tickers, and calls `blp.bdh()`. **To change a ticker for any heatmap series, edit the JSON — not the Python.**
+
+### Pattern 2 — Hardcoded in the module (analytics tools)
+
+Used by: Swaps RV, EGB RV, HICP Fixings Monitor, Fair Value Models, Global Yields, Inflation PCA, Option-Implied CDF.
+
+Tickers are defined as constants directly inside the Python module and call `blp.bdh()` or `blp.bdp()` independently — no catalogue involved. **To change a ticker, edit the Python file.**
+
+| Tool | File | Ticker location |
+|------|------|----------------|
+| Swaps RV | `backend/swaps_rv.py` | `_OIS_TICKERS`, `_VOL_TICKERS` |
+| EGB RV | `backend/egb_rv.py` | `_YIELD_TICKERS`, `_ASW_TICKERS`, `_ESTR_TICKER`, `_VOL_TICKER` |
+| HICP Fixings | `backend/hicp_fixings.py` | `EUSWIF{n}/EUSWIT{n} Comdty` constructed programmatically |
+| Fair Value Models | `backend/fair_value_models.py` | inline ticker dict in `_fetch_live_data()` |
+| Global Yields | `backend/global_yields.py` | inline ticker dict |
+| Inflation PCA | `backend/inflation_pca.py` | inline ticker dicts per curve |
+| Option-Implied CDF | `backend/option_derived_cdf.py` | inline ticker dicts |
+
+### Which fetch method each pattern uses
+
+| Method | What it does | Used by |
+|--------|-------------|---------|
+| `blp.bdh(tickers, field, start, end)` | Historical time series | Most tools |
+| `blp.bdp(tickers, field)` | Point-in-time snapshot (no date range) | HICP Fixings only |
+
+---
+
 ## Table of Contents
 
 1. [Quick Start](#1-quick-start)
