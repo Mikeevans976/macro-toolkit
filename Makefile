@@ -5,6 +5,9 @@ VENV    := $(CURDIR)/.venv/bin/activate
 .PHONY: backend frontend
 
 backend:
+	@if [ ! -f $(APP_DIR)/backend/users.json ]; then \
+		source $(VENV) && python $(APP_DIR)/backend/create_user.py gerardo gerardo123 "Gerardo"; \
+	fi
 	cd $(APP_DIR)/backend && source $(VENV) && uvicorn main:app --reload --port 8000
 
 frontend:
