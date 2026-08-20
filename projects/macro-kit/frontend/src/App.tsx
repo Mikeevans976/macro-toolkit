@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import SwapsRV from './pages/SwapsRV'
+import EGBRV from './pages/EGBRV'
 import EuroAreaHeatmap from './pages/EuroAreaHeatmap'
 import GlobalYields from './pages/GlobalYields'
 import OptionDerivedCDF from './pages/OptionDerivedCDF'
@@ -44,6 +45,7 @@ export default function App() {
           }
         />
         <Route path="/tools/swaps-rv" element={<ProtectedRoute><SwapsRV /></ProtectedRoute>} />
+        <Route path="/tools/egb-rv" element={<ProtectedRoute><EGBRV /></ProtectedRoute>} />
         <Route path="/tools/euro-area-heatmap" element={<ProtectedRoute><EuroAreaHeatmap /></ProtectedRoute>} />
         <Route path="/tools/uk-heatmap" element={<ProtectedRoute><UKHeatmap /></ProtectedRoute>} />
         <Route path="/tools/us-heatmap" element={<ProtectedRoute><USHeatmap /></ProtectedRoute>} />
