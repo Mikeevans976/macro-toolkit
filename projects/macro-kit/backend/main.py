@@ -20,6 +20,8 @@ from auth import (
 # Create admin user from env vars on first deploy (no-op if users.json exists)
 bootstrap_admin()
 from swaps_rv import compute_rv
+from egb_rv import compute_egb_rv
+from hicp_fixings import get_hicp_fixings
 from global_yields import get_global_yields_data
 from fair_value_models import get_fair_value_models_data
 from euro_area_heatmap import (
@@ -466,6 +468,23 @@ async def option_cdf_params(ccy: str, tail: str, current_user: dict = Depends(ge
 async def inflation_pca(curve_id: str, current_user: dict = Depends(get_current_user)):
     """PCA-neutral butterfly analysis for EUR/GBP ILB curves."""
     return get_inflation_pca_data(curve_id)
+
+
+@app.get("/api/tools/inflation-fixings/eur")
+async def hicp_fixings(
+    date: str | None = None,
+    current_user: dict = Depends(get_current_user),
+):
+    """HICP monthly fixing prices — 24 contracts (EUSWIF1-12, EUSWIT1-12)."""
+    return get_hicp_fixings(as_of_date=date)
+
+
+@app.get("/api/tools/egb-rv")
+async def get_egb_rv(
+    date: str | None = None,
+    current_user: dict = Depends(get_current_user),
+):
+    return compute_egb_rv(as_of_date=date)
 
 
 @app.get("/api/tools/swaps-rv")
