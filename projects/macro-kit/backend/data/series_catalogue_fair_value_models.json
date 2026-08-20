@@ -1,0 +1,99 @@
+{
+  "tool": "Fair Value Models",
+  "file": "backend/fair_value_models.py",
+  "bloomberg_fetch": "bdh",
+  "fallback": "simulation",
+  "note": "GS FCI (GSEAFCI Index) requires a Goldman Sachs data subscription — silently zeroed if absent. Other optional regressors also fall back gracefully. Edit _fetch_live_data() in Python to change.",
+  "series": [
+    {
+      "id": "eur_hicp_inflation_swaps",
+      "bloomberg_ticker": "EUSWI{n} Curncy",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "EUR HICPxT zero-coupon inflation swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "eur_estr_ois",
+      "bloomberg_ticker": "EUSWF{n} Curncy",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS par swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "euribor_3m",
+      "bloomberg_ticker": "EUR003M Index",
+      "field": "PX_LAST",
+      "description": "EURIBOR 3-month fixing rate",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "brent_crude",
+      "bloomberg_ticker": "CO1 Comdty",
+      "field": "PX_LAST",
+      "description": "Brent crude oil front-month futures contract",
+      "unit": "level",
+      "verified": true
+    },
+    {
+      "id": "ttf_gas",
+      "bloomberg_ticker": "TTF1 Comdty",
+      "field": "PX_LAST",
+      "description": "TTF natural gas front-month futures contract",
+      "unit": "level",
+      "verified": true
+    },
+    {
+      "id": "bloomberg_commodity_index",
+      "bloomberg_ticker": "BCOM Index",
+      "field": "PX_LAST",
+      "description": "Bloomberg Commodity Index (broad commodity basket)",
+      "unit": "index",
+      "verified": true
+    },
+    {
+      "id": "eur_twi_neer",
+      "bloomberg_ticker": "EURR002W Index",
+      "field": "PX_LAST",
+      "description": "EUR broad nominal effective exchange rate (trade-weighted index)",
+      "unit": "index",
+      "verified": false
+    },
+    {
+      "id": "gs_euro_area_fci",
+      "bloomberg_ticker": "GSEAFCI Index",
+      "field": "PX_LAST",
+      "description": "Goldman Sachs Euro Area Financial Conditions Index — requires GS subscription",
+      "unit": "index",
+      "verified": false
+    },
+    {
+      "id": "itraxx_europe_5y",
+      "bloomberg_ticker": "ITRXEBE5 Index",
+      "field": "PX_LAST",
+      "description": "iTraxx Europe 5Y credit default swap index",
+      "unit": "bps",
+      "verified": false
+    },
+    {
+      "id": "citi_cesi_eur",
+      "bloomberg_ticker": "CESIEUR Index",
+      "field": "PX_LAST",
+      "description": "Citi Economic Surprise Index — Euro Area",
+      "unit": "index",
+      "verified": false
+    },
+    {
+      "id": "eur_swaption_vol_1m10y",
+      "bloomberg_ticker": "EUSV0001 Index",
+      "field": "PX_LAST",
+      "description": "EUR swaption ATM normal vol, 1m expiry 10y tail — used as rates volatility regressor",
+      "unit": "bps",
+      "verified": true
+    }
+  ]
+}

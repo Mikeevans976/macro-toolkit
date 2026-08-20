@@ -1,0 +1,27 @@
+{
+  "tool": "HICP Fixings Monitor",
+  "file": "backend/hicp_fixings.py",
+  "bloomberg_fetch": "bdp",
+  "fallback": "deterministic simulation",
+  "note": "Uses bdp (snapshot, not historical). Ticker number is calendar month (1=Jan … 12=Dec), not sequential position. F-series covers the cycle starting 1 year ahead of today; T-series covers the following year. Edit hicp_fixings.py to change.",
+  "series": [
+    {
+      "id": "hicp_fixings_f_series",
+      "bloomberg_ticker": "EUSWIF{n} Comdty",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "field": "PX_LAST",
+      "description": "EUR HICPxT monthly inflation fixings — F-series (cycle starting ~1 year ahead of today, n = calendar month)",
+      "unit": "level",
+      "verified": true
+    },
+    {
+      "id": "hicp_fixings_t_series",
+      "bloomberg_ticker": "EUSWIT{n} Comdty",
+      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "field": "PX_LAST",
+      "description": "EUR HICPxT monthly inflation fixings — T-series (cycle starting ~2 years ahead of today, n = calendar month)",
+      "unit": "level",
+      "verified": true
+    }
+  ]
+}

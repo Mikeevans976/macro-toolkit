@@ -1,8 +1,14 @@
-# CLAUDE.md
+# CLAUDE.md — macro-kit
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Context — where you are
+
+This project lives inside a monorepo at `projects/macro-kit/`. All paths below are relative to this folder. The root-level `CLAUDE.md` describes the overall repo structure and git workflow.
+
 ## Commands
+
+All commands must be run from inside `projects/macro-kit/` (this folder).
 
 ### Backend
 ```bash
@@ -10,7 +16,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 source .venv/bin/activate
 
 # Run API server (dev, auto-reload)
-uvicorn backend.main:app --reload --port 8000
+# IMPORTANT: run from inside backend/ — not from the project root
+cd backend && uvicorn main:app --reload --port 8000
 
 # Run backend tests
 cd backend && pytest tests/test_analytics.py -v
@@ -34,6 +41,24 @@ npm run lint       # ESLint (0 max-warnings)
 cd frontend && npm run build && cd .. && python backend/main.py
 # Serves API + built frontend at http://localhost:8000
 ```
+
+### Switching to real data (Bloomberg / Haver)
+
+All tools default to **deterministic simulation** — no external data needed to run.
+
+To switch to live data, set the `ANALYTICS_DATA_SOURCE` env var before starting the backend:
+
+```bash
+# Bloomberg (Terminal must be open and logged in)
+cd backend && ANALYTICS_DATA_SOURCE=bloomberg uvicorn main:app --reload --port 8000
+
+# Haver (Windows only, DLX must be installed)
+cd backend && ANALYTICS_DATA_SOURCE=haver HAVER_PATH=/path/to/haver uvicorn main:app --reload --port 8000
+```
+
+**Full reference — tickers, per-module status, troubleshooting:** `BBG_HAVER_SETUP.md`
+
+Read that file before touching any data-fetching code. It documents every ticker, which ones are unverified, and how each module handles fallback.
 
 ---
 
