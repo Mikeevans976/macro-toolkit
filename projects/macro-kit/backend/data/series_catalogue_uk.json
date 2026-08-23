@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "description": "UK-specific series catalogue for the UK Macro Heatmap. Single source of truth for UK series identity, source, and ingestion metadata. 48 series covering Growth, Inflation, Employment, Wages, and Housing (assigned to Growth factor). Mirrors the schema of series_catalogue.json.",
+    "description": "UK-specific series catalogue for the UK Macro Heatmap. Single source of truth for UK series identity, source, and ingestion metadata. 48 series covering Growth, Inflation, Employment, Wages, and Housing (assigned to Growth factor). Mirrors the schema of series_catalogue_ea.json.",
     "field_reference": {
       "id": "Unique machine-readable slug. Used to cross-reference series across tools and config files.",
       "name": "Human-readable short label.",

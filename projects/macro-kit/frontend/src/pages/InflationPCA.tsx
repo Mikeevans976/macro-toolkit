@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid,
@@ -38,10 +38,10 @@ interface ApiYieldBlock {
   loadings:     number[][]   // [nPCs, N]
   var_explained: number[]    // [nPCs]
   flies: {
-    name: string; left_idx: number; belly_idx: number; right_idx: number
-    w_left: number; w_right: number; spreads: number[]
+    name: string; leftIdx: number; bellyIdx: number; rightIdx: number
+    wLeft: number; wRight: number; spreads: number[]
     current: number; avg3m: number; std3m: number; zscore: number
-    signal: string; net_dv01: number
+    signal: string; netDV01: number
   }[]
 }
 
@@ -454,18 +454,18 @@ export default function InflationPCA() {
     if (block) {
       const flies: FlyResult[] = block.flies.map(f => ({
         name:      f.name,
-        leftIdx:   f.left_idx,
-        bellyIdx:  f.belly_idx,
-        rightIdx:  f.right_idx,
-        wLeft:     f.w_left,
-        wRight:    f.w_right,
+        leftIdx:   f.leftIdx,
+        bellyIdx:  f.bellyIdx,
+        rightIdx:  f.rightIdx,
+        wLeft:     f.wLeft,
+        wRight:    f.wRight,
         spreads:   f.spreads,
         current:   f.current,
         avg3m:     f.avg3m,
         std3m:     f.std3m,
         zscore:    f.zscore,
         signal:    f.signal as FlyResult['signal'],
-        netDV01:   f.net_dv01,
+        netDV01:   f.netDV01,
       }))
       return { levels: block.levels, loadings: block.loadings, varExplained: block.var_explained, flies }
     }
@@ -689,7 +689,7 @@ export default function InflationPCA() {
                   // Insert a divider between rich and cheap sections (default mode only)
                   const showDivider = !showAll && !nameFilter.trim() && rowIdx === richCount && richCount > 0
                   return (
-                    <>
+                    <React.Fragment key={fly.name + '_' + rowIdx}>
                       {showDivider && (
                         <tr key="divider">
                           <td colSpan={8} style={{ padding: '6px 10px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
@@ -737,7 +737,7 @@ export default function InflationPCA() {
                           </span>
                         </td>
                       </tr>
-                    </>
+                    </React.Fragment>
                   )
                 })}
               </tbody>

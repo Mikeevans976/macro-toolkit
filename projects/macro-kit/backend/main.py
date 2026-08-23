@@ -22,6 +22,8 @@ bootstrap_admin()
 from swaps_rv import compute_rv
 from egb_rv import compute_egb_rv
 from hicp_fixings import get_hicp_fixings
+from rpi_fixings import get_rpi_fixings
+from us_cpi_fixings import get_us_cpi_fixings
 from global_yields import get_global_yields_data
 from fair_value_models import get_fair_value_models_data
 from euro_area_heatmap import (
@@ -479,12 +481,31 @@ async def hicp_fixings(
     return get_hicp_fixings(as_of_date=date)
 
 
-@app.get("/api/tools/egb-rv")
-async def get_egb_rv(
+@app.get("/api/tools/inflation-fixings/gbp")
+async def inflation_fixings_gbp(
     date: str | None = None,
     current_user: dict = Depends(get_current_user),
 ):
-    return compute_egb_rv(as_of_date=date)
+    """UK RPI monthly fixing prices — 24 contracts (UKRPIF1-12, UKRPIT1-12)."""
+    return get_rpi_fixings(as_of_date=date)
+
+
+@app.get("/api/tools/inflation-fixings/usd")
+async def inflation_fixings_usd(
+    date: str | None = None,
+    current_user: dict = Depends(get_current_user),
+):
+    """US CPI monthly fixing prices — 24 contracts (USCPIF1-12, USCPIT1-12)."""
+    return get_us_cpi_fixings(as_of_date=date)
+
+
+@app.get("/api/tools/egb-rv")
+async def get_egb_rv(
+    date: str | None = None,
+    use_individual_bonds: bool = False,
+    current_user: dict = Depends(get_current_user),
+):
+    return compute_egb_rv(as_of_date=date, use_individual_bonds=use_individual_bonds)
 
 
 @app.get("/api/tools/swaps-rv")

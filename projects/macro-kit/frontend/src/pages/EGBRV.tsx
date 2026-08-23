@@ -93,11 +93,25 @@ interface GroupMeta {
   color: string
 }
 
+interface BondInfo {
+  ticker: string
+  target_years: number
+  actual_years: number
+  deviation_years: number
+  maturity: string
+  coupon: number
+  yield_pct: number
+  duration: number
+  outstanding_mn: number
+}
+
 interface EGBRVData {
   as_of: string
   min_date: string
   max_date: string
   data_source: string
+  yield_mode: string
+  bond_map: Record<string, Record<string, BondInfo | null>>
   rv_monitor: RVRow[]
   beta_monitor: BetaRow[]
   series: Record<string, SeriesPoint[]>
@@ -619,6 +633,119 @@ function CarryRankTable({ rows, groups, bundSpreadBps, oatSpreadBps, btpSpreadBp
 }
 
 
+// ─── Bond Reference Panel ─────────────────────────────────────────────────────
+
+const COUNTRY_ORDER = ['Bund', 'OAT', 'BTP', 'Bonos', 'Belgium', 'Portugal', 'Netherlands', 'Austria', 'Finland']
+const COUNTRY_SHORT: Record<string, string> = {
+  Bund: 'DE', OAT: 'FR', BTP: 'IT', Bonos: 'ES', Belgium: 'BE',
+  Portugal: 'PT', Netherlands: 'NL', Austria: 'AT', Finland: 'FI',
+}
+
+function deviationColor(dev: number): string {
+  if (dev < 0.25) return '#34d399'
+  if (dev < 0.75) return '#fbbf24'
+  return '#f87171'
+}
+
+function BondReferencePanel({ bondMap }: { bondMap: Record<string, Record<string, BondInfo | null>> }) {
+  const [expanded, setExpanded] = useState(false)
+
+  // Collect all tenors across all countries
+  const allTenors = Array.from(
+    new Set(Object.values(bondMap).flatMap(m => Object.keys(m).map(Number)))
+  ).sort((a, b) => a - b)
+
+  const countries = COUNTRY_ORDER.filter(c => bondMap[c])
+
+  return (
+    <div style={{
+      background: 'rgba(99,102,241,0.05)',
+      border: '1px solid rgba(99,102,241,0.2)',
+      borderRadius: 12, padding: '14px 20px', marginBottom: 16,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ fontSize: 12, color: '#a5b4fc', fontWeight: 600 }}>
+          Bond Reference
+        </span>
+        <span style={{ fontSize: 11, color: '#475569' }}>
+          Individual bonds selected by closest remaining maturity
+        </span>
+        <button
+          onClick={() => setExpanded(v => !v)}
+          style={{ marginLeft: 'auto', fontSize: 11, padding: '2px 10px', borderRadius: 5,
+            border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)',
+            color: '#64748b', cursor: 'pointer' }}>
+          {expanded ? 'Hide' : 'Show'}
+        </button>
+      </div>
+
+      {expanded && (
+        <div style={{ marginTop: 16, overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '6px 10px', color: '#475569',
+                  borderBottom: '1px solid rgba(255,255,255,0.07)', whiteSpace: 'nowrap' }}>
+                  Country
+                </th>
+                {allTenors.map(t => (
+                  <th key={t} style={{ textAlign: 'center', padding: '6px 10px', color: '#475569',
+                    borderBottom: '1px solid rgba(255,255,255,0.07)', whiteSpace: 'nowrap' }}>
+                    {t}y
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {countries.map(country => (
+                <tr key={country}>
+                  <td style={{ padding: '6px 10px', color: '#94a3b8', fontWeight: 600,
+                    borderBottom: '1px solid rgba(255,255,255,0.04)', whiteSpace: 'nowrap' }}>
+                    {COUNTRY_SHORT[country]} ({country})
+                  </td>
+                  {allTenors.map(t => {
+                    const info = bondMap[country]?.[String(t)] ?? null
+                    if (!info) {
+                      return (
+                        <td key={t} style={{ padding: '6px 10px', textAlign: 'center',
+                          borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#334155' }}>
+                          —
+                        </td>
+                      )
+                    }
+                    // Extract short ticker label: "DBR 0 08/15/2034 Govt" → "DBR 08/2034"
+                    const parts = info.ticker.split(' ')
+                    const shortLabel = parts.length >= 3 ? `${parts[0]} ${parts[parts.length - 2].slice(3)}` : info.ticker
+                    return (
+                      <td key={t} style={{ padding: '6px 10px', textAlign: 'center',
+                        borderBottom: '1px solid rgba(255,255,255,0.04)', whiteSpace: 'nowrap' }}
+                        title={`${info.ticker}\nMaturity: ${info.maturity}\nActual: ${info.actual_years.toFixed(2)}y\nYield: ${info.yield_pct.toFixed(3)}%\nDuration: ${info.duration.toFixed(2)}\nOutstanding: ${(info.outstanding_mn / 1000).toFixed(0)} bn`}>
+                        <div style={{ color: '#e2e8f0', fontFamily: 'monospace', fontSize: 10 }}>
+                          {shortLabel}
+                        </div>
+                        <div style={{ color: deviationColor(info.deviation_years), fontSize: 10, marginTop: 2 }}>
+                          {info.actual_years.toFixed(2)}y
+                          {info.deviation_years > 0.1 && (
+                            <span style={{ color: '#475569' }}> ({info.deviation_years > 0 ? '+' : ''}{info.deviation_years.toFixed(2)})</span>
+                          )}
+                        </div>
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ marginTop: 10, fontSize: 10, color: '#334155' }}>
+            Colour = deviation from target tenor: <span style={{ color: '#34d399' }}>green &lt;0.25y</span> · <span style={{ color: '#fbbf24' }}>amber &lt;0.75y</span> · <span style={{ color: '#f87171' }}>red ≥0.75y</span>.
+            Hover a cell for full ticker, yield, duration, and outstanding.
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main page component ──────────────────────────────────────────────────────
 
 const cardStyle: React.CSSProperties = {
@@ -636,9 +763,10 @@ type TabId = 'rv' | 'carry' | 'beta' | 'scatter'
 export default function EGBRV() {
   const navigate = useNavigate()
 
-  const [data, setData]       = useState<EGBRVData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState<string | null>(null)
+  const [data, setData]             = useState<EGBRVData | null>(null)
+  const [loading, setLoading]       = useState(true)
+  const [error, setError]           = useState<string | null>(null)
+  const [useIndividualBonds, setUseIndividualBonds] = useState(false)
 
   const [tab, setTab]                 = useState<TabId>('rv')
   const [focusLabel, setFocusLabel]   = useState<string | null>(null)
@@ -663,7 +791,10 @@ export default function EGBRV() {
     const token = localStorage.getItem('access_token')
     if (!token) { navigate('/login', { replace: true }); return }
     setLoading(true)
-    axios.get('/api/tools/egb-rv', { headers: { Authorization: `Bearer ${token}` } })
+    axios.get('/api/tools/egb-rv', {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { use_individual_bonds: useIndividualBonds },
+    })
       .then(res => { setData(res.data); setError(null) })
       .catch(err => {
         if (axios.isAxiosError(err) && err.response?.status === 401) {
@@ -674,7 +805,7 @@ export default function EGBRV() {
         }
       })
       .finally(() => setLoading(false))
-  }, [])
+  }, [useIndividualBonds])
 
   const focusSeries = useMemo(() => {
     if (!focusLabel || !data?.series[focusLabel]) return null
@@ -721,6 +852,18 @@ export default function EGBRV() {
         {data && (
           <span style={{ marginLeft: 'auto', fontSize: 11, color: '#475569' }}>as of {data.as_of}</span>
         )}
+        {/* Individual bonds toggle */}
+        <button
+          onClick={() => setUseIndividualBonds(v => !v)}
+          title={useIndividualBonds ? 'Using individual bonds (click to switch to generic)' : 'Using generic BBG tickers (click to switch to individual bonds)'}
+          style={{
+            fontSize: 11, padding: '3px 10px', borderRadius: 20, cursor: 'pointer',
+            border: `1px solid ${useIndividualBonds ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.15)'}`,
+            background: useIndividualBonds ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.05)',
+            color: useIndividualBonds ? '#a5b4fc' : '#64748b',
+          }}>
+          {useIndividualBonds ? 'Individual bonds' : 'Generic tickers'}
+        </button>
         {data && (
           <span style={{
             fontSize: 11, padding: '3px 10px', borderRadius: 20,
@@ -728,7 +871,9 @@ export default function EGBRV() {
             color:      data.data_source === 'bloomberg' ? '#34d399' : '#fbbf24',
             border: `1px solid ${data.data_source === 'bloomberg' ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`,
           }}>
-            {data.data_source === 'bloomberg' ? 'Live (Bloomberg)' : 'Simulated data'}
+            {data.data_source === 'bloomberg'
+              ? (data.yield_mode === 'individual_bonds' ? 'Live · Individual bonds' : 'Live · Generic tickers')
+              : 'Simulated data'}
           </span>
         )}
       </div>
@@ -841,6 +986,11 @@ export default function EGBRV() {
                 </div>
               )}
             </div>
+
+            {/* Bond Reference panel — only in individual bonds mode */}
+            {data.yield_mode === 'individual_bonds' && Object.keys(data.bond_map).length > 0 && (
+              <BondReferencePanel bondMap={data.bond_map} />
+            )}
 
             {/* RV Monitor tab */}
             {tab === 'rv' && (

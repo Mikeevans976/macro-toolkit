@@ -46,6 +46,7 @@ from egb_expressions_config import (
     ALL_EXPRESSIONS, GROUP_META,
     REPO_BLOC, REPO_BLOCS, COUNTRY_TENORS,
 )
+from egb_bond_finder import build_egb_bond_map
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -190,7 +191,7 @@ def _expression_level(legs: list, yield_row: dict, asw_row: dict) -> float:
 
 # ─── Bloomberg fetch ──────────────────────────────────────────────────────────
 
-def _fetch_from_bbg(start: str, end: str):
+def _fetch_from_bbg(start: str, end: str, use_individual_bonds: bool = False):
     """
     Fetch EGB yields (all 9 countries), ESTR, ASW spreads, EUR 1m10y vol from Bloomberg.
     Returns (yield_df, estr_s, asw_df, vol_s) or None on failure.
@@ -207,17 +208,32 @@ def _fetch_from_bbg(start: str, end: str):
 
     try:
         # ── Yields ────────────────────────────────────────────────────────────
+        bond_map: dict = {}
         yield_ticker_map: dict[str, tuple[str, int]] = {}
-        for country, tmap in _YIELD_TICKERS.items():
-            for tenor, ticker in tmap.items():
-                yield_ticker_map[ticker] = (country, tenor)
 
-        raw_y = blp.bdh(list(yield_ticker_map), "PX_LAST", start, end)
+        if use_individual_bonds:
+            bond_map = build_egb_bond_map(COUNTRY_TENORS, as_of_date=end)
+            for country, tenor_map in bond_map.items():
+                for tenor, info in tenor_map.items():
+                    if info is not None:
+                        yield_ticker_map[info["ticker"]] = (country, tenor)
+            bbg_yield_field = "YLD_YTM_MID"
+        else:
+            for country, tmap in _YIELD_TICKERS.items():
+                for tenor, ticker in tmap.items():
+                    yield_ticker_map[ticker] = (country, tenor)
+            bbg_yield_field = "PX_LAST"
+
+        if not yield_ticker_map:
+            warnings.warn("[egb_rv] yield_ticker_map is empty — no bonds found")
+            return None
+
+        raw_y = blp.bdh(list(yield_ticker_map), bbg_yield_field, start, end)
         if raw_y is None or raw_y.empty:
             warnings.warn("[egb_rv] No yield data from BBG")
             return None
         if isinstance(raw_y.columns, pd.MultiIndex):
-            raw_y = raw_y.xs("PX_LAST", axis=1, level=1)
+            raw_y = raw_y.xs(bbg_yield_field, axis=1, level=1)
 
         records: list[tuple] = []
         for ticker, (country, tenor) in yield_ticker_map.items():
@@ -278,7 +294,7 @@ def _fetch_from_bbg(start: str, end: str):
                 raw_vol = raw_vol.xs("PX_LAST", axis=1, level=1)
             vol_s = raw_vol.iloc[:, 0].reindex(ydf.index, method="ffill")
 
-        return ydf, estr_s, asw_df, vol_s
+        return ydf, estr_s, asw_df, vol_s, bond_map
 
     except Exception as exc:
         warnings.warn(f"[egb_rv] BBG fetch failed: {exc}")
@@ -423,7 +439,7 @@ def _simulate_data(n_days: int = 1260, seed: int = 42) -> tuple:
 
 # ─── Main compute function ────────────────────────────────────────────────────
 
-def compute_egb_rv(as_of_date: Optional[str] = None) -> dict:
+def compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool = False) -> dict:
     """
     Compute EGB RV monitor for Bund, OAT, BTP, Bonos, Belgium, Portugal,
     Netherlands, Austria, Finland.
@@ -438,13 +454,16 @@ def compute_egb_rv(as_of_date: Optional[str] = None) -> dict:
     _end   = (pd.Timestamp(as_of_date) if as_of_date else pd.Timestamp.today()).strftime("%Y-%m-%d")
     _start = (pd.Timestamp(_end) - pd.DateOffset(years=6)).strftime("%Y-%m-%d")
 
-    bbg_result = _fetch_from_bbg(_start, _end)
+    bbg_result = _fetch_from_bbg(_start, _end, use_individual_bonds=use_individual_bonds)
     if bbg_result is not None:
-        yield_df, estr_s, asw_df, vol_s = bbg_result
+        yield_df, estr_s, asw_df, vol_s, bond_map = bbg_result
         data_source = "bloomberg"
+        yield_mode = "individual_bonds" if use_individual_bonds else "generic"
     else:
         yield_df, estr_s, asw_df, vol_s = _simulate_data()
+        bond_map = {}
         data_source = "simulation"
+        yield_mode = "simulation"
 
     # ── Align and trim ────────────────────────────────────────────────────
     yield_df = yield_df.sort_index().dropna(how="all")
@@ -651,6 +670,8 @@ def compute_egb_rv(as_of_date: Optional[str] = None) -> dict:
         "min_date":     min_date,
         "max_date":     max_date,
         "data_source":  data_source,
+        "yield_mode":   yield_mode,
+        "bond_map":     bond_map,
         "rv_monitor":   rv_monitor,
         "beta_monitor": beta_monitor,
         "series":       series_out,

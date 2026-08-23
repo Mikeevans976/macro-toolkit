@@ -1,200 +1,227 @@
 {
   "tool": "Global Yields",
   "file": "backend/global_yields.py",
-  "bloomberg_fetch": "data_fetcher",
+  "bloomberg_fetch": "bdh",
   "fallback": "simulation",
-  "note": "Tickers for this tool live in series_catalogue.json (the main Euro Area catalogue) — NOT hardcoded in global_yields.py. global_yields.py reads from that catalogue via data_fetcher. This file documents the 24 countries covered and what to look for in the catalogue.",
+  "note": "This catalogue is read at runtime by _fetch_yields() to build _COUNTRY_TICKERS. internal_key must match the country name in ALL_COUNTRIES exactly (order matters for _MEANS alignment). All 24 entries use field PX_LAST. Missing countries fall back to their long-run mean (_MEANS) rather than triggering a full simulation fallback.",
   "series": [
     {
-      "id": "us_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "US",
+      "bloomberg_ticker": "USGG10YR Index",
       "field": "PX_LAST",
       "description": "United States 10y generic government bond yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "uk_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "UK",
+      "bloomberg_ticker": "GUKG10 Index",
       "field": "PX_LAST",
       "description": "United Kingdom 10y Gilt generic yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "canada_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Canada",
+      "bloomberg_ticker": "GCAN10YR Index",
       "field": "PX_LAST",
       "description": "Canada 10y generic government bond yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "japan_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Japan",
+      "bloomberg_ticker": "GJGB10 Index",
       "field": "PX_LAST",
       "description": "Japan 10y JGB generic yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "australia_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Australia",
+      "bloomberg_ticker": "GACGB10 Index",
       "field": "PX_LAST",
       "description": "Australia 10y generic government bond yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "switzerland_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Switzerland",
+      "bloomberg_ticker": "GSWISS10 Index",
       "field": "PX_LAST",
       "description": "Switzerland 10y generic government bond yield",
       "unit": "%",
-      "verified": true
+      "is_dm": true,
+      "verified": true,
+      "notes": "No YR suffix — confirm this is the active series, not GSWISS10YR"
     },
     {
-      "id": "germany_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Germany",
+      "bloomberg_ticker": "GDBR10 Index",
       "field": "PX_LAST",
       "description": "Germany 10y Bund generic yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "france_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "France",
+      "bloomberg_ticker": "GFRN10 Index",
       "field": "PX_LAST",
       "description": "France 10y OAT generic yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "austria_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Austria",
+      "bloomberg_ticker": "GAGB10YR Index",
       "field": "PX_LAST",
       "description": "Austria 10y generic government bond yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "netherlands_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Netherlands",
+      "bloomberg_ticker": "GNTH10YR Index",
       "field": "PX_LAST",
       "description": "Netherlands 10y generic government bond yield",
       "unit": "%",
-      "verified": true
+      "is_dm": true,
+      "verified": true,
+      "notes": "Discrepancy vs EGB RV tool which uses GNETH10YR Index — verify which is correct in Bloomberg Terminal"
     },
     {
-      "id": "belgium_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Belgium",
+      "bloomberg_ticker": "GBGB10YR Index",
       "field": "PX_LAST",
       "description": "Belgium 10y generic government bond yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "italy_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Italy",
+      "bloomberg_ticker": "GBTPGR10 Index",
       "field": "PX_LAST",
       "description": "Italy 10y BTP generic yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "greece_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Greece",
+      "bloomberg_ticker": "GGGB10YR Index",
       "field": "PX_LAST",
       "description": "Greece 10y generic government bond yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "ireland_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Ireland",
+      "bloomberg_ticker": "GIGB10YR Index",
       "field": "PX_LAST",
       "description": "Ireland 10y generic government bond yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "portugal_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Portugal",
+      "bloomberg_ticker": "GSPT10YR Index",
       "field": "PX_LAST",
       "description": "Portugal 10y generic government bond yield",
       "unit": "%",
-      "verified": true
+      "is_dm": true,
+      "verified": true,
+      "notes": "Discrepancy vs EGB RV tool which uses GPTIT10YR Index — verify which is correct in Bloomberg Terminal"
     },
     {
-      "id": "spain_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Spain",
+      "bloomberg_ticker": "GSPG10YR Index",
       "field": "PX_LAST",
       "description": "Spain 10y Bonos generic yield",
       "unit": "%",
+      "is_dm": true,
       "verified": true
     },
     {
-      "id": "brazil_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Brazil",
+      "bloomberg_ticker": "GEBR10Y Index",
       "field": "PX_LAST",
       "description": "Brazil 10y generic government bond yield",
       "unit": "%",
+      "is_dm": false,
       "verified": true
     },
     {
-      "id": "mexico_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Mexico",
+      "bloomberg_ticker": "GMXN10YR Index",
       "field": "PX_LAST",
       "description": "Mexico 10y generic government bond yield",
       "unit": "%",
+      "is_dm": false,
       "verified": true
     },
     {
-      "id": "india_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "India",
+      "bloomberg_ticker": "GIND10YR Index",
       "field": "PX_LAST",
       "description": "India 10y generic government bond yield",
       "unit": "%",
+      "is_dm": false,
       "verified": true
     },
     {
-      "id": "south_korea_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "South Korea",
+      "bloomberg_ticker": "GKOR10YR Index",
       "field": "PX_LAST",
       "description": "South Korea 10y generic government bond yield",
       "unit": "%",
+      "is_dm": false,
       "verified": true
     },
     {
-      "id": "indonesia_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Indonesia",
+      "bloomberg_ticker": "GIDN10YR Index",
       "field": "PX_LAST",
       "description": "Indonesia 10y generic government bond yield",
       "unit": "%",
+      "is_dm": false,
       "verified": true
     },
     {
-      "id": "south_africa_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "South Africa",
+      "bloomberg_ticker": "GSAF10YR Index",
       "field": "PX_LAST",
       "description": "South Africa 10y generic government bond yield",
       "unit": "%",
+      "is_dm": false,
       "verified": true
     },
     {
-      "id": "poland_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Poland",
+      "bloomberg_ticker": "GPOL10YR Index",
       "field": "PX_LAST",
       "description": "Poland 10y generic government bond yield",
       "unit": "%",
+      "is_dm": false,
       "verified": true
     },
     {
-      "id": "czech_republic_10y_yield",
-      "bloomberg_ticker": "see series_catalogue.json",
+      "internal_key": "Czech Republic",
+      "bloomberg_ticker": "GCZK10YR Index",
       "field": "PX_LAST",
       "description": "Czech Republic 10y generic government bond yield",
       "unit": "%",
+      "is_dm": false,
       "verified": true
     }
   ]

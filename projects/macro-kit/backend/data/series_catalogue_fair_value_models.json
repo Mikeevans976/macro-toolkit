@@ -3,97 +3,277 @@
   "file": "backend/fair_value_models.py",
   "bloomberg_fetch": "bdh",
   "fallback": "simulation",
-  "note": "GS FCI (GSEAFCI Index) requires a Goldman Sachs data subscription — silently zeroed if absent. Other optional regressors also fall back gracefully. Edit _fetch_live_data() in Python to change.",
+  "note": "This catalogue is read at runtime by _fetch_live_data() to build _BBG_RAW, _REQUIRED_BBG, and _OPTIONAL_BBG. Do not use template notation — every fetched ticker must be an explicit entry. Treatment values: 'required' = any missing ticker triggers simulation fallback; 'optional_zero' = zeroed if absent, model assigns near-zero coefficient; 'optional_interp' = used when present, silently skipped/interpolated if absent (forward derivation inputs).",
   "series": [
     {
-      "id": "eur_hicp_inflation_swaps",
-      "bloomberg_ticker": "EUSWI{n} Curncy",
-      "tenors_or_expiries": [1, 2, 3, 4, 5, 10, 15, 20, 30],
+      "internal_key": "EUSWI1",
+      "bloomberg_ticker": "EUSWI1 Curncy",
       "field": "PX_LAST",
-      "description": "EUR HICPxT zero-coupon inflation swap rates",
+      "description": "EUR HICPxT 1Y zero-coupon inflation swap rate",
       "unit": "%",
-      "verified": true
+      "treatment": "required",
+      "verified": true,
+      "notes": "Y-target for hicp_1y model"
     },
     {
-      "id": "eur_estr_ois",
-      "bloomberg_ticker": "EUSWF{n} Curncy",
-      "tenors_or_expiries": [1, 2, 3, 4, 5, 10, 15, 20, 30],
+      "internal_key": "EUSWI2",
+      "bloomberg_ticker": "EUSWI2 Curncy",
       "field": "PX_LAST",
-      "description": "EUR ESTR OIS par swap rates",
+      "description": "EUR HICPxT 2Y zero-coupon inflation swap rate",
       "unit": "%",
-      "verified": true
+      "treatment": "required",
+      "verified": true,
+      "notes": "Y-target for hicp_2y model; near-rate input for HICP_1Y1Y, HICP_2Y1Y, HICP_2Y2Y, HICP_2Y3Y forward derivation"
     },
     {
-      "id": "euribor_3m",
-      "bloomberg_ticker": "EUR003M Index",
+      "internal_key": "EUSWI3",
+      "bloomberg_ticker": "EUSWI3 Curncy",
       "field": "PX_LAST",
-      "description": "EURIBOR 3-month fixing rate",
+      "description": "EUR HICPxT 3Y zero-coupon inflation swap rate",
       "unit": "%",
-      "verified": true
+      "treatment": "optional_interp",
+      "verified": true,
+      "notes": "Far-rate input for HICP_2Y1Y forward derivation only; not a model Y-target"
     },
     {
-      "id": "brent_crude",
+      "internal_key": "EUSWI4",
+      "bloomberg_ticker": "EUSWI4 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR HICPxT 4Y zero-coupon inflation swap rate",
+      "unit": "%",
+      "treatment": "optional_interp",
+      "verified": true,
+      "notes": "Far-rate input for HICP_2Y2Y forward derivation only; not a model Y-target"
+    },
+    {
+      "internal_key": "EUSWI5",
+      "bloomberg_ticker": "EUSWI5 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR HICPxT 5Y zero-coupon inflation swap rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "Y-target for hicp_5y model; near-rate input for HICP_5Y5Y forward derivation"
+    },
+    {
+      "internal_key": "EUSWI10",
+      "bloomberg_ticker": "EUSWI10 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR HICPxT 10Y zero-coupon inflation swap rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "Y-target for hicp_10y model; near-rate input for HICP_10Y10Y forward derivation"
+    },
+    {
+      "internal_key": "EUSWI15",
+      "bloomberg_ticker": "EUSWI15 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR HICPxT 15Y zero-coupon inflation swap rate",
+      "unit": "%",
+      "treatment": "optional_interp",
+      "verified": true,
+      "notes": "Y-target for hicp_15y model; not in required set so hicp_15y silently degrades if absent"
+    },
+    {
+      "internal_key": "EUSWI20",
+      "bloomberg_ticker": "EUSWI20 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR HICPxT 20Y zero-coupon inflation swap rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "Y-target for hicp_20y model; near-rate input for HICP_20Y10Y forward derivation"
+    },
+    {
+      "internal_key": "EUSWI30",
+      "bloomberg_ticker": "EUSWI30 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR HICPxT 30Y zero-coupon inflation swap rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "Y-target for hicp_30y model; far-rate input for HICP_20Y10Y forward derivation"
+    },
+    {
+      "internal_key": "EESWE1",
+      "bloomberg_ticker": "EUSWF1 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS 1Y par swap rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "X-regressor for hicp_1y, hicp_2y; ESTR bootstrap input"
+    },
+    {
+      "internal_key": "EESWE2",
+      "bloomberg_ticker": "EUSWF2 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS 2Y par swap rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "X-regressor; ESTR bootstrap input"
+    },
+    {
+      "internal_key": "EESWE3",
+      "bloomberg_ticker": "EUSWF3 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS 3Y par swap rate",
+      "unit": "%",
+      "treatment": "optional_interp",
+      "verified": true,
+      "notes": "ESTR bootstrap input for ESTR_2Y1Y; not a direct X-regressor"
+    },
+    {
+      "internal_key": "EESWE4",
+      "bloomberg_ticker": "EUSWF4 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS 4Y par swap rate",
+      "unit": "%",
+      "treatment": "optional_interp",
+      "verified": true,
+      "notes": "ESTR bootstrap input for ESTR_2Y2Y; not a direct X-regressor"
+    },
+    {
+      "internal_key": "EESWE5",
+      "bloomberg_ticker": "EUSWF5 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS 5Y par swap rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "X-regressor for hicp_5y; ESTR bootstrap input"
+    },
+    {
+      "internal_key": "EESWE10",
+      "bloomberg_ticker": "EUSWF10 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS 10Y par swap rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "X-regressor for hicp_10y; used to compute slope_3m10y; ESTR bootstrap input"
+    },
+    {
+      "internal_key": "EESWE15",
+      "bloomberg_ticker": "EUSWF15 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS 15Y par swap rate",
+      "unit": "%",
+      "treatment": "optional_interp",
+      "verified": true,
+      "notes": "ESTR bootstrap input for cubic-spline gap-fill; not a direct X-regressor"
+    },
+    {
+      "internal_key": "EESWE20",
+      "bloomberg_ticker": "EUSWF20 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS 20Y par swap rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "X-regressor for hicp_20y; ESTR bootstrap input"
+    },
+    {
+      "internal_key": "EESWE30",
+      "bloomberg_ticker": "EUSWF30 Curncy",
+      "field": "PX_LAST",
+      "description": "EUR ESTR OIS 30Y par swap rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "X-regressor for hicp_30y; ESTR bootstrap input"
+    },
+    {
+      "internal_key": "Brent",
       "bloomberg_ticker": "CO1 Comdty",
       "field": "PX_LAST",
-      "description": "Brent crude oil front-month futures contract",
+      "description": "Brent crude oil front-month futures contract (USD/bbl)",
       "unit": "level",
-      "verified": true
+      "treatment": "required",
+      "verified": true,
+      "notes": "Log-transformed to log_Brent before use as X-regressor"
     },
     {
-      "id": "ttf_gas",
+      "internal_key": "Gas",
       "bloomberg_ticker": "TTF1 Comdty",
       "field": "PX_LAST",
-      "description": "TTF natural gas front-month futures contract",
+      "description": "TTF natural gas front-month futures contract (EUR/MWh)",
       "unit": "level",
-      "verified": true
+      "treatment": "required",
+      "verified": true,
+      "notes": "Log-transformed to log_Gas before use as X-regressor"
     },
     {
-      "id": "bloomberg_commodity_index",
+      "internal_key": "BCOM_raw",
       "bloomberg_ticker": "BCOM Index",
       "field": "PX_LAST",
       "description": "Bloomberg Commodity Index (broad commodity basket)",
       "unit": "index",
-      "verified": true
+      "treatment": "required",
+      "verified": true,
+      "notes": "Log-transformed to log_BCOM before use as X-regressor"
     },
     {
-      "id": "eur_twi_neer",
+      "internal_key": "EUR003M",
+      "bloomberg_ticker": "EUR003M Index",
+      "field": "PX_LAST",
+      "description": "EURIBOR 3-month fixing rate",
+      "unit": "%",
+      "treatment": "required",
+      "verified": true,
+      "notes": "Direct X-regressor for short-end models; also used to compute slope_3m10y = EESWE10 - EUR003M"
+    },
+    {
+      "internal_key": "EUR_TWI",
       "bloomberg_ticker": "EURR002W Index",
       "field": "PX_LAST",
-      "description": "EUR broad nominal effective exchange rate (trade-weighted index)",
+      "description": "EUR broad nominal effective exchange rate (ECB trade-weighted index)",
       "unit": "index",
-      "verified": false
+      "treatment": "optional_zero",
+      "verified": false,
+      "notes": "Zeroed if absent; verify this is ECB broad NEER, not a bilateral rate"
     },
     {
-      "id": "gs_euro_area_fci",
+      "internal_key": "GSEAFCI",
       "bloomberg_ticker": "GSEAFCI Index",
       "field": "PX_LAST",
-      "description": "Goldman Sachs Euro Area Financial Conditions Index — requires GS subscription",
+      "description": "Goldman Sachs Euro Area Financial Conditions Index",
       "unit": "index",
-      "verified": false
+      "treatment": "optional_zero",
+      "verified": false,
+      "notes": "Requires GS data subscription — silently zeroed if absent. Typical range 97–104."
     },
     {
-      "id": "itraxx_europe_5y",
+      "internal_key": "ITRX5Y",
       "bloomberg_ticker": "ITRXEBE5 Index",
       "field": "PX_LAST",
-      "description": "iTraxx Europe 5Y credit default swap index",
+      "description": "iTraxx Europe 5Y on-the-run credit default swap index (bps)",
       "unit": "bps",
-      "verified": false
+      "treatment": "optional_zero",
+      "verified": false,
+      "notes": "Zeroed if absent. Typical range 50–150 bps."
     },
     {
-      "id": "citi_cesi_eur",
+      "internal_key": "CESIEUR",
       "bloomberg_ticker": "CESIEUR Index",
       "field": "PX_LAST",
       "description": "Citi Economic Surprise Index — Euro Area",
       "unit": "index",
-      "verified": false
+      "treatment": "optional_zero",
+      "verified": false,
+      "notes": "Zeroed if absent. Mean-reverting by construction; typical range -100 to +100."
     },
     {
-      "id": "eur_swaption_vol_1m10y",
+      "internal_key": "SMOVEU1M",
       "bloomberg_ticker": "EUSV0001 Index",
       "field": "PX_LAST",
-      "description": "EUR swaption ATM normal vol, 1m expiry 10y tail — used as rates volatility regressor",
+      "description": "EUR swaption ATM normal vol, 1m expiry 10y tail (bps)",
       "unit": "bps",
-      "verified": true
+      "treatment": "optional_zero",
+      "verified": true,
+      "notes": "Zeroed if absent. Used as X-regressor in ultra-long forward models (hicp_10y10y, hicp_20y10y) only."
     }
   ]
 }

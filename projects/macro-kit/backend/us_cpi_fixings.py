@@ -1,24 +1,27 @@
 """
-HICP monthly fixings — Euro Area.
+US CPI monthly fixings — United States.
 
 Bloomberg data convention
 -------------------------
-EUSWIF{n} / EUSWIT{n} Comdty — Bloomberg returns the *%YoY* rate via
-PX_LAST (the implied annual change of the HICPxT index for that calendar
+USCPIF{n} / USCPIT{n} Comdty — Bloomberg returns the *%YoY* rate via
+PX_LAST (the implied annual change of the CPI index for that calendar
 month vs the same month 12 months prior), NOT a raw index level.
+
+Note: USCPIF/USCPIT is a synthetic convention for this tool.  In live
+Bloomberg mode, USSWIT{n} Curncy would be used and interpolated to
+calendar months.
 
     YoY(t) = 100 × [Index(t) / Index(t − 12mo) − 1]
 
-To recover index levels we need the historical EUHICPXT Index (HICP
-excluding tobacco — the index against which all HICPxT fixings settle).
-That history is fetched via BDH.
+To recover index levels we need the historical CPURNSA Index (US CPI All
+Urban Consumers NSA, 1982-84=100).  That history is fetched via BDH.
 
 Reconstruction
 --------------
 F-series (fixings 1–12, covering the 12 calendar months starting one year
 ahead of today):
 
-    Level_F(t) = EUHICPXT_hist(t − 12mo) × (1 + YoY_F(t) / 100)
+    Level_F(t) = CPURNSA_hist(t − 12mo) × (1 + YoY_F(t) / 100)
 
 T-series (fixings 13–24, the following 12-month cycle):
 
@@ -32,7 +35,7 @@ MoM SA   = MoM NSA − seasonal_factor[calendar_month]
 Simulation fallback
 -------------------
 When Bloomberg is unavailable, a deterministic simulation is used:
-1. Fake EUHICPXT history is generated with realistic seasonal pattern.
+1. Fake CPURNSA history is generated with realistic seasonal pattern.
 2. Fake YoY rates are derived from that simulated history.
 3. Level reconstruction then runs identically to the Bloomberg path.
 """
@@ -50,12 +53,14 @@ import pandas as pd
 
 # ─── Catalogue (single source of truth) ───────────────────────────────────────
 
-_CAT_PATH = Path(__file__).parent / "data" / "series_catalogue_hicp_fixings.json"
+_CAT_PATH = Path(__file__).parent / "data" / "series_catalogue_us_cpi_fixings.json"
 
 with open(_CAT_PATH) as _f:
     _CAT = json.load(_f)
 
 _fix         = _CAT["fixings"]
+# Note: In live Bloomberg mode, use live_bloomberg_alternative (USSWIT{n} Curncy)
+# interpolated to calendar months. USCPIF/T is a synthetic convention for simulation.
 _TEMPLATE_F  = _fix["f_series"]["ticker_template"]
 _TEMPLATE_T  = _fix["t_series"]["ticker_template"]
 _TICKERS_F   = [_TEMPLATE_F.replace("{n}", str(n)) for n in _fix["f_series"]["tenors"]]
@@ -68,6 +73,8 @@ def _bloomberg_yoy_rates() -> Optional[dict[str, float]]:
     """
     Fetch YoY rates from all 24 fixing tickers via BDP snapshot.
     Returns {ticker: yoy_pct} or None on any failure.
+    Note: Live Bloomberg would use USSWIT{n} Curncy interpolated to
+    calendar months; USCPIF/T is a synthetic convention for this tool.
     """
     try:
         from bbg import blp
@@ -84,11 +91,11 @@ def _bloomberg_yoy_rates() -> Optional[dict[str, float]]:
         return None
 
 
-# ─── Bloomberg fetch — EUHICPXT history ───────────────────────────────────────
+# ─── Bloomberg fetch — CPURNSA history ────────────────────────────────────────
 
-def _bloomberg_hicp_xt_history(n_months: int = 48) -> Optional[pd.Series]:
+def _bloomberg_cpi_history(n_months: int = 48) -> Optional[pd.Series]:
     """
-    Fetch monthly EUHICPXT Index history via BDH.
+    Fetch monthly CPURNSA Index history via BDH.
     Returns pd.Series indexed by pd.Timestamp (month-start), or None on failure.
     We fetch 48 months so there is always a valid 12-months-prior base for each
     F-series fixing and enough data to compute robust seasonal factors.
@@ -128,23 +135,26 @@ def _seasonal_factors(hist: pd.Series) -> dict[int, float]:
 
 # ─── Simulation fallback ───────────────────────────────────────────────────────
 
-# Approximate HICP-XT seasonal MoM pattern (%, Jan=index 0 … Dec=11).
-# Calibrated to Euro Area observed seasonal pattern; normalised to zero mean.
+# Approximate US CPI NSA seasonal MoM pattern (%, Jan=index 0 … Dec=11).
+# Jan-Feb modest, Mar-Apr spring bump, summer flat, Dec deflation typical NSA pattern.
+# Zero-mean calibrated to US CPI NSA observed seasonal pattern.
 _SEASONAL_MOM_PCT = [
-    -0.55, -0.20, +0.55, +0.40, +0.10, +0.05,
-    -0.30, -0.20, +0.15, -0.05, +0.00, +0.05,
+    +0.20, +0.30, +0.55, +0.40, +0.25, +0.15,
+    +0.00, -0.05, +0.10, +0.00, -0.30, -0.60,
 ]
 
 
-def _sim_hicp_xt_history(
+def _sim_cpi_history(
     first_month: pd.Timestamp,
     n_back: int = 48,
-    annual_growth: float = 0.021,
-    start_level: float = 130.0,
+    annual_growth: float = 0.028,
+    start_level: float = 168.0,
 ) -> pd.Series:
     """
-    Simulated EUHICPXT history ending the month before first_month.
+    Simulated CPURNSA history ending the month before first_month.
     Deterministic given the same arguments.
+    annual_growth = 2.8% — approximate US CPI trend.
+    start_level = 168.0 — approximate US CPI NSA level circa Jan 2000 (base 1982-84=100).
     """
     monthly_trend = (1.0 + annual_growth) ** (1.0 / 12) - 1.0
     level = start_level
@@ -166,10 +176,10 @@ def _sim_yoy_rates(
 ) -> dict[str, float]:
     """
     Derive YoY rates consistent with the simulated history and a gentle
-    2 % forward trend.  We walk the reconstructed forward levels back to
+    2.8% forward trend.  We walk the reconstructed forward levels back to
     YoY = 100 × (Level_sim(t) / hist(t−12mo) − 1).
     """
-    annual_growth = 0.020
+    annual_growth = 0.028
     monthly_trend = (1.0 + annual_growth) ** (1.0 / 12) - 1.0
     hist_idx = {ts.strftime("%Y-%m"): v for ts, v in hist.items()}
 
@@ -219,13 +229,14 @@ def _reconstruct_levels(
     first_month: pd.Timestamp,
 ) -> list[Optional[float]]:
     """
-    Reconstruct 24 monthly index levels from YoY rates and EUHICPXT history.
+    Reconstruct 24 monthly index levels from YoY rates and CPURNSA history.
 
     F-series (i < 12):
         Level(t) = hist[t − 12mo] × (1 + YoY/100)
 
     T-series (i >= 12):
         Level(t) = Level_F[t − 12mo] × (1 + YoY/100)
+        (T-series base = reconstructed F-series)
 
     Returns list of 24 float|None, ordered nearest → furthest.
     """
@@ -259,36 +270,41 @@ def _reconstruct_levels(
 
 # ─── Public entry point ────────────────────────────────────────────────────────
 
-def get_hicp_fixings(as_of_date: Optional[str] = None) -> dict:
+def get_us_cpi_fixings(as_of_date: Optional[str] = None) -> dict:
     """
-    Return 24 HICP-XT monthly fixings ordered nearest → furthest.
+    Return 24 US CPI monthly fixings ordered nearest → furthest.
 
     Bloomberg returns YoY rates via PX_LAST.  Levels are reconstructed from
-    EUHICPXT historical data.
+    CPURNSA historical data.
+
+    Note: Live Bloomberg would use USSWIT{n} Curncy interpolated to
+    calendar months; USCPIF/T is a synthetic convention for this tool.
 
     Response shape
     --------------
     {
-        "data_source"        : "bloomberg" | "simulation",
-        "as_of_date"         : "YYYY-MM-DD",
-        "last_known_hicp_xt" : <float>,          # last historical EUHICPXT level
-        "hicp_xt_history"    : [                 # last 24 months, for chart continuity
+        "data_source"    : "bloomberg" | "simulation",
+        "as_of_date"     : "YYYY-MM-DD",
+        "last_known_cpi" : <float>,          # last historical CPURNSA level
+        "cpi_history"    : [                 # last 24 months, for chart continuity
             {"month": "YYYY-MM", "level": float},
             ...
         ],
         "fixings" : [
             {
                 "month_num"      : 8,
-                "ticker"         : "EUSWIF8 Comdty",
+                "ticker"         : "USCPIF8 Comdty",
                 "calendar_month" : "2026-08",
-                "yoy_implied"    : 2.15,          # raw BBG YoY rate (%)
-                "level"          : 140.21,         # reconstructed index level
+                "yoy_implied"    : 2.80,          # raw BBG YoY rate (%)
+                "level"          : 312.45,         # reconstructed index level
                 "mom_nsa"        : 0.183,          # MoM not seasonally adjusted (%)
-                "mom_sa"         : -0.117,         # MoM seasonally adjusted (%)
+                "mom_sa"         : -0.017,         # MoM seasonally adjusted (%)
             },
             ...
         ]
     }
+    Note: Months 1–12: USCPIF series · Months 13–24: USCPIT series
+    † Live Bloomberg: use USSWIT{n} Curncy interpolated to calendar months
     """
     today       = as_of_date or date.today().isoformat()
     ref         = pd.Timestamp(today)
@@ -298,9 +314,9 @@ def get_hicp_fixings(as_of_date: Optional[str] = None) -> dict:
     use_bbg = source == "bloomberg"
 
     # ── History ───────────────────────────────────────────────────────────────
-    hist: Optional[pd.Series] = _bloomberg_hicp_xt_history() if use_bbg else None
+    hist: Optional[pd.Series] = _bloomberg_cpi_history() if use_bbg else None
     if hist is None or hist.empty:
-        hist        = _sim_hicp_xt_history(first_month, n_back=48)
+        hist        = _sim_cpi_history(first_month, n_back=48)
         data_source = "simulation"
     else:
         data_source = "bloomberg"
@@ -318,8 +334,8 @@ def get_hicp_fixings(as_of_date: Optional[str] = None) -> dict:
     levels = _reconstruct_levels(yoy_rates, hist, first_month)
 
     # ── Build fixings list ────────────────────────────────────────────────────
-    last_known_xt = round(float(hist.iloc[-1]), 2)
-    prev_level    = last_known_xt
+    last_known_cpi = round(float(hist.iloc[-1]), 2)
+    prev_level     = last_known_cpi
     fixings:  list[dict] = []
 
     for i in range(24):
@@ -349,15 +365,15 @@ def get_hicp_fixings(as_of_date: Optional[str] = None) -> dict:
         })
 
     # ── History tail for chart ────────────────────────────────────────────────
-    hicp_xt_history = [
+    cpi_history = [
         {"month": ts.strftime("%Y-%m"), "level": round(float(v), 2)}
         for ts, v in hist.tail(24).items()
     ]
 
     return {
-        "data_source":        data_source,
-        "as_of_date":         today,
-        "last_known_hicp_xt": last_known_xt,
-        "hicp_xt_history":    hicp_xt_history,
-        "fixings":            fixings,
+        "data_source":    data_source,
+        "as_of_date":     today,
+        "last_known_cpi": last_known_cpi,
+        "cpi_history":    cpi_history,
+        "fixings":        fixings,
     }

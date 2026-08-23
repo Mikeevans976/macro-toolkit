@@ -1,106 +1,157 @@
 {
   "tool": "Inflation PCA",
   "file": "backend/inflation_pca.py",
-  "bloomberg_fetch": "bdh",
-  "fallback": "simulation",
-  "note": "ILB real yields use field YLD_YTM_MID. All swap and OIS tickers use PX_LAST. Edit _fetch_real_yields() and _fetch_rate_curve() in Python to change.",
-  "series": [
+  "bloomberg_fetch": "bsrch + bdp (discovery) + bdh (time series)",
+  "fallback": "deterministic simulation using hardcoded default bond lists",
+  "note": "Bond universes are discovered dynamically at request time via Bloomberg SRCH. No fixed ticker list — the set of bonds updates automatically as new ILBs are issued and old ones approach maturity. Nominal comparators are matched bond-by-bond using closest remaining maturity. Breakeven = nominal_yield - real_yield. IOTA = linker_asw - nominal_asw.",
+  "curves": [
     {
-      "id": "btpei_real_yields",
-      "bloomberg_tickers": [
-        "ITIL28 Index",
-        "ITIL30 Index",
-        "ITIL32 Index",
-        "ITIL35 Index",
-        "ITIL38 Index",
-        "ITIL41 Index",
-        "ITIL51 Index"
-      ],
-      "field": "YLD_YTM_MID",
-      "description": "Italian BTPei inflation-linked government bond real yields (individual ISINs by maturity)",
-      "unit": "%",
-      "verified": false
+      "curve_id": "dbrei",
+      "country": "Germany",
+      "label": "DBRei",
+      "ccy": "EUR",
+      "inflation_ref": "HICPxT",
+      "ilb_screen": "FI:DBIBL",
+      "ilb_screen_verified": false,
+      "nominal_screen": "FI:DBR",
+      "nominal_screen_verified": false,
+      "filter_inflation_linked_only": false,
+      "min_ilb_outstanding_mn": 1000,
+      "min_nominal_outstanding_mn": 5000,
+      "default_bonds": [
+        {"label": "DBRei 26", "maturity": 2026, "bbgTicker": "DBIBL26 Index"},
+        {"label": "DBRei 30", "maturity": 2030, "bbgTicker": "DBIBL30 Index"},
+        {"label": "DBRei 33", "maturity": 2033, "bbgTicker": "DBIBL33 Index"},
+        {"label": "DBRei 40", "maturity": 2040, "bbgTicker": "DBIBL40 Index"},
+        {"label": "DBRei 46", "maturity": 2046, "bbgTicker": "DBIBL46 Index"}
+      ]
     },
     {
-      "id": "oatei_real_yields",
-      "bloomberg_tickers": [
-        "FROB27I Index",
-        "FROB29I Index",
-        "FROB32I Index",
-        "FROB36I Index",
-        "FROB40I Index",
-        "FROB47I Index"
-      ],
-      "field": "YLD_YTM_MID",
-      "description": "French OATei inflation-linked government bond real yields (individual ISINs by maturity)",
-      "unit": "%",
-      "verified": false
+      "curve_id": "oatei",
+      "country": "France",
+      "label": "OATei",
+      "ccy": "EUR",
+      "inflation_ref": "HICPxT",
+      "ilb_screen": "FI:FROB",
+      "ilb_screen_verified": false,
+      "filter_inflation_linked_only": true,
+      "notes": "FI:FROB returns all OATs (nominal + inflation-linked). INFLATION_LINKED_IND=Y filter is applied in _fetch_bond_universe() to isolate OATei bonds.",
+      "nominal_screen": "FI:FRTR",
+      "nominal_screen_verified": false,
+      "min_ilb_outstanding_mn": 1000,
+      "min_nominal_outstanding_mn": 5000,
+      "default_bonds": [
+        {"label": "OATei 27", "maturity": 2027, "bbgTicker": "FROB27I Index"},
+        {"label": "OATei 29", "maturity": 2029, "bbgTicker": "FROB29I Index"},
+        {"label": "OATei 32", "maturity": 2032, "bbgTicker": "FROB32I Index"},
+        {"label": "OATei 36", "maturity": 2036, "bbgTicker": "FROB36I Index"},
+        {"label": "OATei 40", "maturity": 2040, "bbgTicker": "FROB40I Index"},
+        {"label": "OATei 47", "maturity": 2047, "bbgTicker": "FROB47I Index"}
+      ]
     },
     {
-      "id": "dbrei_real_yields",
-      "bloomberg_tickers": [
-        "DBIBL26 Index",
-        "DBIBL30 Index",
-        "DBIBL33 Index",
-        "DBIBL40 Index",
-        "DBIBL46 Index"
-      ],
-      "field": "YLD_YTM_MID",
-      "description": "German DBRei (Bund inflation-linked) real yields (individual ISINs by maturity)",
-      "unit": "%",
-      "verified": false
+      "curve_id": "btpei",
+      "country": "Italy",
+      "label": "BTPei",
+      "ccy": "EUR",
+      "inflation_ref": "HICPxT",
+      "ilb_screen": "FI:ITIL",
+      "ilb_screen_verified": false,
+      "filter_inflation_linked_only": false,
+      "nominal_screen": "FI:BTPS",
+      "nominal_screen_verified": false,
+      "min_ilb_outstanding_mn": 1000,
+      "min_nominal_outstanding_mn": 5000,
+      "default_bonds": [
+        {"label": "BTPei 28", "maturity": 2028, "bbgTicker": "ITIL28 Index"},
+        {"label": "BTPei 30", "maturity": 2030, "bbgTicker": "ITIL30 Index"},
+        {"label": "BTPei 32", "maturity": 2032, "bbgTicker": "ITIL32 Index"},
+        {"label": "BTPei 35", "maturity": 2035, "bbgTicker": "ITIL35 Index"},
+        {"label": "BTPei 38", "maturity": 2038, "bbgTicker": "ITIL38 Index"},
+        {"label": "BTPei 41", "maturity": 2041, "bbgTicker": "ITIL41 Index"},
+        {"label": "BTPei 51", "maturity": 2051, "bbgTicker": "ITIL51 Index"}
+      ]
     },
     {
-      "id": "uki_real_yields",
-      "bloomberg_tickers": [
-        "UKTIIL27 Index",
-        "UKTIIL30 Index",
-        "UKTIIL32 Index",
-        "UKTIIL35 Index",
-        "UKTIIL40 Index",
-        "UKTIIL47 Index",
-        "UKTIIL55 Index"
-      ],
-      "field": "YLD_YTM_MID",
-      "description": "UK index-linked Gilt real yields (individual ISINs by maturity)",
-      "unit": "%",
-      "verified": false
+      "curve_id": "spgbei",
+      "country": "Spain",
+      "label": "SPGBei",
+      "ccy": "EUR",
+      "inflation_ref": "HICPxT",
+      "ilb_screen": "FI:SPGBEI",
+      "ilb_screen_verified": false,
+      "notes": "⚠️ FI:SPGBEI screen name is unverified. Alternative: try FI:SPGB with INFLATION_LINKED_IND=Y filter.",
+      "filter_inflation_linked_only": false,
+      "nominal_screen": "FI:SPGB",
+      "nominal_screen_verified": false,
+      "min_ilb_outstanding_mn": 1000,
+      "min_nominal_outstanding_mn": 5000,
+      "default_bonds": [
+        {"label": "SPGBei 27", "maturity": 2027, "bbgTicker": null},
+        {"label": "SPGBei 30", "maturity": 2030, "bbgTicker": null},
+        {"label": "SPGBei 33", "maturity": 2033, "bbgTicker": null},
+        {"label": "SPGBei 37", "maturity": 2037, "bbgTicker": null},
+        {"label": "SPGBei 48", "maturity": 2048, "bbgTicker": null}
+      ]
     },
     {
-      "id": "eur_hicp_inflation_swaps",
-      "bloomberg_ticker": "EUSWI{n} Curncy",
-      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
-      "field": "PX_LAST",
-      "description": "EUR HICPxT zero-coupon inflation swap rates",
-      "unit": "%",
-      "verified": true
+      "curve_id": "uki",
+      "country": "UK",
+      "label": "UKi",
+      "ccy": "GBP",
+      "inflation_ref": "RPI",
+      "ilb_screen": "FI:UKTIIL",
+      "ilb_screen_verified": false,
+      "filter_inflation_linked_only": false,
+      "nominal_screen": "FI:UKT",
+      "nominal_screen_verified": false,
+      "min_ilb_outstanding_mn": 1000,
+      "min_nominal_outstanding_mn": 5000,
+      "default_bonds": [
+        {"label": "UKi 27", "maturity": 2027, "bbgTicker": "UKTIIL27 Index"},
+        {"label": "UKi 30", "maturity": 2030, "bbgTicker": "UKTIIL30 Index"},
+        {"label": "UKi 32", "maturity": 2032, "bbgTicker": "UKTIIL32 Index"},
+        {"label": "UKi 35", "maturity": 2035, "bbgTicker": "UKTIIL35 Index"},
+        {"label": "UKi 40", "maturity": 2040, "bbgTicker": "UKTIIL40 Index"},
+        {"label": "UKi 47", "maturity": 2047, "bbgTicker": "UKTIIL47 Index"},
+        {"label": "UKi 55", "maturity": 2055, "bbgTicker": "UKTIIL55 Index"}
+      ]
     },
     {
-      "id": "gbp_rpi_inflation_swaps",
-      "bloomberg_ticker": "BPSWIS{n} Curncy",
-      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
-      "field": "PX_LAST",
-      "description": "GBP RPI zero-coupon inflation swap rates",
-      "unit": "%",
-      "verified": true
-    },
-    {
-      "id": "eur_estr_ois",
-      "bloomberg_ticker": "EUSWF{n} Curncy",
-      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
-      "field": "PX_LAST",
-      "description": "EUR ESTR OIS par swap rates",
-      "unit": "%",
-      "verified": true
-    },
-    {
-      "id": "gbp_sonia_ois",
-      "bloomberg_ticker": "BPSWS{n} Curncy",
-      "tenors_or_expiries": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30],
-      "field": "PX_LAST",
-      "description": "GBP SONIA OIS par swap rates",
-      "unit": "%",
-      "verified": true
+      "curve_id": "tips",
+      "country": "US",
+      "label": "TIPS",
+      "ccy": "USD",
+      "inflation_ref": "CPI-U",
+      "ilb_screen": "FI:TII",
+      "ilb_screen_verified": false,
+      "notes": "⚠️ FI:TII screen name is unverified. US TIPS tickers follow pattern 'TII <coupon> <maturity> Govt'. Verify in Terminal.",
+      "filter_inflation_linked_only": false,
+      "nominal_screen": "FI:T",
+      "nominal_screen_verified": false,
+      "notes_nominal": "⚠️ FI:T screen name is unverified for US Treasuries. May need FI:CT or a specific Treasury screen.",
+      "min_ilb_outstanding_mn": 5000,
+      "min_nominal_outstanding_mn": 10000,
+      "default_bonds": [
+        {"label": "TIPS 27", "maturity": 2027, "bbgTicker": null},
+        {"label": "TIPS 30", "maturity": 2030, "bbgTicker": null},
+        {"label": "TIPS 32", "maturity": 2032, "bbgTicker": null},
+        {"label": "TIPS 35", "maturity": 2035, "bbgTicker": null},
+        {"label": "TIPS 46", "maturity": 2046, "bbgTicker": null}
+      ]
     }
+  ],
+  "bloomberg_fields": {
+    "discovery": ["MATURITY", "AMT_OUTSTANDING", "CALLABLE", "INFLATION_LINKED_IND"],
+    "real_yield": "YLD_YTM_MID",
+    "nominal_yield": "YLD_YTM_MID",
+    "asw_spread": "YAS_ASW_SPREAD"
+  },
+  "verification_priority": [
+    "Confirm all 6 ilb_screen names return ILB bonds only (or use filter_inflation_linked_only)",
+    "Confirm all 6 nominal_screen names return bullet sovereign bonds",
+    "Verify min_outstanding thresholds exclude illiquid lines without cutting too many bonds",
+    "For Spain: check FI:SPGBEI vs FI:SPGB + INFLATION_LINKED_IND=Y",
+    "For US: check FI:TII and FI:T screen coverage"
   ]
 }

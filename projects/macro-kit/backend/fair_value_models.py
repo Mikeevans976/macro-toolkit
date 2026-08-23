@@ -7,7 +7,9 @@ Simulation fallback: synthetic data seeded for reproducibility.
 """
 from __future__ import annotations
 
+import json
 import os
+import pathlib
 import warnings
 
 import numpy as np
@@ -101,52 +103,28 @@ _MODEL_DEFS: list[dict] = [
 ]
 
 # ─── Bloomberg Ticker Map ─────────────────────────────────────────────────────
+# Loaded from series_catalogue_fair_value_models.json at startup.
+# To change a ticker: edit the catalogue JSON — no Python change needed.
+#
+# treatment values in the catalogue:
+#   "required"       → missing triggers simulation fallback
+#   "optional_zero"  → zeroed if absent; model assigns near-zero coefficient
+#   "optional_interp"→ used when present; silently skipped if absent (forward derivation inputs)
 
-# Raw series fetched from BBG via PX_LAST.
-# Rates (EUSWI*, EESWE*, EUR003M) → divided by 100 to get decimals.
-# Commodity/index series → kept at level then log-transformed or used as-is.
+_CATALOGUE_PATH = (
+    pathlib.Path(__file__).parent / "data" / "series_catalogue_fair_value_models.json"
+)
+_catalogue_series = json.loads(_CATALOGUE_PATH.read_text())["series"]
+
 _BBG_RAW: dict[str, str] = {
-    # HICPxT inflation swap outrights — Y targets (& inputs for forward derivation)
-    "EUSWI1":   "EUSWI1 Curncy",
-    "EUSWI2":   "EUSWI2 Curncy",
-    "EUSWI3":   "EUSWI3 Curncy",    # needed for HICP_2Y1Y
-    "EUSWI4":   "EUSWI4 Curncy",    # needed for HICP_2Y2Y
-    "EUSWI5":   "EUSWI5 Curncy",
-    "EUSWI10":  "EUSWI10 Curncy",
-    "EUSWI15":  "EUSWI15 Curncy",
-    "EUSWI20":  "EUSWI20 Curncy",
-    "EUSWI30":  "EUSWI30 Curncy",
-    # ESTR par OIS swap rates — X regressors + forward bootstrap
-    "EESWE1":   "EUSWF1 Curncy",
-    "EESWE2":   "EUSWF2 Curncy",
-    "EESWE3":   "EUSWF3 Curncy",    # needed for ESTR_2Y1Y bootstrap
-    "EESWE4":   "EUSWF4 Curncy",    # needed for ESTR_2Y2Y bootstrap
-    "EESWE5":   "EUSWF5 Curncy",
-    "EESWE10":  "EUSWF10 Curncy",
-    "EESWE15":  "EUSWF15 Curncy",
-    "EESWE20":  "EUSWF20 Curncy",
-    "EESWE30":  "EUSWF30 Curncy",
-    # Macro regressors
-    "Brent":    "CO1 Comdty",        # Brent crude front-month, USD/bbl → log_Brent
-    "Gas":      "TTF1 Comdty",       # TTF nat gas front-month, EUR/MWh → log_Gas
-    "BCOM_raw": "BCOM Index",        # Bloomberg Commodity Index → log_BCOM
-    "EUR003M":  "EUR003M Index",     # EURIBOR 3M, %
-    "EUR_TWI":  "EURR002W Index",    # ECB broad NEER, index level
-    "GSEAFCI":  "GSEAFCI Index",     # GS Euro Area FCI (needs GS data subscription)
-    "ITRX5Y":   "ITRXEBE5 Index",    # iTraxx Europe 5Y on-the-run, bps
-    "CESIEUR":  "CESIEUR Index",     # Citi Economic Surprise EUR
-    "SMOVEU1M": "EUSV0001 Index",    # EUR 1M10Y swaption normal vol, bps
+    e["internal_key"]: e["bloomberg_ticker"] for e in _catalogue_series
 }
-
-# Series that are essential — if any are missing, fall back to simulation.
-_REQUIRED_BBG = {
-    "EUSWI1", "EUSWI2", "EUSWI5", "EUSWI10", "EUSWI20", "EUSWI30",
-    "EESWE1", "EESWE2", "EESWE5", "EESWE10", "EESWE20", "EESWE30",
-    "Brent", "Gas", "BCOM_raw", "EUR003M",
+_REQUIRED_BBG: set[str] = {
+    e["internal_key"] for e in _catalogue_series if e["treatment"] == "required"
 }
-
-# Optional — filled with zeros if unavailable (model assigns near-zero coefficient)
-_OPTIONAL_BBG = {"EUR_TWI", "GSEAFCI", "ITRX5Y", "CESIEUR", "SMOVEU1M"}
+_OPTIONAL_BBG: set[str] = {
+    e["internal_key"] for e in _catalogue_series if e["treatment"] == "optional_zero"
+}
 
 
 # ─── Forward derivation helpers ───────────────────────────────────────────────
