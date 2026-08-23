@@ -1,0 +1,97 @@
+{
+  "tool": "Inflation Fixings Monitor — United States",
+  "description": "All tickers consumed by us_cpi_fixings.py. Single source of truth — the Python module reads tickers directly from this file.",
+  "historical_series": [
+    {
+      "id": "usd_cpi_nsa",
+      "label": "CPI (NSA)",
+      "frontend_key": "cpiNsa",
+      "ticker_bloomberg": "CPURNSA Index",
+      "ticker_haver": "CPIU@USECON",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (1982-84=100)",
+      "base_for_reconstruction": true,
+      "description": "US CPI All Urban Consumers, Not Seasonally Adjusted — settlement index for USD CPI inflation swaps"
+    },
+    {
+      "id": "usd_cpi_sa",
+      "label": "CPI (SA)",
+      "frontend_key": "cpiSa",
+      "ticker_bloomberg": "CPIAUCSL Index",
+      "ticker_haver": "CPIUS@USECON",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (1982-84=100)",
+      "description": "US CPI All Urban Consumers, Seasonally Adjusted. In simulation mode, derived from NSA via STL decomposition.",
+      "simulation_note": "Computed from NSA via STL in simulation; fetched directly from Bloomberg in live mode."
+    },
+    {
+      "id": "usd_cpi_core",
+      "label": "Core CPI",
+      "frontend_key": "cpiCore",
+      "ticker_bloomberg": "CPUPAXFE Index",
+      "ticker_haver": "CPIXFE@USECON",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (1982-84=100)",
+      "description": "US CPI All Items Less Food and Energy (core CPI), NSA"
+    },
+    {
+      "id": "usd_cpi_core_goods",
+      "label": "Core Goods",
+      "frontend_key": "coreGoods",
+      "ticker_bloomberg": "CPUPAXFEG Index",
+      "ticker_haver": null,
+      "haver_note": "CPI core goods index level not confirmed in Haver. Check CPIXFEG@USECON.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (1982-84=100)",
+      "description": "US CPI commodities less food and energy commodities (core goods)"
+    },
+    {
+      "id": "usd_cpi_core_services",
+      "label": "Core Services",
+      "frontend_key": "coreServices",
+      "ticker_bloomberg": "CPUPAXFES Index",
+      "ticker_haver": null,
+      "haver_note": "CPI core services index level not confirmed in Haver. Check CPIXFES@USECON.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (1982-84=100)",
+      "description": "US CPI services less energy services (core services)"
+    }
+  ],
+  "fixings": {
+    "history_base_id": "usd_cpi_nsa",
+    "f_series": {
+      "ticker_template": "USCPIF{n} Comdty",
+      "tenors": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": false,
+      "description": "USD CPI F-series calendar-month fixings (synthetic convention — Bloomberg does not publish monthly CPI fixings in this format). In live mode, derive from USSWIT{n} Curncy standard-tenor CPI swaps interpolated to calendar months."
+    },
+    "t_series": {
+      "ticker_template": "USCPIT{n} Comdty",
+      "tenors": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": false,
+      "description": "USD CPI T-series calendar-month fixings (synthetic convention). See F-series note."
+    },
+    "live_bloomberg_alternative": {
+      "ticker_template": "USSWIT{n} Curncy",
+      "tenors": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": true,
+      "description": "USD CPI NSA zero-coupon inflation swaps — standard tenors in years. Requires interpolation to convert to calendar-month YoY rates for level reconstruction."
+    }
+  }
+}

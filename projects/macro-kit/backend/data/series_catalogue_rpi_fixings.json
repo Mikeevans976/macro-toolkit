@@ -1,0 +1,122 @@
+{
+  "tool": "Inflation Fixings Monitor — United Kingdom",
+  "description": "All tickers consumed by rpi_fixings.py. Single source of truth — the Python module reads tickers directly from this file.",
+  "historical_series": [
+    {
+      "id": "gbp_rpi",
+      "label": "RPI",
+      "frontend_key": "rpi",
+      "ticker_bloomberg": "UKCERPI Index",
+      "ticker_haver": "RPI@UKDATA",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (Jan 1987=100)",
+      "base_for_reconstruction": true,
+      "description": "UK Retail Price Index — settlement index for GBP RPI inflation swaps"
+    },
+    {
+      "id": "gbp_cpi",
+      "label": "CPI",
+      "frontend_key": "cpi",
+      "ticker_bloomberg": "UKRPCJPA Index",
+      "ticker_haver": "CPI@UKDATA",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "UK CPI All Items"
+    },
+    {
+      "id": "gbp_cpi_core",
+      "label": "CPI Core",
+      "frontend_key": "cpiCore",
+      "ticker_bloomberg": "UKCRCORE Index",
+      "ticker_haver": "CPICORE@UKDATA",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "UK CPI excluding food, energy, alcohol and tobacco"
+    },
+    {
+      "id": "gbp_cpi_services",
+      "label": "CPI Services",
+      "frontend_key": "services",
+      "ticker_bloomberg": "UKRPCJSR Index",
+      "ticker_haver": null,
+      "haver_note": "CPI services index level not confirmed in Haver.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "UK CPI services"
+    },
+    {
+      "id": "gbp_cpi_core_goods",
+      "label": "CPI Core Goods",
+      "frontend_key": "goods",
+      "ticker_bloomberg": "UKRPCJCG Index",
+      "ticker_haver": null,
+      "haver_note": "CPI core goods index level not confirmed in Haver.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "UK CPI core goods (goods excl. food, energy)"
+    },
+    {
+      "id": "gbp_cpi_energy",
+      "label": "CPI Energy",
+      "frontend_key": "energy",
+      "ticker_bloomberg": "UKRPCJEN Index",
+      "ticker_haver": null,
+      "haver_note": "Not confirmed in Haver.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "UK CPI energy"
+    },
+    {
+      "id": "gbp_cpi_food",
+      "label": "Food, Alc. & Tobacco",
+      "frontend_key": "food",
+      "ticker_bloomberg": "UKRPCJFT Index",
+      "ticker_haver": null,
+      "haver_note": "Not confirmed in Haver.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "UK CPI food, alcohol and tobacco"
+    }
+  ],
+  "fixings": {
+    "history_base_id": "gbp_rpi",
+    "f_series": {
+      "ticker_template": "UKRPIF{n} Comdty",
+      "tenors": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": false,
+      "description": "GBP RPI F-series calendar-month fixings (synthetic convention — Bloomberg does not publish monthly RPI fixings in this format). In live mode, derive from BPSWIS{n} Curncy standard-tenor RPI swaps interpolated to calendar months."
+    },
+    "t_series": {
+      "ticker_template": "UKRPIT{n} Comdty",
+      "tenors": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": false,
+      "description": "GBP RPI T-series calendar-month fixings (synthetic convention). See F-series note."
+    },
+    "live_bloomberg_alternative": {
+      "ticker_template": "BPSWIS{n} Curncy",
+      "tenors": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": true,
+      "description": "GBP RPI zero-coupon inflation swaps — standard tenors in years. Requires interpolation to convert to calendar-month YoY rates for level reconstruction."
+    }
+  }
+}

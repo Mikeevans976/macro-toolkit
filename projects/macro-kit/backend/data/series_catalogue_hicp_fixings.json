@@ -1,0 +1,117 @@
+{
+  "tool": "Inflation Fixings Monitor — Euro Area",
+  "description": "All tickers consumed by hicp_fixings.py. Single source of truth — the Python module reads tickers directly from this file.",
+  "historical_series": [
+    {
+      "id": "eur_hicp_headline",
+      "label": "HICP Headline",
+      "frontend_key": "headline",
+      "ticker_bloomberg": "EUHICP Index",
+      "ticker_haver": null,
+      "haver_note": "Haver holds the YoY rate (CPIEZM@EUDATA) but not the index level. Use Bloomberg for levels.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "Euro Area HICP Headline index level"
+    },
+    {
+      "id": "eur_hicp_xt",
+      "label": "HICP ex Tobacco",
+      "frontend_key": "hicpXT",
+      "ticker_bloomberg": "EUHICPXT Index",
+      "ticker_haver": null,
+      "haver_note": "Not available as an index level on Haver. Use Bloomberg.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "base_for_reconstruction": true,
+      "description": "HICP excluding tobacco — settlement index for all EUR HICPxT inflation swaps"
+    },
+    {
+      "id": "eur_hicp_core",
+      "label": "HICP Core",
+      "frontend_key": "core",
+      "ticker_bloomberg": "EUHICPXFE Index",
+      "ticker_haver": null,
+      "haver_note": "YoY available as CPIEZXFE@EUDATA and CPIXEFAM@EUDATA. Index level not confirmed in Haver.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "HICP excluding food, alcohol, tobacco and energy"
+    },
+    {
+      "id": "eur_hicp_core_goods",
+      "label": "Core Goods",
+      "frontend_key": "coreGoods",
+      "ticker_bloomberg": "EUHICPIG Index",
+      "ticker_haver": null,
+      "haver_note": "YoY available as CPINEIM@EUDATA. Index level not confirmed.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "HICP non-energy industrial goods"
+    },
+    {
+      "id": "eur_hicp_services",
+      "label": "Services",
+      "frontend_key": "services",
+      "ticker_bloomberg": "EUHICPSER Index",
+      "ticker_haver": null,
+      "haver_note": "YoY available as CPIESVM@EUDATA. Index level not confirmed.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "HICP services"
+    },
+    {
+      "id": "eur_hicp_energy",
+      "label": "HICP Energy",
+      "frontend_key": "energy",
+      "ticker_bloomberg": "EUHICPEN Index",
+      "ticker_haver": null,
+      "haver_note": "YoY available as CPIENRM@EUDATA. Index level not confirmed.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "HICP energy"
+    },
+    {
+      "id": "eur_hicp_food",
+      "label": "Food incl. A&T",
+      "frontend_key": "food",
+      "ticker_bloomberg": "EUHICPF Index",
+      "ticker_haver": null,
+      "haver_note": "YoY available as CPIFOAM@EUDATA. Index level not confirmed.",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "HICP food including alcohol and tobacco"
+    }
+  ],
+  "fixings": {
+    "history_base_id": "eur_hicp_xt",
+    "f_series": {
+      "ticker_template": "EUSWIF{n} Comdty",
+      "tenors": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": true,
+      "description": "EUR HICPxT F-series calendar-month fixings. n = calendar month (1=Jan…12=Dec). Bloomberg PX_LAST = implied YoY %. Covers the 12-month cycle starting ~1 year ahead of today."
+    },
+    "t_series": {
+      "ticker_template": "EUSWIT{n} Comdty",
+      "tenors": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": true,
+      "description": "EUR HICPxT T-series calendar-month fixings. Covers the following 12-month cycle. Level reconstruction uses F-series reconstructed levels as the base."
+    }
+  }
+}

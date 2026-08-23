@@ -88,7 +88,7 @@ Each regional heatmap (and the EA model) has a JSON catalogue in `backend/data/`
 
 | File | Used by |
 |------|---------|
-| `series_catalogue.json` | Euro Area heatmap, Global Yields, Fair Value Models |
+| `series_catalogue_ea.json` | Euro Area heatmap, Global Yields, Fair Value Models |
 | `series_catalogue_uk.json` | UK heatmap |
 | `series_catalogue_us.json` | US heatmap |
 | `series_catalogue_jp.json` | Japan heatmap |
@@ -179,7 +179,7 @@ The API functions (`get_daily_factors()`, `get_yield_pca()`, …) simply seriali
 ### 3.1 Euro Area Heatmap
 
 **File:** `backend/euro_area_heatmap.py`  
-**Catalogue:** `backend/data/series_catalogue.json`  
+**Catalogue:** `backend/data/series_catalogue_ea.json`  
 **Status:** ⚠️ Partial (Block 1 live ✅, 32 tickers missing 🔧)
 
 **Block 1 — Macro DFM**
@@ -434,7 +434,7 @@ HICP_2Y2Y = hicp_fwd(EUSWI2, EUSWI4, s=2, t=2)
 **File:** `backend/global_yields.py`  
 **Status:** ✅ Live (via catalogue-based fetcher)
 
-24 10y government bond yields fetched via series IDs in `backend/data/series_catalogue.json` (look for `role: "global_yields"`).
+24 10y government bond yields fetched via series IDs in `backend/data/series_catalogue_ea.json` (look for `role: "global_yields"`).
 
 **Pipeline:** `get_fetcher(source)` → `fetcher.fetch(24 series_ids)` → daily PCA → PC1 (global level), PC2 (DM-specific), PC3 (EM-idiosyncratic) + z-score residuals (rich/cheap vs global factor).
 
@@ -708,7 +708,7 @@ Changes take effect on the next backend restart — no code changes needed.
 
 | Catalogue | Total series | With BBG ticker | With Haver ticker |
 |-----------|-------------|-----------------|-------------------|
-| `series_catalogue.json` (EA) | 147 | 115 (78%) | 49 (33%) |
+| `series_catalogue_ea.json` (EA) | 147 | 115 (78%) | 49 (33%) |
 | `series_catalogue_uk.json` | 53 | 53 (100%) | 46 (87%) |
 | `series_catalogue_us.json` | 71 | 69 (97%) | 51 (72%) |
 | `series_catalogue_jp.json` | 58 | 56 (97%) | 35 (60%) |
