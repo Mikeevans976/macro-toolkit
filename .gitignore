@@ -1,0 +1,14 @@
+# Scratch dirs at repo root (accidental artifacts, credentials)
+/backend/
+/frontend/
+.claude/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.vite/
+.DS_Store
+
+# Local reference material (books, screenshots)
+*.png
+Fixed Income Relative Value Analysis*
