@@ -13,7 +13,6 @@ import JapanHeatmap from './pages/JapanHeatmap'
 import SeasonalityBacktester from './pages/SeasonalityBacktester'
 import PrintAnalysis from './pages/PrintAnalysis'
 import Momentum from './pages/Momentum'
-import Positioning from './pages/Positioning'
 import CanadaHeatmap from './pages/CanadaHeatmap'
 import SwedenHeatmap from './pages/SwedenHeatmap'
 import NorwayHeatmap from './pages/NorwayHeatmap'
@@ -22,6 +21,10 @@ import AustraliaHeatmap from './pages/AustraliaHeatmap'
 import NewZealandHeatmap from './pages/NewZealandHeatmap'
 import InflationPCA from './pages/InflationPCA'
 import InflationFixingsMonitor from './pages/InflationFixingsMonitor'
+import MeanReversion from './pages/MeanReversion'
+import PCAAnalysis from './pages/PCAAnalysis'
+import CorrelationRegimes from './pages/CorrelationRegimes'
+import FittedBondCurves from './pages/FittedBondCurves'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('access_token')
@@ -62,9 +65,12 @@ export default function App() {
         <Route path="/tools/seasonality" element={<ProtectedRoute><SeasonalityBacktester /></ProtectedRoute>} />
         <Route path="/tools/print-analysis" element={<ProtectedRoute><PrintAnalysis /></ProtectedRoute>} />
         <Route path="/tools/momentum" element={<ProtectedRoute><Momentum /></ProtectedRoute>} />
-        <Route path="/tools/positioning" element={<ProtectedRoute><Positioning /></ProtectedRoute>} />
         <Route path="/tools/inflation-pca" element={<ProtectedRoute><InflationPCA /></ProtectedRoute>} />
         <Route path="/tools/inflation-fixings" element={<ProtectedRoute><InflationFixingsMonitor /></ProtectedRoute>} />
+        <Route path="/tools/mean-reversion" element={<ProtectedRoute><MeanReversion /></ProtectedRoute>} />
+        <Route path="/tools/pca-analysis" element={<ProtectedRoute><PCAAnalysis /></ProtectedRoute>} />
+        <Route path="/tools/correlation-regimes" element={<ProtectedRoute><CorrelationRegimes /></ProtectedRoute>} />
+        <Route path="/tools/fitted-bond-curves" element={<ProtectedRoute><FittedBondCurves /></ProtectedRoute>} />
         {/* Catch-all: redirect unknown paths to dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

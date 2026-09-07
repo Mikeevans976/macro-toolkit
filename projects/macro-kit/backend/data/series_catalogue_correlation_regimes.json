@@ -1,0 +1,58 @@
+{
+  "tool": "Correlation Regimes",
+  "file": "backend/correlation_regimes.py",
+  "description": "Cross-asset correlation-breakdown scanner. Computes dual-window rolling correlations (regime window vs recent window) on daily changes/log-returns for every pair in the universe, ranks breakdowns by a Fisher-z test statistic, and tracks rolling betas. Universe is defined here — add/remove series without touching code.",
+  "bloomberg_fetch": "bdh — PX_LAST, periodicity DAILY, ~3 years of history",
+  "fallback": "Factor-model simulation with embedded regime breaks (see _simulate_universe in correlation_regimes.py)",
+  "field": "PX_LAST",
+  "periodicity": "DAILY",
+  "transform_note": "transform 'diff' = daily change in native units (bp for yields/spreads, points for vol indices); 'logret' = daily log-return in % (equities, FX, commodities). Correlations are always computed on transformed series, never levels.",
+  "defaults": {
+    "long_window": 126,
+    "short_window": 21,
+    "min_abs_corr": 0.6,
+    "history_days": 780
+  },
+  "series": [
+    { "id": "ust_2y",     "label": "UST 2y",            "asset_class": "Rates",       "ticker": "USGG2YR Index",            "transform": "diff",   "units": "bp" },
+    { "id": "ust_10y",    "label": "UST 10y",           "asset_class": "Rates",       "ticker": "USGG10YR Index",           "transform": "diff",   "units": "bp" },
+    { "id": "ust_30y",    "label": "UST 30y",           "asset_class": "Rates",       "ticker": "USGG30YR Index",           "transform": "diff",   "units": "bp" },
+    { "id": "bund_2y",    "label": "Bund 2y",           "asset_class": "Rates",       "ticker": "GDBR2 Index",              "transform": "diff",   "units": "bp" },
+    { "id": "bund_10y",   "label": "Bund 10y",          "asset_class": "Rates",       "ticker": "GDBR10 Index",             "transform": "diff",   "units": "bp" },
+    { "id": "btp_10y",    "label": "BTP 10y",           "asset_class": "Rates",       "ticker": "GBTPGR10 Index",           "transform": "diff",   "units": "bp" },
+    { "id": "gilt_10y",   "label": "Gilt 10y",          "asset_class": "Rates",       "ticker": "GUKG10Y Index",            "transform": "diff",   "units": "bp" },
+    { "id": "jgb_10y",    "label": "JGB 10y",           "asset_class": "Rates",       "ticker": "GJGB10 Index",             "transform": "diff",   "units": "bp" },
+
+    { "id": "eurusd",     "label": "EUR/USD",           "asset_class": "FX",          "ticker": "EURUSD Curncy",            "transform": "logret", "units": "%" },
+    { "id": "gbpusd",     "label": "GBP/USD",           "asset_class": "FX",          "ticker": "GBPUSD Curncy",            "transform": "logret", "units": "%" },
+    { "id": "usdjpy",     "label": "USD/JPY",           "asset_class": "FX",          "ticker": "USDJPY Curncy",            "transform": "logret", "units": "%" },
+    { "id": "audusd",     "label": "AUD/USD",           "asset_class": "FX",          "ticker": "AUDUSD Curncy",            "transform": "logret", "units": "%" },
+    { "id": "dxy",        "label": "DXY",               "asset_class": "FX",          "ticker": "DXY Curncy",               "transform": "logret", "units": "%" },
+
+    { "id": "spx",        "label": "S&P 500",           "asset_class": "Equity",      "ticker": "SPX Index",                "transform": "logret", "units": "%" },
+    { "id": "ndx",        "label": "Nasdaq 100",        "asset_class": "Equity",      "ticker": "NDX Index",                "transform": "logret", "units": "%" },
+    { "id": "sx5e",       "label": "EuroStoxx 50",      "asset_class": "Equity",      "ticker": "SX5E Index",               "transform": "logret", "units": "%" },
+    { "id": "dax",        "label": "DAX",               "asset_class": "Equity",      "ticker": "DAX Index",                "transform": "logret", "units": "%" },
+    { "id": "nky",        "label": "Nikkei 225",        "asset_class": "Equity",      "ticker": "NKY Index",                "transform": "logret", "units": "%" },
+    { "id": "ftse",       "label": "FTSE 100",          "asset_class": "Equity",      "ticker": "UKX Index",                "transform": "logret", "units": "%" },
+
+    { "id": "vix",        "label": "VIX",               "asset_class": "Volatility",  "ticker": "VIX Index",                "transform": "diff",   "units": "pts" },
+    { "id": "move",       "label": "MOVE",              "asset_class": "Volatility",  "ticker": "MOVE Index",               "transform": "diff",   "units": "pts" },
+
+    { "id": "wti",        "label": "WTI Crude",         "asset_class": "Commodities", "ticker": "CL1 Comdty",               "transform": "logret", "units": "%" },
+    { "id": "brent",      "label": "Brent Crude",       "asset_class": "Commodities", "ticker": "CO1 Comdty",               "transform": "logret", "units": "%" },
+    { "id": "gold",       "label": "Gold",              "asset_class": "Commodities", "ticker": "XAU Curncy",               "transform": "logret", "units": "%" },
+    { "id": "copper",     "label": "Copper",            "asset_class": "Commodities", "ticker": "HG1 Comdty",               "transform": "logret", "units": "%" },
+
+    { "id": "us_be10",    "label": "US 10y Breakeven",  "asset_class": "Inflation",   "ticker": "USGGBE10 Index",           "transform": "diff",   "units": "bp" },
+    { "id": "eu_5y5y",    "label": "EUR 5y5y Infl Swap","asset_class": "Inflation",   "ticker": "FWISEU55 Index",           "transform": "diff",   "units": "bp" },
+
+    { "id": "itraxx",     "label": "iTraxx Main 5y",    "asset_class": "Credit",      "ticker": "ITRX EUR CDSI GEN 5Y Corp","transform": "diff",   "units": "bp" }
+  ],
+  "verification_checklist": [
+    "Verify all tickers return daily PX_LAST via blp.bdh before production use",
+    "MOVE Index availability depends on terminal entitlements — substitute SRVIX if missing",
+    "iTraxx generic ticker format may differ by terminal setup — verify 'ITRX EUR CDSI GEN 5Y Corp'",
+    "FWISEU55 Index (EUR 5y5y inflation swap fwd) — verify vs FWISEU55 BGN Curncy"
+  ]
+}

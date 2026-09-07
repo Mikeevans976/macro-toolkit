@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+from typing import Optional
 
 import yaml
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -95,7 +96,15 @@ from seasonality_backtester import (
 from print_analysis import fetch_print_vs_consensus, fetch_market_reaction
 from momentum import compute_cta_signals
 from inflation_pca import get_inflation_pca_data
+from pca_analysis import get_pca_data
 from option_derived_cdf import get_option_cdf_params
+from mean_reversion import analyse as mr_analyse
+from correlation_regimes import run_scan as cr_run_scan, get_pair_detail as cr_pair_detail
+from fitted_bond_curves import (
+    compute_fitted_curve,
+    get_bond_detail as fbc_bond_detail,
+    predict_new_issue as fbc_new_issue,
+)
 
 app = FastAPI(title="Analytics Hub API", version="1.0.0")
 
@@ -472,6 +481,88 @@ async def inflation_pca(curve_id: str, current_user: dict = Depends(get_current_
     return get_inflation_pca_data(curve_id)
 
 
+@app.get("/api/tools/pca-analysis")
+async def pca_analysis(
+    curve: str = "bund",
+    tenors: str = "2,5,7,10",
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    n_factors: int = 3,
+    extra_tickers: str = "",
+    use_changes: bool = False,
+    roll_window_weeks: Optional[int] = None,
+    custom_tickers: str = "",   # "TICKER:Label,TICKER:Label,..." — activates custom mode
+    current_user: dict = Depends(get_current_user),
+):
+    """PCA on yield curve — eigenvalues, eigenvectors, factor time series, residuals, OU model."""
+    def _parse_ticker_list(raw: str) -> list[dict]:
+        out: list[dict] = []
+        for part in raw.split(","):
+            part = part.strip()
+            if not part:
+                continue
+            if ":" in part:
+                ticker, label = part.split(":", 1)
+                out.append({"ticker": ticker.strip(), "label": label.strip()})
+            else:
+                out.append({"ticker": part, "label": part})
+        return out
+
+    extra_list = _parse_ticker_list(extra_tickers)
+    custom_list = _parse_ticker_list(custom_tickers)
+
+    if custom_list:
+        # Custom mode — ignore curve/tenors
+        return get_pca_data(
+            start_date=start_date,
+            end_date=end_date,
+            n_factors=n_factors,
+            extra_tickers=extra_list or None,
+            use_changes=use_changes,
+            roll_window_weeks=roll_window_weeks,
+            custom_tickers=custom_list,
+        )
+
+    tenor_list = [int(t.strip()) for t in tenors.split(",") if t.strip()]
+    return get_pca_data(
+        curve_id=curve,
+        tenors=tenor_list,
+        start_date=start_date,
+        end_date=end_date,
+        n_factors=n_factors,
+        extra_tickers=extra_list or None,
+        use_changes=use_changes,
+        roll_window_weeks=roll_window_weeks,
+    )
+
+
+@app.get("/api/tools/correlation-regimes/scan")
+async def correlation_regimes_scan(
+    long_window: int = 126,
+    short_window: int = 21,
+    min_abs_corr: float = 0.6,
+    current_user: dict = Depends(get_current_user),
+):
+    """Cross-asset correlation-breakdown scan (dual-window Fisher-z)."""
+    return cr_run_scan(
+        long_window=long_window,
+        short_window=short_window,
+        min_abs_corr=min_abs_corr,
+    )
+
+
+@app.get("/api/tools/correlation-regimes/pair")
+async def correlation_regimes_pair(
+    x: str,
+    y: str,
+    long_window: int = 126,
+    short_window: int = 21,
+    current_user: dict = Depends(get_current_user),
+):
+    """Pair drilldown — rolling correlation/beta timeline + regime-vs-recent scatter."""
+    return cr_pair_detail(x=x, y=y, long_window=long_window, short_window=short_window)
+
+
 @app.get("/api/tools/inflation-fixings/eur")
 async def hicp_fixings(
     date: str | None = None,
@@ -515,6 +606,243 @@ async def get_swaps_rv(
     current_user: dict = Depends(get_current_user),
 ):
     return compute_rv(currency=currency, as_of_date=date)
+
+
+# ---------------------------------------------------------------------------
+# Fitted Bond Curves (H&S Chapter 8)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/tools/fitted-bond-curves")
+async def fitted_bond_curves(
+    functional_form: str = "cubic_spline",
+    exponent: int = 2,
+    weighting: str = "none",
+    n_exp_splines: int = 7,
+    custom_bonds: str = "",
+    knots: str = "",
+    external_vars: str = "",
+    as_of: str = "",
+    current_user: dict = Depends(get_current_user),
+):
+    """Fitted discount curve + external regression: residuals, rich/cheap, benchmarks."""
+    return compute_fitted_curve(
+        functional_form=functional_form,
+        exponent=exponent,
+        weighting=weighting,
+        n_exp_splines=n_exp_splines,
+        custom_bonds=custom_bonds,
+        knots=knots,
+        external_vars=external_vars,
+        as_of=as_of,
+    )
+
+
+@app.get("/api/tools/fitted-bond-curves/new-issue")
+async def fitted_bond_curves_new_issue(
+    maturity: str,
+    coupon: Optional[float] = None,
+    size_bn: float = 20.0,
+    extra_bp: float = 0.0,
+    functional_form: str = "cubic_spline",
+    exponent: int = 2,
+    weighting: str = "none",
+    n_exp_splines: int = 7,
+    custom_bonds: str = "",
+    knots: str = "",
+    external_vars: str = "",
+    as_of: str = "",
+    current_user: dict = Depends(get_current_user),
+):
+    """Predict pricing of a hypothetical new issue off the fitted curve (H&S p.180)."""
+    return fbc_new_issue(
+        maturity=maturity,
+        coupon=coupon,
+        size_bn=size_bn,
+        extra_bp=extra_bp,
+        functional_form=functional_form,
+        exponent=exponent,
+        weighting=weighting,
+        n_exp_splines=n_exp_splines,
+        custom_bonds=custom_bonds,
+        knots=knots,
+        external_vars=external_vars,
+        as_of=as_of,
+    )
+
+
+@app.get("/api/tools/fitted-bond-curves/bond/{bond_id}")
+async def fitted_bond_curves_bond(
+    bond_id: str,
+    functional_form: str = "cubic_spline",
+    exponent: int = 2,
+    weighting: str = "none",
+    n_exp_splines: int = 7,
+    custom_bonds: str = "",
+    knots: str = "",
+    external_vars: str = "",
+    as_of: str = "",
+    current_user: dict = Depends(get_current_user),
+):
+    """Residual history, OU mean-reversion analysis and fan chart for one bond."""
+    return fbc_bond_detail(
+        bond_id,
+        functional_form=functional_form,
+        exponent=exponent,
+        weighting=weighting,
+        n_exp_splines=n_exp_splines,
+        custom_bonds=custom_bonds,
+        knots=knots,
+        external_vars=external_vars,
+        as_of=as_of,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Mean Reversion
+# ---------------------------------------------------------------------------
+
+@app.post("/api/tools/mean-reversion/analyse")
+async def mean_reversion_analyse(
+    payload: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    return mr_analyse(
+        expression=payload["expression"],
+        start_date=payload.get("start_date", "2018-01-01"),
+        end_date=payload.get("end_date"),
+        fit_start=payload.get("fit_start"),
+        fit_end=payload.get("fit_end"),
+        model_type=payload.get("model_type", "linear_ou"),
+        target=payload.get("target"),
+        stop=payload.get("stop"),
+        n_sims=int(payload.get("n_sims", 5000)),
+    )
+
+
+@app.post("/api/tools/mean-reversion/stanton")
+async def mean_reversion_stanton(
+    payload: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Lightweight endpoint: re-computes only the Stanton diagnostic buckets."""
+    from mean_reversion import parse_expression, build_series, stanton_diagnostic
+    import pandas as pd
+
+    expression  = payload["expression"]
+    start_date  = payload.get("start_date", "2018-01-01")
+    end_date    = payload.get("end_date") or pd.Timestamp.today().strftime("%Y-%m-%d")
+    fit_start   = payload.get("fit_start")
+    fit_end     = payload.get("fit_end")
+    n_buckets   = int(payload.get("n_buckets", 20))
+
+    terms = parse_expression(expression)
+    series, _ = build_series(terms, start_date, end_date)
+    fit_series = series.loc[
+        (fit_start or series.index[0].strftime("%Y-%m-%d")):
+        (fit_end   or series.index[-1].strftime("%Y-%m-%d"))
+    ]
+    sim_sde = payload.get("sim_sde")  # 'linear_ou' | 'polynomial' | 'inverse_polynomial' | None
+    return stanton_diagnostic(fit_series, n_buckets=n_buckets, sim_sde=sim_sde)
+
+
+@app.post("/api/tools/mean-reversion/forward-dist")
+async def mean_reversion_forward_dist(
+    payload: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """MC forward distributions for a chosen SDE spec (user-triggered)."""
+    from mean_reversion import parse_expression, build_series, transition_densities_mc, _add_horizon_dates
+    import pandas as pd
+
+    expression = payload["expression"]
+    start_date = payload.get("start_date", "2018-01-01")
+    end_date   = payload.get("end_date") or pd.Timestamp.today().strftime("%Y-%m-%d")
+    fit_start  = payload.get("fit_start")
+    fit_end    = payload.get("fit_end")
+    sim_sde    = payload["sim_sde"]  # required
+    n_sims     = int(payload.get("n_sims", 10_000))
+
+    terms = parse_expression(expression)
+    series, _ = build_series(terms, start_date, end_date)
+    fit_series = series.loc[
+        (fit_start or series.index[0].strftime("%Y-%m-%d")):
+        (fit_end   or series.index[-1].strftime("%Y-%m-%d"))
+    ]
+    # Estimate on fit window but start simulation from current actual level
+    current_level = float(series.dropna().iloc[-1])
+    last_date = series.index[-1]
+
+    td = transition_densities_mc(
+        fit_series, sim_sde=sim_sde, n_sims=n_sims, x_now=current_level,
+    )
+    _add_horizon_dates(td, last_date)
+    return td
+
+
+@app.post("/api/tools/mean-reversion/sharpe-mc")
+async def mean_reversion_sharpe_mc(
+    payload: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """MC Sharpe profile for polynomial / inverse-polynomial SDEs."""
+    from mean_reversion import parse_expression, build_series, sharpe_profile_mc
+    import pandas as pd
+
+    expression = payload["expression"]
+    start_date = payload.get("start_date", "2018-01-01")
+    end_date   = payload.get("end_date") or pd.Timestamp.today().strftime("%Y-%m-%d")
+    fit_start  = payload.get("fit_start")
+    fit_end    = payload.get("fit_end")
+    sim_sde    = payload["sim_sde"]
+    n_sims     = int(payload.get("n_sims", 10_000))
+
+    terms = parse_expression(expression)
+    series, _ = build_series(terms, start_date, end_date)
+    fit_series = series.loc[
+        (fit_start or series.index[0].strftime("%Y-%m-%d")):
+        (fit_end   or series.index[-1].strftime("%Y-%m-%d"))
+    ]
+    current_level = float(series.dropna().iloc[-1])
+    return sharpe_profile_mc(fit_series, sim_sde, x_now=current_level, n_sims=n_sims)
+
+
+@app.post("/api/tools/mean-reversion/forward-hist")
+async def mean_reversion_forward_hist(
+    payload: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Terminal distribution histogram + KDE at a user-specified future date."""
+    from mean_reversion import parse_expression, build_series, forward_histogram
+    import pandas as pd
+
+    expression  = payload["expression"]
+    start_date  = payload.get("start_date", "2018-01-01")
+    end_date    = payload.get("end_date") or pd.Timestamp.today().strftime("%Y-%m-%d")
+    fit_start   = payload.get("fit_start")
+    fit_end     = payload.get("fit_end")
+    sim_sde     = payload.get("sim_sde", "linear_ou")
+    n_sims      = int(payload.get("n_sims", 10_000))
+    target_date = payload["target_date"]   # ISO date string
+
+    terms = parse_expression(expression)
+    series, _ = build_series(terms, start_date, end_date)
+    fit_series = series.loc[
+        (fit_start or series.index[0].strftime("%Y-%m-%d")):
+        (fit_end   or series.index[-1].strftime("%Y-%m-%d"))
+    ]
+    current_level = float(series.dropna().iloc[-1])
+    last_date     = series.index[-1]
+
+    # Convert target calendar date → number of business days from last_date
+    target_ts    = pd.Timestamp(target_date)
+    horizon_days = max(1, len(pd.bdate_range(last_date, target_ts)) - 1)
+
+    result = forward_histogram(
+        fit_series, sim_sde, horizon_days,
+        n_sims=n_sims, x_now=current_level,
+    )
+    result["horizon_date"] = target_ts.strftime("%Y-%m-%d")
+    return result
 
 
 # ---------------------------------------------------------------------------

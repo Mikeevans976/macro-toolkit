@@ -19,8 +19,37 @@ categories:
         url: /tools/swaps-rv
       - id: egb-rv
         name: EGB RV Monitor
-        icon: "📐"
+        icon: "🏛️"
         url: /tools/egb-rv
+
+  - id: market-structure
+    name: Market Structure & Analysis
+    color: "#A855F7"
+    tools:
+      - id: pca-analysis
+        name: PCA Analysis
+        icon: "🔬"
+        url: /tools/pca-analysis
+      - id: correlation-regimes
+        name: Correlation Regimes
+        icon: "🔗"
+        url: /tools/correlation-regimes
+      - id: mean-reversion
+        name: Mean Reversion (OU)
+        icon: "〜"
+        url: /tools/mean-reversion
+      - id: fitted-bond-curves
+        name: Fitted Bond Curves
+        icon: "📈"
+        url: /tools/fitted-bond-curves
+      - id: global-yields
+        name: Factor Model for Global Yields
+        icon: "🌐"
+        url: /tools/global-yields
+      - id: option-derived-cdf
+        name: Option-Implied Macro Scenario Probabilities
+        icon: "📐"
+        url: /tools/option-derived-cdf
 
   - id: backtesters
     name: Backtesters
@@ -34,7 +63,11 @@ categories:
   - id: global
     name: Global
     color: "#F59E0B"
-    tools: []
+    tools:
+      - id: trade-blotter
+        name: Trade Blotter and Trade Watch
+        icon: "📒"
+        url: /tools/trade-blotter
 
   - id: macro-fundamentals
     name: Macro Fundamentals
@@ -80,14 +113,6 @@ categories:
         name: New Zealand Heatmap
         icon: "🇳🇿"
         url: /tools/new-zealand-heatmap
-      - id: global-yields
-        name: Factor Model for Global Yields
-        icon: "🌐"
-        url: /tools/global-yields
-      - id: option-derived-cdf
-        name: Option-Implied Macro Scenario Probabilities
-        icon: "📐"
-        url: /tools/option-derived-cdf
 
   - id: technicals
     name: Technicals
@@ -101,10 +126,6 @@ categories:
         name: Momentum
         icon: "📈"
         url: /tools/momentum
-      - id: positioning
-        name: Positioning
-        icon: "📊"
-        url: /tools/positioning
 
   - id: inflation-markets
     name: Inflation Markets

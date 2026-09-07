@@ -1,0 +1,137 @@
+{
+  "tool": "PCA Analysis",
+  "file": "backend/pca_analysis.py",
+  "description": "Yield-curve PCA tool based on Huggins & Schaller, Fixed Income Relative Value Analysis (2024), Chapter 3, Box 3.1. Fits level / slope / curvature factors to generic government yield curves via eigendecomposition of the covariance matrix of yield levels (not changes), then models each factor as an Ornstein-Uhlenbeck process for mean-reversion analysis and trade-idea generation.",
+  "bloomberg_fetch": "bdh — generic government yield index tickers, field PX_LAST, periodicity WEEKLY",
+  "fallback": "Three-factor OU simulation using Nelson-Siegel-inspired loadings",
+  "field": "PX_LAST",
+  "periodicity": "WEEKLY",
+  "note": "All Bloomberg tickers below are generic government yield indices. Verify each ticker in Bloomberg Terminal before production use. Spain tickers have a 'YR' suffix (e.g. GSPG2YR); US tickers also use 'YR' (USGG2YR); UK tickers use a 'Y' suffix (GUKG2Y). GDBR15 / GDBR20 off-the-run liquidity may be limited — consider switching to GDBR15 Index or the benchmark bond once verified.",
+  "curves": [
+    {
+      "curve_id": "bund",
+      "label": "Bund (Germany)",
+      "ccy": "EUR",
+      "country": "Germany",
+      "default_tenors": [2, 5, 7, 10],
+      "available_tenors": [2, 5, 7, 10, 15, 20, 30],
+      "tickers": {
+        "2":  "GDBR2 Index",
+        "5":  "GDBR5 Index",
+        "7":  "GDBR7 Index",
+        "10": "GDBR10 Index",
+        "15": "GDBR15 Index",
+        "20": "GDBR20 Index",
+        "30": "GDBR30 Index"
+      }
+    },
+    {
+      "curve_id": "oat",
+      "label": "OAT (France)",
+      "ccy": "EUR",
+      "country": "France",
+      "default_tenors": [2, 5, 7, 10],
+      "available_tenors": [2, 5, 7, 10, 15, 20, 30],
+      "tickers": {
+        "2":  "GFRN2 Index",
+        "5":  "GFRN5 Index",
+        "7":  "GFRN7 Index",
+        "10": "GFRN10 Index",
+        "15": "GFRN15 Index",
+        "20": "GFRN20 Index",
+        "30": "GFRN30 Index"
+      }
+    },
+    {
+      "curve_id": "btp",
+      "label": "BTP (Italy)",
+      "ccy": "EUR",
+      "country": "Italy",
+      "default_tenors": [2, 5, 7, 10],
+      "available_tenors": [2, 5, 7, 10, 15, 20, 30],
+      "tickers": {
+        "2":  "GBTPGR2 Index",
+        "5":  "GBTPGR5 Index",
+        "7":  "GBTPGR7 Index",
+        "10": "GBTPGR10 Index",
+        "15": "GBTPGR15 Index",
+        "20": "GBTPGR20 Index",
+        "30": "GBTPGR30 Index"
+      }
+    },
+    {
+      "curve_id": "bonos",
+      "label": "Bonos (Spain)",
+      "ccy": "EUR",
+      "country": "Spain",
+      "default_tenors": [2, 5, 7, 10],
+      "available_tenors": [2, 5, 7, 10, 15, 20, 30],
+      "note": "Spain uses a 'YR' suffix on all tenors: e.g. GSPG2YR Index.",
+      "tickers": {
+        "2":  "GSPG2YR Index",
+        "5":  "GSPG5YR Index",
+        "7":  "GSPG7YR Index",
+        "10": "GSPG10YR Index",
+        "15": "GSPG15YR Index",
+        "20": "GSPG20YR Index",
+        "30": "GSPG30YR Index"
+      }
+    },
+    {
+      "curve_id": "ust",
+      "label": "UST (United States)",
+      "ccy": "USD",
+      "country": "US",
+      "default_tenors": [2, 5, 7, 10],
+      "available_tenors": [2, 5, 7, 10, 15, 20, 30],
+      "note": "US uses a 'YR' suffix: e.g. USGG2YR Index.",
+      "tickers": {
+        "2":  "USGG2YR Index",
+        "5":  "USGG5YR Index",
+        "7":  "USGG7YR Index",
+        "10": "USGG10YR Index",
+        "15": "USGG15YR Index",
+        "20": "USGG20YR Index",
+        "30": "USGG30YR Index"
+      }
+    },
+    {
+      "curve_id": "gilt",
+      "label": "Gilt (United Kingdom)",
+      "ccy": "GBP",
+      "country": "UK",
+      "default_tenors": [2, 5, 7, 10],
+      "available_tenors": [2, 5, 7, 10, 15, 20, 30],
+      "note": "UK uses a 'Y' suffix (no 'R'): e.g. GUKG2Y Index.",
+      "tickers": {
+        "2":  "GUKG2Y Index",
+        "5":  "GUKG5Y Index",
+        "7":  "GUKG7Y Index",
+        "10": "GUKG10Y Index",
+        "15": "GUKG15Y Index",
+        "20": "GUKG20Y Index",
+        "30": "GUKG30Y Index"
+      }
+    }
+  ],
+  "default_bpvs": {
+    "description": "Approximate BPV (basis-point value) per 100mn notional, used as defaults in the trade builder. Based on typical modified durations for each tenor. Verify and refresh periodically.",
+    "values": {
+      "2":  0.0198,
+      "5":  0.0481,
+      "7":  0.0662,
+      "10": 0.0900,
+      "15": 0.1250,
+      "20": 0.1600,
+      "30": 0.2200
+    }
+  },
+  "verification_checklist": [
+    "Run blp.bdh(['GDBR2 Index', ...], 'PX_LAST', start, end) to confirm Bund tickers return data",
+    "Confirm GBTPGR{t} tickers for Italy (alternative: GBTPGR{t} vs GBTP{t} — check terminal)",
+    "Confirm Spain GSPG{t}YR suffix is consistent across all tenors",
+    "Confirm US USGG{t}YR series is available at 15Y and 20Y tenors",
+    "Confirm UK GUKG{t}Y suffix (note: no 'R') is consistent across all tenors",
+    "Confirm GDBR15 and GDBR20 Index are available and liquid"
+  ]
+}
