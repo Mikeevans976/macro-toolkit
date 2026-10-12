@@ -1,0 +1,17 @@
+{
+  "tool": "Seasonality Backtester",
+  "file": "backend/seasonality_backtester.py",
+  "bloomberg_fetch": "bdh",
+  "fallback": "NONE — requires Bloomberg",
+  "note": "Tickers are user-supplied at runtime as arithmetic expressions (e.g. \"GDBR10 Index - GDBR2 Index\"). No fixed ticker list exists in the codebase. Supported yellow keys: Index, Equity, Comdty, Corp, Govt, Curncy, Mtge, Muni, Pfd. History pulled from 2010-01-01. Field is always PX_LAST.",
+  "series": [
+    {
+      "id": "user_supplied",
+      "bloomberg_ticker": "user_supplied",
+      "field": "PX_LAST",
+      "description": "Any Bloomberg ticker or arithmetic expression of tickers entered by the user at runtime. Examples: 'GDBR10 Index', 'GDBR10 Index - GDBR2 Index', 'CO1 Comdty'.",
+      "unit": "varies",
+      "verified": true
+    }
+  ]
+}

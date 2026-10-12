@@ -2,7 +2,7 @@
 Macro data loader for the Euro Area Heatmap DFM.
 
 Series metadata (ordering, lag, factor assignment) is read from
-series_catalogue.json — no CSV files required.
+series_catalogue_ea.json — no CSV files required.
 
 Primary interface
 -----------------
@@ -30,7 +30,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-_CATALOGUE_PATH = Path(__file__).parent / "data" / "series_catalogue.json"
+_CATALOGUE_PATH = Path(__file__).parent / "data" / "series_catalogue_ea.json"
 
 
 @dataclass
@@ -51,13 +51,13 @@ class MacroData:
 
 def _load_dfm_meta(m_macro: int, catalogue_path: Path | None = None) -> list[dict]:
     """
-    Read DFM series metadata from series_catalogue.json (or a custom catalogue).
+    Read DFM series metadata from series_catalogue_ea.json (or a custom catalogue).
 
     Parameters
     ----------
     m_macro        : expected number of DFM series (must match dfm_col_index range)
     catalogue_path : path to the JSON catalogue file. Defaults to the EA catalogue
-                     (series_catalogue.json) when None.
+                     (series_catalogue_ea.json) when None.
 
     Returns a list of length m_macro, sorted by dfm_col_index, each entry:
       id, name, factor (dfm_factor), sign (dfm_sign), frequency, typical_lag_days
@@ -241,7 +241,7 @@ def load_macro_data(
     data           : dict[series_id, pd.Series] from data_fetcher.fetch().
                      If None or empty, returns MacroData with has_data=False.
     catalogue_path : path to the JSON catalogue file. Defaults to the EA catalogue
-                     (series_catalogue.json) when None.
+                     (series_catalogue_ea.json) when None.
 
     Returns
     -------

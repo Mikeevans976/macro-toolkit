@@ -1,0 +1,17 @@
+{
+  "tool": "Momentum (CTA Signals)",
+  "file": "backend/momentum.py",
+  "bloomberg_fetch": "bdh",
+  "fallback": "deterministic simulation seeded by ticker name",
+  "note": "Tickers are user-supplied at runtime. Any Bloomberg ticker with a price history works. History pulled from 2010-01-01; a minimum of 315 days of data is required to produce signals. Field is always PX_LAST.",
+  "series": [
+    {
+      "id": "user_supplied",
+      "bloomberg_ticker": "user_supplied",
+      "field": "PX_LAST",
+      "description": "Any Bloomberg ticker entered by the user at runtime. Examples: 'GDBR10 Index', 'CO1 Comdty', 'EURUSD Curncy'. Minimum 315 days of history required.",
+      "unit": "varies",
+      "verified": true
+    }
+  ]
+}

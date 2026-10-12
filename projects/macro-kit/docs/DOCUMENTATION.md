@@ -116,7 +116,7 @@ Team-Massimo-Marzeglia-Analytics/
 │   ├── option_derived_cdf.py
 │   │
 │   ├── data/
-│   │   ├── series_catalogue.json     # EA / global / FV / swaps series
+│   │   ├── series_catalogue_ea.json     # EA / global / FV / swaps series
 │   │   ├── series_catalogue_uk.json
 │   │   ├── series_catalogue_us.json
 │   │   ├── series_catalogue_jp.json
@@ -231,7 +231,7 @@ const res = await fetch('/api/tools/...', {
 
 | Catalogue | Used by | Series |
 |---|---|---|
-| `series_catalogue.json` | Euro Area heatmap, Global Yields, Fair Value Models | 147 |
+| `series_catalogue_ea.json` | Euro Area heatmap, Global Yields, Fair Value Models | 147 |
 | `series_catalogue_uk.json` | UK heatmap | 53 |
 | `series_catalogue_us.json` | US heatmap | 71 |
 | `series_catalogue_jp.json` | Japan heatmap | 58 |
@@ -456,7 +456,7 @@ Fallback: if `_fetch_yield_data_*()` returns `None` → synthetic yields simulat
 **Countries:** 16 DM (US, Germany, UK, Japan, France, Italy, Spain, Netherlands, Belgium, Austria, Switzerland, Sweden, Norway, Denmark, Canada, Australia) + 8 EM (Brazil, Mexico, India, Indonesia, South Africa, Turkey, Poland, Czech Republic).
 
 **Methodology:**
-1. Fetch 24 daily 10y yield series via `get_fetcher(source)` (series IDs in `series_catalogue.json`, `role: "global_yields"`)
+1. Fetch 24 daily 10y yield series via `get_fetcher(source)` (series IDs in `series_catalogue_ea.json`, `role: "global_yields"`)
 2. Compute cross-country covariance matrix on daily yield changes
 3. Eigendecomposition → PC1 (global level), PC2 (DM-specific divergence), PC3 (EM-idiosyncratic)
 4. Per-country residual = actual − 3-factor fitted

@@ -12,5 +12,11 @@ venv/
 dist/
 build/
 .DS_Store
-data/
+/data/
+!backend/data/
 .claude/
+
+# Local SQLite runtime state
+*.db
+*.db-shm
+*.db-wal

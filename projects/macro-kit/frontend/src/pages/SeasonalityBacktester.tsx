@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import PageTitle, { headerBar } from '../components/PageTitle'
 import { useNavigate } from 'react-router-dom'
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -61,20 +62,21 @@ interface SeriesData {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BG = '#080d1a'
-const stickyBg = '#080d1a'
+const BG = '#07090c'
+const stickyBg = '#07090c'
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12, padding: 20,
+  background: '#0b0f14',
+  border: '1px solid rgba(150,178,205,0.09)',
+  borderRadius: 6, padding: 20,
 }
 const sectionLabel: React.CSSProperties = {
-  fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-  letterSpacing: '0.08em', color: '#64748b', marginBottom: 12,
+  fontFamily: "'Geist Mono', ui-monospace, monospace",
+  fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase',
+  letterSpacing: '0.14em', color: '#9aa5b1', marginBottom: 14,
 }
-const ACCENT = '#06B6D4'
-const ACCENT_DIM = 'rgba(6,182,212,0.18)'
-const ACCENT_BORDER = 'rgba(6,182,212,0.50)'
+const ACCENT = '#86c0de'
+const ACCENT_DIM = 'rgba(134,192,222,0.14)'
+const ACCENT_BORDER = 'rgba(134,192,222,0.42)'
 
 const DOW_NAMES   = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -486,21 +488,21 @@ function MonthlyReturnsTable({ table, selectedYears }: { table: MonthlyTable; se
     const mid = 0
     if (v > mid) {
       const t = Math.min(1, v / Math.max(vmax, 1e-9))
-      return `rgba(34,197,94,${0.12 + t * 0.45})`
+      return `rgba(95,181,146,${0.12 + t * 0.45})`
     }
     const t = Math.min(1, Math.abs(v) / Math.max(Math.abs(vmin), 1e-9))
-    return `rgba(239,68,68,${0.12 + t * 0.45})`
+    return `rgba(217,112,94,${0.12 + t * 0.45})`
   }
 
   const thStyle: React.CSSProperties = {
-    color: '#475569', fontWeight: 600, fontSize: 10,
+    color: '#8995a2', fontWeight: 600, fontSize: 10,
     textTransform: 'uppercase', letterSpacing: '0.05em',
     padding: '5px 8px', whiteSpace: 'nowrap',
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
+    borderBottom: '1px solid rgba(200,220,240,0.07)',
   }
 
   return (
-    <div style={cardStyle}>
+    <div className="hub-frame" style={cardStyle}>
       <div style={sectionLabel}>Monthly Returns — Total Change per Month</div>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
@@ -508,21 +510,21 @@ function MonthlyReturnsTable({ table, selectedYears }: { table: MonthlyTable; se
             <tr>
               <th style={{ ...thStyle, textAlign: 'left' }}>Year</th>
               {months.map(mo => <th key={mo} style={{ ...thStyle, textAlign: 'right' }}>{MONTH_NAMES[mo - 1]}</th>)}
-              <th style={{ ...thStyle, textAlign: 'right', color: '#64748b' }}>Total</th>
+              <th style={{ ...thStyle, textAlign: 'right', color: '#9aa5b1' }}>Total</th>
             </tr>
           </thead>
           <tbody>
             {years.map(yr => (
-              <tr key={yr} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <td style={{ color: '#94a3b8', padding: '4px 8px', fontWeight: 600, fontSize: 11 }}>{yr}</td>
+              <tr key={yr} style={{ borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
+                <td style={{ color: '#c6ced8', padding: '4px 8px', fontWeight: 600, fontSize: 11 }}>{yr}</td>
                 {months.map(mo => {
                   const v = data[yr][mo]
                   return (
                     <td key={mo} style={{
                       padding: '4px 8px', textAlign: 'right',
-                      fontFamily: 'monospace', fontSize: 10,
+                      fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10,
                       background: v !== undefined ? cellColor(v) : 'transparent',
-                      color: v !== undefined ? '#e2e8f0' : '#334155',
+                      color: v !== undefined ? '#e4eaf1' : '#2a333d',
                       borderRadius: 3,
                     }}>
                       {v !== undefined ? (v >= 0 ? '+' : '') + v.toFixed(3) : '—'}
@@ -531,24 +533,24 @@ function MonthlyReturnsTable({ table, selectedYears }: { table: MonthlyTable; se
                 })}
                 <td style={{
                   padding: '4px 8px', textAlign: 'right',
-                  fontFamily: 'monospace', fontSize: 10, fontWeight: 700,
-                  color: yearTotals[yr] >= 0 ? '#22c55e' : '#ef4444',
+                  fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 600,
+                  color: yearTotals[yr] >= 0 ? '#5fb592' : '#d9705e',
                 }}>
                   {yearTotals[yr] >= 0 ? '+' : ''}{yearTotals[yr].toFixed(3)}
                 </td>
               </tr>
             ))}
             {/* Average row */}
-            <tr style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }}>
-              <td style={{ color: '#64748b', padding: '5px 8px', fontWeight: 700, fontSize: 11 }}>Avg</td>
+            <tr style={{ borderTop: '1px solid rgba(200,220,240,0.10)' }}>
+              <td style={{ color: '#9aa5b1', padding: '5px 8px', fontWeight: 600, fontSize: 11 }}>Avg</td>
               {months.map(mo => {
                 const v = monthAvgs[mo]
                 return (
                   <td key={mo} style={{
                     padding: '5px 8px', textAlign: 'right',
-                    fontFamily: 'monospace', fontSize: 10, fontWeight: 600,
+                    fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 600,
                     background: cellColor(v),
-                    color: '#e2e8f0', borderRadius: 3,
+                    color: '#e4eaf1', borderRadius: 3,
                   }}>
                     {v >= 0 ? '+' : ''}{v.toFixed(3)}
                   </td>
@@ -557,16 +559,16 @@ function MonthlyReturnsTable({ table, selectedYears }: { table: MonthlyTable; se
               <td />
             </tr>
             {/* Median row */}
-            <tr style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <td style={{ color: '#64748b', padding: '5px 8px', fontWeight: 700, fontSize: 11 }}>Median</td>
+            <tr style={{ borderTop: '1px solid rgba(200,220,240,0.05)' }}>
+              <td style={{ color: '#9aa5b1', padding: '5px 8px', fontWeight: 600, fontSize: 11 }}>Median</td>
               {months.map(mo => {
                 const v = monthMedians[mo]
                 return (
                   <td key={mo} style={{
                     padding: '5px 8px', textAlign: 'right',
-                    fontFamily: 'monospace', fontSize: 10, fontWeight: 600,
+                    fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 600,
                     background: cellColor(v),
-                    color: '#e2e8f0', borderRadius: 3,
+                    color: '#e4eaf1', borderRadius: 3,
                   }}>
                     {v >= 0 ? '+' : ''}{v.toFixed(3)}
                   </td>
@@ -575,16 +577,16 @@ function MonthlyReturnsTable({ table, selectedYears }: { table: MonthlyTable; se
               <td />
             </tr>
             {/* P25 row */}
-            <tr style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <td style={{ color: '#64748b', padding: '5px 8px', fontWeight: 700, fontSize: 11 }}>P25</td>
+            <tr style={{ borderTop: '1px solid rgba(200,220,240,0.05)' }}>
+              <td style={{ color: '#9aa5b1', padding: '5px 8px', fontWeight: 600, fontSize: 11 }}>P25</td>
               {months.map(mo => {
                 const v = monthP25[mo]
                 return (
                   <td key={mo} style={{
                     padding: '5px 8px', textAlign: 'right',
-                    fontFamily: 'monospace', fontSize: 10,
+                    fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10,
                     background: cellColor(v),
-                    color: '#cbd5e1', borderRadius: 3,
+                    color: '#c3ccd6', borderRadius: 3,
                   }}>
                     {v >= 0 ? '+' : ''}{v.toFixed(3)}
                   </td>
@@ -593,16 +595,16 @@ function MonthlyReturnsTable({ table, selectedYears }: { table: MonthlyTable; se
               <td />
             </tr>
             {/* P75 row */}
-            <tr style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <td style={{ color: '#64748b', padding: '5px 8px', fontWeight: 700, fontSize: 11 }}>P75</td>
+            <tr style={{ borderTop: '1px solid rgba(200,220,240,0.05)' }}>
+              <td style={{ color: '#9aa5b1', padding: '5px 8px', fontWeight: 600, fontSize: 11 }}>P75</td>
               {months.map(mo => {
                 const v = monthP75[mo]
                 return (
                   <td key={mo} style={{
                     padding: '5px 8px', textAlign: 'right',
-                    fontFamily: 'monospace', fontSize: 10,
+                    fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10,
                     background: cellColor(v),
-                    color: '#cbd5e1', borderRadius: 3,
+                    color: '#c3ccd6', borderRadius: 3,
                   }}>
                     {v >= 0 ? '+' : ''}{v.toFixed(3)}
                   </td>
@@ -611,15 +613,15 @@ function MonthlyReturnsTable({ table, selectedYears }: { table: MonthlyTable; se
               <td />
             </tr>
             {/* Hit Ratio row */}
-            <tr style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <td style={{ color: '#64748b', padding: '5px 8px', fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>Hit Ratio</td>
+            <tr style={{ borderTop: '1px solid rgba(200,220,240,0.05)' }}>
+              <td style={{ color: '#9aa5b1', padding: '5px 8px', fontWeight: 600, fontSize: 11, whiteSpace: 'nowrap' }}>Hit Ratio</td>
               {months.map(mo => {
                 const v = monthHitRatio[mo]
-                const color = v >= 0.6 ? '#22c55e' : v >= 0.5 ? '#86efac' : v >= 0.4 ? '#fca5a5' : '#ef4444'
+                const color = v >= 0.6 ? '#5fb592' : v >= 0.5 ? '#9dd6bd' : v >= 0.4 ? '#ecaa9c' : '#d9705e'
                 return (
                   <td key={mo} style={{
                     padding: '5px 8px', textAlign: 'right',
-                    fontFamily: 'monospace', fontSize: 10, fontWeight: 600,
+                    fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 600,
                     color, borderRadius: 3,
                   }}>
                     {(v * 100).toFixed(0)}%
@@ -629,16 +631,16 @@ function MonthlyReturnsTable({ table, selectedYears }: { table: MonthlyTable; se
               <td />
             </tr>
             {/* t-stat row */}
-            <tr style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-              <td style={{ color: '#64748b', padding: '5px 8px', fontWeight: 700, fontSize: 11 }}>t-stat</td>
+            <tr style={{ borderTop: '1px solid rgba(200,220,240,0.08)' }}>
+              <td style={{ color: '#9aa5b1', padding: '5px 8px', fontWeight: 600, fontSize: 11 }}>t-stat</td>
               {months.map(mo => {
                 const v = monthTStats[mo]
                 const abs = Math.abs(v)
-                const color = abs >= 2 ? '#f1f5f9' : abs >= 1.5 ? '#94a3b8' : '#475569'
+                const color = abs >= 2 ? '#eef2f6' : abs >= 1.5 ? '#c6ced8' : '#8995a2'
                 return (
                   <td key={mo} style={{
                     padding: '5px 8px', textAlign: 'right',
-                    fontFamily: 'monospace', fontSize: 10, fontWeight: abs >= 2 ? 700 : 400,
+                    fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: abs >= 2 ? 700 : 400,
                     color, borderRadius: 3,
                   }}>
                     {v >= 0 ? '+' : ''}{v.toFixed(2)}
@@ -648,14 +650,14 @@ function MonthlyReturnsTable({ table, selectedYears }: { table: MonthlyTable; se
               <td />
             </tr>
             {/* p-value row */}
-            <tr style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <td style={{ color: '#64748b', padding: '5px 8px', fontWeight: 700, fontSize: 11 }}>p-val</td>
+            <tr style={{ borderTop: '1px solid rgba(200,220,240,0.05)' }}>
+              <td style={{ color: '#9aa5b1', padding: '5px 8px', fontWeight: 600, fontSize: 11 }}>p-val</td>
               {months.map(mo => {
                 const v = monthPValues[mo]
                 return (
                   <td key={mo} style={{
                     padding: '5px 8px', textAlign: 'right',
-                    fontFamily: 'monospace', fontSize: 10, fontWeight: v < 0.05 ? 700 : 400,
+                    fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: v < 0.05 ? 700 : 400,
                     color: sigColor(v), borderRadius: 3,
                   }}>
                     {v < 0.001 ? '<.001' : v.toFixed(3)}
@@ -668,11 +670,11 @@ function MonthlyReturnsTable({ table, selectedYears }: { table: MonthlyTable; se
         </table>
       </div>
       <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 10, color: '#64748b' }}>
-          <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(239,68,68,0.55)' }} />negative
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 10, color: '#9aa5b1' }}>
+          <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(217,112,94,0.55)' }} />negative
         </div>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 10, color: '#64748b' }}>
-          <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(34,197,94,0.55)' }} />positive
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 10, color: '#9aa5b1' }}>
+          <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(95,181,146,0.55)' }} />positive
         </div>
       </div>
     </div>
@@ -791,36 +793,36 @@ function WindowReturnsTable({ table, selectedYears }: { table: WindowTable; sele
 
   function cellColor(v: number) {
     if (v === 0) return 'transparent'
-    if (v > 0) { const t = Math.min(1, v / Math.max(sVmax, 1e-9)); return `rgba(34,197,94,${0.12 + t * 0.45})` }
+    if (v > 0) { const t = Math.min(1, v / Math.max(sVmax, 1e-9)); return `rgba(95,181,146,${0.12 + t * 0.45})` }
     const t = Math.min(1, Math.abs(v) / Math.max(Math.abs(sVmin), 1e-9))
-    return `rgba(239,68,68,${0.12 + t * 0.45})`
+    return `rgba(217,112,94,${0.12 + t * 0.45})`
   }
 
   const thStyle: React.CSSProperties = {
-    color: '#475569', fontWeight: 600, fontSize: 10, textTransform: 'uppercase',
+    color: '#8995a2', fontWeight: 600, fontSize: 10, textTransform: 'uppercase',
     letterSpacing: '0.05em', padding: '5px 8px', whiteSpace: 'nowrap',
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
+    borderBottom: '1px solid rgba(200,220,240,0.07)',
   }
 
   const statRow = (label: string, vals: Record<number, number>, totalVal: number, fmt?: (v: number) => string) => (
-    <tr style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-      <td style={{ color: '#64748b', padding: '5px 8px', fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap' }}>{label}</td>
+    <tr style={{ borderTop: '1px solid rgba(200,220,240,0.05)' }}>
+      <td style={{ color: '#9aa5b1', padding: '5px 8px', fontWeight: 600, fontSize: 11, whiteSpace: 'nowrap' }}>{label}</td>
       {INTERVALS.map(i => {
         const v = vals[i]
         const display = fmt ? fmt(v) : `${v >= 0 ? '+' : ''}${v.toFixed(3)}`
-        const color = fmt ? (v >= 0.6 ? '#22c55e' : v >= 0.5 ? '#86efac' : v >= 0.4 ? '#fca5a5' : '#ef4444') : '#e2e8f0'
+        const color = fmt ? (v >= 0.6 ? '#5fb592' : v >= 0.5 ? '#9dd6bd' : v >= 0.4 ? '#ecaa9c' : '#d9705e') : '#e4eaf1'
         return (
           <td key={i} style={{
-            padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 10, fontWeight: 600,
+            padding: '5px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 600,
             background: fmt ? 'transparent' : cellColor(v), color, borderRadius: 3,
           }}>{display}</td>
         )
       })}
       <td style={{
-        padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 10, fontWeight: 700,
+        padding: '5px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 600,
         color: fmt
-          ? (totalVal >= 0.6 ? '#22c55e' : totalVal >= 0.5 ? '#86efac' : totalVal >= 0.4 ? '#fca5a5' : '#ef4444')
-          : (totalVal >= 0 ? '#22c55e' : '#ef4444'),
+          ? (totalVal >= 0.6 ? '#5fb592' : totalVal >= 0.5 ? '#9dd6bd' : totalVal >= 0.4 ? '#ecaa9c' : '#d9705e')
+          : (totalVal >= 0 ? '#5fb592' : '#d9705e'),
       }}>
         {fmt ? fmt(totalVal) : `${totalVal >= 0 ? '+' : ''}${totalVal.toFixed(3)}`}
       </td>
@@ -828,7 +830,7 @@ function WindowReturnsTable({ table, selectedYears }: { table: WindowTable; sele
   )
 
   return (
-    <div style={cardStyle}>
+    <div className="hub-frame" style={cardStyle}>
       <div style={sectionLabel}>Window Returns — 5 Equal Intervals</div>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
@@ -838,27 +840,27 @@ function WindowReturnsTable({ table, selectedYears }: { table: WindowTable; sele
               {INTERVALS.map(i => (
                 <th key={i} style={{ ...thStyle, textAlign: 'right' }}>{intervalLabels[i]}</th>
               ))}
-              <th style={{ ...thStyle, textAlign: 'right', color: '#64748b' }}>Total</th>
+              <th style={{ ...thStyle, textAlign: 'right', color: '#9aa5b1' }}>Total</th>
             </tr>
           </thead>
           <tbody>
             {years.map(yr => (
-              <tr key={yr} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <td style={{ color: '#94a3b8', padding: '4px 8px', fontWeight: 600, fontSize: 11 }}>{yr}</td>
+              <tr key={yr} style={{ borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
+                <td style={{ color: '#c6ced8', padding: '4px 8px', fontWeight: 600, fontSize: 11 }}>{yr}</td>
                 {INTERVALS.map(i => {
                   const v = data[yr]?.[i] ?? 0
                   return (
                     <td key={i} style={{
-                      padding: '4px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 10,
-                      background: cellColor(v), color: '#e2e8f0', borderRadius: 3,
+                      padding: '4px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10,
+                      background: cellColor(v), color: '#e4eaf1', borderRadius: 3,
                     }}>
                       {v >= 0 ? '+' : ''}{v.toFixed(3)}
                     </td>
                   )
                 })}
                 <td style={{
-                  padding: '4px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 10, fontWeight: 700,
-                  color: yearTotals[yr] >= 0 ? '#22c55e' : '#ef4444',
+                  padding: '4px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 600,
+                  color: yearTotals[yr] >= 0 ? '#5fb592' : '#d9705e',
                 }}>
                   {yearTotals[yr] >= 0 ? '+' : ''}{yearTotals[yr].toFixed(3)}
                 </td>
@@ -873,11 +875,11 @@ function WindowReturnsTable({ table, selectedYears }: { table: WindowTable; sele
         </table>
       </div>
       <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 10, color: '#64748b' }}>
-          <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(239,68,68,0.55)' }} />negative
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 10, color: '#9aa5b1' }}>
+          <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(217,112,94,0.55)' }} />negative
         </div>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 10, color: '#64748b' }}>
-          <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(34,197,94,0.55)' }} />positive
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 10, color: '#9aa5b1' }}>
+          <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(95,181,146,0.55)' }} />positive
         </div>
       </div>
     </div>
@@ -887,9 +889,9 @@ function WindowReturnsTable({ table, selectedYears }: { table: WindowTable; sele
 // ─── Cumulative year chart ────────────────────────────────────────────────────
 
 const YEAR_COLORS = [
-  '#06B6D4','#22c55e','#f59e0b','#ef4444','#8b5cf6',
-  '#ec4899','#14b8a6','#f97316','#84cc16','#3b82f6',
-  '#a855f7','#10b981','#eab308','#f43f5e','#0ea5e9',
+  '#6fc0cb','#5fb592','#d6ad66','#d9705e','#a08bd2',
+  '#c98fb2','#6fc0b4','#d48853','#a8c46e','#6aa9cc',
+  '#b08ad0','#58ad8e','#d6ad66','#d9705e','#6fb4d2',
 ]
 
 // Approximate trading-day index within year for start of each month (full-year fallback)
@@ -967,27 +969,27 @@ function CumulativeYearChart({ days, selectedYears }: { days: DayData[]; selecte
   }
 
   return (
-    <div style={cardStyle}>
+    <div className="hub-frame" style={cardStyle}>
       <div style={sectionLabel}>Cumulative Change by Year — Daily</div>
       <ResponsiveContainer width="100%" height={320}>
         <LineChart data={data} margin={{ top: 4, right: 16, bottom: 4, left: -8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
           <XAxis
             dataKey="dayIdx"
             type="number"
             domain={[0, maxLen - 1]}
             ticks={tickPositions.map(t => t.dayIdx)}
             tickFormatter={i => tickPositions.find(t => t.dayIdx === i)?.label ?? ''}
-            tick={{ fill: '#475569', fontSize: 10 }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+            tick={{ fill: '#8995a2', fontSize: 10 }}
+            axisLine={{ stroke: 'rgba(200,220,240,0.08)' }}
             tickLine={false}
           />
           <YAxis
-            tick={{ fill: '#475569', fontSize: 10 }}
+            tick={{ fill: '#8995a2', fontSize: 10 }}
             axisLine={false} tickLine={false}
             tickFormatter={v => v.toFixed(2)}
           />
-          <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
+          <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeDasharray="4 4" />
           <Tooltip
             content={({ active, payload, label }) => {
               if (!active || !payload?.length) return null
@@ -998,10 +1000,10 @@ function CumulativeYearChart({ days, selectedYears }: { days: DayData[]; selecte
                 : `Day ${idx}`
               return (
                 <div style={{
-                  background: 'rgba(8,13,26,0.95)', border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: 8, padding: '8px 12px', fontSize: 11, maxHeight: 240, overflowY: 'auto',
+                  background: 'rgba(7,9,12,0.95)', border: '1px solid rgba(200,220,240,0.12)',
+                  borderRadius: 6, padding: '8px 12px', fontSize: 11, maxHeight: 240, overflowY: 'auto',
                 }}>
-                  <div style={{ color: '#64748b', marginBottom: 6, fontWeight: 600 }}>
+                  <div style={{ color: '#9aa5b1', marginBottom: 6, fontWeight: 600 }}>
                     {dateLabel}
                   </div>
                   {payload
@@ -1010,7 +1012,7 @@ function CumulativeYearChart({ days, selectedYears }: { days: DayData[]; selecte
                     .map(p => (
                       <div key={p.dataKey} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, color: p.color }}>
                         <span>{p.dataKey}</span>
-                        <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                        <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600 }}>
                           {(p.value as number) >= 0 ? '+' : ''}{(p.value as number).toFixed(3)}
                         </span>
                       </div>
@@ -1018,15 +1020,15 @@ function CumulativeYearChart({ days, selectedYears }: { days: DayData[]; selecte
                 </div>
               )
             }}
-            cursor={{ stroke: 'rgba(255,255,255,0.10)' }}
+            cursor={{ stroke: 'rgba(200,220,240,0.10)' }}
           />
           <Legend
             wrapperStyle={{ fontSize: 10, paddingTop: 8 }}
             formatter={(value) => (
               <span style={{
-                color: value === 'Average' ? '#f1f5f9'
-                  : String(value) === String(mostRecentYear) ? '#f1f5f9'
-                  : '#475569',
+                color: value === 'Average' ? '#eef2f6'
+                  : String(value) === String(mostRecentYear) ? '#eef2f6'
+                  : '#8995a2',
                 fontWeight: value === 'Average' ? 700 : 400,
               }}>{value}</span>
             )}
@@ -1048,7 +1050,7 @@ function CumulativeYearChart({ days, selectedYears }: { days: DayData[]; selecte
             key="Average"
             type="monotone"
             dataKey="Average"
-            stroke="#ffffff"
+            stroke="#f4f7fa"
             strokeWidth={3}
             opacity={1}
             dot={false}
@@ -1081,43 +1083,43 @@ function WindowSelector({ onChange }: {
   }, [lsm, lsd, lem, led])
 
   const selectStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 7, padding: '4px 8px', color: '#e2e8f0', fontSize: 12,
+    background: 'rgba(200,220,240,0.06)', border: '1px solid rgba(200,220,240,0.12)',
+    borderRadius: 7, padding: '4px 8px', color: '#e4eaf1', fontSize: 12,
     cursor: 'pointer', outline: 'none',
   }
   const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
   const active = !!(lsm && lsd && lem && led)
 
   return (
-    <div style={{ ...cardStyle, padding: '12px 16px' }}>
+    <div className="hub-frame" style={{ ...cardStyle, padding: '12px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: 10, color: '#9aa5b1', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
           Time window
         </div>
-        <span style={{ fontSize: 11, color: '#475569' }}>From</span>
+        <span style={{ fontSize: 11, color: '#8995a2' }}>From</span>
         <select value={lsm} style={selectStyle} onChange={e => setLsm(+e.target.value)}>
-          <option value={0} style={{ background: '#0f172a' }}>Month</option>
-          {MONTH_NAMES.map((name, i) => <option key={i} value={i+1} style={{ background: '#0f172a' }}>{name}</option>)}
+          <option value={0} style={{ background: '#0b0f14' }}>Month</option>
+          {MONTH_NAMES.map((name, i) => <option key={i} value={i+1} style={{ background: '#0b0f14' }}>{name}</option>)}
         </select>
         <select value={lsd} style={selectStyle} onChange={e => setLsd(+e.target.value)}>
-          <option value={0} style={{ background: '#0f172a' }}>Day</option>
-          {DAYS.map(d => <option key={d} value={d} style={{ background: '#0f172a' }}>{d}</option>)}
+          <option value={0} style={{ background: '#0b0f14' }}>Day</option>
+          {DAYS.map(d => <option key={d} value={d} style={{ background: '#0b0f14' }}>{d}</option>)}
         </select>
-        <span style={{ fontSize: 11, color: '#475569' }}>To</span>
+        <span style={{ fontSize: 11, color: '#8995a2' }}>To</span>
         <select value={lem} style={selectStyle} onChange={e => setLem(+e.target.value)}>
-          <option value={0} style={{ background: '#0f172a' }}>Month</option>
-          {MONTH_NAMES.map((name, i) => <option key={i} value={i+1} style={{ background: '#0f172a' }}>{name}</option>)}
+          <option value={0} style={{ background: '#0b0f14' }}>Month</option>
+          {MONTH_NAMES.map((name, i) => <option key={i} value={i+1} style={{ background: '#0b0f14' }}>{name}</option>)}
         </select>
         <select value={led} style={selectStyle} onChange={e => setLed(+e.target.value)}>
-          <option value={0} style={{ background: '#0f172a' }}>Day</option>
-          {DAYS.map(d => <option key={d} value={d} style={{ background: '#0f172a' }}>{d}</option>)}
+          <option value={0} style={{ background: '#0b0f14' }}>Day</option>
+          {DAYS.map(d => <option key={d} value={d} style={{ background: '#0b0f14' }}>{d}</option>)}
         </select>
         {active
           ? <button onClick={() => { setLsm(0); setLsd(0); setLem(0); setLed(0) }} style={{
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: 6, padding: '3px 10px', color: '#64748b', fontSize: 11, cursor: 'pointer',
+              background: 'rgba(200,220,240,0.04)', border: '1px solid rgba(200,220,240,0.07)',
+              borderRadius: 6, padding: '3px 10px', color: '#9aa5b1', fontSize: 11, cursor: 'pointer',
             }}>Clear</button>
-          : <span style={{ fontSize: 11, color: '#334155', fontStyle: 'italic' }}>Select month + day for both ends</span>
+          : <span style={{ fontSize: 11, color: '#77828f', fontStyle: 'italic' }}>Select month + day for both ends</span>
         }
       </div>
     </div>
@@ -1134,37 +1136,37 @@ function YearSelector({ allYears, selectedYears, onChange }: {
   const allSelected = selectedYears.length === allYears.length
 
   return (
-    <div style={{ ...cardStyle, padding: '12px 16px' }}>
+    <div className="hub-frame" style={{ ...cardStyle, padding: '12px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: 10, color: '#9aa5b1', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
           Sample years
         </div>
         <button
           onClick={() => onChange(allYears)}
           style={{
-            background: allSelected ? ACCENT_DIM : 'rgba(255,255,255,0.04)',
-            border: `1px solid ${allSelected ? ACCENT_BORDER : 'rgba(255,255,255,0.07)'}`,
+            background: allSelected ? ACCENT_DIM : 'rgba(200,220,240,0.04)',
+            border: `1px solid ${allSelected ? ACCENT_BORDER : 'rgba(200,220,240,0.07)'}`,
             borderRadius: 5, padding: '2px 9px',
-            color: allSelected ? ACCENT : '#475569', fontSize: 10, fontWeight: 700, cursor: 'pointer',
+            color: allSelected ? ACCENT : '#8995a2', fontSize: 10, fontWeight: 600, cursor: 'pointer',
           }}>All</button>
         <button
           onClick={() => onChange([])}
           style={{
-            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+            background: 'rgba(200,220,240,0.04)', border: '1px solid rgba(200,220,240,0.07)',
             borderRadius: 5, padding: '2px 9px',
-            color: '#475569', fontSize: 10, cursor: 'pointer',
+            color: '#8995a2', fontSize: 10, cursor: 'pointer',
           }}>None</button>
-        <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ width: 1, height: 16, background: 'rgba(200,220,240,0.08)' }} />
         {allYears.map(yr => {
           const active = selectedYears.includes(yr)
           return (
             <button key={yr} onClick={() => {
               onChange(active ? selectedYears.filter(y => y !== yr) : [...selectedYears, yr].sort())
             }} style={{
-              background: active ? ACCENT_DIM : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${active ? ACCENT_BORDER : 'rgba(255,255,255,0.06)'}`,
+              background: active ? ACCENT_DIM : 'rgba(200,220,240,0.03)',
+              border: `1px solid ${active ? ACCENT_BORDER : 'rgba(200,220,240,0.06)'}`,
               borderRadius: 5, padding: '2px 8px',
-              color: active ? ACCENT : '#475569',
+              color: active ? ACCENT : '#8995a2',
               fontSize: 10, fontWeight: active ? 700 : 400, cursor: 'pointer',
             }}>{yr}</button>
           )
@@ -1176,10 +1178,10 @@ function YearSelector({ allYears, selectedYears, onChange }: {
 
 
 function sigColor(p: number): string {
-  if (p < 0.01) return '#22c55e'
-  if (p < 0.05) return '#86efac'
-  if (p < 0.10) return '#fbbf24'
-  return '#475569'
+  if (p < 0.01) return '#5fb592'
+  if (p < 0.05) return '#9dd6bd'
+  if (p < 0.10) return '#dfbb78'
+  return '#8995a2'
 }
 
 // ─── Custom tooltip ───────────────────────────────────────────────────────────
@@ -1190,14 +1192,14 @@ function ChartTooltip({ active, payload, label }: {
   if (!active || !payload?.length) return null
   return (
     <div style={{
-      background: 'rgba(8,13,26,0.95)', border: '1px solid rgba(255,255,255,0.12)',
-      borderRadius: 8, padding: '8px 12px', fontSize: 12,
+      background: 'rgba(7,9,12,0.95)', border: '1px solid rgba(200,220,240,0.12)',
+      borderRadius: 6, padding: '8px 12px', fontSize: 12,
     }}>
-      <div style={{ color: '#64748b', marginBottom: 4 }}>{label}</div>
+      <div style={{ color: '#9aa5b1', marginBottom: 4 }}>{label}</div>
       {payload.map(p => (
         <div key={p.name} style={{ color: p.color, display: 'flex', gap: 10, justifyContent: 'space-between' }}>
           <span>{p.name}</span>
-          <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{p.value.toFixed(4)}</span>
+          <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600 }}>{p.value.toFixed(4)}</span>
         </div>
       ))}
     </div>
@@ -1220,23 +1222,23 @@ function ExpressionInput({ onLoad, onSimulate, loading }: {
     const active = mode === m
     return (
       <button onClick={() => setMode(m)} style={{
-        background: active ? ACCENT_DIM : 'rgba(255,255,255,0.05)',
-        border: `1px solid ${active ? ACCENT_BORDER : 'rgba(255,255,255,0.08)'}`,
+        background: active ? ACCENT_DIM : 'rgba(200,220,240,0.05)',
+        border: `1px solid ${active ? ACCENT_BORDER : 'rgba(200,220,240,0.08)'}`,
         borderRadius: 7, padding: '5px 14px',
-        color: active ? ACCENT : '#64748b',
+        color: active ? ACCENT : '#9aa5b1',
         fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer',
       }}>{label}</button>
     )
   }
 
   return (
-    <div style={cardStyle}>
+    <div className="hub-frame" style={cardStyle}>
       {/* Mode toggle */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
         {modeBtn('simulate', 'Simulate')}
         {modeBtn('bbg', 'Bloomberg')}
         {mode === 'simulate' && (
-          <span style={{ fontSize: 11, color: '#475569', marginLeft: 4 }}>
+          <span style={{ fontSize: 11, color: '#8995a2', marginLeft: 4 }}>
             Deterministic synthetic data — no Bloomberg connection required
           </span>
         )}
@@ -1245,25 +1247,25 @@ function ExpressionInput({ onLoad, onSimulate, loading }: {
       {/* ── Simulate mode ── */}
       {mode === 'simulate' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ fontSize: 11, color: '#64748b', whiteSpace: 'nowrap' }}>Instrument</div>
+          <div style={{ fontSize: 11, color: '#9aa5b1', whiteSpace: 'nowrap' }}>Instrument</div>
           <select
             value={simId}
             onChange={e => setSimId(e.target.value)}
             style={{
-              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 8, padding: '6px 12px', color: '#e2e8f0', fontSize: 13, cursor: 'pointer',
+              background: 'rgba(200,220,240,0.06)', border: '1px solid rgba(200,220,240,0.12)',
+              borderRadius: 6, padding: '6px 12px', color: '#e4eaf1', fontSize: 13, cursor: 'pointer',
             }}
           >
             {Object.entries(SYNTHETIC_INSTRUMENTS).map(([id, cfg]) => (
-              <option key={id} value={id} style={{ background: '#0f172a' }}>{cfg.label}</option>
+              <option key={id} value={id} style={{ background: '#0b0f14' }}>{cfg.label}</option>
             ))}
           </select>
           <button
             onClick={() => onSimulate(generateSyntheticSeries(simId))}
             style={{
               background: ACCENT_DIM, border: `1px solid ${ACCENT_BORDER}`,
-              borderRadius: 8, padding: '7px 20px',
-              color: ACCENT, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              borderRadius: 6, padding: '7px 20px',
+              color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
             Load Simulation
@@ -1275,7 +1277,7 @@ function ExpressionInput({ onLoad, onSimulate, loading }: {
       {mode === 'bbg' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>
+            <div style={{ fontSize: 11, color: '#9aa5b1', marginBottom: 6 }}>
               Bloomberg ticker or arithmetic combination (requires Terminal connection):
             </div>
             <input
@@ -1285,20 +1287,20 @@ function ExpressionInput({ onLoad, onSimulate, loading }: {
               placeholder="e.g. GDBR10 Index  or  GDBR10 Index - GDBR2 Index"
               style={{
                 width: '100%', boxSizing: 'border-box',
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 8, padding: '9px 14px',
-                color: '#e2e8f0', fontSize: 13, fontFamily: 'monospace', outline: 'none',
+                background: 'rgba(200,220,240,0.06)', border: '1px solid rgba(200,220,240,0.12)',
+                borderRadius: 6, padding: '9px 14px',
+                color: '#e4eaf1', fontSize: 13, fontFamily: "'Geist Mono', ui-monospace, monospace", outline: 'none',
               }}
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ fontSize: 11, color: '#64748b', whiteSpace: 'nowrap' }}>Start date</div>
+              <div style={{ fontSize: 11, color: '#9aa5b1', whiteSpace: 'nowrap' }}>Start date</div>
               <input
                 type="date" value={start} onChange={e => setStart(e.target.value)}
                 style={{
-                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: 8, padding: '6px 10px', color: '#e2e8f0', fontSize: 12, outline: 'none',
+                  background: 'rgba(200,220,240,0.06)', border: '1px solid rgba(200,220,240,0.12)',
+                  borderRadius: 6, padding: '6px 10px', color: '#e4eaf1', fontSize: 12, outline: 'none',
                 }}
               />
             </div>
@@ -1306,11 +1308,11 @@ function ExpressionInput({ onLoad, onSimulate, loading }: {
               onClick={() => { if (expr.trim() && !loading) onLoad(expr.trim(), start) }}
               disabled={!expr.trim() || loading}
               style={{
-                background: !expr.trim() || loading ? 'rgba(255,255,255,0.05)' : ACCENT_DIM,
-                border: `1px solid ${!expr.trim() || loading ? 'rgba(255,255,255,0.08)' : ACCENT_BORDER}`,
-                borderRadius: 8, padding: '7px 20px',
-                color: !expr.trim() || loading ? '#475569' : ACCENT,
-                fontSize: 13, fontWeight: 700,
+                background: !expr.trim() || loading ? 'rgba(200,220,240,0.05)' : ACCENT_DIM,
+                border: `1px solid ${!expr.trim() || loading ? 'rgba(200,220,240,0.08)' : ACCENT_BORDER}`,
+                borderRadius: 6, padding: '7px 20px',
+                color: !expr.trim() || loading ? '#8995a2' : ACCENT,
+                fontSize: 13, fontWeight: 600,
                 cursor: !expr.trim() || loading ? 'not-allowed' : 'pointer',
               }}
             >
@@ -1318,13 +1320,13 @@ function ExpressionInput({ onLoad, onSimulate, loading }: {
             </button>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Examples</div>
+            <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Examples</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {EXAMPLE_EXPRESSIONS.map(ex => (
                 <button key={ex} onClick={() => setExpr(ex)} style={{
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                  background: 'rgba(200,220,240,0.04)', border: '1px solid rgba(200,220,240,0.07)',
                   borderRadius: 6, padding: '3px 10px',
-                  color: '#64748b', fontSize: 11, fontFamily: 'monospace', cursor: 'pointer',
+                  color: '#9aa5b1', fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace", cursor: 'pointer',
                 }}>{ex}</button>
               ))}
             </div>
@@ -1552,9 +1554,9 @@ function WindowScanSection({ patterns, days, selectedYears }: {
   const mostRecentYear = chartYears[chartYears.length - 1]
 
   const thStyle: React.CSSProperties = {
-    color: '#475569', fontWeight: 600, fontSize: 10, textTransform: 'uppercase',
+    color: '#8995a2', fontWeight: 600, fontSize: 10, textTransform: 'uppercase',
     letterSpacing: '0.05em', padding: '5px 8px', whiteSpace: 'nowrap',
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
+    borderBottom: '1px solid rgba(200,220,240,0.07)',
   }
 
   function MiniDist({ rows }: { rows: { year: number; ret: number }[] }) {
@@ -1563,7 +1565,7 @@ function WindowScanSection({ patterns, days, selectedYears }: {
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1, height: 22, width: rows.length * 7 }}>
         {rows.map(r => {
           const h = Math.max(2, Math.round(Math.abs(r.ret) / max * 18))
-          const color = r.ret >= 0 ? 'rgba(34,197,94,0.70)' : 'rgba(239,68,68,0.70)'
+          const color = r.ret >= 0 ? 'rgba(95,181,146,0.70)' : 'rgba(217,112,94,0.70)'
           return <div key={r.year} title={`${r.year}: ${r.ret >= 0 ? '+' : ''}${r.ret.toFixed(3)}`}
             style={{ width: 5, height: h, background: color, borderRadius: 1, flexShrink: 0 }} />
         })}
@@ -1573,10 +1575,10 @@ function WindowScanSection({ patterns, days, selectedYears }: {
 
   function Table({ rows, isPos }: { rows: ScanPattern[]; isPos: boolean }) {
     if (rows.length === 0) return null
-    const accent = isPos ? '#22c55e' : '#ef4444'
+    const accent = isPos ? '#5fb592' : '#d9705e'
     return (
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 10, color: accent, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+        <div style={{ fontSize: 10, color: accent, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
           {isPos ? 'Bullish' : 'Bearish'} windows — {rows.length} found
         </div>
         <div style={{ overflowX: 'auto' }}>
@@ -1590,29 +1592,29 @@ function WindowScanSection({ patterns, days, selectedYears }: {
             </thead>
             <tbody>
               {rows.map((p, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <td style={{ padding: '5px 8px', fontFamily: 'monospace', fontSize: 11, fontWeight: 600, color: '#f1f5f9', whiteSpace: 'nowrap' }}>
+                <tr key={i} style={{ borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
+                  <td style={{ padding: '5px 8px', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, fontWeight: 600, color: '#eef2f6', whiteSpace: 'nowrap' }}>
                     {p.startLabel} – {p.endLabel}
                   </td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 11, color: '#64748b' }}>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, color: '#9aa5b1' }}>
                     ~{p.avgTradingDays}d
                   </td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: accent }}>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, fontWeight: 600, color: accent }}>
                     {p.meanYearReturn >= 0 ? '+' : ''}{p.meanYearReturn.toFixed(3)}
                   </td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 11, color: '#94a3b8' }}>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, color: '#c6ced8' }}>
                     {p.t_stat >= 0 ? '+' : ''}{p.t_stat.toFixed(2)}
                   </td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 11, color: sigColor(p.p_value) }}>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, color: sigColor(p.p_value) }}>
                     {p.p_value < 0.001 ? '<0.001' : p.p_value.toFixed(3)}
                   </td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 11, color: sigColor(p.adj_p) }}>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, color: sigColor(p.adj_p) }}>
                     {p.adj_p < 0.001 ? '<0.001' : p.adj_p.toFixed(3)}
                   </td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 11, color: '#94a3b8' }}>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, color: '#c6ced8' }}>
                     {(p.win_rate * 100).toFixed(0)}%
                   </td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace', fontSize: 11, color: '#64748b' }}>
+                  <td style={{ padding: '5px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, color: '#9aa5b1' }}>
                     {p.n_years}
                   </td>
                   <td style={{ padding: '5px 8px' }}>
@@ -1628,25 +1630,25 @@ function WindowScanSection({ patterns, days, selectedYears }: {
   }
 
   return (
-    <div style={cardStyle}>
+    <div className="hub-frame" style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
         <div>
           <div style={sectionLabel}>Irregular Window Scan</div>
-          <div style={{ fontSize: 11, color: '#475569', marginTop: -8, maxWidth: 560 }}>
+          <div style={{ fontSize: 11, color: '#8995a2', marginTop: -8, maxWidth: 560 }}>
             Scans every calendar window from 3 to 40 days, tests cross-year mean with a t-test,
             then deduplicates overlapping windows. p-values are raw; FDR adj-p uses Benjamini–Hochberg across all ~{(366 * 38 / 2).toLocaleString()} candidates.
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <span style={{ fontSize: 10, color: '#475569' }}>Sort by</span>
+          <span style={{ fontSize: 10, color: '#8995a2' }}>Sort by</span>
           {(['tstat', 'adj_p'] as const).map(s => {
             const active = sortBy === s
             return (
               <button key={s} onClick={() => setSortBy(s)} style={{
-                background: active ? ACCENT_DIM : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${active ? ACCENT_BORDER : 'rgba(255,255,255,0.07)'}`,
+                background: active ? ACCENT_DIM : 'rgba(200,220,240,0.04)',
+                border: `1px solid ${active ? ACCENT_BORDER : 'rgba(200,220,240,0.07)'}`,
                 borderRadius: 6, padding: '3px 10px',
-                color: active ? ACCENT : '#475569',
+                color: active ? ACCENT : '#8995a2',
                 fontSize: 11, fontWeight: active ? 700 : 400, cursor: 'pointer',
               }}>{s === 'tstat' ? '|t-stat|' : 'FDR adj-p'}</button>
             )
@@ -1659,16 +1661,16 @@ function WindowScanSection({ patterns, days, selectedYears }: {
         <div style={{ marginBottom: 20 }}>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData} margin={{ top: 4, right: 16, bottom: 4, left: -8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
               {/* Shaded windows — render before lines so they sit behind */}
               {windowShades.map((w, i) => (
                 <ReferenceArea
                   key={i}
                   x1={w.x1} x2={w.x2}
-                  fill={w.isPos ? 'rgba(34,197,94,0.13)' : 'rgba(239,68,68,0.13)'}
-                  stroke={w.isPos ? 'rgba(34,197,94,0.35)' : 'rgba(239,68,68,0.35)'}
+                  fill={w.isPos ? 'rgba(95,181,146,0.13)' : 'rgba(217,112,94,0.13)'}
+                  stroke={w.isPos ? 'rgba(95,181,146,0.35)' : 'rgba(217,112,94,0.35)'}
                   strokeWidth={1}
-                  label={{ value: w.label, position: 'insideTop', fontSize: 9, fill: w.isPos ? '#22c55e' : '#ef4444', opacity: 0.8 }}
+                  label={{ value: w.label, position: 'insideTop', fontSize: 9, fill: w.isPos ? '#5fb592' : '#d9705e', opacity: 0.8 }}
                 />
               ))}
               <XAxis
@@ -1676,11 +1678,11 @@ function WindowScanSection({ patterns, days, selectedYears }: {
                 domain={[0, maxLen - 1]}
                 ticks={tickPositions.map(t => t.dayIdx)}
                 tickFormatter={i => tickPositions.find(t => t.dayIdx === i)?.label ?? ''}
-                tick={{ fill: '#475569', fontSize: 10 }}
-                axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} tickLine={false}
+                tick={{ fill: '#8995a2', fontSize: 10 }}
+                axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} tickLine={false}
               />
-              <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
+              <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeDasharray="4 4" />
               <Tooltip
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null
@@ -1688,22 +1690,22 @@ function WindowScanSection({ patterns, days, selectedYears }: {
                   const refDay = refDays[idx]
                   const dateLabel = refDay ? `${MONTH_NAMES[refDay.month - 1]} ${refDay.dom}` : `Day ${idx}`
                   return (
-                    <div style={{ background: 'rgba(8,13,26,0.95)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '8px 12px', fontSize: 11, maxHeight: 220, overflowY: 'auto' }}>
-                      <div style={{ color: '#64748b', marginBottom: 4 }}>{dateLabel}</div>
+                    <div style={{ background: 'rgba(7,9,12,0.95)', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, padding: '8px 12px', fontSize: 11, maxHeight: 220, overflowY: 'auto' }}>
+                      <div style={{ color: '#9aa5b1', marginBottom: 4 }}>{dateLabel}</div>
                       {payload.filter(p => p.value !== null).sort((a, b) => (b.value as number) - (a.value as number)).map(p => (
                         <div key={p.dataKey} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, color: p.color }}>
                           <span>{p.dataKey}</span>
-                          <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{(p.value as number) >= 0 ? '+' : ''}{(p.value as number).toFixed(3)}</span>
+                          <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600 }}>{(p.value as number) >= 0 ? '+' : ''}{(p.value as number).toFixed(3)}</span>
                         </div>
                       ))}
                     </div>
                   )
                 }}
-                cursor={{ stroke: 'rgba(255,255,255,0.10)' }}
+                cursor={{ stroke: 'rgba(200,220,240,0.10)' }}
               />
               <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }}
                 formatter={value => (
-                  <span style={{ color: value === 'Average' ? '#f1f5f9' : String(value) === String(mostRecentYear) ? '#f1f5f9' : '#475569', fontWeight: value === 'Average' ? 700 : 400 }}>{value}</span>
+                  <span style={{ color: value === 'Average' ? '#eef2f6' : String(value) === String(mostRecentYear) ? '#eef2f6' : '#8995a2', fontWeight: value === 'Average' ? 700 : 400 }}>{value}</span>
                 )}
               />
               {chartYears.map((yr, i) => (
@@ -1715,19 +1717,19 @@ function WindowScanSection({ patterns, days, selectedYears }: {
                 />
               ))}
               <Line key="Average" type="monotone" dataKey="Average"
-                stroke="#ffffff" strokeWidth={3} opacity={1}
+                stroke="#f4f7fa" strokeWidth={3} opacity={1}
                 dot={false} connectNulls={false} isAnimationActive={false}
               />
             </LineChart>
           </ResponsiveContainer>
           {/* Window legend */}
-          <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 10, color: '#64748b' }}>
+          <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 10, color: '#9aa5b1' }}>
             <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-              <div style={{ width: 14, height: 10, background: 'rgba(34,197,94,0.25)', border: '1px solid rgba(34,197,94,0.45)', borderRadius: 2 }} />
+              <div style={{ width: 14, height: 10, background: 'rgba(95,181,146,0.25)', border: '1px solid rgba(95,181,146,0.45)', borderRadius: 2 }} />
               bullish window
             </div>
             <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-              <div style={{ width: 14, height: 10, background: 'rgba(239,68,68,0.25)', border: '1px solid rgba(239,68,68,0.45)', borderRadius: 2 }} />
+              <div style={{ width: 14, height: 10, background: 'rgba(217,112,94,0.25)', border: '1px solid rgba(217,112,94,0.45)', borderRadius: 2 }} />
               bearish window
             </div>
           </div>
@@ -1735,14 +1737,14 @@ function WindowScanSection({ patterns, days, selectedYears }: {
       )}
 
       {patterns.length === 0
-        ? <div style={{ color: '#334155', fontSize: 12, fontStyle: 'italic', textAlign: 'center', padding: '20px 0' }}>No data available.</div>
+        ? <div style={{ color: '#77828f', fontSize: 12, fontStyle: 'italic', textAlign: 'center', padding: '20px 0' }}>No data available.</div>
         : <>
             <Table rows={positive} isPos={true} />
             <Table rows={negative} isPos={false} />
           </>
       }
 
-      <div style={{ fontSize: 10, color: '#334155', marginTop: 4 }}>
+      <div style={{ fontSize: 10, color: '#77828f', marginTop: 4 }}>
         ★ FDR adj-p &lt; 0.10 suggests a robust pattern after multiple-testing correction. Raw p-val reflects single-window significance only.
       </div>
     </div>
@@ -1753,29 +1755,29 @@ function WindowScanSection({ patterns, days, selectedYears }: {
 
 function StatBarChart({ title, data }: { title: string; data: BinStat[] }) {
   return (
-    <div style={cardStyle}>
+    <div className="hub-frame" style={cardStyle}>
       <div style={sectionLabel}>{title}</div>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={data} margin={{ top: 4, right: 8, bottom: data.length > 6 ? 28 : 4, left: -8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
           <XAxis
             dataKey="label"
-            tick={{ fill: '#475569', fontSize: 10 }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+            tick={{ fill: '#8995a2', fontSize: 10 }}
+            axisLine={{ stroke: 'rgba(200,220,240,0.08)' }}
             tickLine={false} interval={0}
             angle={data.length > 6 ? -40 : 0}
             textAnchor={data.length > 6 ? 'end' : 'middle'}
           />
-          <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(3)} />
-          <ReferenceLine y={0} stroke="rgba(255,255,255,0.18)" />
+          <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(3)} />
+          <ReferenceLine y={0} stroke="rgba(200,220,240,0.18)" />
           <Tooltip
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null
               const d = payload[0].payload as BinStat
               return (
-                <div style={{ background: 'rgba(8,13,26,0.95)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-                  <div style={{ color: '#94a3b8', marginBottom: 4, fontWeight: 600 }}>{d.label}</div>
-                  <div style={{ color: d.mean >= 0 ? '#22c55e' : '#ef4444', fontFamily: 'monospace' }}>
+                <div style={{ background: 'rgba(7,9,12,0.95)', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+                  <div style={{ color: '#c6ced8', marginBottom: 4, fontWeight: 600 }}>{d.label}</div>
+                  <div style={{ color: d.mean >= 0 ? '#5fb592' : '#d9705e', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                     {d.mean >= 0 ? '+' : ''}{d.mean.toFixed(5)}
                   </div>
                   <div style={{ color: sigColor(d.p_value), fontSize: 11, marginTop: 2 }}>
@@ -1786,7 +1788,7 @@ function StatBarChart({ title, data }: { title: string; data: BinStat[] }) {
             }}
           />
           <Bar dataKey="mean" radius={[3, 3, 0, 0]}>
-            {data.map((d, i) => <Cell key={i} fill={d.mean >= 0 ? '#22c55e' : '#ef4444'} />)}
+            {data.map((d, i) => <Cell key={i} fill={d.mean >= 0 ? '#5fb592' : '#d9705e'} />)}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -1807,7 +1809,7 @@ function SignificanceTable({ stats }: { stats: SeasonalStats }) {
   ).sort((a, b) => a.p_value - b.p_value)
 
   return (
-    <div style={cardStyle}>
+    <div className="hub-frame" style={cardStyle}>
       <div style={sectionLabel}>Statistical Significance — All Bins (sorted by p-value)</div>
       <div style={{ overflowY: 'auto', maxHeight: 320 }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
@@ -1815,40 +1817,40 @@ function SignificanceTable({ stats }: { stats: SeasonalStats }) {
             <tr>
               {['Dimension','Bin','Mean','Std','t-stat','p-value','Win Rate','N'].map(h => (
                 <th key={h} style={{
-                  color: '#475569', textAlign: h === 'Dimension' || h === 'Bin' ? 'left' : 'right',
+                  color: '#8995a2', textAlign: h === 'Dimension' || h === 'Bin' ? 'left' : 'right',
                   padding: '4px 8px', fontWeight: 600, whiteSpace: 'nowrap',
-                  borderBottom: '1px solid rgba(255,255,255,0.07)',
+                  borderBottom: '1px solid rgba(200,220,240,0.07)',
                 }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {allRows.map((row, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <td style={{ color: '#64748b', padding: '4px 8px', whiteSpace: 'nowrap' }}>{row.dim}</td>
-                <td style={{ color: '#94a3b8', padding: '4px 8px', fontWeight: 600 }}>{row.label}</td>
-                <td style={{ color: row.mean >= 0 ? '#22c55e' : '#ef4444', padding: '4px 8px', textAlign: 'right', fontFamily: 'monospace' }}>
+              <tr key={i} style={{ borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
+                <td style={{ color: '#9aa5b1', padding: '4px 8px', whiteSpace: 'nowrap' }}>{row.dim}</td>
+                <td style={{ color: '#c6ced8', padding: '4px 8px', fontWeight: 600 }}>{row.label}</td>
+                <td style={{ color: row.mean >= 0 ? '#5fb592' : '#d9705e', padding: '4px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                   {row.mean >= 0 ? '+' : ''}{row.mean.toFixed(5)}
                 </td>
-                <td style={{ color: '#64748b', padding: '4px 8px', textAlign: 'right', fontFamily: 'monospace' }}>{row.std.toFixed(5)}</td>
-                <td style={{ color: '#94a3b8', padding: '4px 8px', textAlign: 'right', fontFamily: 'monospace' }}>{row.t_stat.toFixed(2)}</td>
-                <td style={{ color: sigColor(row.p_value), padding: '4px 8px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>
+                <td style={{ color: '#9aa5b1', padding: '4px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{row.std.toFixed(5)}</td>
+                <td style={{ color: '#c6ced8', padding: '4px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{row.t_stat.toFixed(2)}</td>
+                <td style={{ color: sigColor(row.p_value), padding: '4px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600 }}>
                   {row.p_value < 0.001 ? '<0.001' : row.p_value.toFixed(4)}
                 </td>
-                <td style={{ color: '#94a3b8', padding: '4px 8px', textAlign: 'right', fontFamily: 'monospace' }}>
+                <td style={{ color: '#c6ced8', padding: '4px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                   {(row.win_rate * 100).toFixed(1)}%
                 </td>
-                <td style={{ color: '#64748b', padding: '4px 8px', textAlign: 'right', fontFamily: 'monospace' }}>{row.n}</td>
+                <td style={{ color: '#9aa5b1', padding: '4px 8px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{row.n}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 10, color: '#64748b' }}>
-        <span style={{ color: '#22c55e' }}>■ p&lt;0.01</span>
-        <span style={{ color: '#86efac' }}>■ p&lt;0.05</span>
-        <span style={{ color: '#fbbf24' }}>■ p&lt;0.10</span>
-        <span style={{ color: '#475569' }}>■ p≥0.10</span>
+      <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 10, color: '#9aa5b1' }}>
+        <span style={{ color: '#5fb592' }}>■ p&lt;0.01</span>
+        <span style={{ color: '#9dd6bd' }}>■ p&lt;0.05</span>
+        <span style={{ color: '#dfbb78' }}>■ p&lt;0.10</span>
+        <span style={{ color: '#8995a2' }}>■ p≥0.10</span>
       </div>
     </div>
   )
@@ -1891,18 +1893,18 @@ function StrategyBuilder({ rule, onChange }: { rule: Rule; onChange: (r: Rule) =
   }
 
   const selectStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 6, padding: '4px 7px', color: '#e2e8f0', fontSize: 12, cursor: 'pointer', outline: 'none',
+    background: 'rgba(200,220,240,0.06)', border: '1px solid rgba(200,220,240,0.12)',
+    borderRadius: 6, padding: '4px 7px', color: '#e4eaf1', fontSize: 12, cursor: 'pointer', outline: 'none',
   }
   const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
 
   return (
-    <div style={cardStyle}>
+    <div className="hub-frame" style={cardStyle}>
       <div style={sectionLabel}>Strategy Builder</div>
 
       {/* Dimension selector */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Seasonal Dimension</div>
+        <div style={{ fontSize: 10, color: '#9aa5b1', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Seasonal Dimension</div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {typeOptions.map(o => {
             const active = rule.type === o.value
@@ -1913,10 +1915,10 @@ function StrategyBuilder({ rule, onChange }: { rule: Rule; onChange: (r: Rule) =
                   ? [{ startMonth: 0, startDay: 0, endMonth: 0, endDay: 0, direction: 1 }]
                   : rule.customLegs,
               })} style={{
-                background: active ? ACCENT_DIM : 'rgba(255,255,255,0.05)',
-                border: `1px solid ${active ? ACCENT_BORDER : 'rgba(255,255,255,0.08)'}`,
+                background: active ? ACCENT_DIM : 'rgba(200,220,240,0.05)',
+                border: `1px solid ${active ? ACCENT_BORDER : 'rgba(200,220,240,0.08)'}`,
                 borderRadius: 7, padding: '5px 12px',
-                color: active ? ACCENT : '#64748b',
+                color: active ? ACCENT : '#9aa5b1',
                 fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer',
               }}>{o.label}</button>
             )
@@ -1928,16 +1930,16 @@ function StrategyBuilder({ rule, onChange }: { rule: Rule; onChange: (r: Rule) =
       {rule.type !== 'custom' && (
         <>
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Direction</div>
+            <div style={{ fontSize: 10, color: '#9aa5b1', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Direction</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {([1, -1] as const).map(d => {
                 const active = rule.direction === d
                 return (
                   <button key={d} onClick={() => onChange({ ...rule, direction: d })} style={{
-                    background: active ? (d === 1 ? 'rgba(34,197,94,0.18)' : 'rgba(239,68,68,0.18)') : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${active ? (d === 1 ? 'rgba(34,197,94,0.50)' : 'rgba(239,68,68,0.50)') : 'rgba(255,255,255,0.08)'}`,
+                    background: active ? (d === 1 ? 'rgba(95,181,146,0.18)' : 'rgba(217,112,94,0.18)') : 'rgba(200,220,240,0.05)',
+                    border: `1px solid ${active ? (d === 1 ? 'rgba(95,181,146,0.50)' : 'rgba(217,112,94,0.50)') : 'rgba(200,220,240,0.08)'}`,
                     borderRadius: 7, padding: '5px 14px',
-                    color: active ? (d === 1 ? '#22c55e' : '#ef4444') : '#64748b',
+                    color: active ? (d === 1 ? '#5fb592' : '#d9705e') : '#9aa5b1',
                     fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer',
                   }}>{d === 1 ? 'Long' : 'Short'}</button>
                 )
@@ -1945,24 +1947,24 @@ function StrategyBuilder({ rule, onChange }: { rule: Rule; onChange: (r: Rule) =
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Select Bins</div>
+            <div style={{ fontSize: 10, color: '#9aa5b1', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Select Bins</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {meta.labels.map((lbl, i) => {
                 const bin = meta.bins[i]
                 const active = rule.bins.includes(bin)
                 return (
                   <button key={bin} onClick={() => toggleBin(bin)} style={{
-                    background: active ? ACCENT_DIM : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${active ? ACCENT_BORDER : 'rgba(255,255,255,0.07)'}`,
+                    background: active ? ACCENT_DIM : 'rgba(200,220,240,0.04)',
+                    border: `1px solid ${active ? ACCENT_BORDER : 'rgba(200,220,240,0.07)'}`,
                     borderRadius: 6, padding: '4px 10px',
-                    color: active ? ACCENT : '#475569',
+                    color: active ? ACCENT : '#8995a2',
                     fontSize: 11, fontWeight: active ? 700 : 400, cursor: 'pointer',
                   }}>{lbl}</button>
                 )
               })}
             </div>
             {rule.bins.length === 0 && (
-              <div style={{ marginTop: 10, fontSize: 11, color: '#475569', fontStyle: 'italic' }}>
+              <div style={{ marginTop: 10, fontSize: 11, color: '#8995a2', fontStyle: 'italic' }}>
                 Select at least one bin to run a backtest.
               </div>
             )}
@@ -1973,7 +1975,7 @@ function StrategyBuilder({ rule, onChange }: { rule: Rule; onChange: (r: Rule) =
       {/* Custom windows */}
       {rule.type === 'custom' && (
         <div>
-          <div style={{ fontSize: 10, color: '#64748b', marginBottom: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <div style={{ fontSize: 10, color: '#9aa5b1', marginBottom: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Windows
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1982,43 +1984,43 @@ function StrategyBuilder({ rule, onChange }: { rule: Rule; onChange: (r: Rule) =
               return (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
-                  background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: '8px 12px',
-                  border: '1px solid rgba(255,255,255,0.06)',
+                  background: 'rgba(200,220,240,0.03)', borderRadius: 6, padding: '8px 12px',
+                  border: '1px solid rgba(200,220,240,0.06)',
                 }}>
-                  <span style={{ fontSize: 11, color: '#475569', minWidth: 28 }}>#{i + 1}</span>
+                  <span style={{ fontSize: 11, color: '#8995a2', minWidth: 28 }}>#{i + 1}</span>
 
-                  <span style={{ fontSize: 11, color: '#475569' }}>From</span>
+                  <span style={{ fontSize: 11, color: '#8995a2' }}>From</span>
                   <select value={leg.startMonth} style={selectStyle} onChange={e => updateLeg(i, { startMonth: +e.target.value })}>
-                    <option value={0} style={{ background: '#0f172a' }}>Month</option>
-                    {MONTH_NAMES.map((m, mi) => <option key={mi} value={mi + 1} style={{ background: '#0f172a' }}>{m}</option>)}
+                    <option value={0} style={{ background: '#0b0f14' }}>Month</option>
+                    {MONTH_NAMES.map((m, mi) => <option key={mi} value={mi + 1} style={{ background: '#0b0f14' }}>{m}</option>)}
                   </select>
                   <select value={leg.startDay} style={selectStyle} onChange={e => updateLeg(i, { startDay: +e.target.value })}>
-                    <option value={0} style={{ background: '#0f172a' }}>Day</option>
-                    {DAYS.map(d => <option key={d} value={d} style={{ background: '#0f172a' }}>{d}</option>)}
+                    <option value={0} style={{ background: '#0b0f14' }}>Day</option>
+                    {DAYS.map(d => <option key={d} value={d} style={{ background: '#0b0f14' }}>{d}</option>)}
                   </select>
 
-                  <span style={{ fontSize: 11, color: '#475569' }}>To</span>
+                  <span style={{ fontSize: 11, color: '#8995a2' }}>To</span>
                   <select value={leg.endMonth} style={selectStyle} onChange={e => updateLeg(i, { endMonth: +e.target.value })}>
-                    <option value={0} style={{ background: '#0f172a' }}>Month</option>
-                    {MONTH_NAMES.map((m, mi) => <option key={mi} value={mi + 1} style={{ background: '#0f172a' }}>{m}</option>)}
+                    <option value={0} style={{ background: '#0b0f14' }}>Month</option>
+                    {MONTH_NAMES.map((m, mi) => <option key={mi} value={mi + 1} style={{ background: '#0b0f14' }}>{m}</option>)}
                   </select>
                   <select value={leg.endDay} style={selectStyle} onChange={e => updateLeg(i, { endDay: +e.target.value })}>
-                    <option value={0} style={{ background: '#0f172a' }}>Day</option>
-                    {DAYS.map(d => <option key={d} value={d} style={{ background: '#0f172a' }}>{d}</option>)}
+                    <option value={0} style={{ background: '#0b0f14' }}>Day</option>
+                    {DAYS.map(d => <option key={d} value={d} style={{ background: '#0b0f14' }}>{d}</option>)}
                   </select>
 
                   <button onClick={() => updateLeg(i, { direction: isLong ? -1 : 1 })} style={{
-                    background: isLong ? 'rgba(34,197,94,0.18)' : 'rgba(239,68,68,0.18)',
-                    border: `1px solid ${isLong ? 'rgba(34,197,94,0.50)' : 'rgba(239,68,68,0.50)'}`,
+                    background: isLong ? 'rgba(95,181,146,0.18)' : 'rgba(217,112,94,0.18)',
+                    border: `1px solid ${isLong ? 'rgba(95,181,146,0.50)' : 'rgba(217,112,94,0.50)'}`,
                     borderRadius: 6, padding: '4px 12px',
-                    color: isLong ? '#22c55e' : '#ef4444',
-                    fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    color: isLong ? '#5fb592' : '#d9705e',
+                    fontSize: 11, fontWeight: 600, cursor: 'pointer',
                   }}>{isLong ? 'Long' : 'Short'}</button>
 
                   <button onClick={() => removeLeg(i)} style={{
-                    background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'transparent', border: '1px solid rgba(200,220,240,0.08)',
                     borderRadius: 6, padding: '4px 8px',
-                    color: '#475569', fontSize: 13, cursor: 'pointer', lineHeight: 1,
+                    color: '#8995a2', fontSize: 13, cursor: 'pointer', lineHeight: 1,
                   }}>×</button>
                 </div>
               )
@@ -2027,13 +2029,13 @@ function StrategyBuilder({ rule, onChange }: { rule: Rule; onChange: (r: Rule) =
 
           <button onClick={addLeg} style={{
             marginTop: 10,
-            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.10)',
+            background: 'rgba(200,220,240,0.04)', border: '1px solid rgba(200,220,240,0.10)',
             borderRadius: 7, padding: '6px 14px',
-            color: '#64748b', fontSize: 12, cursor: 'pointer',
+            color: '#9aa5b1', fontSize: 12, cursor: 'pointer',
           }}>+ Add window</button>
 
           {!(rule.customLegs ?? []).some(l => l.startMonth && l.startDay && l.endMonth && l.endDay) && (
-            <div style={{ marginTop: 10, fontSize: 11, color: '#475569', fontStyle: 'italic' }}>
+            <div style={{ marginTop: 10, fontSize: 11, color: '#8995a2', fontStyle: 'italic' }}>
               Define at least one complete window to run a backtest.
             </div>
           )}
@@ -2101,9 +2103,9 @@ const SCREENER_UNIVERSE: ScreenerItem[] = [
 const SCREENER_GROUPS = [...new Set(SCREENER_UNIVERSE.map(s => s.group))]
 
 const GROUP_COLORS: Record<string, string> = {
-  Rates: '#06B6D4', Curves: '#8B5CF6', Spreads: '#F59E0B',
-  FX: '#10B981', Equity: '#EF4444', Swaps: '#3B82F6',
-  Inflation: '#F97316', Commodities: '#84CC16',
+  Rates: '#6fc0cb', Curves: '#a08bd2', Spreads: '#d6ad66',
+  FX: '#58ad8e', Equity: '#d9705e', Swaps: '#6aa9cc',
+  Inflation: '#d48853', Commodities: '#a8c46e',
 }
 
 function lcg(seed: number): () => number {
@@ -2179,14 +2181,14 @@ function Sparkline({ yearReturns }: { yearReturns: { year: number; ret: number }
 
   return (
     <svg width={totalW} height={h} style={{ verticalAlign: 'middle', display: 'block' }}>
-      <line x1={0} y1={h / 2} x2={totalW} y2={h / 2} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+      <line x1={0} y1={h / 2} x2={totalW} y2={h / 2} stroke="rgba(200,220,240,0.08)" strokeWidth={1} />
       {rets.map((v, i) => {
         const barH = Math.max(1, Math.abs(v) / maxAbs * (h / 2 - 2))
         const x = i * (w + gap)
         const y = v >= 0 ? h / 2 - barH : h / 2
         return (
           <rect key={i} x={x} y={y} width={w} height={barH}
-            fill={v >= 0 ? '#22c55e' : '#ef4444'} opacity={0.8} rx={0.5} />
+            fill={v >= 0 ? '#5fb592' : '#d9705e'} opacity={0.8} rx={0.5} />
         )
       })}
     </svg>
@@ -2222,20 +2224,20 @@ function ScreenerSeriesDetail({ r, startMonth, startDay, endMonth, endDay }: {
   const winRate  = rets.filter(v => v > 0).length / n
 
   const metricItems = [
-    { label: 'Total Return',  value: `${totalRet >= 0 ? '+' : ''}${totalRet.toFixed(3)}`,    color: totalRet >= 0 ? '#22c55e' : '#ef4444' },
-    { label: 'Avg/Year',      value: `${mean >= 0 ? '+' : ''}${mean.toFixed(3)}`,             color: mean >= 0 ? '#22c55e' : '#ef4444' },
-    { label: 'Sharpe',        value: sharpe.toFixed(3),                                        color: sharpe > 0.5 ? '#22c55e' : sharpe > 0 ? '#fbbf24' : '#ef4444' },
-    { label: 'Max Drawdown',  value: maxDd.toFixed(3),                                         color: '#ef4444' },
-    { label: 'Win Rate',      value: `${(winRate * 100).toFixed(0)}%`,                         color: winRate >= 0.5 ? '#22c55e' : '#ef4444' },
-    { label: 'Years',         value: String(n),                                                 color: '#94a3b8' },
+    { label: 'Total Return',  value: `${totalRet >= 0 ? '+' : ''}${totalRet.toFixed(3)}`,    color: totalRet >= 0 ? '#5fb592' : '#d9705e' },
+    { label: 'Avg/Year',      value: `${mean >= 0 ? '+' : ''}${mean.toFixed(3)}`,             color: mean >= 0 ? '#5fb592' : '#d9705e' },
+    { label: 'Sharpe',        value: sharpe.toFixed(3),                                        color: sharpe > 0.5 ? '#5fb592' : sharpe > 0 ? '#dfbb78' : '#d9705e' },
+    { label: 'Max Drawdown',  value: maxDd.toFixed(3),                                         color: '#d9705e' },
+    { label: 'Win Rate',      value: `${(winRate * 100).toFixed(0)}%`,                         color: winRate >= 0.5 ? '#5fb592' : '#d9705e' },
+    { label: 'Years',         value: String(n),                                                 color: '#c6ced8' },
   ]
 
-  const ddFill  = 'rgba(239,68,68,0.15)'
+  const ddFill  = 'rgba(217,112,94,0.15)'
   const barFmt  = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(3)}`
 
   return (
     <div style={{ padding: '16px 16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+      <div style={{ fontSize: 10, color: '#9aa5b1', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
         {r.name} &nbsp;·&nbsp; {MONTH_NAMES[startMonth - 1]} {startDay} → {MONTH_NAMES[endMonth - 1]} {endDay}
       </div>
 
@@ -2243,25 +2245,25 @@ function ScreenerSeriesDetail({ r, startMonth, startDay, endMonth, endDay }: {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 8 }}>
         {metricItems.map(m => (
           <div key={m.label} style={{ ...cardStyle, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <div style={{ fontSize: 9, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{m.label}</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: m.color, fontFamily: 'monospace' }}>{m.value}</div>
+            <div style={{ fontSize: 9, color: '#8995a2', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{m.label}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: m.color, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{m.value}</div>
           </div>
         ))}
       </div>
 
       {/* Cumulative PnL */}
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         <div style={sectionLabel}>Cumulative window PnL across years</div>
         <ResponsiveContainer width="100%" height={180}>
           <LineChart data={eqData} margin={{ top: 6, right: 16, bottom: 0, left: -8 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-            <XAxis dataKey="year" tick={{ fill: '#475569', fontSize: 10 }} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} tickLine={false} />
-            <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
-            <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.10)' }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
+            <XAxis dataKey="year" tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} tickLine={false} />
+            <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
+            <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeDasharray="4 4" />
+            <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(200,220,240,0.10)' }} />
             {eqData.map((d, i) => (
               <ReferenceLine key={d.year} x={d.year}
-                stroke={i % 2 === 0 ? 'rgba(6,182,212,0.12)' : 'transparent'}
+                stroke={i % 2 === 0 ? 'rgba(111,192,203,0.12)' : 'transparent'}
                 strokeWidth={8} />
             ))}
             <Line type="monotone" dataKey="cumPnL" name="Cum. PnL" stroke={ACCENT} strokeWidth={2} dot={{ r: 3, fill: ACCENT }} activeDot={{ r: 4 }} />
@@ -2271,33 +2273,33 @@ function ScreenerSeriesDetail({ r, startMonth, startDay, endMonth, endDay }: {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         {/* Drawdown */}
-        <div style={cardStyle}>
+        <div className="hub-frame" style={cardStyle}>
           <div style={sectionLabel}>Drawdown</div>
           <ResponsiveContainer width="100%" height={160}>
             <AreaChart data={eqData} margin={{ top: 4, right: 16, bottom: 0, left: -8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="year" tick={{ fill: '#475569', fontSize: 10 }} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} tickLine={false} />
-              <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
-              <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.10)' }} />
-              <Area type="monotone" dataKey="drawdown" name="Drawdown" stroke="#ef4444" fill={ddFill} strokeWidth={1.5} dot={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
+              <XAxis dataKey="year" tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} tickLine={false} />
+              <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(200,220,240,0.10)' }} />
+              <Area type="monotone" dataKey="drawdown" name="Drawdown" stroke="#d9705e" fill={ddFill} strokeWidth={1.5} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
         {/* Annual bars */}
-        <div style={cardStyle}>
+        <div className="hub-frame" style={cardStyle}>
           <div style={sectionLabel}>Annual PnL</div>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={annData} margin={{ top: 4, right: 16, bottom: 0, left: -8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="year" tick={{ fill: '#475569', fontSize: 10 }} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} tickLine={false} />
-              <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.18)" />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} formatter={barFmt} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
+              <XAxis dataKey="year" tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} tickLine={false} />
+              <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.18)" />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(200,220,240,0.04)' }} formatter={barFmt} />
               <Bar dataKey="ret" name="Return" radius={[3, 3, 0, 0]}>
                 {annData.map(d => (
-                  <Cell key={d.year} fill={d.ret >= 0 ? ACCENT : '#ef4444'} opacity={0.85} />
+                  <Cell key={d.year} fill={d.ret >= 0 ? ACCENT : '#d9705e'} opacity={0.85} />
                 ))}
               </Bar>
             </BarChart>
@@ -2334,8 +2336,8 @@ function SeasonalityScreener() {
   }, [results, activeGroups, sortBy])
 
   const selectStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 7, padding: '4px 8px', color: '#e2e8f0', fontSize: 12,
+    background: 'rgba(200,220,240,0.06)', border: '1px solid rgba(200,220,240,0.12)',
+    borderRadius: 7, padding: '4px 8px', color: '#e4eaf1', fontSize: 12,
     cursor: 'pointer', outline: 'none',
   }
   const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
@@ -2352,9 +2354,9 @@ function SeasonalityScreener() {
     return (
       <th onClick={() => setSortBy(col)} style={{
         padding: '6px 10px', textAlign: 'right', cursor: 'pointer',
-        color: active ? ACCENT : '#475569', fontWeight: active ? 700 : 600,
+        color: active ? ACCENT : '#8995a2', fontWeight: active ? 700 : 600,
         fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        borderBottom: '1px solid rgba(200,220,240,0.07)',
         userSelect: 'none', whiteSpace: 'nowrap',
       }}>
         {label}{active ? ' ▾' : ''}
@@ -2366,30 +2368,30 @@ function SeasonalityScreener() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
 
       {/* Window + controls */}
-      <div style={{ ...cardStyle, padding: '14px 18px' }}>
+      <div className="hub-frame" style={{ ...cardStyle, padding: '14px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Seasonal Window</span>
-          <span style={{ fontSize: 11, color: '#475569' }}>From</span>
+          <span style={{ fontSize: 10, color: '#9aa5b1', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Seasonal Window</span>
+          <span style={{ fontSize: 11, color: '#8995a2' }}>From</span>
           <select value={startMonth} style={selectStyle} onChange={e => setStartMonth(+e.target.value)}>
-            {MONTH_NAMES.map((n, i) => <option key={i} value={i + 1} style={{ background: '#0f172a' }}>{n}</option>)}
+            {MONTH_NAMES.map((n, i) => <option key={i} value={i + 1} style={{ background: '#0b0f14' }}>{n}</option>)}
           </select>
           <select value={startDay} style={selectStyle} onChange={e => setStartDay(+e.target.value)}>
-            {DAYS.map(d => <option key={d} value={d} style={{ background: '#0f172a' }}>{d}</option>)}
+            {DAYS.map(d => <option key={d} value={d} style={{ background: '#0b0f14' }}>{d}</option>)}
           </select>
-          <span style={{ fontSize: 11, color: '#475569' }}>To</span>
+          <span style={{ fontSize: 11, color: '#8995a2' }}>To</span>
           <select value={endMonth} style={selectStyle} onChange={e => setEndMonth(+e.target.value)}>
-            {MONTH_NAMES.map((n, i) => <option key={i} value={i + 1} style={{ background: '#0f172a' }}>{n}</option>)}
+            {MONTH_NAMES.map((n, i) => <option key={i} value={i + 1} style={{ background: '#0b0f14' }}>{n}</option>)}
           </select>
           <select value={endDay} style={selectStyle} onChange={e => setEndDay(+e.target.value)}>
-            {DAYS.map(d => <option key={d} value={d} style={{ background: '#0f172a' }}>{d}</option>)}
+            {DAYS.map(d => <option key={d} value={d} style={{ background: '#0b0f14' }}>{d}</option>)}
           </select>
-          <div style={{ marginLeft: 'auto', fontSize: 10, color: '#475569' }}>
+          <div style={{ marginLeft: 'auto', fontSize: 10, color: '#8995a2' }}>
             {filtered.length} series · Sort by:&nbsp;
             {(['abs_t', 'mean', 'p_value', 'win_rate'] as ScreenerSort[]).map(s => (
               <button key={s} onClick={() => setSortBy(s)} style={{
                 background: sortBy === s ? ACCENT_DIM : 'transparent',
-                border: `1px solid ${sortBy === s ? ACCENT_BORDER : 'rgba(255,255,255,0.08)'}`,
-                borderRadius: 5, padding: '2px 8px', color: sortBy === s ? ACCENT : '#64748b',
+                border: `1px solid ${sortBy === s ? ACCENT_BORDER : 'rgba(200,220,240,0.08)'}`,
+                borderRadius: 5, padding: '2px 8px', color: sortBy === s ? ACCENT : '#9aa5b1',
                 fontSize: 10, cursor: 'pointer', marginLeft: 4,
               }}>
                 {{ abs_t: '|t-stat|', mean: 'Mean', p_value: 'p-value', win_rate: 'Win Rate' }[s]}
@@ -2404,9 +2406,9 @@ function SeasonalityScreener() {
             const on = activeGroups.includes(g)
             return (
               <button key={g} onClick={() => setActiveGroups(on ? activeGroups.filter(x => x !== g) : [...activeGroups, g])} style={{
-                background: on ? `${GROUP_COLORS[g]}22` : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${on ? GROUP_COLORS[g] + '88' : 'rgba(255,255,255,0.08)'}`,
-                borderRadius: 20, padding: '3px 10px', color: on ? GROUP_COLORS[g] : '#475569',
+                background: on ? `${GROUP_COLORS[g]}22` : 'rgba(200,220,240,0.04)',
+                border: `1px solid ${on ? GROUP_COLORS[g] + '88' : 'rgba(200,220,240,0.08)'}`,
+                borderRadius: 6, padding: '3px 10px', color: on ? GROUP_COLORS[g] : '#8995a2',
                 fontSize: 11, fontWeight: on ? 600 : 400, cursor: 'pointer',
               }}>{g}</button>
             )
@@ -2417,61 +2419,61 @@ function SeasonalityScreener() {
       <YearSelector allYears={SCREENER_ALL_YEARS} selectedYears={selectedYears} onChange={setSelectedYears} />
 
       {/* Results table */}
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
           <thead>
             <tr>
-              <th style={{ padding: '6px 10px', textAlign: 'left', color: '#475569', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(255,255,255,0.07)', width: 28 }}>#</th>
-              <th style={{ padding: '6px 10px', textAlign: 'left', color: '#475569', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>Series</th>
+              <th style={{ padding: '6px 10px', textAlign: 'left', color: '#8995a2', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(200,220,240,0.07)', width: 28 }}>#</th>
+              <th style={{ padding: '6px 10px', textAlign: 'left', color: '#8995a2', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(200,220,240,0.07)' }}>Series</th>
               <ColHeader label="Mean Ret" col="mean" />
               <ColHeader label="|t-stat|" col="abs_t" />
               <ColHeader label="p-value" col="p_value" />
               <ColHeader label="Win Rate" col="win_rate" />
-              <th style={{ padding: '6px 10px', textAlign: 'right', color: '#475569', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>Std</th>
-              <th style={{ padding: '6px 10px', textAlign: 'right', color: '#475569', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>Years</th>
-              <th style={{ padding: '6px 10px', textAlign: 'center', color: '#475569', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>Annual Returns</th>
+              <th style={{ padding: '6px 10px', textAlign: 'right', color: '#8995a2', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(200,220,240,0.07)' }}>Std</th>
+              <th style={{ padding: '6px 10px', textAlign: 'right', color: '#8995a2', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(200,220,240,0.07)' }}>Years</th>
+              <th style={{ padding: '6px 10px', textAlign: 'center', color: '#8995a2', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(200,220,240,0.07)' }}>Annual Returns</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((r, rank) => {
               const isOpen = expanded === r.id
-              const gc = GROUP_COLORS[r.group] ?? '#64748b'
+              const gc = GROUP_COLORS[r.group] ?? '#9aa5b1'
               return (
                 <>
                   <tr key={r.id}
                     onClick={() => setExpanded(isOpen ? null : r.id)}
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', background: isOpen ? 'rgba(255,255,255,0.03)' : 'transparent' }}
+                    style={{ borderBottom: '1px solid rgba(200,220,240,0.04)', cursor: 'pointer', background: isOpen ? 'rgba(200,220,240,0.03)' : 'transparent' }}
                   >
-                    <td style={{ padding: '7px 10px', color: '#334155', fontFamily: 'monospace', fontSize: 10 }}>{rank + 1}</td>
+                    <td style={{ padding: '7px 10px', color: '#77828f', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10 }}>{rank + 1}</td>
                     <td style={{ padding: '7px 10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ background: gc + '22', border: `1px solid ${gc}55`, borderRadius: 10, padding: '1px 7px', color: gc, fontSize: 9, fontWeight: 700, whiteSpace: 'nowrap' }}>{r.group}</span>
-                        <span style={{ color: '#cbd5e1', fontWeight: 600 }}>{r.name}</span>
-                        <span style={{ color: r.mean >= 0 ? '#22c55e' : '#ef4444', fontSize: 13, lineHeight: 1 }}>{r.mean >= 0 ? '↑' : '↓'}</span>
+                        <span style={{ background: gc + '22', border: `1px solid ${gc}55`, borderRadius: 6, padding: '1px 7px', color: gc, fontSize: 9, fontWeight: 600, whiteSpace: 'nowrap' }}>{r.group}</span>
+                        <span style={{ color: '#c3ccd6', fontWeight: 600 }}>{r.name}</span>
+                        <span style={{ color: r.mean >= 0 ? '#5fb592' : '#d9705e', fontSize: 13, lineHeight: 1 }}>{r.mean >= 0 ? '↑' : '↓'}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', color: r.mean >= 0 ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", color: r.mean >= 0 ? '#5fb592' : '#d9705e', fontWeight: 600 }}>
                       {r.mean >= 0 ? '+' : ''}{r.mean.toFixed(3)}
                     </td>
-                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', color: Math.abs(r.t_stat) >= 2 ? '#f1f5f9' : '#64748b', fontWeight: Math.abs(r.t_stat) >= 2 ? 700 : 400 }}>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", color: Math.abs(r.t_stat) >= 2 ? '#eef2f6' : '#9aa5b1', fontWeight: Math.abs(r.t_stat) >= 2 ? 700 : 400 }}>
                       {Math.abs(r.t_stat).toFixed(2)}
                     </td>
-                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', color: sigColor(r.p_value) }}>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", color: sigColor(r.p_value) }}>
                       {r.p_value.toFixed(3)}&nbsp;<span style={{ fontSize: 9, letterSpacing: '-0.02em' }}>{sigStars(r.p_value)}</span>
                     </td>
-                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', color: r.win_rate >= 0.5 ? '#22c55e' : '#ef4444' }}>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", color: r.win_rate >= 0.5 ? '#5fb592' : '#d9705e' }}>
                       {(r.win_rate * 100).toFixed(0)}%
                     </td>
-                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', color: '#475569' }}>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#8995a2' }}>
                       {r.std.toFixed(3)}
                     </td>
-                    <td style={{ padding: '7px 10px', textAlign: 'right', color: '#475569' }}>{r.n_years}</td>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', color: '#8995a2' }}>{r.n_years}</td>
                     <td style={{ padding: '7px 14px', textAlign: 'center' }}>
                       <Sparkline yearReturns={r.yearReturns} />
                     </td>
                   </tr>
                   {isOpen && (
-                    <tr key={`${r.id}-detail`} style={{ background: 'rgba(6,182,212,0.02)', borderBottom: '1px solid rgba(6,182,212,0.12)' }}>
+                    <tr key={`${r.id}-detail`} style={{ background: 'rgba(111,192,203,0.02)', borderBottom: '1px solid rgba(111,192,203,0.12)' }}>
                       <td colSpan={9}>
                         <ScreenerSeriesDetail r={r} startMonth={startMonth} startDay={startDay} endMonth={endMonth} endDay={endDay} />
                       </td>
@@ -2494,12 +2496,12 @@ function SeasonalityScreener() {
           if (!active || !payload?.length) return null
           const d = payload[0].payload
           return (
-            <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '8px 12px', fontSize: 11 }}>
-              <div style={{ color: GROUP_COLORS[d.group] ?? ACCENT, fontWeight: 700, marginBottom: 4 }}>{d.name}</div>
-              <div style={{ color: '#94a3b8' }}>Mean: {d.mean >= 0 ? '+' : ''}{d.mean.toFixed(3)}</div>
-              <div style={{ color: '#94a3b8' }}>t-stat: {d.t_stat.toFixed(3)}</div>
+            <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, padding: '8px 12px', fontSize: 11 }}>
+              <div style={{ color: GROUP_COLORS[d.group] ?? ACCENT, fontWeight: 600, marginBottom: 4 }}>{d.name}</div>
+              <div style={{ color: '#c6ced8' }}>Mean: {d.mean >= 0 ? '+' : ''}{d.mean.toFixed(3)}</div>
+              <div style={{ color: '#c6ced8' }}>t-stat: {d.t_stat.toFixed(3)}</div>
               <div style={{ color: sigColor(d.p_value) }}>p-value: {d.p_value.toFixed(3)}</div>
-              <div style={{ color: '#94a3b8' }}>Win rate: {(d.win_rate * 100).toFixed(0)}%</div>
+              <div style={{ color: '#c6ced8' }}>Win rate: {(d.win_rate * 100).toFixed(0)}%</div>
             </div>
           )
         }
@@ -2508,21 +2510,21 @@ function SeasonalityScreener() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
             {/* Signed t-stat horizontal bars */}
-            <div style={cardStyle}>
+            <div className="hub-frame" style={cardStyle}>
               <div style={sectionLabel}>Seasonal Signal Strength — Signed t-statistic (|t| ≥ 2 = significant)</div>
               <ResponsiveContainer width="100%" height={barH}>
                 <BarChart data={byTStat} layout="vertical" margin={{ top: 4, right: 40, bottom: 4, left: 110 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
-                  <XAxis type="number" domain={['auto', 'auto']} tick={{ fill: '#475569', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={v => v.toFixed(1)} />
-                  <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} width={105} axisLine={false} tickLine={false} />
-                  <ReferenceLine x={0}  stroke="rgba(255,255,255,0.18)" />
-                  <ReferenceLine x={2}  stroke="rgba(34,197,94,0.35)"  strokeDasharray="4 3" label={{ value: '+2', position: 'insideTopRight', fontSize: 9, fill: '#22c55e' }} />
-                  <ReferenceLine x={-2} stroke="rgba(239,68,68,0.35)"  strokeDasharray="4 3" label={{ value: '−2', position: 'insideTopLeft',  fontSize: 9, fill: '#ef4444' }} />
-                  <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" horizontal={false} />
+                  <XAxis type="number" domain={['auto', 'auto']} tick={{ fill: '#8995a2', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={v => v.toFixed(1)} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: '#c6ced8', fontSize: 10 }} width={105} axisLine={false} tickLine={false} />
+                  <ReferenceLine x={0}  stroke="rgba(200,220,240,0.18)" />
+                  <ReferenceLine x={2}  stroke="rgba(95,181,146,0.35)"  strokeDasharray="4 3" label={{ value: '+2', position: 'insideTopRight', fontSize: 9, fill: '#5fb592' }} />
+                  <ReferenceLine x={-2} stroke="rgba(217,112,94,0.35)"  strokeDasharray="4 3" label={{ value: '−2', position: 'insideTopLeft',  fontSize: 9, fill: '#d9705e' }} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(200,220,240,0.04)' }} />
                   <Bar dataKey="t_stat" name="t-stat" radius={[0, 3, 3, 0]}>
                     {byTStat.map(r => (
                       <Cell key={r.id}
-                        fill={r.t_stat >= 0 ? ACCENT : '#ef4444'}
+                        fill={r.t_stat >= 0 ? ACCENT : '#d9705e'}
                         opacity={Math.abs(r.t_stat) >= 2 ? 0.85 : 0.35} />
                     ))}
                   </Bar>
@@ -2533,29 +2535,29 @@ function SeasonalityScreener() {
             <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 16 }}>
 
               {/* Scatter: mean return vs t-stat */}
-              <div style={cardStyle}>
+              <div className="hub-frame" style={cardStyle}>
                 <div style={sectionLabel}>Mean Return vs t-statistic — by asset class</div>
                 <ResponsiveContainer width="100%" height={320}>
                   <ScatterChart margin={{ top: 16, right: 24, bottom: 32, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
                     <XAxis type="number" dataKey="mean" name="Mean Return"
-                      tick={{ fill: '#475569', fontSize: 10 }} tickLine={false} axisLine={false}
+                      tick={{ fill: '#8995a2', fontSize: 10 }} tickLine={false} axisLine={false}
                       tickFormatter={v => v.toFixed(2)}
-                      label={{ value: 'Mean Return', position: 'insideBottom', offset: -16, fill: '#475569', fontSize: 10 }} />
+                      label={{ value: 'Mean Return', position: 'insideBottom', offset: -16, fill: '#8995a2', fontSize: 10 }} />
                     <YAxis type="number" dataKey="t_stat" name="t-stat"
-                      tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false}
+                      tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false}
                       tickFormatter={v => v.toFixed(1)}
-                      label={{ value: 't-stat', angle: -90, position: 'insideLeft', offset: 12, fill: '#475569', fontSize: 10 }} />
+                      label={{ value: 't-stat', angle: -90, position: 'insideLeft', offset: 12, fill: '#8995a2', fontSize: 10 }} />
                     <ZAxis range={[40, 40]} />
-                    <ReferenceLine y={0}  stroke="rgba(255,255,255,0.10)" />
-                    <ReferenceLine x={0}  stroke="rgba(255,255,255,0.10)" />
-                    <ReferenceLine y={2}  stroke="rgba(34,197,94,0.30)"  strokeDasharray="4 3" label={{ value: '+2', position: 'insideTopRight', fontSize: 9, fill: '#22c55e' }} />
-                    <ReferenceLine y={-2} stroke="rgba(239,68,68,0.30)"  strokeDasharray="4 3" label={{ value: '−2', position: 'insideBottomRight', fontSize: 9, fill: '#ef4444' }} />
-                    <Tooltip content={<ScatterTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.15)' }} />
+                    <ReferenceLine y={0}  stroke="rgba(200,220,240,0.10)" />
+                    <ReferenceLine x={0}  stroke="rgba(200,220,240,0.10)" />
+                    <ReferenceLine y={2}  stroke="rgba(95,181,146,0.30)"  strokeDasharray="4 3" label={{ value: '+2', position: 'insideTopRight', fontSize: 9, fill: '#5fb592' }} />
+                    <ReferenceLine y={-2} stroke="rgba(217,112,94,0.30)"  strokeDasharray="4 3" label={{ value: '−2', position: 'insideBottomRight', fontSize: 9, fill: '#d9705e' }} />
+                    <Tooltip content={<ScatterTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'rgba(200,220,240,0.15)' }} />
                     {SCREENER_GROUPS.filter(g => activeGroups.includes(g)).map(g => (
                       <Scatter key={g} name={g}
                         data={filtered.filter(r => r.group === g)}
-                        fill={GROUP_COLORS[g] ?? '#64748b'} opacity={0.85} />
+                        fill={GROUP_COLORS[g] ?? '#9aa5b1'} opacity={0.85} />
                     ))}
                     <Legend wrapperStyle={{ fontSize: 10, paddingTop: 4 }} />
                   </ScatterChart>
@@ -2563,20 +2565,20 @@ function SeasonalityScreener() {
               </div>
 
               {/* Win rate horizontal bars */}
-              <div style={cardStyle}>
+              <div className="hub-frame" style={cardStyle}>
                 <div style={sectionLabel}>Win Rate — % of selected years positive</div>
                 <ResponsiveContainer width="100%" height={320}>
                   <BarChart data={byWinRate} layout="vertical" margin={{ top: 4, right: 36, bottom: 4, left: 110 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" horizontal={false} />
                     <XAxis type="number" domain={[0, 1]} tickFormatter={v => `${(v * 100).toFixed(0)}%`}
-                      tick={{ fill: '#475569', fontSize: 10 }} tickLine={false} axisLine={false} />
-                    <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} width={105} axisLine={false} tickLine={false} />
-                    <ReferenceLine x={0.5} stroke="rgba(255,255,255,0.25)" strokeDasharray="4 3"
-                      label={{ value: '50%', position: 'insideTopRight', fontSize: 9, fill: '#64748b' }} />
-                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} formatter={(v: number) => `${(v * 100).toFixed(0)}%`} />
+                      tick={{ fill: '#8995a2', fontSize: 10 }} tickLine={false} axisLine={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#c6ced8', fontSize: 10 }} width={105} axisLine={false} tickLine={false} />
+                    <ReferenceLine x={0.5} stroke="rgba(200,220,240,0.25)" strokeDasharray="4 3"
+                      label={{ value: '50%', position: 'insideTopRight', fontSize: 9, fill: '#9aa5b1' }} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(200,220,240,0.04)' }} formatter={(v: number) => `${(v * 100).toFixed(0)}%`} />
                     <Bar dataKey="win_rate" name="Win Rate" radius={[0, 3, 3, 0]}>
                       {byWinRate.map(r => (
-                        <Cell key={r.id} fill={r.win_rate >= 0.5 ? '#22c55e' : '#ef4444'} opacity={0.7} />
+                        <Cell key={r.id} fill={r.win_rate >= 0.5 ? '#5fb592' : '#d9705e'} opacity={0.7} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -2587,7 +2589,7 @@ function SeasonalityScreener() {
         )
       })()}
 
-      <div style={{ fontSize: 10, color: '#334155', textAlign: 'center', paddingBottom: 8 }}>
+      <div style={{ fontSize: 10, color: '#77828f', textAlign: 'center', paddingBottom: 8 }}>
         ★ p &lt; 0.10 &nbsp;·&nbsp; ★★ p &lt; 0.05 &nbsp;·&nbsp; ★★★ p &lt; 0.01 &nbsp;·&nbsp;
         Synthetic data shown — connect Bloomberg for live results &nbsp;·&nbsp;
         t-stat bold when |t| ≥ 2
@@ -2626,12 +2628,12 @@ function BacktestResults({ result }: { result: BacktestResult }) {
   }
 
   const metricItems = [
-    { label: 'Total Return',   value: `${metrics.total_return >= 0 ? '+' : ''}${metrics.total_return.toFixed(4)}`,   color: metrics.total_return >= 0 ? '#22c55e' : '#ef4444' },
-    { label: 'Ann. Return',    value: `${metrics.ann_return >= 0 ? '+' : ''}${metrics.ann_return.toFixed(4)}`,       color: metrics.ann_return >= 0 ? '#22c55e' : '#ef4444' },
-    { label: 'Sharpe Ratio',   value: metrics.sharpe.toFixed(3),                                                     color: metrics.sharpe > 0.5 ? '#22c55e' : metrics.sharpe > 0 ? '#fbbf24' : '#ef4444' },
-    { label: 'Max Drawdown',   value: metrics.max_drawdown.toFixed(4),                                               color: '#ef4444' },
-    { label: 'Win Rate',       value: `${(metrics.win_rate * 100).toFixed(1)}%`,                                     color: metrics.win_rate >= 0.5 ? '#22c55e' : '#ef4444' },
-    { label: 'Days in Market', value: `${metrics.days_in_market} (${(metrics.pct_in_market * 100).toFixed(1)}%)`,   color: '#94a3b8' },
+    { label: 'Total Return',   value: `${metrics.total_return >= 0 ? '+' : ''}${metrics.total_return.toFixed(4)}`,   color: metrics.total_return >= 0 ? '#5fb592' : '#d9705e' },
+    { label: 'Ann. Return',    value: `${metrics.ann_return >= 0 ? '+' : ''}${metrics.ann_return.toFixed(4)}`,       color: metrics.ann_return >= 0 ? '#5fb592' : '#d9705e' },
+    { label: 'Sharpe Ratio',   value: metrics.sharpe.toFixed(3),                                                     color: metrics.sharpe > 0.5 ? '#5fb592' : metrics.sharpe > 0 ? '#dfbb78' : '#d9705e' },
+    { label: 'Max Drawdown',   value: metrics.max_drawdown.toFixed(4),                                               color: '#d9705e' },
+    { label: 'Win Rate',       value: `${(metrics.win_rate * 100).toFixed(1)}%`,                                     color: metrics.win_rate >= 0.5 ? '#5fb592' : '#d9705e' },
+    { label: 'Days in Market', value: `${metrics.days_in_market} (${(metrics.pct_in_market * 100).toFixed(1)}%)`,   color: '#c6ced8' },
   ]
 
   // Custom tooltip showing actual date
@@ -2639,10 +2641,10 @@ function BacktestResults({ result }: { result: BacktestResult }) {
     if (!active || !payload?.length) return null
     const date = payload[0]?.payload?.date
     return (
-      <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '8px 12px', fontSize: 11 }}>
-        {date && <div style={{ color: '#64748b', marginBottom: 4 }}>{fmtDate(date)}</div>}
+      <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, padding: '8px 12px', fontSize: 11 }}>
+        {date && <div style={{ color: '#9aa5b1', marginBottom: 4 }}>{fmtDate(date)}</div>}
         {payload.map(p => (
-          <div key={p.dataKey} style={{ color: p.dataKey === 'strategy' ? ACCENT : '#ef4444' }}>
+          <div key={p.dataKey} style={{ color: p.dataKey === 'strategy' ? ACCENT : '#d9705e' }}>
             {p.dataKey === 'strategy' ? 'Strategy' : 'Drawdown'}: {p.value >= 0 ? '+' : ''}{p.value.toFixed(4)}
           </div>
         ))}
@@ -2655,32 +2657,32 @@ function BacktestResults({ result }: { result: BacktestResult }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
         {metricItems.map(m => (
           <div key={m.label} style={{ ...cardStyle, padding: 14, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ fontSize: 10, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{m.label}</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: m.color, fontFamily: 'monospace' }}>{m.value}</div>
+            <div style={{ fontSize: 10, color: '#8995a2', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{m.label}</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: m.color, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{m.value}</div>
           </div>
         ))}
       </div>
 
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         <div style={sectionLabel}>Cumulative PnL — Each window shown consecutively</div>
         <ResponsiveContainer width="100%" height={240}>
           <LineChart data={equityData} margin={{ top: 8, right: 8, bottom: 24, left: -8 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
             <XAxis dataKey="idx" hide />
-            <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
-            <Tooltip content={<EqTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.10)' }} />
+            <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
+            <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeDasharray="4 4" />
+            <Tooltip content={<EqTooltip />} cursor={{ stroke: 'rgba(200,220,240,0.10)' }} />
             {/* Shaded band per window, alternating opacity */}
             {windowRanges.map(({ start, end, even }) => (
               <ReferenceArea key={start} x1={start} x2={end}
-                fill={even ? 'rgba(6,182,212,0.10)' : 'rgba(6,182,212,0.04)'}
-                stroke="rgba(6,182,212,0.35)" strokeWidth={1} />
+                fill={even ? 'rgba(111,192,203,0.10)' : 'rgba(111,192,203,0.04)'}
+                stroke="rgba(111,192,203,0.35)" strokeWidth={1} />
             ))}
             {/* Start-of-window label at bottom */}
             {windowRanges.map(({ start, startLabel }) => (
               <ReferenceLine key={`lbl-${start}`} x={start}
                 stroke="transparent"
-                label={{ value: startLabel, position: 'insideBottomLeft', fontSize: 8, fill: '#475569', angle: -55, offset: 4 }} />
+                label={{ value: startLabel, position: 'insideBottomLeft', fontSize: 8, fill: '#8995a2', angle: -55, offset: 4 }} />
             ))}
             <Line type="monotone" dataKey="strategy" stroke={ACCENT} strokeWidth={2} dot={false} activeDot={{ r: 3 }} name="Strategy" />
           </LineChart>
@@ -2688,60 +2690,60 @@ function BacktestResults({ result }: { result: BacktestResult }) {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div style={cardStyle}>
+        <div className="hub-frame" style={cardStyle}>
           <div style={sectionLabel}>Strategy Drawdown (active windows only)</div>
           <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={ddData} margin={{ top: 4, right: 8, bottom: 0, left: -8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
               <XAxis dataKey="idx" hide />
-              <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
-              <Tooltip content={<EqTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.10)' }} />
+              <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" />
+              <Tooltip content={<EqTooltip />} cursor={{ stroke: 'rgba(200,220,240,0.10)' }} />
               {windowRanges.map(({ start, end, even }) => (
                 <ReferenceArea key={start} x1={start} x2={end}
-                  fill={even ? 'rgba(6,182,212,0.08)' : 'rgba(6,182,212,0.03)'}
-                  stroke="rgba(6,182,212,0.25)" strokeWidth={1} />
+                  fill={even ? 'rgba(111,192,203,0.08)' : 'rgba(111,192,203,0.03)'}
+                  stroke="rgba(111,192,203,0.25)" strokeWidth={1} />
               ))}
-              <Area type="monotone" dataKey="drawdown" stroke="#ef4444" fill="rgba(239,68,68,0.15)" strokeWidth={1.5} dot={false} />
+              <Area type="monotone" dataKey="drawdown" stroke="#d9705e" fill="rgba(217,112,94,0.15)" strokeWidth={1.5} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        <div style={cardStyle}>
+        <div className="hub-frame" style={cardStyle}>
           <div style={sectionLabel}>Annual PnL</div>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={annChart} margin={{ top: 4, right: 8, bottom: 0, left: -8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="year" tick={{ fill: '#475569', fontSize: 10 }} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} tickLine={false} />
-              <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.18)" />
-              <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.10)' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
+              <XAxis dataKey="year" tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} tickLine={false} />
+              <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(2)} />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.18)" />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(200,220,240,0.10)' }} />
               <Bar dataKey="strategy" name="Strategy" fill={ACCENT} radius={[3,3,0,0]} opacity={0.85} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         <div style={sectionLabel}>Year-by-Year Summary</div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
           <thead>
             <tr>
               {['Year','Strategy PnL','Sharpe','Win Rate','# Trades'].map(h => (
-                <th key={h} style={{ color: '#475569', textAlign: h === 'Year' ? 'left' : 'right', padding: '4px 10px', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>{h}</th>
+                <th key={h} style={{ color: '#8995a2', textAlign: h === 'Year' ? 'left' : 'right', padding: '4px 10px', fontWeight: 600, borderBottom: '1px solid rgba(200,220,240,0.07)' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {annual.map(r => (
-              <tr key={r.year} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <td style={{ color: '#94a3b8', padding: '4px 10px', fontWeight: 600 }}>{r.year}</td>
-                <td style={{ color: r.strat_total >= 0 ? '#22c55e' : '#ef4444', padding: '4px 10px', textAlign: 'right', fontFamily: 'monospace' }}>
+              <tr key={r.year} style={{ borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
+                <td style={{ color: '#c6ced8', padding: '4px 10px', fontWeight: 600 }}>{r.year}</td>
+                <td style={{ color: r.strat_total >= 0 ? '#5fb592' : '#d9705e', padding: '4px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                   {r.strat_total >= 0 ? '+' : ''}{r.strat_total.toFixed(4)}
                 </td>
-                <td style={{ color: r.sharpe > 0 ? '#94a3b8' : '#ef4444', padding: '4px 10px', textAlign: 'right', fontFamily: 'monospace' }}>{r.sharpe.toFixed(3)}</td>
-                <td style={{ color: r.win_rate >= 0.5 ? '#22c55e' : '#ef4444', padding: '4px 10px', textAlign: 'right', fontFamily: 'monospace' }}>{(r.win_rate * 100).toFixed(1)}%</td>
-                <td style={{ color: '#64748b', padding: '4px 10px', textAlign: 'right', fontFamily: 'monospace' }}>{r.n_trades}</td>
+                <td style={{ color: r.sharpe > 0 ? '#c6ced8' : '#d9705e', padding: '4px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{r.sharpe.toFixed(3)}</td>
+                <td style={{ color: r.win_rate >= 0.5 ? '#5fb592' : '#d9705e', padding: '4px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{(r.win_rate * 100).toFixed(1)}%</td>
+                <td style={{ color: '#9aa5b1', padding: '4px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{r.n_trades}</td>
               </tr>
             ))}
           </tbody>
@@ -2844,35 +2846,24 @@ export default function SeasonalityBacktester() {
 
       <div style={{
         position: 'fixed', inset: 0, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse at 50% -10%, rgba(6,182,212,0.05) 0%, transparent 55%)',
+        background: 'radial-gradient(ellipse at 50% -10%, rgba(134,192,222,0.035) 0%, transparent 55%)',
       }} />
 
       {/* Header */}
       <header style={{
-        position: 'sticky', top: 0, zIndex: 50,
+        ...headerBar, zIndex: 50,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '14px 24px',
-        background: 'rgba(8,13,26,0.90)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        backdropFilter: 'blur(12px)',
+        padding: '12px 24px',
         flexWrap: 'wrap', gap: 10,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <button onClick={() => navigate('/')} style={{
-            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)',
-            borderRadius: 8, padding: '6px 14px', color: '#94a3b8', fontSize: 13, cursor: 'pointer',
-          }}>← Back</button>
-          <div>
-            <div style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>
-              Seasonality Backtester
-            </div>
-            <div style={{ color: '#475569', fontSize: 11, marginTop: 1 }}>
-              {series
-                ? `${series.expression}  ·  ${stats?.date_range[0]} → ${stats?.date_range[1]}  ·  ${stats?.n_obs.toLocaleString()} obs`
-                : 'Enter a Bloomberg expression to begin'}
-            </div>
-          </div>
-        </div>
+        <PageTitle
+          category="Backtesters"
+          categoryId="backtesters"
+          title="Seasonality Backtester"
+          subtitle={series
+            ? `${series.expression}  ·  ${stats?.date_range[0]} → ${stats?.date_range[1]}  ·  ${stats?.n_obs.toLocaleString()} obs`
+            : 'Enter a Bloomberg expression to begin'}
+        />
 
         <div style={{ display: 'flex', gap: 4 }}>
             {(['analysis', 'backtest', 'screener'] as const).map(tab => {
@@ -2880,10 +2871,10 @@ export default function SeasonalityBacktester() {
               const label = tab === 'analysis' ? 'Seasonal Analysis' : tab === 'backtest' ? 'Backtest' : 'Screener'
               return (
                 <button key={tab} onClick={() => setActiveTab(tab)} style={{
-                  background: active ? ACCENT_DIM : 'rgba(255,255,255,0.05)',
-                  border: `1px solid ${active ? ACCENT_BORDER : 'rgba(255,255,255,0.08)'}`,
+                  background: active ? ACCENT_DIM : 'rgba(200,220,240,0.05)',
+                  border: `1px solid ${active ? ACCENT_BORDER : 'rgba(200,220,240,0.08)'}`,
                   borderRadius: 7, padding: '5px 14px',
-                  color: active ? ACCENT : '#64748b',
+                  color: active ? ACCENT : '#9aa5b1',
                   fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer',
                 }}>
                   {label}
@@ -2904,16 +2895,16 @@ export default function SeasonalityBacktester() {
 
         {/* Loading state */}
         {loadingData && (
-          <div style={{ textAlign: 'center', padding: 60, color: '#475569', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 60, color: '#8995a2', fontSize: 13 }}>
             Fetching from Bloomberg…
           </div>
         )}
 
         {/* Error state */}
         {dataError && !loadingData && (
-          <div style={{ ...cardStyle, marginTop: 16, borderColor: 'rgba(239,68,68,0.30)', background: 'rgba(239,68,68,0.07)' }}>
-            <div style={{ color: '#ef4444', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Failed to load data</div>
-            <div style={{ color: '#fca5a5', fontSize: 12, fontFamily: 'monospace' }}>{dataError}</div>
+          <div className="hub-frame" style={{ ...cardStyle, marginTop: 16, borderColor: 'rgba(217,112,94,0.30)', background: 'rgba(217,112,94,0.07)' }}>
+            <div style={{ color: '#d9705e', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Failed to load data</div>
+            <div style={{ color: '#ecaa9c', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{dataError}</div>
           </div>
         )}
 
@@ -2960,11 +2951,11 @@ export default function SeasonalityBacktester() {
                 onClick={runBacktest}
                 disabled={!canRunBacktest || backtestYears.length === 0}
                 style={{
-                  background: !canRunBacktest ? 'rgba(255,255,255,0.05)' : ACCENT_DIM,
-                  border: `1px solid ${!canRunBacktest ? 'rgba(255,255,255,0.08)' : ACCENT_BORDER}`,
-                  borderRadius: 8, padding: '8px 24px',
-                  color: !canRunBacktest ? '#475569' : ACCENT,
-                  fontSize: 13, fontWeight: 700,
+                  background: !canRunBacktest ? 'rgba(200,220,240,0.05)' : ACCENT_DIM,
+                  border: `1px solid ${!canRunBacktest ? 'rgba(200,220,240,0.08)' : ACCENT_BORDER}`,
+                  borderRadius: 6, padding: '8px 24px',
+                  color: !canRunBacktest ? '#8995a2' : ACCENT,
+                  fontSize: 13, fontWeight: 600,
                   cursor: !canRunBacktest ? 'not-allowed' : 'pointer',
                 }}
               >
@@ -2975,7 +2966,7 @@ export default function SeasonalityBacktester() {
             {backtestResult
               ? <BacktestResults result={backtestResult} />
               : (
-                <div style={{ color: '#475569', fontSize: 13, textAlign: 'center', padding: 60 }}>
+                <div style={{ color: '#8995a2', fontSize: 13, textAlign: 'center', padding: 60 }}>
                   Configure a rule above and click Run Backtest.
                 </div>
               )

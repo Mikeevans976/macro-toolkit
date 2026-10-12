@@ -1,0 +1,160 @@
+{
+  "tool": "EGB RV",
+  "file": "backend/egb_rv.py",
+  "bloomberg_fetch": "bdh",
+  "fallback": "simulation",
+  "note": "Yield and ESTR tickers verified. ASW tickers marked verified:false — confirm in Bloomberg Terminal before going live.",
+  "series": [
+    {
+      "id": "bund_yields",
+      "bloomberg_ticker": "GDBR{t} Index",
+      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "German Bund generic government bond yields",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "oat_yields",
+      "bloomberg_ticker": "GFRN{t} Index",
+      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "French OAT generic government bond yields",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "btp_yields",
+      "bloomberg_ticker": "GBTPGR{t} Index",
+      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "Italian BTP generic government bond yields",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "bonos_yields",
+      "bloomberg_ticker": "GSPG{t}YR Index",
+      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "Spanish Bonos generic government bond yields",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "belgium_yields",
+      "bloomberg_ticker": "GBGB{t}YR Index",
+      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "Belgian government bond generic yields",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "portugal_yields",
+      "bloomberg_ticker": "GPTIT{t}YR Index",
+      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "Portuguese government bond generic yields",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "netherlands_yields",
+      "bloomberg_ticker": "GNETH{t}YR Index",
+      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "Dutch government bond generic yields",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "austria_yields",
+      "bloomberg_ticker": "GAGB{t}YR Index",
+      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "Austrian government bond generic yields",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "finland_yields",
+      "bloomberg_ticker": "GFINGB{t} Index",
+      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "Finnish government bond generic yields",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "estr_fixing",
+      "bloomberg_ticker": "ESTRON Index",
+      "field": "PX_LAST",
+      "description": "EUR ESTR overnight fixing rate",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "bund_asw",
+      "bloomberg_ticker": "DASW{t} Index",
+      "tenors_or_expiries": [2, 5, 10, 30],
+      "field": "PX_LAST",
+      "description": "Bund asset swap spreads vs ESTR",
+      "unit": "bps",
+      "verified": false
+    },
+    {
+      "id": "oat_asw",
+      "bloomberg_ticker": "FOASW{t} Index",
+      "tenors_or_expiries": [2, 5, 10, 30],
+      "field": "PX_LAST",
+      "description": "OAT asset swap spreads vs ESTR",
+      "unit": "bps",
+      "verified": false
+    },
+    {
+      "id": "btp_asw",
+      "bloomberg_ticker": "ITASW{t} Index",
+      "tenors_or_expiries": [5, 10, 30],
+      "field": "PX_LAST",
+      "description": "BTP asset swap spreads vs ESTR",
+      "unit": "bps",
+      "verified": false
+    },
+    {
+      "id": "bonos_asw",
+      "bloomberg_ticker": "SPASW{t} Index",
+      "tenors_or_expiries": [5, 10],
+      "field": "PX_LAST",
+      "description": "Bonos asset swap spreads vs ESTR",
+      "unit": "bps",
+      "verified": false
+    },
+    {
+      "id": "belgium_asw",
+      "bloomberg_ticker": "BEASW{t} Index",
+      "tenors_or_expiries": [10],
+      "field": "PX_LAST",
+      "description": "Belgian government bond asset swap spread vs ESTR",
+      "unit": "bps",
+      "verified": false
+    },
+    {
+      "id": "netherlands_asw",
+      "bloomberg_ticker": "NLASW{t} Index",
+      "tenors_or_expiries": [10],
+      "field": "PX_LAST",
+      "description": "Dutch government bond asset swap spread vs ESTR",
+      "unit": "bps",
+      "verified": false
+    },
+    {
+      "id": "eur_swaption_vol_1m10y",
+      "bloomberg_ticker": "EUSV0001 Index",
+      "field": "PX_LAST",
+      "description": "EUR swaption ATM normal vol, 1m expiry 10y tail — used as vol regime indicator",
+      "unit": "bps",
+      "verified": true
+    }
+  ]
+}

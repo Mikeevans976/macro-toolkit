@@ -1,0 +1,60 @@
+{
+  "tool": "Option-Implied CDF",
+  "file": "backend/option_derived_cdf.py",
+  "bloomberg_fetch": "bdh",
+  "fallback": "static calibration tables baked into the module",
+  "note": "Swaption vol is returned in bp/yr normal vol — backend divides by 100 then multiplies by √T. bdh pulls 5 days of history. Edit _fetch_swap_rates() and _fetch_swaption_vols() in Python to change.",
+  "series": [
+    {
+      "id": "usd_par_swap_rates",
+      "bloomberg_ticker": "USSW{t} Curncy",
+      "tenors_or_expiries": [1, 2, 5, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "USD SOFR par swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "eur_par_swap_rates",
+      "bloomberg_ticker": "EUSA{t} Curncy",
+      "tenors_or_expiries": [1, 2, 5, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "EUR EURIBOR par swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "gbp_par_swap_rates",
+      "bloomberg_ticker": "BPSWS{t} Curncy",
+      "tenors_or_expiries": [1, 2, 5, 10, 15, 20, 30],
+      "field": "PX_LAST",
+      "description": "GBP SONIA par swap rates",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "usd_swaption_atm_vol",
+      "bloomberg_ticker": "USSN{exp}{tail} Curncy",
+      "field": "PX_LAST",
+      "description": "USD swaption ATM normal vol — ticker combines expiry and tail (e.g. USSN6M10Y, USSN1Y5Y, USSN3M30Y). Valid expiries: 1M, 3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y. Valid tails: 1Y, 2Y, 5Y, 10Y, 15Y, 20Y, 30Y.",
+      "unit": "bp/yr",
+      "verified": false
+    },
+    {
+      "id": "eur_swaption_atm_vol",
+      "bloomberg_ticker": "EUSN{exp}{tail} Curncy",
+      "field": "PX_LAST",
+      "description": "EUR swaption ATM normal vol — ticker combines expiry and tail (e.g. EUSN6M10Y, EUSN1Y5Y, EUSN3M30Y). Valid expiries: 1M, 3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y. Valid tails: 1Y, 2Y, 5Y, 10Y, 15Y, 20Y, 30Y.",
+      "unit": "bp/yr",
+      "verified": false
+    },
+    {
+      "id": "gbp_swaption_atm_vol",
+      "bloomberg_ticker": "BPSN{exp}{tail} Curncy",
+      "field": "PX_LAST",
+      "description": "GBP swaption ATM normal vol — ticker combines expiry and tail (e.g. BPSN6M10Y, BPSN1Y5Y, BPSN3M30Y). Valid expiries: 1M, 3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y. Valid tails: 1Y, 2Y, 5Y, 10Y, 15Y, 20Y, 30Y.",
+      "unit": "bp/yr",
+      "verified": false
+    }
+  ]
+}

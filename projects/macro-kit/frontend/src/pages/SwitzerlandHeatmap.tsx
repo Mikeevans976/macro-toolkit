@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react'
+import PageTitle, { headerBar } from '../components/PageTitle'
 import {
   LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer,
@@ -11,7 +12,7 @@ interface Indicator {
 interface Group { name: string; indicators: Indicator[] }
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 24,
+  background: 'rgba(200,220,240,0.03)', border: '1px solid rgba(200,220,240,0.07)', borderRadius: 6, padding: 24,
 }
 
 function generateMonths(): string[] {
@@ -203,21 +204,21 @@ function formatCellValue(value: number, units: string): string {
   return value.toFixed(1)
 }
 function zscoreToColors(z: number): { bg: string; fg: string } {
-  if (z >= 2.0)  return { bg: '#7F1D1D', fg: '#ffffff' }
-  if (z >= 1.0)  return { bg: '#DC2626', fg: '#ffffff' }
-  if (z >= 0.5)  return { bg: '#FCA5A5', fg: '#0f172a' }
-  if (z > -0.5)  return { bg: '#F1F5F9', fg: '#0f172a' }
-  if (z > -1.0)  return { bg: '#93C5FD', fg: '#0f172a' }
-  if (z > -2.0)  return { bg: '#2563EB', fg: '#ffffff' }
-  return           { bg: '#1E3A5F', fg: '#ffffff' }
+  if (z >= 2.0)  return { bg: '#a85a4b', fg: '#fbeee9' }
+  if (z >= 1.0)  return { bg: '#7a4a42', fg: '#f1ddd7' }
+  if (z >= 0.5)  return { bg: '#3f3034', fg: '#e4c9c2' }
+  if (z > -0.5)  return { bg: '#151b23', fg: '#c6ced8' }
+  if (z > -1.0)  return { bg: '#22303d', fg: '#bcd6e6' }
+  if (z > -2.0)  return { bg: '#2f5670', fg: '#e3f0f7' }
+  return           { bg: '#4a86a8', fg: '#f2f9fc' }
 }
 function Legend() {
-  const steps = [{ bg: '#7F1D1D', fg: '#ffffff', label: '≥ +2σ' }, { bg: '#DC2626', fg: '#ffffff', label: '+1σ' }, { bg: '#FCA5A5', fg: '#0f172a', label: '+0.5σ' }, { bg: '#F1F5F9', fg: '#0f172a', label: '0' }, { bg: '#93C5FD', fg: '#0f172a', label: '−0.5σ' }, { bg: '#2563EB', fg: '#ffffff', label: '−1σ' }, { bg: '#1E3A5F', fg: '#ffffff', label: '≤ −2σ' }]
-  return (<div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}><span style={{ color: '#475569', fontSize: 11, marginRight: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Z-score scale</span>{steps.map(s => (<div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 36, height: 20, background: s.bg, borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: s.fg, fontSize: 9, fontFamily: 'monospace', fontWeight: 600 }}>{s.label}</span></div></div>))}</div>)
+  const steps = [{ bg: '#a85a4b', fg: '#fbeee9', label: '≥ +2σ' }, { bg: '#7a4a42', fg: '#f1ddd7', label: '+1σ' }, { bg: '#3f3034', fg: '#e4c9c2', label: '+0.5σ' }, { bg: '#151b23', fg: '#c6ced8', label: '0' }, { bg: '#22303d', fg: '#bcd6e6', label: '−0.5σ' }, { bg: '#2f5670', fg: '#e3f0f7', label: '−1σ' }, { bg: '#4a86a8', fg: '#f2f9fc', label: '≤ −2σ' }]
+  return (<div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}><span style={{ color: '#8995a2', fontSize: 11, marginRight: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Z-score scale</span>{steps.map(s => (<div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 36, height: 20, background: s.bg, borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: s.fg, fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600 }}>{s.label}</span></div></div>))}</div>)
 }
 
 const CELL_W = 52, CELL_H = 28, INDICATOR_W_DEFAULT = 210
-const RIGHT_COL_W = 76, UNITS_COL_W = 88, stickyBg = '#080d1a'
+const RIGHT_COL_W = 76, UNITS_COL_W = 88, stickyBg = '#07090c'
 
 function HeatmapTable() {
   const [indicatorW, setIndicatorW] = useState(INDICATOR_W_DEFAULT)
@@ -228,14 +229,14 @@ function HeatmapTable() {
     function onMouseUp() { dragRef.current = null; window.removeEventListener('mousemove', onMouseMove); window.removeEventListener('mouseup', onMouseUp) }
     window.addEventListener('mousemove', onMouseMove); window.addEventListener('mouseup', onMouseUp)
   }, [indicatorW])
-  const cellStyle = (z: number): React.CSSProperties => { const { bg, fg } = zscoreToColors(z); return { width: CELL_W, minWidth: CELL_W, maxWidth: CELL_W, height: CELL_H, textAlign: 'center', fontFamily: 'monospace', fontSize: 10, fontWeight: 500, color: fg, background: bg, padding: 0, border: '1px solid rgba(8,13,26,0.5)', userSelect: 'none' } }
-  const hdrCell: React.CSSProperties = { width: CELL_W, minWidth: CELL_W, maxWidth: CELL_W, textAlign: 'center', color: '#64748b', fontSize: 10, fontFamily: 'monospace', padding: '5px 2px', fontWeight: 600, whiteSpace: 'nowrap', background: stickyBg, borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'sticky', top: 0, zIndex: 2 }
-  const indHdr: React.CSSProperties = { width: indicatorW, minWidth: indicatorW, maxWidth: indicatorW, textAlign: 'left', color: '#64748b', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '5px 12px', fontWeight: 600, background: stickyBg, borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'sticky', top: 0, left: 0, zIndex: 4, overflow: 'visible' }
-  const rHdr = (ro: number): React.CSSProperties => ({ width: RIGHT_COL_W, minWidth: RIGHT_COL_W, maxWidth: RIGHT_COL_W, textAlign: 'center', color: '#64748b', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '5px 4px', fontWeight: 600, background: stickyBg, borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'sticky', top: 0, right: ro, zIndex: 4, whiteSpace: 'nowrap' })
-  const indCell: React.CSSProperties = { width: indicatorW, minWidth: indicatorW, maxWidth: indicatorW, color: '#cbd5e1', fontSize: 11, padding: '0 12px', height: CELL_H, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: 0, background: stickyBg, borderBottom: '1px solid rgba(255,255,255,0.04)', borderRight: '1px solid rgba(255,255,255,0.07)', zIndex: 1 }
-  const grpRow: React.CSSProperties = { background: 'rgba(255,255,255,0.025)', color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, padding: '4px 12px', height: 22, position: 'sticky', left: 0, zIndex: 1 }
-  const rCell: React.CSSProperties = { width: RIGHT_COL_W, minWidth: RIGHT_COL_W, maxWidth: RIGHT_COL_W, textAlign: 'center', fontSize: 10, fontFamily: 'monospace', padding: 0, height: CELL_H, borderBottom: '1px solid rgba(255,255,255,0.04)', borderLeft: '1px solid rgba(255,255,255,0.06)', background: stickyBg }
-  const uHdr = (ro: number): React.CSSProperties => ({ width: UNITS_COL_W, minWidth: UNITS_COL_W, maxWidth: UNITS_COL_W, textAlign: 'center', color: '#64748b', fontSize: 10, textTransform: 'uppercase' as const, letterSpacing: '0.05em', padding: '5px 4px', fontWeight: 600, background: stickyBg, borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'sticky' as const, top: 0, right: ro, zIndex: 4, whiteSpace: 'nowrap' as const })
+  const cellStyle = (z: number): React.CSSProperties => { const { bg, fg } = zscoreToColors(z); return { width: CELL_W, minWidth: CELL_W, maxWidth: CELL_W, height: CELL_H, textAlign: 'center', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 500, color: fg, background: bg, padding: 0, border: '1px solid rgba(7,9,12,0.5)', userSelect: 'none' } }
+  const hdrCell: React.CSSProperties = { width: CELL_W, minWidth: CELL_W, maxWidth: CELL_W, textAlign: 'center', color: '#9aa5b1', fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", padding: '5px 2px', fontWeight: 600, whiteSpace: 'nowrap', background: stickyBg, borderBottom: '1px solid rgba(200,220,240,0.07)', position: 'sticky', top: 0, zIndex: 2 }
+  const indHdr: React.CSSProperties = { width: indicatorW, minWidth: indicatorW, maxWidth: indicatorW, textAlign: 'left', color: '#9aa5b1', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '5px 12px', fontWeight: 600, background: stickyBg, borderBottom: '1px solid rgba(200,220,240,0.07)', position: 'sticky', top: 0, left: 0, zIndex: 4, overflow: 'visible' }
+  const rHdr = (ro: number): React.CSSProperties => ({ width: RIGHT_COL_W, minWidth: RIGHT_COL_W, maxWidth: RIGHT_COL_W, textAlign: 'center', color: '#9aa5b1', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '5px 4px', fontWeight: 600, background: stickyBg, borderBottom: '1px solid rgba(200,220,240,0.07)', position: 'sticky', top: 0, right: ro, zIndex: 4, whiteSpace: 'nowrap' })
+  const indCell: React.CSSProperties = { width: indicatorW, minWidth: indicatorW, maxWidth: indicatorW, color: '#c3ccd6', fontSize: 11, padding: '0 12px', height: CELL_H, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: 0, background: stickyBg, borderBottom: '1px solid rgba(200,220,240,0.04)', borderRight: '1px solid rgba(200,220,240,0.07)', zIndex: 1 }
+  const grpRow: React.CSSProperties = { background: 'rgba(200,220,240,0.025)', color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, padding: '4px 12px', height: 22, position: 'sticky', left: 0, zIndex: 1 }
+  const rCell: React.CSSProperties = { width: RIGHT_COL_W, minWidth: RIGHT_COL_W, maxWidth: RIGHT_COL_W, textAlign: 'center', fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", padding: 0, height: CELL_H, borderBottom: '1px solid rgba(200,220,240,0.04)', borderLeft: '1px solid rgba(200,220,240,0.06)', background: stickyBg }
+  const uHdr = (ro: number): React.CSSProperties => ({ width: UNITS_COL_W, minWidth: UNITS_COL_W, maxWidth: UNITS_COL_W, textAlign: 'center', color: '#9aa5b1', fontSize: 10, textTransform: 'uppercase' as const, letterSpacing: '0.05em', padding: '5px 4px', fontWeight: 600, background: stickyBg, borderBottom: '1px solid rgba(200,220,240,0.07)', position: 'sticky' as const, top: 0, right: ro, zIndex: 4, whiteSpace: 'nowrap' as const })
   const R_CHANGE = 0, R_LATEST = RIGHT_COL_W, R_AS_OF_MTG = RIGHT_COL_W * 2, R_UNITS = RIGHT_COL_W * 3, R_LASTUPD = RIGHT_COL_W * 3 + UNITS_COL_W
   return (
     <div style={{ overflowX: 'auto', overflowY: 'visible' }}>
@@ -243,7 +244,7 @@ function HeatmapTable() {
         <colgroup><col style={{ width: indicatorW }} />{MONTH_COLS.map((_, i) => <col key={i} style={{ width: CELL_W }} />)}<col style={{ width: RIGHT_COL_W }} /><col style={{ width: UNITS_COL_W }} /><col style={{ width: RIGHT_COL_W }} /><col style={{ width: RIGHT_COL_W }} /><col style={{ width: RIGHT_COL_W }} /></colgroup>
         <thead>
           <tr>
-            <th style={indHdr}>Indicator<div onMouseDown={onResizeMouseDown} style={{ position: 'absolute', top: 0, right: 0, width: 6, height: '100%', cursor: 'col-resize', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 2, height: 14, borderRadius: 1, background: 'rgba(255,255,255,0.18)' }} /></div></th>
+            <th style={indHdr}>Indicator<div onMouseDown={onResizeMouseDown} style={{ position: 'absolute', top: 0, right: 0, width: 6, height: '100%', cursor: 'col-resize', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 2, height: 14, borderRadius: 1, background: 'rgba(200,220,240,0.18)' }} /></div></th>
             {MONTH_COLS.map(m => <th key={m} style={hdrCell}>{m}</th>)}
             <th style={rHdr(R_LASTUPD)}>Last Upd</th>
             <th style={uHdr(R_UNITS)}>Units</th>
@@ -260,11 +261,11 @@ function HeatmapTable() {
                 <tr key={ind.name}>
                   <td style={indCell} title={ind.name}>{ind.name}</td>
                   {ind.zscores.map((z, t) => <td key={t} style={cellStyle(z)}>{formatCellValue(z, ind.units)}</td>)}
-                  <td style={{ ...rCell, color: '#475569', fontSize: 9, right: R_LASTUPD }}>{ind.lastUpd}</td>
-                  <td style={{ ...rCell, color: '#64748b', fontSize: 9, right: R_UNITS }}>{ind.units}</td>
-                  <td style={{ ...rCell, color: '#94a3b8', right: R_AS_OF_MTG }}>{ind.asOfLastMtg}</td>
-                  <td style={{ ...rCell, color: '#e2e8f0', fontWeight: 600, right: R_LATEST }}>{ind.latest}</td>
-                  <td style={{ ...rCell, color: ind.change.startsWith('+') ? '#34d399' : ind.change.startsWith('-') ? '#f87171' : '#64748b', fontWeight: 600, right: R_CHANGE }}>{ind.change}</td>
+                  <td style={{ ...rCell, color: '#8995a2', fontSize: 9, right: R_LASTUPD }}>{ind.lastUpd}</td>
+                  <td style={{ ...rCell, color: '#9aa5b1', fontSize: 9, right: R_UNITS }}>{ind.units}</td>
+                  <td style={{ ...rCell, color: '#c6ced8', right: R_AS_OF_MTG }}>{ind.asOfLastMtg}</td>
+                  <td style={{ ...rCell, color: '#e4eaf1', fontWeight: 600, right: R_LATEST }}>{ind.latest}</td>
+                  <td style={{ ...rCell, color: ind.change.startsWith('+') ? '#6fc2a2' : ind.change.startsWith('-') ? '#e2826f' : '#9aa5b1', fontWeight: 600, right: R_CHANGE }}>{ind.change}</td>
                 </tr>
               ))}
             </React.Fragment>
@@ -277,11 +278,11 @@ function HeatmapTable() {
 
 // ─── DFM Factors ─────────────────────────────────────────────────────────────
 const DFM_FACTORS = [
-  { key: 'broadMacro', label: 'Broad Macro', color: '#94a3b8', groupIndices: [0, 1, 2, 3, 4, 5, 6] },
-  { key: 'growth',     label: 'Growth',      color: '#34d399', groupIndices: [0, 1, 2] },
-  { key: 'inflation',  label: 'Inflation',   color: '#f87171', groupIndices: [5] },
-  { key: 'employment', label: 'Employment',  color: '#60a5fa', groupIndices: [3] },
-  { key: 'wages',      label: 'Wages',       color: '#a78bfa', groupIndices: [4] },
+  { key: 'broadMacro', label: 'Broad Macro', color: '#c6ced8', groupIndices: [0, 1, 2, 3, 4, 5, 6] },
+  { key: 'growth',     label: 'Growth',      color: '#6fc2a2', groupIndices: [0, 1, 2] },
+  { key: 'inflation',  label: 'Inflation',   color: '#e2826f', groupIndices: [5] },
+  { key: 'employment', label: 'Employment',  color: '#86c0de', groupIndices: [3] },
+  { key: 'wages',      label: 'Wages',       color: '#b49fdb', groupIndices: [4] },
 ]
 function computeFactor(groupIndices: number[]): number[] {
   const all: number[][] = []
@@ -301,34 +302,34 @@ function DFMSection() {
   return (
     <div style={cardStyle}>
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>Macro Factors — DFM Synthesis</h2>
-        <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>5 factors extracted via Dynamic Factor Model &middot; weekly monitoring of Swiss macro fundamentals</p>
+        <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>Macro Factors — DFM Synthesis</h2>
+        <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>5 factors extracted via Dynamic Factor Model &middot; weekly monitoring of Swiss macro fundamentals</p>
       </div>
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 520px', minWidth: 0 }}>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={DFM_CHART_DATA} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
-              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-              <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={3} />
-              <YAxis domain={[-2.5, 2.5]} tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }} tickLine={false} axisLine={false} tickCount={6} />
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
-              <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11, fontFamily: 'monospace', color: '#e2e8f0' }} labelStyle={{ color: '#64748b', marginBottom: 4 }} formatter={(value: number, name: string) => { const f = DFM_FACTORS.find(f => f.key === name); return [value.toFixed(2) + 'σ', f?.label ?? name] }} />
+              <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
+              <XAxis dataKey="month" tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={3} />
+              <YAxis domain={[-2.5, 2.5]} tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={false} tickCount={6} />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.12)" strokeDasharray="4 4" />
+              <Tooltip contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }} labelStyle={{ color: '#9aa5b1', marginBottom: 4 }} formatter={(value: number, name: string) => { const f = DFM_FACTORS.find(f => f.key === name); return [value.toFixed(2) + 'σ', f?.label ?? name] }} />
               {DFM_FACTORS.map(f => <Line key={f.key} type="monotone" dataKey={f.key} stroke={f.color} strokeWidth={1.8} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />)}
             </LineChart>
           </ResponsiveContainer>
-          <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 8 }}>{DFM_FACTORS.map(f => (<div key={f.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 24, height: 2, borderRadius: 1, background: f.color }} /><span style={{ color: '#94a3b8', fontSize: 11 }}>{f.label}</span></div>))}</div>
+          <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 8 }}>{DFM_FACTORS.map(f => (<div key={f.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 24, height: 2, borderRadius: 1, background: f.color }} /><span style={{ color: '#c6ced8', fontSize: 11 }}>{f.label}</span></div>))}</div>
         </div>
         <div style={{ flex: '0 0 280px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>Factor summary</p>
+            <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>Factor summary</p>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
-              <thead><tr>{['Factor','Level (σ)','Δ1m','Δ3m','Δ12m','Z'].map((h, i) => <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: '#475569', fontWeight: 600, fontSize: 10, padding: '4px 6px 6px', borderBottom: '1px solid rgba(255,255,255,0.07)', whiteSpace: 'nowrap' }}>{h}</th>)}</tr></thead>
-              <tbody>{DFM_FACTORS.map(f => { const st = FACTOR_STATS[f.key]; const lc = st.current > 0.3 ? '#f87171' : st.current < -0.3 ? '#60a5fa' : '#94a3b8'; const dc = (d: number) => d > 0.05 ? '#f87171' : d < -0.05 ? '#60a5fa' : '#475569'; const zc = st.zscore > 0.5 ? '#f87171' : st.zscore < -0.5 ? '#60a5fa' : '#94a3b8'; return (<tr key={f.key}><td style={{ padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}><div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: f.color, flexShrink: 0 }} /><span style={{ color: '#cbd5e1', fontSize: 11, whiteSpace: 'nowrap' }}>{f.label}</span></div></td><td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: lc, fontWeight: 700 }}>{fmt(st.current)}</td><td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: dc(st.d1m) }}>{fmt(st.d1m)}</td><td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: dc(st.d3m) }}>{fmt(st.d3m)}</td><td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: dc(st.d12m) }}>{fmt(st.d12m)}</td><td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: zc, fontWeight: 600 }}>{fmt(st.zscore)}</td></tr>) })}</tbody>
+              <thead><tr>{['Factor','Level (σ)','Δ1m','Δ3m','Δ12m','Z'].map((h, i) => <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: '#8995a2', fontWeight: 600, fontSize: 10, padding: '4px 6px 6px', borderBottom: '1px solid rgba(200,220,240,0.07)', whiteSpace: 'nowrap' }}>{h}</th>)}</tr></thead>
+              <tbody>{DFM_FACTORS.map(f => { const st = FACTOR_STATS[f.key]; const lc = st.current > 0.3 ? '#e2826f' : st.current < -0.3 ? '#86c0de' : '#c6ced8'; const dc = (d: number) => d > 0.05 ? '#e2826f' : d < -0.05 ? '#86c0de' : '#8995a2'; const zc = st.zscore > 0.5 ? '#e2826f' : st.zscore < -0.5 ? '#86c0de' : '#c6ced8'; return (<tr key={f.key}><td style={{ padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)' }}><div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: f.color, flexShrink: 0 }} /><span style={{ color: '#c3ccd6', fontSize: 11, whiteSpace: 'nowrap' }}>{f.label}</span></div></td><td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: lc, fontWeight: 600 }}>{fmt(st.current)}</td><td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: dc(st.d1m) }}>{fmt(st.d1m)}</td><td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: dc(st.d3m) }}>{fmt(st.d3m)}</td><td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: dc(st.d12m) }}>{fmt(st.d12m)}</td><td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: zc, fontWeight: 600 }}>{fmt(st.zscore)}</td></tr>) })}</tbody>
             </table>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '12px 14px' }}>
-            <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>Methodology</p>
-            {['Broad Macro: avg z-score across all 7 indicator groups','Growth: Real Activity, Business Activity & Housing blocks','Inflation: Inflation block (~8 indicators incl. CPI/Core/Services)','Employment: Labour Market block (~7 indicators incl. SECO unemp.)','Wages: Wages block (~5 indicators incl. Nominal Wage Index)'].map((note, i) => (<div key={i} style={{ display: 'flex', gap: 6, marginBottom: 5 }}><span style={{ color: DFM_FACTORS[i].color, fontSize: 10, flexShrink: 0, marginTop: 1 }}>●</span><span style={{ color: '#475569', fontSize: 10, lineHeight: 1.45 }}>{note}</span></div>))}
+          <div style={{ background: 'rgba(200,220,240,0.02)', border: '1px solid rgba(200,220,240,0.06)', borderRadius: 6, padding: '12px 14px' }}>
+            <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>Methodology</p>
+            {['Broad Macro: avg z-score across all 7 indicator groups','Growth: Real Activity, Business Activity & Housing blocks','Inflation: Inflation block (~8 indicators incl. CPI/Core/Services)','Employment: Labour Market block (~7 indicators incl. SECO unemp.)','Wages: Wages block (~5 indicators incl. Nominal Wage Index)'].map((note, i) => (<div key={i} style={{ display: 'flex', gap: 6, marginBottom: 5 }}><span style={{ color: DFM_FACTORS[i].color, fontSize: 10, flexShrink: 0, marginTop: 1 }}>●</span><span style={{ color: '#8995a2', fontSize: 10, lineHeight: 1.45 }}>{note}</span></div>))}
           </div>
         </div>
       </div>
@@ -352,27 +353,27 @@ function ols(y: number[], X: number[][]): OLSResult {
   const sigma2 = RSS / (N - K), XtXinv = matInv(XtX)
   return { coefficients: beta, tStats: beta.map((b, j) => b / Math.sqrt(sigma2 * XtXinv[j][j])), rSquared: 1 - RSS / TSS, adjRSquared: 1 - (RSS / (N - K)) / (TSS / (N - 1)), fitted, residuals }
 }
-const REG_FACTORS: { key: string; label: string; color: string }[] = [{ key: 'broadMacro', label: 'Broad Macro', color: '#94a3b8' }, { key: 'growth', label: 'Growth', color: '#34d399' }, { key: 'inflation', label: 'Inflation', color: '#f87171' }, { key: 'employment', label: 'Employment', color: '#60a5fa' }]
+const REG_FACTORS: { key: string; label: string; color: string }[] = [{ key: 'broadMacro', label: 'Broad Macro', color: '#c6ced8' }, { key: 'growth', label: 'Growth', color: '#6fc2a2' }, { key: 'inflation', label: 'Inflation', color: '#e2826f' }, { key: 'employment', label: 'Employment', color: '#86c0de' }]
 const REG_X: number[][] = Array.from({ length: N_MONTHS }, (_, t) => REG_FACTORS.map(f => FACTOR_SERIES[f.key][t]))
 const PC1_REG: OLSResult = ols(YIELD_PCA.scores.map(s => s[0]), REG_X)
 const PC2_REG: OLSResult = ols(YIELD_PCA.scores.map(s => s[1]), REG_X)
-const PC_META = [{ key: 'pc1', label: 'PC1 — Level', color: '#f59e0b' }, { key: 'pc2', label: 'PC2 — Slope', color: '#34d399' }, { key: 'pc3', label: 'PC3 — Curvature', color: '#a78bfa' }]
+const PC_META = [{ key: 'pc1', label: 'PC1 — Level', color: '#d6ad66' }, { key: 'pc2', label: 'PC2 — Slope', color: '#6fc2a2' }, { key: 'pc3', label: 'PC3 — Curvature', color: '#b49fdb' }]
 const PC_CHART_DATA = MONTH_COLS.map((month, t) => ({ month, pc1: Math.round(YIELD_PCA.scores[t][0] * 1000) / 1000, pc2: Math.round(YIELD_PCA.scores[t][1] * 1000) / 1000, pc3: Math.round(YIELD_PCA.scores[t][2] * 1000) / 1000 }))
 function YieldPCChart() {
   return (
     <div style={cardStyle}>
-      <div style={{ marginBottom: 20 }}><h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>Swiss Confederation Yield Curve — PCA</h2><p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>Jacobi PCA on 5-tenor Conf curve (2/5/10/20/30y) &middot; {(YIELD_PCA.explainedVar[0] * 100).toFixed(1)}% / {(YIELD_PCA.explainedVar[1] * 100).toFixed(1)}% / {(YIELD_PCA.explainedVar[2] * 100).toFixed(1)}% variance explained</p></div>
+      <div style={{ marginBottom: 20 }}><h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>Swiss Confederation Yield Curve — PCA</h2><p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>Jacobi PCA on 5-tenor Conf curve (2/5/10/20/30y) &middot; {(YIELD_PCA.explainedVar[0] * 100).toFixed(1)}% / {(YIELD_PCA.explainedVar[1] * 100).toFixed(1)}% / {(YIELD_PCA.explainedVar[2] * 100).toFixed(1)}% variance explained</p></div>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 24 }}>
         {PC_META.map(({ key, label, color }) => (
           <div key={key} style={{ flex: '1 1 300px', minWidth: 0 }}>
-            <p style={{ color: '#64748b', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>{label}</p>
+            <p style={{ color: '#9aa5b1', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>{label}</p>
             <ResponsiveContainer width="100%" height={160}>
               <LineChart data={PC_CHART_DATA} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-                <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={4} />
-                <YAxis tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={false} tickFormatter={v => v.toFixed(2)} />
-                <ReferenceLine y={0} stroke="rgba(255,255,255,0.10)" strokeDasharray="4 4" />
-                <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }} formatter={(v: number) => [v.toFixed(3), label]} />
+                <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
+                <XAxis dataKey="month" tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={4} />
+                <YAxis tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={false} tickFormatter={v => v.toFixed(2)} />
+                <ReferenceLine y={0} stroke="rgba(200,220,240,0.10)" strokeDasharray="4 4" />
+                <Tooltip contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }} formatter={(v: number) => [v.toFixed(3), label]} />
                 <Line type="monotone" dataKey={key} stroke={color} strokeWidth={2} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
               </LineChart>
             </ResponsiveContainer>
@@ -380,24 +381,24 @@ function YieldPCChart() {
         ))}
       </div>
       <div>
-        <p style={{ color: '#64748b', fontSize: 11, margin: '0 0 10px', fontWeight: 600 }}>Factor Loadings</p>
+        <p style={{ color: '#9aa5b1', fontSize: 11, margin: '0 0 10px', fontWeight: 600 }}>Factor Loadings</p>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
-          <thead><tr><th style={{ textAlign: 'left', color: '#475569', fontWeight: 600, fontSize: 10, padding: '4px 8px 6px 0', borderBottom: '1px solid rgba(255,255,255,0.07)', width: 120 }}>Factor</th>{YIELD_TENORS.map(t => <th key={t} style={{ textAlign: 'right', color: '#475569', fontWeight: 600, fontSize: 10, padding: '4px 6px 6px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>{t}</th>)}</tr></thead>
-          <tbody>{PC_META.map(({ key, label, color }, k) => (<tr key={key}><td style={{ padding: '5px 8px 5px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}><div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} /><span style={{ color: '#cbd5e1', fontSize: 11 }}>{label}</span></div></td>{YIELD_PCA.loadings[k].map((l, j) => <td key={j} style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: Math.abs(l) > 0.4 ? '#f1f5f9' : '#64748b', fontWeight: Math.abs(l) > 0.4 ? 600 : 400 }}>{l >= 0 ? '+' : ''}{l.toFixed(3)}</td>)}</tr>))}</tbody>
+          <thead><tr><th style={{ textAlign: 'left', color: '#8995a2', fontWeight: 600, fontSize: 10, padding: '4px 8px 6px 0', borderBottom: '1px solid rgba(200,220,240,0.07)', width: 120 }}>Factor</th>{YIELD_TENORS.map(t => <th key={t} style={{ textAlign: 'right', color: '#8995a2', fontWeight: 600, fontSize: 10, padding: '4px 6px 6px', borderBottom: '1px solid rgba(200,220,240,0.07)' }}>{t}</th>)}</tr></thead>
+          <tbody>{PC_META.map(({ key, label, color }, k) => (<tr key={key}><td style={{ padding: '5px 8px 5px 0', borderBottom: '1px solid rgba(200,220,240,0.04)' }}><div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} /><span style={{ color: '#c3ccd6', fontSize: 11 }}>{label}</span></div></td>{YIELD_PCA.loadings[k].map((l, j) => <td key={j} style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: Math.abs(l) > 0.4 ? '#eef2f6' : '#9aa5b1', fontWeight: Math.abs(l) > 0.4 ? 600 : 400 }}>{l >= 0 ? '+' : ''}{l.toFixed(3)}</td>)}</tr>))}</tbody>
         </table>
       </div>
     </div>
   )
 }
 const REG_CHART_DATA = MONTH_COLS.map((month, t) => ({ month, pc1Actual: Math.round(YIELD_PCA.scores[t][0] * 1000) / 1000, pc1Fitted: Math.round(PC1_REG.fitted[t] * 1000) / 1000, pc2Actual: Math.round(YIELD_PCA.scores[t][1] * 1000) / 1000, pc2Fitted: Math.round(PC2_REG.fitted[t] * 1000) / 1000 }))
-function tStatColor(t: number): string { const a = Math.abs(t); return a >= 2.58 ? '#34d399' : a >= 1.96 ? '#fbbf24' : a >= 1.65 ? '#94a3b8' : '#475569' }
+function tStatColor(t: number): string { const a = Math.abs(t); return a >= 2.58 ? '#6fc2a2' : a >= 1.96 ? '#dfbb78' : a >= 1.65 ? '#c6ced8' : '#8995a2' }
 function RegressionTable({ reg, pcLabel }: { reg: OLSResult; pcLabel: string }) {
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 10 }}><span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>{pcLabel}</span><span style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 6, padding: '2px 8px', fontFamily: 'monospace', fontSize: 11, color: '#f1f5f9' }}>R² = {reg.rSquared.toFixed(3)}</span><span style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 6, padding: '2px 8px', fontFamily: 'monospace', fontSize: 11, color: '#94a3b8' }}>adj. R² = {reg.adjRSquared.toFixed(3)}</span></div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 10 }}><span style={{ color: '#c6ced8', fontSize: 13, fontWeight: 600 }}>{pcLabel}</span><span style={{ background: 'rgba(200,220,240,0.05)', border: '1px solid rgba(200,220,240,0.09)', borderRadius: 6, padding: '2px 8px', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, color: '#eef2f6' }}>R² = {reg.rSquared.toFixed(3)}</span><span style={{ background: 'rgba(200,220,240,0.05)', border: '1px solid rgba(200,220,240,0.09)', borderRadius: 6, padding: '2px 8px', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, color: '#c6ced8' }}>adj. R² = {reg.adjRSquared.toFixed(3)}</span></div>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
-        <thead><tr>{['Factor','Coeff.','t-stat','Sig.'].map(h => <th key={h} style={{ textAlign: h === 'Factor' ? 'left' : 'right', color: '#475569', fontWeight: 600, fontSize: 10, padding: '4px 8px 6px', borderBottom: '1px solid rgba(255,255,255,0.07)', whiteSpace: 'nowrap' }}>{h}</th>)}</tr></thead>
-        <tbody>{REG_FACTORS.map((f, k) => { const b = reg.coefficients[k], t = reg.tStats[k]; return (<tr key={f.key}><td style={{ padding: '5px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}><div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: f.color, flexShrink: 0 }} /><span style={{ color: '#cbd5e1', fontSize: 11 }}>{f.label}</span></div></td><td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: b >= 0 ? '#34d399' : '#f87171', fontWeight: 600 }}>{b >= 0 ? '+' : ''}{b.toFixed(4)}</td><td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: tStatColor(t) }}>{t >= 0 ? '+' : ''}{t.toFixed(2)}</td><td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)', color: tStatColor(t), fontWeight: 600 }}>{Math.abs(t) >= 2.58 ? '***' : Math.abs(t) >= 1.96 ? '**' : Math.abs(t) >= 1.65 ? '*' : '—'}</td></tr>) })}</tbody>
+        <thead><tr>{['Factor','Coeff.','t-stat','Sig.'].map(h => <th key={h} style={{ textAlign: h === 'Factor' ? 'left' : 'right', color: '#8995a2', fontWeight: 600, fontSize: 10, padding: '4px 8px 6px', borderBottom: '1px solid rgba(200,220,240,0.07)', whiteSpace: 'nowrap' }}>{h}</th>)}</tr></thead>
+        <tbody>{REG_FACTORS.map((f, k) => { const b = reg.coefficients[k], t = reg.tStats[k]; return (<tr key={f.key}><td style={{ padding: '5px 8px', borderBottom: '1px solid rgba(200,220,240,0.04)' }}><div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: f.color, flexShrink: 0 }} /><span style={{ color: '#c3ccd6', fontSize: 11 }}>{f.label}</span></div></td><td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: b >= 0 ? '#6fc2a2' : '#e2826f', fontWeight: 600 }}>{b >= 0 ? '+' : ''}{b.toFixed(4)}</td><td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: tStatColor(t) }}>{t >= 0 ? '+' : ''}{t.toFixed(2)}</td><td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(200,220,240,0.04)', color: tStatColor(t), fontWeight: 600 }}>{Math.abs(t) >= 2.58 ? '***' : Math.abs(t) >= 1.96 ? '**' : Math.abs(t) >= 1.65 ? '*' : '—'}</td></tr>) })}</tbody>
       </table>
     </div>
   )
@@ -405,29 +406,29 @@ function RegressionTable({ reg, pcLabel }: { reg: OLSResult; pcLabel: string }) 
 function PCRegressionSection() {
   return (
     <div style={cardStyle}>
-      <div style={{ marginBottom: 20 }}><h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>Rates–Macro Linkage — PC Regressions</h2><p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>OLS: PC1 &amp; PC2 of Conf curve regressed on macro factors &middot; *** p&lt;1% &nbsp;** p&lt;5% &nbsp;* p&lt;10%</p></div>
+      <div style={{ marginBottom: 20 }}><h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>Rates–Macro Linkage — PC Regressions</h2><p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>OLS: PC1 &amp; PC2 of Conf curve regressed on macro factors &middot; *** p&lt;1% &nbsp;** p&lt;5% &nbsp;* p&lt;10%</p></div>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 24 }}>
-        {[{ label: 'PC1 — Level', actualKey: 'pc1Actual', fittedKey: 'pc1Fitted', color: '#f59e0b' }, { label: 'PC2 — Slope', actualKey: 'pc2Actual', fittedKey: 'pc2Fitted', color: '#34d399' }].map(({ label, actualKey, fittedKey, color }) => (
+        {[{ label: 'PC1 — Level', actualKey: 'pc1Actual', fittedKey: 'pc1Fitted', color: '#d6ad66' }, { label: 'PC2 — Slope', actualKey: 'pc2Actual', fittedKey: 'pc2Fitted', color: '#6fc2a2' }].map(({ label, actualKey, fittedKey, color }) => (
           <div key={label} style={{ flex: '1 1 400px', minWidth: 0 }}>
-            <p style={{ color: '#64748b', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>{label}</p>
+            <p style={{ color: '#9aa5b1', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>{label}</p>
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={REG_CHART_DATA} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-                <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={4} />
-                <YAxis tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={false} tickFormatter={v => v.toFixed(2)} />
-                <ReferenceLine y={0} stroke="rgba(255,255,255,0.10)" strokeDasharray="4 4" />
-                <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }} labelStyle={{ color: '#64748b', marginBottom: 4 }} formatter={(v: number, n: string) => [v.toFixed(3), n.includes('Actual') ? 'Actual' : 'Fitted']} />
+                <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
+                <XAxis dataKey="month" tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={4} />
+                <YAxis tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={false} tickFormatter={v => v.toFixed(2)} />
+                <ReferenceLine y={0} stroke="rgba(200,220,240,0.10)" strokeDasharray="4 4" />
+                <Tooltip contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }} labelStyle={{ color: '#9aa5b1', marginBottom: 4 }} formatter={(v: number, n: string) => [v.toFixed(3), n.includes('Actual') ? 'Actual' : 'Fitted']} />
                 <Line type="monotone" dataKey={actualKey} stroke={color} strokeWidth={1.8} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
-                <Line type="monotone" dataKey={fittedKey} stroke="rgba(255,255,255,0.45)" strokeWidth={1.2} strokeDasharray="5 3" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+                <Line type="monotone" dataKey={fittedKey} stroke="rgba(200,220,240,0.45)" strokeWidth={1.2} strokeDasharray="5 3" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
               </LineChart>
             </ResponsiveContainer>
-            <div style={{ display: 'flex', gap: 16, marginTop: 6 }}><div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 2, background: color, borderRadius: 1 }} /><span style={{ color: '#475569', fontSize: 10 }}>Actual</span></div><div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 0, borderTop: '2px dashed rgba(255,255,255,0.45)' }} /><span style={{ color: '#475569', fontSize: 10 }}>Fitted</span></div></div>
+            <div style={{ display: 'flex', gap: 16, marginTop: 6 }}><div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 2, background: color, borderRadius: 1 }} /><span style={{ color: '#8995a2', fontSize: 10 }}>Actual</span></div><div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 0, borderTop: '2px dashed rgba(200,220,240,0.45)' }} /><span style={{ color: '#8995a2', fontSize: 10 }}>Fitted</span></div></div>
           </div>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 280px', minWidth: 0 }}><RegressionTable reg={PC1_REG} pcLabel="PC1 — Level" /></div>
-        <div style={{ width: '1px', background: 'rgba(255,255,255,0.07)', flexShrink: 0 }} />
+        <div style={{ width: '1px', background: 'rgba(200,220,240,0.07)', flexShrink: 0 }} />
         <div style={{ flex: '1 1 280px', minWidth: 0 }}><RegressionTable reg={PC2_REG} pcLabel="PC2 — Slope" /></div>
       </div>
     </div>
@@ -457,56 +458,56 @@ function SwitzerlandFairValueSection() {
   return (
     <div style={cardStyle}>
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>Conf 10y Fair Value</h2>
-        <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>PCA reconstruction + macro OLS fair value &middot; rich/cheap = actual − macro fair</p>
+        <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>Conf 10y Fair Value</h2>
+        <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>PCA reconstruction + macro OLS fair value &middot; rich/cheap = actual − macro fair</p>
       </div>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 28 }}>
         <div style={{ flex: '1 1 420px', minWidth: 0 }}>
-          <p style={{ color: '#64748b', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>Yield vs Fair Value</p>
+          <p style={{ color: '#9aa5b1', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>Yield vs Fair Value</p>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={fvData} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
-              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-              <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={4} />
-              <YAxis tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={false} tickFormatter={v => v.toFixed(2)} domain={['auto', 'auto']} />
-              <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }} labelStyle={{ color: '#64748b', marginBottom: 4 }} formatter={(v: number, n: string) => [v.toFixed(3) + '%', n === 'actual' ? 'Conf 10y Actual' : n === 'pcaFitted' ? 'PCA Fitted' : 'Macro Fair Value']} />
-              <Line type="monotone" dataKey="actual" stroke="#f59e0b" strokeWidth={2} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
-              <Line type="monotone" dataKey="pcaFitted" stroke="#34d399" strokeWidth={1.4} strokeDasharray="4 2" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
-              <Line type="monotone" dataKey="macroFair" stroke="#818cf8" strokeWidth={1.4} strokeDasharray="6 3" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+              <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
+              <XAxis dataKey="month" tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={4} />
+              <YAxis tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={false} tickFormatter={v => v.toFixed(2)} domain={['auto', 'auto']} />
+              <Tooltip contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }} labelStyle={{ color: '#9aa5b1', marginBottom: 4 }} formatter={(v: number, n: string) => [v.toFixed(3) + '%', n === 'actual' ? 'Conf 10y Actual' : n === 'pcaFitted' ? 'PCA Fitted' : 'Macro Fair Value']} />
+              <Line type="monotone" dataKey="actual" stroke="#d6ad66" strokeWidth={2} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+              <Line type="monotone" dataKey="pcaFitted" stroke="#6fc2a2" strokeWidth={1.4} strokeDasharray="4 2" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+              <Line type="monotone" dataKey="macroFair" stroke="#9ea2e2" strokeWidth={1.4} strokeDasharray="6 3" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
             </LineChart>
           </ResponsiveContainer>
           <div style={{ display: 'flex', gap: 16, marginTop: 6, flexWrap: 'wrap' }}>
-            {[{ color: '#f59e0b', label: 'Conf 10y Actual', dash: false }, { color: '#34d399', label: 'PCA Fitted', dash: true }, { color: '#818cf8', label: 'Macro Fair Value', dash: true }].map(({ color, label, dash }) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>{dash ? <div style={{ width: 18, height: 0, borderTop: `2px dashed ${color}` }} /> : <div style={{ width: 18, height: 2, background: color, borderRadius: 1 }} />}<span style={{ color: '#475569', fontSize: 10 }}>{label}</span></div>
+            {[{ color: '#d6ad66', label: 'Conf 10y Actual', dash: false }, { color: '#6fc2a2', label: 'PCA Fitted', dash: true }, { color: '#9ea2e2', label: 'Macro Fair Value', dash: true }].map(({ color, label, dash }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>{dash ? <div style={{ width: 18, height: 0, borderTop: `2px dashed ${color}` }} /> : <div style={{ width: 18, height: 2, background: color, borderRadius: 1 }} />}<span style={{ color: '#8995a2', fontSize: 10 }}>{label}</span></div>
             ))}
           </div>
         </div>
         <div style={{ flex: '1 1 280px', minWidth: 0 }}>
-          <p style={{ color: '#64748b', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>Rich / Cheap (bps vs macro fair)</p>
+          <p style={{ color: '#9aa5b1', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>Rich / Cheap (bps vs macro fair)</p>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={fvData} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
               <defs>
-                <linearGradient id="gradCheapCH" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#34d399" stopOpacity={0.3} /><stop offset="95%" stopColor="#34d399" stopOpacity={0.02} /></linearGradient>
-                <linearGradient id="gradRichCH" x1="0" y1="1" x2="0" y2="0"><stop offset="5%" stopColor="#f87171" stopOpacity={0.3} /><stop offset="95%" stopColor="#f87171" stopOpacity={0.02} /></linearGradient>
+                <linearGradient id="gradCheapCH" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#6fc2a2" stopOpacity={0.3} /><stop offset="95%" stopColor="#6fc2a2" stopOpacity={0.02} /></linearGradient>
+                <linearGradient id="gradRichCH" x1="0" y1="1" x2="0" y2="0"><stop offset="5%" stopColor="#e2826f" stopOpacity={0.3} /><stop offset="95%" stopColor="#e2826f" stopOpacity={0.02} /></linearGradient>
               </defs>
-              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-              <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={4} />
-              <YAxis tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={false} tickFormatter={v => (v * 100).toFixed(0) + 'bp'} />
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.18)" strokeDasharray="4 4" />
-              <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }} labelStyle={{ color: '#64748b', marginBottom: 4 }} formatter={(v: number) => [(v * 100).toFixed(1) + 'bp', 'Rich/Cheap']} />
-              <Area type="monotone" dataKey="richCheap" stroke={last.richCheap >= 0 ? '#34d399' : '#f87171'} strokeWidth={1.8} fill={last.richCheap >= 0 ? 'url(#gradCheapCH)' : 'url(#gradRichCH)'} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+              <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
+              <XAxis dataKey="month" tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={4} />
+              <YAxis tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={false} tickFormatter={v => (v * 100).toFixed(0) + 'bp'} />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.18)" strokeDasharray="4 4" />
+              <Tooltip contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }} labelStyle={{ color: '#9aa5b1', marginBottom: 4 }} formatter={(v: number) => [(v * 100).toFixed(1) + 'bp', 'Rich/Cheap']} />
+              <Area type="monotone" dataKey="richCheap" stroke={last.richCheap >= 0 ? '#6fc2a2' : '#e2826f'} strokeWidth={1.8} fill={last.richCheap >= 0 ? 'url(#gradCheapCH)' : 'url(#gradRichCH)'} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
             </AreaChart>
           </ResponsiveContainer>
           <div style={{ textAlign: 'center', marginTop: 8 }}>
-            <span style={{ fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: last.richCheap >= 0 ? '#34d399' : '#f87171' }}>{last.richCheap >= 0 ? '+' : ''}{(last.richCheap * 100).toFixed(1)}bp</span>
-            <span style={{ color: '#475569', fontSize: 11, marginLeft: 6 }}>{last.richCheap >= 0 ? 'cheap vs fair' : 'rich vs fair'} (latest)</span>
+            <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 13, fontWeight: 600, color: last.richCheap >= 0 ? '#6fc2a2' : '#e2826f' }}>{last.richCheap >= 0 ? '+' : ''}{(last.richCheap * 100).toFixed(1)}bp</span>
+            <span style={{ color: '#8995a2', fontSize: 11, marginLeft: 6 }}>{last.richCheap >= 0 ? 'cheap vs fair' : 'rich vs fair'} (latest)</span>
           </div>
         </div>
       </div>
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-        {[{ label: 'Conf 10y Actual', value: (last.actual * 100).toFixed(0) + 'bp', color: '#f59e0b' }, { label: 'PCA Fitted', value: (last.pcaFitted * 100).toFixed(0) + 'bp', color: '#34d399' }, { label: 'Macro Fair Value', value: (last.macroFair * 100).toFixed(0) + 'bp', color: '#818cf8' }, { label: 'Rich/Cheap', value: (last.richCheap >= 0 ? '+' : '') + (last.richCheap * 100).toFixed(1) + 'bp', color: last.richCheap >= 0 ? '#34d399' : '#f87171' }].map(({ label, value, color }) => (
-          <div key={label} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: '10px 16px', minWidth: 120 }}>
-            <div style={{ color: '#475569', fontSize: 10, marginBottom: 4 }}>{label}</div>
-            <div style={{ color, fontSize: 15, fontWeight: 700, fontFamily: 'monospace' }}>{value}</div>
+        {[{ label: 'Conf 10y Actual', value: (last.actual * 100).toFixed(0) + 'bp', color: '#d6ad66' }, { label: 'PCA Fitted', value: (last.pcaFitted * 100).toFixed(0) + 'bp', color: '#6fc2a2' }, { label: 'Macro Fair Value', value: (last.macroFair * 100).toFixed(0) + 'bp', color: '#9ea2e2' }, { label: 'Rich/Cheap', value: (last.richCheap >= 0 ? '+' : '') + (last.richCheap * 100).toFixed(1) + 'bp', color: last.richCheap >= 0 ? '#6fc2a2' : '#e2826f' }].map(({ label, value, color }) => (
+          <div key={label} style={{ background: 'rgba(200,220,240,0.03)', borderRadius: 6, padding: '10px 16px', minWidth: 120 }}>
+            <div style={{ color: '#8995a2', fontSize: 10, marginBottom: 4 }}>{label}</div>
+            <div style={{ color, fontSize: 15, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{value}</div>
           </div>
         ))}
       </div>
@@ -551,25 +552,25 @@ function CurveDynamicsSection() {
   return (
     <div style={cardStyle}>
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>2s10s Conf Directionality</h2>
-        <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>63-day rolling regime attribution &middot; bull-steep / bear-flat / neutral</p>
+        <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>2s10s Conf Directionality</h2>
+        <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>63-day rolling regime attribution &middot; bull-steep / bear-flat / neutral</p>
       </div>
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={CURVE_ROLL_DATA} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-          <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={4} />
-          <YAxis tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={false} tickFormatter={v => v + '%'} domain={[0, 100]} />
-          <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }} labelStyle={{ color: '#64748b', marginBottom: 4 }} formatter={(v: number, n: string) => [v + '%', n === 'bullSteep' ? 'Bull Steep' : n === 'bearFlat' ? 'Bear Flat' : 'Neutral']} />
-          <Area type="monotone" dataKey="bullSteep" stackId="1" stroke="#34d399" fill="rgba(52,211,153,0.25)" strokeWidth={1} />
-          <Area type="monotone" dataKey="neutral" stackId="1" stroke="#475569" fill="rgba(71,85,105,0.20)" strokeWidth={1} />
-          <Area type="monotone" dataKey="bearFlat" stackId="1" stroke="#f87171" fill="rgba(248,113,113,0.25)" strokeWidth={1} />
+          <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
+          <XAxis dataKey="month" tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={4} />
+          <YAxis tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={false} tickFormatter={v => v + '%'} domain={[0, 100]} />
+          <Tooltip contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }} labelStyle={{ color: '#9aa5b1', marginBottom: 4 }} formatter={(v: number, n: string) => [v + '%', n === 'bullSteep' ? 'Bull Steep' : n === 'bearFlat' ? 'Bear Flat' : 'Neutral']} />
+          <Area type="monotone" dataKey="bullSteep" stackId="1" stroke="#6fc2a2" fill="rgba(111,194,162,0.25)" strokeWidth={1} />
+          <Area type="monotone" dataKey="neutral" stackId="1" stroke="#8995a2" fill="rgba(91,102,115,0.20)" strokeWidth={1} />
+          <Area type="monotone" dataKey="bearFlat" stackId="1" stroke="#e2826f" fill="rgba(226,130,111,0.25)" strokeWidth={1} />
         </AreaChart>
       </ResponsiveContainer>
       <div style={{ display: 'flex', gap: 20, marginTop: 10, flexWrap: 'wrap' }}>
-        {[{ color: '#34d399', label: 'Bull Steep', key: 'bullSteep' }, { color: '#475569', label: 'Neutral', key: 'neutral' }, { color: '#f87171', label: 'Bear Flat', key: 'bearFlat' }].map(({ color, label, key }) => {
+        {[{ color: '#6fc2a2', label: 'Bull Steep', key: 'bullSteep' }, { color: '#8995a2', label: 'Neutral', key: 'neutral' }, { color: '#e2826f', label: 'Bear Flat', key: 'bearFlat' }].map(({ color, label, key }) => {
           const lastRow = CURVE_ROLL_DATA[CURVE_ROLL_DATA.length - 1]
           const val = lastRow[key as keyof typeof lastRow] as number
-          return (<div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} /><span style={{ color: '#475569', fontSize: 10 }}>{label}</span><span style={{ color: '#94a3b8', fontSize: 10, fontFamily: 'monospace', marginLeft: 2 }}>{val}%</span></div>)
+          return (<div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} /><span style={{ color: '#8995a2', fontSize: 10 }}>{label}</span><span style={{ color: '#c6ced8', fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", marginLeft: 2 }}>{val}%</span></div>)
         })}
       </div>
     </div>
@@ -590,11 +591,11 @@ const BE_10Y = _genBE(3.7)
 const REAL_10Y_RAW = CONF_10Y_RAW.map((y: number, t: number) => Math.round((y - BE_10Y[t]) * 10000) / 10000)
 const BE_DATA = MONTH_COLS.map((month, t) => ({ month, nominal10y: CONF_10Y_RAW[t], real10y: REAL_10Y_RAW[t], be10y: BE_10Y[t], be5y: BE_5Y[t], be1y: BE_1Y[t] }))
 function beRegime(nom: number, real: number, be: number): { label: string; color: string } {
-  if (nom > 0.012 && real > 0.002) return { label: 'Bear Real', color: '#f87171' }
-  if (nom > 0.012 && be > BE_ANCHOR + 0.002) return { label: 'Bear Breakeven', color: '#fb923c' }
-  if (nom < 0.007 && real < -0.003) return { label: 'Bull Real', color: '#34d399' }
-  if (nom < 0.007 && be < BE_ANCHOR - 0.002) return { label: 'Bull Breakeven', color: '#60a5fa' }
-  return { label: 'Neutral', color: '#94a3b8' }
+  if (nom > 0.012 && real > 0.002) return { label: 'Bear Real', color: '#e2826f' }
+  if (nom > 0.012 && be > BE_ANCHOR + 0.002) return { label: 'Bear Breakeven', color: '#dd9562' }
+  if (nom < 0.007 && real < -0.003) return { label: 'Bull Real', color: '#6fc2a2' }
+  if (nom < 0.007 && be < BE_ANCHOR - 0.002) return { label: 'Bull Breakeven', color: '#86c0de' }
+  return { label: 'Neutral', color: '#c6ced8' }
 }
 function BEDynamicsSection() {
   const last = BE_DATA[BE_DATA.length - 1]
@@ -602,37 +603,37 @@ function BEDynamicsSection() {
   return (
     <div style={cardStyle}>
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>Switzerland 10y nominal Conf vs real yield</h2>
-        <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>Nominal / real / breakeven decomposition &middot; regime: <span style={{ color: regime.color, fontWeight: 600 }}>{regime.label}</span></p>
+        <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>Switzerland 10y nominal Conf vs real yield</h2>
+        <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>Nominal / real / breakeven decomposition &middot; regime: <span style={{ color: regime.color, fontWeight: 600 }}>{regime.label}</span></p>
       </div>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
         <div style={{ flex: '2 1 400px', minWidth: 0 }}>
-          <p style={{ color: '#64748b', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>Nominal / Real / Breakeven</p>
+          <p style={{ color: '#9aa5b1', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>Nominal / Real / Breakeven</p>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={BE_DATA} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
-              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-              <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={4} />
-              <YAxis tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={false} tickFormatter={v => (v * 100).toFixed(2) + '%'} />
-              <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }} labelStyle={{ color: '#64748b', marginBottom: 4 }} formatter={(v: number, n: string) => [(v * 100).toFixed(2) + '%', n === 'nominal10y' ? 'Nominal 10y' : n === 'real10y' ? 'Real 10y' : n === 'be10y' ? '10y BE' : n === 'be5y' ? '5y BE' : '1y BE']} />
-              <Line type="monotone" dataKey="nominal10y" stroke="#f59e0b" strokeWidth={2} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
-              <Line type="monotone" dataKey="real10y" stroke="#34d399" strokeWidth={1.6} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
-              <Line type="monotone" dataKey="be10y" stroke="#818cf8" strokeWidth={1.4} strokeDasharray="5 3" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
-              <Line type="monotone" dataKey="be5y" stroke="#60a5fa" strokeWidth={1.2} strokeDasharray="3 2" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
-              <Line type="monotone" dataKey="be1y" stroke="#94a3b8" strokeWidth={1} strokeDasharray="2 2" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+              <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
+              <XAxis dataKey="month" tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={4} />
+              <YAxis tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={false} tickFormatter={v => (v * 100).toFixed(2) + '%'} />
+              <Tooltip contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }} labelStyle={{ color: '#9aa5b1', marginBottom: 4 }} formatter={(v: number, n: string) => [(v * 100).toFixed(2) + '%', n === 'nominal10y' ? 'Nominal 10y' : n === 'real10y' ? 'Real 10y' : n === 'be10y' ? '10y BE' : n === 'be5y' ? '5y BE' : '1y BE']} />
+              <Line type="monotone" dataKey="nominal10y" stroke="#d6ad66" strokeWidth={2} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+              <Line type="monotone" dataKey="real10y" stroke="#6fc2a2" strokeWidth={1.6} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+              <Line type="monotone" dataKey="be10y" stroke="#9ea2e2" strokeWidth={1.4} strokeDasharray="5 3" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+              <Line type="monotone" dataKey="be5y" stroke="#86c0de" strokeWidth={1.2} strokeDasharray="3 2" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+              <Line type="monotone" dataKey="be1y" stroke="#c6ced8" strokeWidth={1} strokeDasharray="2 2" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
             </LineChart>
           </ResponsiveContainer>
           <div style={{ display: 'flex', gap: 14, marginTop: 6, flexWrap: 'wrap' }}>
-            {[{ color: '#f59e0b', label: 'Nominal 10y' }, { color: '#34d399', label: 'Real 10y' }, { color: '#818cf8', label: '10y BE', dash: true }, { color: '#60a5fa', label: '5y BE', dash: true }, { color: '#94a3b8', label: '1y BE', dash: true }].map(({ color, label, dash }) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>{dash ? <div style={{ width: 16, height: 0, borderTop: `2px dashed ${color}` }} /> : <div style={{ width: 16, height: 2, background: color, borderRadius: 1 }} />}<span style={{ color: '#475569', fontSize: 10 }}>{label}</span></div>
+            {[{ color: '#d6ad66', label: 'Nominal 10y' }, { color: '#6fc2a2', label: 'Real 10y' }, { color: '#9ea2e2', label: '10y BE', dash: true }, { color: '#86c0de', label: '5y BE', dash: true }, { color: '#c6ced8', label: '1y BE', dash: true }].map(({ color, label, dash }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>{dash ? <div style={{ width: 16, height: 0, borderTop: `2px dashed ${color}` }} /> : <div style={{ width: 16, height: 2, background: color, borderRadius: 1 }} />}<span style={{ color: '#8995a2', fontSize: 10 }}>{label}</span></div>
             ))}
           </div>
         </div>
         <div style={{ flex: '1 1 160px', minWidth: 0 }}>
-          <p style={{ color: '#64748b', fontSize: 11, margin: '0 0 12px', fontWeight: 600 }}>Latest</p>
-          {[{ label: 'Nominal 10y', value: (last.nominal10y * 100).toFixed(2) + '%', color: '#f59e0b' }, { label: 'Real 10y', value: (last.real10y * 100).toFixed(2) + '%', color: '#34d399' }, { label: '10y BE', value: (last.be10y * 100).toFixed(2) + '%', color: '#818cf8' }, { label: '5y BE', value: (last.be5y * 100).toFixed(2) + '%', color: '#60a5fa' }, { label: '1y BE', value: (last.be1y * 100).toFixed(2) + '%', color: '#94a3b8' }, { label: 'Regime', value: regime.label, color: regime.color }].map(({ label, value, color }) => (
-            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              <span style={{ color: '#64748b', fontSize: 11 }}>{label}</span>
-              <span style={{ color, fontFamily: 'monospace', fontSize: 12, fontWeight: 600 }}>{value}</span>
+          <p style={{ color: '#9aa5b1', fontSize: 11, margin: '0 0 12px', fontWeight: 600 }}>Latest</p>
+          {[{ label: 'Nominal 10y', value: (last.nominal10y * 100).toFixed(2) + '%', color: '#d6ad66' }, { label: 'Real 10y', value: (last.real10y * 100).toFixed(2) + '%', color: '#6fc2a2' }, { label: '10y BE', value: (last.be10y * 100).toFixed(2) + '%', color: '#9ea2e2' }, { label: '5y BE', value: (last.be5y * 100).toFixed(2) + '%', color: '#86c0de' }, { label: '1y BE', value: (last.be1y * 100).toFixed(2) + '%', color: '#c6ced8' }, { label: 'Regime', value: regime.label, color: regime.color }].map(({ label, value, color }) => (
+            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid rgba(200,220,240,0.05)' }}>
+              <span style={{ color: '#9aa5b1', fontSize: 11 }}>{label}</span>
+              <span style={{ color, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 12, fontWeight: 600 }}>{value}</span>
             </div>
           ))}
         </div>
@@ -662,24 +663,18 @@ export default function SwitzerlandHeatmap() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', color: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <div style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '18px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-            <a href="/" style={{ color: '#475569', fontSize: 12, textDecoration: 'none' }}>← Dashboard</a>
-          </div>
-          <h1 style={{ color: '#f1f5f9', fontSize: 22, fontWeight: 700, margin: 0 }}>Switzerland — Macro Heatmap</h1>
-          <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>SNB framework · Conf yields · SARON rate · EUR/CHF</p>
-        </div>
+    <div style={{ minHeight: '100vh', background: '#07090c', color: '#eef2f6', fontFamily: "'Geist', system-ui, sans-serif" }}>
+      <div style={{ ...headerBar, padding: '12px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <PageTitle category="Macro Fundamentals" categoryId="macro-fundamentals" flag="🇨🇭" title={<>Switzerland — Macro Heatmap</>} subtitle={<>SNB framework · Conf yields · SARON rate · EUR/CHF</>} />
         <div style={{ textAlign: 'right' }}>
-          <div style={{ color: '#34d399', fontSize: 12, fontFamily: 'monospace', fontWeight: 600 }}>SNB Policy Rate: 0.25%</div>
-          <div style={{ color: '#475569', fontSize: 11, marginTop: 2 }}>Last mtg: 20 Mar 2025 · Cut from 0.50% (4th consecutive)</div>
-          <div style={{ color: '#475569', fontSize: 10, marginTop: 4 }}>Updated: {fmtTimestamp()}</div>
+          <div style={{ color: '#6fc2a2', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600 }}>SNB Policy Rate: 0.25%</div>
+          <div style={{ color: '#8995a2', fontSize: 11, marginTop: 2 }}>Last mtg: 20 Mar 2025 · Cut from 0.50% (4th consecutive)</div>
+          <div style={{ color: '#8995a2', fontSize: 10, marginTop: 4 }}>Updated: {fmtTimestamp()}</div>
         </div>
       </div>
-      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: stickyBg, borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '0 32px', display: 'flex', gap: 0, overflowX: 'auto' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: stickyBg, borderBottom: '1px solid rgba(200,220,240,0.07)', padding: '0 32px', display: 'flex', gap: 0, overflowX: 'auto' }}>
         {NAV_SECTIONS.map(({ id, label }) => (
-          <button key={id} onClick={() => scrollTo(id)} style={{ padding: '12px 18px', fontSize: 12, fontWeight: 600, color: activeSection === id ? '#f1f5f9' : '#475569', background: 'none', border: 'none', borderBottom: activeSection === id ? '2px solid #f59e0b' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}>{label}</button>
+          <button key={id} onClick={() => scrollTo(id)} style={{ padding: '12px 18px', fontSize: 12, fontWeight: 600, color: activeSection === id ? '#eef2f6' : '#8995a2', background: 'none', border: 'none', borderBottom: activeSection === id ? '2px solid #d6ad66' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}>{label}</button>
         ))}
       </div>
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '32px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>

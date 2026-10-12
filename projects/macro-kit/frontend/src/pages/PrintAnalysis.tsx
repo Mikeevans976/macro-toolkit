@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import PageTitle from '../components/PageTitle'
 import axios from 'axios'
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -39,18 +39,18 @@ interface PrintVsConsensusData {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BG = '#080d1a'
-const ACCENT = '#6366f1'
-const ACCENT_DIM = 'rgba(99,102,241,0.15)'
-const ACCENT_BORDER = 'rgba(99,102,241,0.35)'
-const GREEN = '#22c55e'
-const RED = '#ef4444'
-const MUTED = '#475569'
+const BG = '#07090c'
+const ACCENT = '#8b8fd8'
+const ACCENT_DIM = 'rgba(139,143,216,0.15)'
+const ACCENT_BORDER = 'rgba(139,143,216,0.35)'
+const GREEN = '#5fb592'
+const RED = '#d9705e'
+const MUTED = '#8995a2'
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12, padding: '16px 20px',
+  background: 'rgba(200,220,240,0.03)',
+  border: '1px solid rgba(200,220,240,0.07)',
+  borderRadius: 6, padding: '16px 20px',
 }
 
 type Tab = 'print-vs-consensus'
@@ -92,8 +92,8 @@ function zColor(z: number | null): string {
   if (z == null) return MUTED
   const abs = Math.abs(z)
   if (abs >= 2) return z > 0 ? GREEN : RED
-  if (abs >= 1) return z > 0 ? '#86efac' : '#fca5a5'
-  return '#94a3b8'
+  if (abs >= 1) return z > 0 ? '#9dd6bd' : '#ecaa9c'
+  return '#c6ced8'
 }
 
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -152,35 +152,35 @@ function ToggleSelector<T extends number>({ label, items, labelOf, selected, onC
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-      <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
+      <div style={{ fontSize: 10, color: '#9aa5b1', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
         {label}
       </div>
       <button
         onClick={() => onChange(items)}
         style={{
-          background: allSelected ? ACCENT_DIM : 'rgba(255,255,255,0.04)',
-          border: `1px solid ${allSelected ? ACCENT_BORDER : 'rgba(255,255,255,0.07)'}`,
+          background: allSelected ? ACCENT_DIM : 'rgba(200,220,240,0.04)',
+          border: `1px solid ${allSelected ? ACCENT_BORDER : 'rgba(200,220,240,0.07)'}`,
           borderRadius: 5, padding: '2px 9px',
-          color: allSelected ? ACCENT : '#475569', fontSize: 10, fontWeight: 700, cursor: 'pointer',
+          color: allSelected ? ACCENT : '#8995a2', fontSize: 10, fontWeight: 600, cursor: 'pointer',
         }}>All</button>
       <button
         onClick={() => onChange([])}
         style={{
-          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(200,220,240,0.04)', border: '1px solid rgba(200,220,240,0.07)',
           borderRadius: 5, padding: '2px 9px',
-          color: '#475569', fontSize: 10, cursor: 'pointer',
+          color: '#8995a2', fontSize: 10, cursor: 'pointer',
         }}>None</button>
-      <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
+      <div style={{ width: 1, height: 16, background: 'rgba(200,220,240,0.08)' }} />
       {items.map(item => {
         const active = selected.includes(item)
         return (
           <button key={item} onClick={() => {
             onChange(active ? selected.filter(x => x !== item) : [...selected, item].sort((a, b) => a - b))
           }} style={{
-            background: active ? ACCENT_DIM : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${active ? ACCENT_BORDER : 'rgba(255,255,255,0.06)'}`,
+            background: active ? ACCENT_DIM : 'rgba(200,220,240,0.03)',
+            border: `1px solid ${active ? ACCENT_BORDER : 'rgba(200,220,240,0.06)'}`,
             borderRadius: 5, padding: '2px 8px',
-            color: active ? ACCENT : '#475569',
+            color: active ? ACCENT : '#8995a2',
             fontSize: 10, fontWeight: active ? 700 : 400, cursor: 'pointer',
           }}>{labelOf(item)}</button>
         )
@@ -205,7 +205,7 @@ function FilterBar({ allYears, selectedYears, onYears, selectedMonths, onMonths 
         selected={selectedYears}
         onChange={onYears}
       />
-      <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
+      <div style={{ height: 1, background: 'rgba(200,220,240,0.06)' }} />
       <ToggleSelector
         label="Months"
         items={ALL_MONTHS}
@@ -221,9 +221,9 @@ function FilterBar({ allYears, selectedYears, onYears, selectedMonths, onMonths 
 
 function SummaryCards({ summary, ticker }: { summary: Summary; ticker: string }) {
   const cards = [
-    { label: 'Releases',      value: String(summary.n_releases),                                       color: '#f1f5f9' },
+    { label: 'Releases',      value: String(summary.n_releases),                                       color: '#eef2f6' },
     { label: 'Mean Surprise', value: fmtSurprise(summary.mean_surprise),                               color: surpriseColor(summary.mean_surprise) },
-    { label: 'Std Surprise',  value: fmt(summary.std_surprise),                                        color: '#f1f5f9' },
+    { label: 'Std Surprise',  value: fmt(summary.std_surprise),                                        color: '#eef2f6' },
     { label: '% Beats',       value: summary.pct_beats  != null ? `${summary.pct_beats}%`  : '—',     color: GREEN },
     { label: '% Misses',      value: summary.pct_misses != null ? `${summary.pct_misses}%` : '—',     color: RED },
   ]
@@ -237,7 +237,7 @@ function SummaryCards({ summary, ticker }: { summary: Summary; ticker: string })
         {cards.map(c => (
           <div key={c.label} style={{ ...cardStyle, minWidth: 120, flex: '1 1 120px' }}>
             <div style={{ fontSize: 11, color: MUTED, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{c.label}</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: c.color, fontVariantNumeric: 'tabular-nums' }}>{c.value}</div>
+            <div style={{ fontSize: 22, fontWeight: 600, color: c.color, fontVariantNumeric: 'tabular-nums' }}>{c.value}</div>
           </div>
         ))}
       </div>
@@ -262,20 +262,20 @@ function SurpriseChart({ releases, mode }: { releases: Release[]; mode: Consensu
       </div>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }} barCategoryGap="20%">
-          <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
+          <CartesianGrid vertical={false} stroke="rgba(200,220,240,0.05)" />
           <XAxis
             dataKey="date"
-            tick={{ fill: '#475569', fontSize: 10 }}
+            tick={{ fill: '#8995a2', fontSize: 10 }}
             axisLine={false} tickLine={false}
             interval={Math.max(0, Math.floor(data.length / 10) - 1)}
           />
-          <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+          <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
           <Tooltip
-            contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }}
-            labelStyle={{ color: '#94a3b8', marginBottom: 4 }}
+            contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, fontSize: 12 }}
+            labelStyle={{ color: '#c6ced8', marginBottom: 4 }}
             formatter={(val: number) => [fmtSurprise(val), 'Surprise']}
           />
-          <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
+          <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" />
           <Bar dataKey="surprise" radius={[2, 2, 0, 0]}>
             {data.map((entry, i) => (
               <Cell key={i} fill={(entry.surprise ?? 0) >= 0 ? GREEN : RED} fillOpacity={0.75} />
@@ -293,11 +293,11 @@ function ReleaseTable({ releases }: { releases: Release[] }) {
   const th: React.CSSProperties = {
     padding: '8px 12px', textAlign: 'right', fontSize: 11, fontWeight: 600,
     color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em',
-    whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255,255,255,0.07)',
+    whiteSpace: 'nowrap', borderBottom: '1px solid rgba(200,220,240,0.07)',
   }
   const td: React.CSSProperties = {
     padding: '7px 12px', textAlign: 'right', fontSize: 12,
-    color: '#cbd5e1', borderBottom: '1px solid rgba(255,255,255,0.04)',
+    color: '#c3ccd6', borderBottom: '1px solid rgba(200,220,240,0.04)',
     fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
   }
 
@@ -324,9 +324,9 @@ function ReleaseTable({ releases }: { releases: Release[] }) {
         <tbody>
           {releases.map(r => (
             <tr key={r.date}>
-              <td style={{ ...td, textAlign: 'left', color: '#94a3b8' }}>{r.date}</td>
-              <td style={{ ...td, textAlign: 'left', color: '#64748b' }}>{r.release_date ?? '—'}</td>
-              <td style={{ ...td, color: '#f1f5f9', fontWeight: 600 }}>{fmt(r.actual)}</td>
+              <td style={{ ...td, textAlign: 'left', color: '#c6ced8' }}>{r.date}</td>
+              <td style={{ ...td, textAlign: 'left', color: '#9aa5b1' }}>{r.release_date ?? '—'}</td>
+              <td style={{ ...td, color: '#eef2f6', fontWeight: 600 }}>{fmt(r.actual)}</td>
               <td style={td}>{fmt(r.avg)}</td>
               <td style={td}>{fmt(r.median)}</td>
               <td style={td}>{fmt(r.high)}</td>
@@ -372,27 +372,27 @@ function SurpriseScatter({ releases, mode }: { releases: Release[]; mode: Consen
       </div>
       <ResponsiveContainer width="100%" height={220}>
         <ComposedChart margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.05)" />
+          <CartesianGrid stroke="rgba(200,220,240,0.05)" />
           <XAxis
             dataKey="i" type="number"
             domain={[0, points.length - 1]}
             ticks={points.filter((_, i) => i % Math.max(1, Math.floor(points.length / 10)) === 0).map(p => p.i)}
             tickFormatter={i => points[i]?.date ?? ''}
-            tick={{ fill: '#475569', fontSize: 10 }}
+            tick={{ fill: '#8995a2', fontSize: 10 }}
             axisLine={false} tickLine={false}
           />
-          <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+          <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
           <ZAxis range={[30, 30]} />
-          <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
+          <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" />
           <Tooltip
-            contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }}
+            contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, fontSize: 12 }}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null
               const d = payload[0]?.payload
               if (!d) return null
               return (
-                <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-                  <div style={{ color: '#94a3b8', marginBottom: 4 }}>{d.date}</div>
+                <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+                  <div style={{ color: '#c6ced8', marginBottom: 4 }}>{d.date}</div>
                   <div style={{ color: surpriseColor(d.surprise) }}>Surprise: {fmtSurprise(d.surprise)}</div>
                 </div>
               )
@@ -466,30 +466,30 @@ function DistributionChart({ releases, mode }: { releases: Release[]; mode: Cons
         </div>
         <div style={{ display: 'flex', gap: 16 }}>
           <span style={{ fontSize: 11, color: MUTED }}>
-            μ <span style={{ color: surpriseColor(mean), fontWeight: 700 }}>{fmtSurprise(mean)}</span>
+            μ <span style={{ color: surpriseColor(mean), fontWeight: 600 }}>{fmtSurprise(mean)}</span>
           </span>
           <span style={{ fontSize: 11, color: MUTED }}>
-            σ <span style={{ color: '#f1f5f9', fontWeight: 700 }}>{std.toFixed(2)}</span>
+            σ <span style={{ color: '#eef2f6', fontWeight: 600 }}>{std.toFixed(2)}</span>
           </span>
           <span style={{ fontSize: 11, color: MUTED }}>
-            n <span style={{ color: '#f1f5f9', fontWeight: 700 }}>{surprises.length}</span>
+            n <span style={{ color: '#eef2f6', fontWeight: 600 }}>{surprises.length}</span>
           </span>
         </div>
       </div>
 
       <ResponsiveContainer width="100%" height={220}>
         <ComposedChart data={data} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
-          <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
+          <CartesianGrid vertical={false} stroke="rgba(200,220,240,0.05)" />
           <XAxis
             dataKey="label"
-            tick={{ fill: '#475569', fontSize: 10 }}
+            tick={{ fill: '#8995a2', fontSize: 10 }}
             axisLine={false} tickLine={false}
             interval={Math.max(0, Math.floor(data.length / 8) - 1)}
           />
-          <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
+          <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
           <Tooltip
-            contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }}
-            labelStyle={{ color: '#94a3b8', marginBottom: 4 }}
+            contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, fontSize: 12 }}
+            labelStyle={{ color: '#c6ced8', marginBottom: 4 }}
             formatter={(val: number, name: string) => [
               name === 'count' ? val : val.toFixed(2),
               name === 'count' ? 'Frequency' : 'Normal fit',
@@ -505,8 +505,8 @@ function DistributionChart({ releases, mode }: { releases: Release[]; mode: Cons
           {[mean - std, mean + std].map((v, i) => (
             <ReferenceLine
               key={i} x={v.toFixed(2)}
-              stroke="rgba(255,255,255,0.18)" strokeDasharray="3 3"
-              label={{ value: i === 0 ? '-1σ' : '+1σ', fill: '#475569', fontSize: 9, position: 'top' }}
+              stroke="rgba(200,220,240,0.18)" strokeDasharray="3 3"
+              label={{ value: i === 0 ? '-1σ' : '+1σ', fill: '#8995a2', fontSize: 9, position: 'top' }}
             />
           ))}
           <Bar dataKey="count" radius={[3, 3, 0, 0]} maxBarSize={48}>
@@ -578,10 +578,10 @@ function MarketSummaryCards({ pts, ticker }: { pts: ReactionPoint[]; ticker: str
     arr.length ? arr.reduce((s, p) => s + p.market_move, 0) / arr.length : null
 
   const cards = [
-    { label: 'Observations',  value: String(pts.length),                                                  color: '#f1f5f9' },
+    { label: 'Observations',  value: String(pts.length),                                                  color: '#eef2f6' },
     { label: 'Correlation',   value: ols ? ols.corr.toFixed(2) : '—',                                    color: ols ? surpriseColor(ols.corr) : MUTED },
-    { label: 'Sensitivity',   value: ols ? `${ols.slope.toFixed(2)}×` : '—',                             color: '#f1f5f9' },
-    { label: 'R²',            value: ols ? ols.r2.toFixed(2) : '—',                                      color: '#f1f5f9' },
+    { label: 'Sensitivity',   value: ols ? `${ols.slope.toFixed(2)}×` : '—',                             color: '#eef2f6' },
+    { label: 'R²',            value: ols ? ols.r2.toFixed(2) : '—',                                      color: '#eef2f6' },
     { label: 'Avg on Beat',   value: avgMove(beats)  != null ? fmtSurprise(avgMove(beats))  : '—',       color: GREEN },
     { label: 'Avg on Miss',   value: avgMove(misses) != null ? fmtSurprise(avgMove(misses)) : '—',       color: RED },
   ]
@@ -595,7 +595,7 @@ function MarketSummaryCards({ pts, ticker }: { pts: ReactionPoint[]; ticker: str
         {cards.map(c => (
           <div key={c.label} style={{ ...cardStyle, minWidth: 100, flex: '1 1 100px', padding: '12px 16px' }}>
             <div style={{ fontSize: 10, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{c.label}</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: c.color, fontVariantNumeric: 'tabular-nums' }}>{c.value}</div>
+            <div style={{ fontSize: 20, fontWeight: 600, color: c.color, fontVariantNumeric: 'tabular-nums' }}>{c.value}</div>
           </div>
         ))}
       </div>
@@ -624,39 +624,39 @@ function ReactionScatter({ pts, consensusMode }: { pts: ReactionPoint[]; consens
         </div>
         {ols && (
           <div style={{ fontSize: 11, color: MUTED }}>
-            y = <span style={{ color: '#f1f5f9' }}>{ols.slope.toFixed(2)}</span>x
+            y = <span style={{ color: '#eef2f6' }}>{ols.slope.toFixed(2)}</span>x
             {ols.intercept >= 0 ? ' + ' : ' − '}
-            <span style={{ color: '#f1f5f9' }}>{Math.abs(ols.intercept).toFixed(2)}</span>
-            {'  '}R² = <span style={{ color: '#f1f5f9' }}>{ols.r2.toFixed(2)}</span>
+            <span style={{ color: '#eef2f6' }}>{Math.abs(ols.intercept).toFixed(2)}</span>
+            {'  '}R² = <span style={{ color: '#eef2f6' }}>{ols.r2.toFixed(2)}</span>
           </div>
         )}
       </div>
       <ResponsiveContainer width="100%" height={260}>
         <ScatterChart margin={{ top: 8, right: 16, bottom: 24, left: 8 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.05)" />
+          <CartesianGrid stroke="rgba(200,220,240,0.05)" />
           <XAxis
             dataKey="x" type="number"
             domain={[xMin - xPad, xMax + xPad]}
             tickFormatter={(v: number) => v.toFixed(2)}
-            tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false}
-            label={{ value: `Surprise (vs ${consensusMode === 'avg' ? 'Mean' : 'Median'})`, position: 'insideBottom', offset: -14, fill: '#475569', fontSize: 10 }}
+            tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false}
+            label={{ value: `Surprise (vs ${consensusMode === 'avg' ? 'Mean' : 'Median'})`, position: 'insideBottom', offset: -14, fill: '#8995a2', fontSize: 10 }}
           />
           <YAxis
             dataKey="y" type="number"
-            tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} width={44}
-            label={{ value: 'Market Move', angle: -90, position: 'insideLeft', offset: 8, fill: '#475569', fontSize: 10 }}
+            tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} width={44}
+            label={{ value: 'Market Move', angle: -90, position: 'insideLeft', offset: 8, fill: '#8995a2', fontSize: 10 }}
           />
           <ZAxis range={[40, 40]} />
-          <ReferenceLine x={0} stroke="rgba(255,255,255,0.12)" />
-          <ReferenceLine y={0} stroke="rgba(255,255,255,0.12)" />
+          <ReferenceLine x={0} stroke="rgba(200,220,240,0.12)" />
+          <ReferenceLine y={0} stroke="rgba(200,220,240,0.12)" />
           <Tooltip
             cursor={false}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null
               const d = payload[0]?.payload as ReactionPoint & { x: number; y: number }
               return (
-                <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-                  <div style={{ color: '#94a3b8', marginBottom: 4 }}>{d.period} → {d.release_date}</div>
+                <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+                  <div style={{ color: '#c6ced8', marginBottom: 4 }}>{d.period} → {d.release_date}</div>
                   <div style={{ color: surpriseColor(d.surprise) }}>Surprise: {fmtSurprise(d.surprise)}</div>
                   <div style={{ color: surpriseColor(d.market_move) }}>Move: {fmtSurprise(d.market_move)}</div>
                 </div>
@@ -701,14 +701,14 @@ function ReactionBars({ pts }: { pts: ReactionPoint[] }) {
       </div>
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }} barCategoryGap="20%">
-          <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
-          <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false}
+          <CartesianGrid vertical={false} stroke="rgba(200,220,240,0.05)" />
+          <XAxis dataKey="date" tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false}
             interval={Math.max(0, Math.floor(data.length / 10) - 1)} />
-          <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
-          <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
+          <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+          <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" />
           <Tooltip
-            contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }}
-            labelStyle={{ color: '#94a3b8', marginBottom: 4 }}
+            contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, fontSize: 12 }}
+            labelStyle={{ color: '#c6ced8', marginBottom: 4 }}
             formatter={(val: number, _: string, entry: any) => [
               `${fmtSurprise(val)} (surprise ${fmtSurprise(entry.payload.surprise)})`,
               'Market Move',
@@ -777,7 +777,7 @@ function MarketReaction({ allReleases, filteredReleases, consensusMode }: {
   return (
     <div style={{ marginTop: 32 }}>
       {/* Section header */}
-      <div style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', marginBottom: 16, letterSpacing: '-0.01em' }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#eef2f6', marginBottom: 16, letterSpacing: '-0.01em' }}>
         Market Reaction
       </div>
 
@@ -789,18 +789,18 @@ function MarketReaction({ allReleases, filteredReleases, consensusMode }: {
           onKeyDown={e => e.key === 'Enter' && handleFetch()}
           placeholder="Market instrument — e.g. GDBR10 Index"
           style={{
-            flex: 1, background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8,
-            padding: '8px 14px', color: '#f1f5f9', fontSize: 13, outline: 'none',
+            flex: 1, background: 'rgba(200,220,240,0.05)',
+            border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6,
+            padding: '8px 14px', color: '#eef2f6', fontSize: 13, outline: 'none',
           }}
         />
         <button
           onClick={handleFetch}
           disabled={loading || !marketTicker.trim()}
           style={{
-            background: loading || !marketTicker.trim() ? 'rgba(99,102,241,0.3)' : ACCENT,
-            border: 'none', borderRadius: 8, padding: '8px 20px',
-            color: '#fff', fontSize: 13, fontWeight: 600,
+            background: loading || !marketTicker.trim() ? 'rgba(139,143,216,0.3)' : ACCENT,
+            border: 'none', borderRadius: 6, padding: '8px 20px',
+            color: '#f4f7fa', fontSize: 13, fontWeight: 600,
             cursor: loading || !marketTicker.trim() ? 'default' : 'pointer',
             whiteSpace: 'nowrap',
           }}
@@ -810,7 +810,7 @@ function MarketReaction({ allReleases, filteredReleases, consensusMode }: {
       </div>
 
       {error && (
-        <div style={{ ...cardStyle, color: RED, fontSize: 13, marginBottom: 16, borderColor: 'rgba(239,68,68,0.25)' }}>
+        <div style={{ ...cardStyle, color: RED, fontSize: 13, marginBottom: 16, borderColor: 'rgba(217,112,94,0.25)' }}>
           {error}
         </div>
       )}
@@ -894,18 +894,18 @@ function PrintVsConsensus() {
           onKeyDown={e => e.key === 'Enter' && handleFetch()}
           placeholder="Bloomberg ticker — e.g. UKPRIC YOY Index"
           style={{
-            flex: 1, background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8,
-            padding: '8px 14px', color: '#f1f5f9', fontSize: 13, outline: 'none',
+            flex: 1, background: 'rgba(200,220,240,0.05)',
+            border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6,
+            padding: '8px 14px', color: '#eef2f6', fontSize: 13, outline: 'none',
           }}
         />
         <button
           onClick={handleFetch}
           disabled={loading || !ticker.trim()}
           style={{
-            background: loading || !ticker.trim() ? 'rgba(99,102,241,0.3)' : ACCENT,
-            border: 'none', borderRadius: 8, padding: '8px 20px',
-            color: '#fff', fontSize: 13, fontWeight: 600,
+            background: loading || !ticker.trim() ? 'rgba(139,143,216,0.3)' : ACCENT,
+            border: 'none', borderRadius: 6, padding: '8px 20px',
+            color: '#f4f7fa', fontSize: 13, fontWeight: 600,
             cursor: loading || !ticker.trim() ? 'default' : 'pointer',
             whiteSpace: 'nowrap',
           }}
@@ -916,7 +916,7 @@ function PrintVsConsensus() {
 
       {/* Error */}
       {error && (
-        <div style={{ ...cardStyle, color: RED, fontSize: 13, marginBottom: 20, borderColor: 'rgba(239,68,68,0.25)' }}>
+        <div style={{ ...cardStyle, color: RED, fontSize: 13, marginBottom: 20, borderColor: 'rgba(217,112,94,0.25)' }}>
           {error}
         </div>
       )}
@@ -937,10 +937,10 @@ function PrintVsConsensus() {
                   const active = consensusMode === m
                   return (
                     <button key={m} onClick={() => setConsensusMode(m)} style={{
-                      background: active ? ACCENT_DIM : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${active ? ACCENT_BORDER : 'rgba(255,255,255,0.08)'}`,
+                      background: active ? ACCENT_DIM : 'rgba(200,220,240,0.04)',
+                      border: `1px solid ${active ? ACCENT_BORDER : 'rgba(200,220,240,0.08)'}`,
                       borderRadius: 6, padding: '4px 12px',
-                      color: active ? ACCENT : '#64748b',
+                      color: active ? ACCENT : '#9aa5b1',
                       fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer',
                     }}>
                       vs {m === 'avg' ? 'Mean' : 'Median'}
@@ -966,7 +966,7 @@ function PrintVsConsensus() {
 
       {data && data.releases.length === 0 && !loading && (
         <div style={{ color: MUTED, fontSize: 13 }}>
-          No releases found for <strong style={{ color: '#f1f5f9' }}>{data.ticker}</strong>.
+          No releases found for <strong style={{ color: '#eef2f6' }}>{data.ticker}</strong>.
         </div>
       )}
 
@@ -980,34 +980,17 @@ function PrintVsConsensus() {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function PrintAnalysis() {
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<Tab>('print-vs-consensus')
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, color: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: BG, color: '#eef2f6', fontFamily: "'Geist', system-ui, sans-serif" }}>
       <header style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '14px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        padding: '14px 24px', borderBottom: '1px solid rgba(200,220,240,0.06)',
         position: 'sticky', top: 0, background: BG, zIndex: 10,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.10)',
-              borderRadius: 8, padding: '6px 14px',
-              color: '#94a3b8', fontSize: 13, cursor: 'pointer',
-            }}
-          >
-            ← Back
-          </button>
-          <div>
-            <div style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>
-              Print Analysis
-            </div>
-            <div style={{ color: MUTED, fontSize: 11, marginTop: 1 }}>Technicals</div>
-          </div>
+          <PageTitle category="Technicals" categoryId="technicals" title={<>Print Analysis</>} subtitle={<>Technicals</>} />
         </div>
 
         <div style={{ display: 'flex', gap: 4 }}>
@@ -1015,10 +998,10 @@ export default function PrintAnalysis() {
             const active = activeTab === id
             return (
               <button key={id} onClick={() => setActiveTab(id)} style={{
-                background: active ? ACCENT_DIM : 'rgba(255,255,255,0.05)',
-                border: `1px solid ${active ? ACCENT_BORDER : 'rgba(255,255,255,0.08)'}`,
+                background: active ? ACCENT_DIM : 'rgba(200,220,240,0.05)',
+                border: `1px solid ${active ? ACCENT_BORDER : 'rgba(200,220,240,0.08)'}`,
                 borderRadius: 7, padding: '5px 14px',
-                color: active ? ACCENT : '#64748b',
+                color: active ? ACCENT : '#9aa5b1',
                 fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer',
               }}>
                 {label}

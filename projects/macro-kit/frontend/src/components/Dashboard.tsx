@@ -2,12 +2,28 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { DashboardConfig } from '../types'
+import { loadDashboardConfig } from '../hubData'
 import CategoryCard from './CategoryCard'
+import Glyph from './Glyph'
+
+function greeting(d: Date): string {
+  const h = d.getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 18) return 'Good afternoon'
+  return 'Good evening'
+}
+
+function stamp(d: Date): string {
+  const day = d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
+  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  return `${day} · ${time}`
+}
 
 export default function Dashboard() {
   const [config, setConfig] = useState<DashboardConfig | null>(null)
   const [error, setError] = useState('')
   const [username, setUsername] = useState('')
+  const [now, setNow] = useState(() => new Date())
   const navigate = useNavigate()
 
   const token = localStorage.getItem('access_token')
@@ -21,142 +37,104 @@ export default function Dashboard() {
     const headers = { Authorization: `Bearer ${token}` }
 
     // Fetch user info and dashboard config in parallel
-    Promise.all([
-      axios.get('/api/me', { headers }),
-      axios.get('/api/dashboard', { headers }),
-    ])
-      .then(([meRes, dashRes]) => {
+    Promise.all([axios.get('/api/me', { headers }), loadDashboardConfig()])
+      .then(([meRes, dash]) => {
         setUsername(meRes.data.full_name || meRes.data.username)
-        setConfig(dashRes.data)
+        setConfig(dash)
       })
       .catch((err) => {
         if (axios.isAxiosError(err) && err.response?.status === 401) {
           localStorage.removeItem('access_token')
           navigate('/login', { replace: true })
         } else {
-          setError('Failed to load dashboard. Please refresh.')
+          setError('The launchpad could not load. Check that the API server is running on port 8000, then refresh.')
         }
       })
   }, [token, navigate])
 
-  function handleLogout() {
-    localStorage.removeItem('access_token')
-    navigate('/login', { replace: true })
-  }
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 30_000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  const toolCount = config?.categories.reduce((acc, c) => acc + c.tools.length, 0) ?? 0
+  const liveCats = config?.categories.filter((c) => c.tools.length > 0).length ?? 0
+  const agentCount = config?.categories.find((c) => c.id === 'agents')?.tools.length ?? 0
+  const firstName = username.split(' ')[0]
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: '#080d1a' }}
-    >
-      {/* Subtle gradient overlay */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% -10%, rgba(59,130,246,0.07) 0%, transparent 55%)',
-        }}
-      />
-
-      {/* Header */}
-      <header
-        className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
-        style={{
-          background: 'rgba(8,13,26,0.85)',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-          backdropFilter: 'blur(12px)',
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/25">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
-              {/* Body */}
-              <ellipse cx="32" cy="36" rx="8" ry="13" fill="#C8A84B"/>
-              {/* Head */}
-              <circle cx="32" cy="18" r="6" fill="#C8A84B"/>
-              {/* Beak */}
-              <path d="M32 22 L29 26 L35 26 Z" fill="#8B6914"/>
-              {/* Left wing */}
-              <path d="M24 30 C16 24 4 28 2 20 C8 18 14 22 20 26 C16 20 10 12 14 8 C18 12 20 20 24 28 C22 22 20 14 24 10 C26 16 26 24 26 32Z" fill="#C8A84B"/>
-              {/* Right wing */}
-              <path d="M40 30 C48 24 60 28 62 20 C56 18 50 22 44 26 C48 20 54 12 50 8 C46 12 44 20 40 28 C42 22 44 14 40 10 C38 16 38 24 38 32Z" fill="#C8A84B"/>
-              {/* Tail feathers */}
-              <path d="M26 48 L24 58 L28 54 L32 60 L36 54 L40 58 L38 48Z" fill="#C8A84B"/>
-              {/* Left talon */}
-              <path d="M27 49 L22 56 M27 49 L24 57 M27 49 L26 57" stroke="#8B6914" strokeWidth="1.5" strokeLinecap="round"/>
-              {/* Right talon */}
-              <path d="M37 49 L42 56 M37 49 L40 57 M37 49 L38 57" stroke="#8B6914" strokeWidth="1.5" strokeLinecap="round"/>
-              {/* Eye */}
-              <circle cx="30" cy="17" r="1.5" fill="#1a1a1a"/>
-            </svg>
-          </div>
-          <div>
-            <h1 className="text-base font-semibold text-white leading-tight">
-              Analytics Hub
-            </h1>
-            <p className="text-xs text-slate-500 leading-tight">Pod Analytics</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {username && (
-            <span className="text-sm text-slate-400 hidden sm:block">
-              {username}
-            </span>
-          )}
-          <button
-            onClick={handleLogout}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-150"
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: '#94a3b8',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-              e.currentTarget.style.color = '#e2e8f0'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
-              e.currentTarget.style.color = '#94a3b8'
-            }}
-          >
-            Sign out
-          </button>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <main className="relative px-4 sm:px-6 lg:px-8 py-8 max-w-screen-xl mx-auto">
+    <div className="min-h-screen hub-dotgrid">
+      <main className="relative px-5 sm:px-8 lg:px-10 pt-10 pb-16 max-w-[1320px] mx-auto">
         {error && (
-          <div className="mb-6 rounded-lg px-4 py-3 text-sm text-red-300 bg-red-500/10 border border-red-500/20">
+          <div className="mb-6 rounded-md px-4 py-3 text-sm text-neg bg-neg/10 border border-neg/20">
             {error}
           </div>
         )}
 
+        {/* Header */}
+        <header className="flex flex-wrap items-end justify-between gap-6 pb-7 mb-8 border-b border-hairline">
+          <div className="min-w-0">
+            <div className="hub-eyebrow mb-2.5">{stamp(now)}</div>
+            <h1 className="text-[28px] leading-tight font-normal tracking-[-0.025em] text-fg-1">
+              {greeting(now)}{firstName ? `, ${firstName}` : ''}
+            </h1>
+            <p className="mt-1.5 text-[13px] text-fg-3">Analytics Hub · Fixed Income Pod</p>
+          </div>
+
+          <div className="flex items-end gap-8">
+            {config && (
+              <dl className="flex gap-7">
+                {[
+                  [toolCount, 'Tools'],
+                  [liveCats, 'Categories'],
+                  [agentCount, 'Agents'],
+                ].map(([v, l]) => (
+                  <div key={l as string} className="grid gap-0.5">
+                    <dd className="hub-num text-[22px] leading-none text-fg-1 tracking-[-0.02em] m-0">
+                      {String(v).padStart(2, '0')}
+                    </dd>
+                    <dt className="hub-eyebrow text-[10px]">{l}</dt>
+                  </div>
+                ))}
+              </dl>
+            )}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('hub:palette'))}
+              className="hidden md:flex items-center gap-2.5 min-w-[240px] rounded border border-[rgba(150,178,205,0.17)] bg-ink-1 px-3 py-2 text-[12px] text-fg-3 transition-colors duration-150 hover:text-fg-2 hover:border-[rgba(150,178,205,0.28)]"
+            >
+              <Glyph name="search" size={14} />
+              Jump to tool
+              <kbd className="ml-auto hub-num text-[10px] text-fg-2 border border-hairline rounded-[3px] px-1.5 py-px">⌘K</kbd>
+            </button>
+          </div>
+        </header>
+
         {!config && !error && (
-          <div className="flex items-center justify-center py-32 text-slate-500 text-sm">
-            <span className="animate-pulse">Loading dashboard…</span>
+          <div className="flex items-center justify-center py-32">
+            <span className="hub-eyebrow animate-pulse">Loading launchpad</span>
           </div>
         )}
 
         {config && (
-          <>
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-white">Launchpad</h2>
-              <p className="text-sm text-slate-500 mt-1">
-                {config.categories.reduce((acc, c) => acc + c.tools.length, 0)}{' '}
-                tools across {config.categories.length} categories
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {config.categories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
-              ))}
-            </div>
-          </>
+          <div className="columns-1 md:columns-2 xl:columns-3 gap-4 [column-fill:_balance]">
+            {/* Categories with tools first, empty placeholders last */}
+            {[...config.categories.filter((c) => c.tools.length), ...config.categories.filter((c) => !c.tools.length)].map((category, i) => (
+              <div
+                key={category.id}
+                className="break-inside-avoid mb-4 hub-enter"
+                style={{ animationDelay: `${i * 30}ms` }}
+              >
+                <CategoryCard category={category} />
+              </div>
+            ))}
+          </div>
         )}
+
+        <footer className="mt-10 pt-5 border-t border-hairline flex flex-wrap justify-between gap-2 hub-num text-[10px] text-fg-4">
+          <span>Team Massimo Marzeglia · Analytics</span>
+          <span>Press ⌘K anywhere to jump between tools</span>
+        </footer>
       </main>
     </div>
   )

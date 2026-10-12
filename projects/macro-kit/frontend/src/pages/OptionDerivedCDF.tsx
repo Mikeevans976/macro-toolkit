@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import PageTitle from '../components/PageTitle'
 import {
   LineChart,
   Line,
@@ -15,10 +15,10 @@ import {
 // ─── Scenario config ──────────────────────────────────────────────────────────
 
 const SCENARIOS = [
-  { id: 'hard',    label: 'Hard Landing',   color: '#ef4444', area: 'rgba(239,68,68,0.10)'  },
-  { id: 'soft',    label: 'Soft Landing',   color: '#22c55e', area: 'rgba(34,197,94,0.10)'  },
-  { id: 'no',      label: 'No Landing',     color: '#3b82f6', area: 'rgba(59,130,246,0.10)' },
-  { id: 'reaccel', label: 'Reacceleration', color: '#f59e0b', area: 'rgba(245,158,11,0.10)' },
+  { id: 'hard',    label: 'Hard Landing',   color: '#d9705e', area: 'rgba(217,112,94,0.10)'  },
+  { id: 'soft',    label: 'Soft Landing',   color: '#5fb592', area: 'rgba(95,181,146,0.10)'  },
+  { id: 'no',      label: 'No Landing',     color: '#6aa9cc', area: 'rgba(106,169,204,0.10)' },
+  { id: 'reaccel', label: 'Reacceleration', color: '#d6ad66', area: 'rgba(214,173,102,0.10)' },
 ] as const
 
 // ─── Swaption structure dimensions ───────────────────────────────────────────
@@ -145,31 +145,31 @@ interface HorizonState {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const BG = '#080d1a'
+const BG = '#07090c'
 
 const card: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12,
+  background: 'rgba(200,220,240,0.03)',
+  border: '1px solid rgba(200,220,240,0.07)',
+  borderRadius: 6,
   padding: 18,
 }
 
 const sectionLabel: React.CSSProperties = {
   fontSize: 10,
-  fontWeight: 700,
+  fontWeight: 600,
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
-  color: '#64748b',
+  color: '#9aa5b1',
   marginBottom: 12,
 }
 
 const monoInput: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(255,255,255,0.10)',
+  background: 'rgba(200,220,240,0.05)',
+  border: '1px solid rgba(200,220,240,0.10)',
   borderRadius: 6,
-  color: '#f1f5f9',
+  color: '#eef2f6',
   fontSize: 12,
-  fontFamily: 'monospace',
+  fontFamily: "'Geist Mono', ui-monospace, monospace",
   padding: '4px 8px',
   width: 80,
   outline: 'none',
@@ -179,17 +179,17 @@ const monoInput: React.CSSProperties = {
 // ─── Pill button ──────────────────────────────────────────────────────────────
 
 function Pill({
-  label, active, onClick, accentColor = '#ef4444',
+  label, active, onClick, accentColor = '#d9705e',
 }: {
   label: string; active: boolean; onClick: () => void; accentColor?: string
 }) {
   return (
     <button onClick={onClick} style={{
-      background: active ? `${accentColor}22` : 'rgba(255,255,255,0.04)',
-      border: `1px solid ${active ? `${accentColor}66` : 'rgba(255,255,255,0.08)'}`,
+      background: active ? `${accentColor}22` : 'rgba(200,220,240,0.04)',
+      border: `1px solid ${active ? `${accentColor}66` : 'rgba(200,220,240,0.08)'}`,
       borderRadius: 6,
       padding: '4px 11px',
-      color: active ? accentColor : '#64748b',
+      color: active ? accentColor : '#9aa5b1',
       fontSize: 12,
       fontWeight: active ? 700 : 400,
       cursor: 'pointer',
@@ -210,7 +210,7 @@ function ParamRow({
 }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-      <span style={{ color: '#64748b', fontSize: 11, flex: 1 }}>{label}</span>
+      <span style={{ color: '#9aa5b1', fontSize: 11, flex: 1 }}>{label}</span>
       <input
         type="number"
         value={value}
@@ -232,7 +232,7 @@ function BreakRow({
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
       <div style={{ width: 7, height: 7, borderRadius: '50%', background: dot1, flexShrink: 0 }} />
       <div style={{ width: 7, height: 7, borderRadius: '50%', background: dot2, flexShrink: 0 }} />
-      <span style={{ color: '#64748b', fontSize: 10, flex: 1 }}>{label}</span>
+      <span style={{ color: '#9aa5b1', fontSize: 10, flex: 1 }}>{label}</span>
       <input
         type="number"
         value={value}
@@ -240,7 +240,7 @@ function BreakRow({
         onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(v) }}
         style={{ ...monoInput, width: 68 }}
       />
-      <span style={{ color: '#475569', fontSize: 11 }}>%</span>
+      <span style={{ color: '#8995a2', fontSize: 11 }}>%</span>
     </div>
   )
 }
@@ -254,22 +254,22 @@ function ScenarioCard({
     <div style={{
       background: scenario.area,
       border: `1px solid ${scenario.color}33`,
-      borderRadius: 10,
+      borderRadius: 6,
       padding: '10px 12px',
     }}>
-      <div style={{ color: scenario.color, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+      <div style={{ color: scenario.color, fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
         {scenario.label}
       </div>
       <div style={{ display: 'flex', gap: 12 }}>
         <div>
-          <div style={{ color: '#475569', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{h1Label}</div>
-          <div style={{ color: scenario.color, fontSize: 20, fontWeight: 800, fontFamily: 'monospace', lineHeight: 1 }}>
+          <div style={{ color: '#8995a2', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{h1Label}</div>
+          <div style={{ color: scenario.color, fontSize: 20, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", lineHeight: 1 }}>
             {(p1 * 100).toFixed(1)}%
           </div>
         </div>
         <div>
-          <div style={{ color: '#475569', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{h2Label}</div>
-          <div style={{ color: '#94a3b8', fontSize: 20, fontWeight: 800, fontFamily: 'monospace', lineHeight: 1 }}>
+          <div style={{ color: '#8995a2', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{h2Label}</div>
+          <div style={{ color: '#c6ced8', fontSize: 20, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", lineHeight: 1 }}>
             {(p2 * 100).toFixed(1)}%
           </div>
         </div>
@@ -283,12 +283,12 @@ function CDFTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: 'rgba(8,13,26,0.95)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-      <div style={{ color: '#64748b', marginBottom: 4 }}>{typeof label === 'number' ? `${label.toFixed(3)}%` : label}</div>
+    <div style={{ background: 'rgba(7,9,12,0.95)', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+      <div style={{ color: '#9aa5b1', marginBottom: 4 }}>{typeof label === 'number' ? `${label.toFixed(3)}%` : label}</div>
       {payload.map(p => (
         <div key={p.name} style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
           <span style={{ color: p.color }}>{p.name}</span>
-          <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#f1f5f9' }}>{p.value.toFixed(1)}%</span>
+          <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, color: '#eef2f6' }}>{p.value.toFixed(1)}%</span>
         </div>
       ))}
     </div>
@@ -300,12 +300,12 @@ function PDFTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: 'rgba(8,13,26,0.95)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-      <div style={{ color: '#64748b', marginBottom: 4 }}>{typeof label === 'number' ? `${label.toFixed(3)}%` : label}</div>
+    <div style={{ background: 'rgba(7,9,12,0.95)', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+      <div style={{ color: '#9aa5b1', marginBottom: 4 }}>{typeof label === 'number' ? `${label.toFixed(3)}%` : label}</div>
       {payload.map(p => (
         <div key={p.name} style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
           <span style={{ color: p.color }}>{p.name}</span>
-          <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#f1f5f9' }}>{p.value.toFixed(4)}</span>
+          <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, color: '#eef2f6' }}>{p.value.toFixed(4)}</span>
         </div>
       ))}
     </div>
@@ -318,7 +318,7 @@ function LegendLine({ color, label, dashed }: { color: string; label: string; da
       <svg width="22" height="4">
         <line x1="0" y1="2" x2="22" y2="2" stroke={color} strokeWidth="2.5" strokeDasharray={dashed ? '6 3' : undefined} />
       </svg>
-      <span style={{ color: '#94a3b8', fontSize: 10 }}>{label}</span>
+      <span style={{ color: '#c6ced8', fontSize: 10 }}>{label}</span>
     </div>
   )
 }
@@ -344,12 +344,12 @@ function HorizonPanel({
           <svg width="18" height="4">
             <line x1="0" y1="2" x2="18" y2="2" stroke={lineColor} strokeWidth="2.5" strokeDasharray={dashed ? '5 3' : undefined} />
           </svg>
-          <span style={{ color: '#94a3b8', fontSize: 11, fontWeight: 600 }}>{title}</span>
+          <span style={{ color: '#c6ced8', fontSize: 11, fontWeight: 600 }}>{title}</span>
         </div>
         <button onClick={onReset} style={{
-          background: 'none', border: '1px solid rgba(255,255,255,0.08)',
+          background: 'none', border: '1px solid rgba(200,220,240,0.08)',
           borderRadius: 5, padding: '2px 8px',
-          color: '#475569', fontSize: 10, cursor: 'pointer',
+          color: '#8995a2', fontSize: 10, cursor: 'pointer',
         }}>reset</button>
       </div>
 
@@ -376,7 +376,7 @@ function HorizonPanel({
         onChange={v => onChange({ vol: v })} />
       <ParamRow label="Skew (γ₁)" value={state.skew} step={0.1}
         onChange={v => onChange({ skew: v })} />
-      <div style={{ marginTop: 4, fontSize: 10, color: '#334155' }}>
+      <div style={{ marginTop: 4, fontSize: 10, color: '#77828f' }}>
         γ₁ &lt; 0 → fat lower tail (receiver skew)
       </div>
     </div>
@@ -395,7 +395,6 @@ function makeHorizon(ccy: Currency, tail: Tail, expiry: Expiry): HorizonState {
 }
 
 export default function OptionDerivedCDF() {
-  const navigate = useNavigate()
 
   const [ccy, setCcy]   = useState<Currency>(DEFAULT_CCY)
   const [tail, setTail] = useState<Tail>(DEFAULT_TAIL)
@@ -517,41 +516,28 @@ export default function OptionDerivedCDF() {
 
       <div style={{
         position: 'fixed', inset: 0, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse at 50% -10%, rgba(239,68,68,0.05) 0%, transparent 55%)',
+        background: 'radial-gradient(ellipse at 50% -10%, rgba(217,112,94,0.05) 0%, transparent 55%)',
       }} />
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 50,
         padding: '12px 24px',
-        background: 'rgba(8,13,26,0.90)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(7,9,12,0.90)',
+        borderBottom: '1px solid rgba(200,220,240,0.07)',
         backdropFilter: 'blur(12px)',
       }}>
         {/* Row 1: back + title */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
-          <button onClick={() => navigate('/')} style={{
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.10)',
-            borderRadius: 8, padding: '6px 14px',
-            color: '#94a3b8', fontSize: 13, cursor: 'pointer',
-          }}>← Back</button>
-          <div>
-            <div style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>
-              Option-Implied Macro Scenario Probabilities
-            </div>
-            <div style={{ color: '#475569', fontSize: 11, marginTop: 1 }}>
-              Option-implied scenario probabilities · Gram-Charlier expansion ·{' '}
+          <PageTitle category="Market Structure & Analysis" categoryId="market-structure" title={<>Option-Implied Macro Scenario Probabilities</>} subtitle={<>Option-implied scenario probabilities · Gram-Charlier expansion ·{' '}
               {apiLoading
-                ? <span style={{ color: '#64748b' }}>loading…</span>
+                ? <span style={{ color: '#9aa5b1' }}>loading…</span>
                 : apiData
-                  ? <span style={{ color: apiData.data_source === 'bloomberg' ? '#22c55e' : '#f59e0b' }}>
+                  ? <span style={{ color: apiData.data_source === 'bloomberg' ? '#5fb592' : '#d6ad66' }}>
                       {apiData.data_source === 'bloomberg' ? 'Live (Bloomberg)' : 'Simulated parameters'}
                     </span>
-                  : <span style={{ color: '#64748b' }}>Simulated parameters</span>
-              }
-            </div>
-          </div>
+                  : <span style={{ color: '#9aa5b1' }}>Simulated parameters</span>
+              }</>} />
         </div>
 
         {/* Row 2: structure selectors */}
@@ -559,7 +545,7 @@ export default function OptionDerivedCDF() {
 
           {/* Currency */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: '#475569', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
+            <span style={{ color: '#8995a2', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
               Underlying
             </span>
             <div style={{ display: 'flex', gap: 4 }}>
@@ -569,11 +555,11 @@ export default function OptionDerivedCDF() {
             </div>
           </div>
 
-          <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)' }} />
+          <div style={{ width: 1, height: 20, background: 'rgba(200,220,240,0.08)' }} />
 
           {/* Tail */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: '#475569', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
+            <span style={{ color: '#8995a2', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
               Tail
             </span>
             <div style={{ display: 'flex', gap: 4 }}>
@@ -586,10 +572,10 @@ export default function OptionDerivedCDF() {
           {/* Active instrument badge */}
           <div style={{ marginLeft: 'auto' }}>
             <div style={{
-              background: 'rgba(239,68,68,0.10)',
-              border: '1px solid rgba(239,68,68,0.25)',
-              borderRadius: 8, padding: '4px 14px',
-              color: '#fca5a5', fontSize: 12, fontWeight: 600, fontFamily: 'monospace',
+              background: 'rgba(217,112,94,0.10)',
+              border: '1px solid rgba(217,112,94,0.25)',
+              borderRadius: 6, padding: '4px 14px',
+              color: '#ecaa9c', fontSize: 12, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace",
             }}>
               {instrument}
             </div>
@@ -606,7 +592,7 @@ export default function OptionDerivedCDF() {
           {/* Horizon 1 */}
           <HorizonPanel
             title="Horizon 1"
-            lineColor="#60a5fa"
+            lineColor="#86c0de"
             dashed={false}
             ccy={ccy} tail={tail}
             state={h1}
@@ -621,7 +607,7 @@ export default function OptionDerivedCDF() {
           {/* Horizon 2 */}
           <HorizonPanel
             title="Horizon 2"
-            lineColor="#94a3b8"
+            lineColor="#c6ced8"
             dashed
             ccy={ccy} tail={tail}
             state={h2}
@@ -643,12 +629,12 @@ export default function OptionDerivedCDF() {
             <BreakRow dot1={SCENARIOS[2].color} dot2={SCENARIOS[3].color}
               label="No Landing / Reaccel" value={breaks[2]} onChange={v => setBreak(2, v)} />
 
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10, marginTop: 2, display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div style={{ borderTop: '1px solid rgba(200,220,240,0.06)', paddingTop: 10, marginTop: 2, display: 'flex', flexDirection: 'column', gap: 5 }}>
               {SCENARIOS.map((s, i) => (
                 <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
-                  <span style={{ color: '#94a3b8', fontSize: 10, flex: 1 }}>{s.label}</span>
-                  <span style={{ color: '#475569', fontSize: 10, fontFamily: 'monospace' }}>{rangeLabel(i)}</span>
+                  <span style={{ color: '#c6ced8', fontSize: 10, flex: 1 }}>{s.label}</span>
+                  <span style={{ color: '#8995a2', fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{rangeLabel(i)}</span>
                 </div>
               ))}
             </div>
@@ -664,9 +650,9 @@ export default function OptionDerivedCDF() {
                   h1Label={h1Label} h2Label={h2Label} />
               ))}
             </div>
-            <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#334155' }}>
+            <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#77828f' }}>
               <span>Sum</span>
-              <span style={{ fontFamily: 'monospace' }}>
+              <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                 {h1Label}: {(probs1.reduce((a, b) => a + b, 0) * 100).toFixed(1)}%
                 &nbsp;&nbsp;
                 {h2Label}: {(probs2.reduce((a, b) => a + b, 0) * 100).toFixed(1)}%
@@ -683,7 +669,7 @@ export default function OptionDerivedCDF() {
             <div style={sectionLabel}>Option-Implied CDF — {ccy} {tail} rate · {instrument}</div>
             <ResponsiveContainer width="100%" height={320}>
               <LineChart data={chartData} margin={{ top: 8, right: 20, bottom: 4, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
                 <ReferenceArea x1={chartLo}    x2={breaks[0]} fill={SCENARIOS[0].area} stroke="none" ifOverflow="hidden" />
                 <ReferenceArea x1={breaks[0]}  x2={breaks[1]} fill={SCENARIOS[1].area} stroke="none" ifOverflow="hidden" />
                 <ReferenceArea x1={breaks[1]}  x2={breaks[2]} fill={SCENARIOS[2].area} stroke="none" ifOverflow="hidden" />
@@ -694,24 +680,24 @@ export default function OptionDerivedCDF() {
                 ))}
                 <XAxis dataKey="rate" type="number" domain={[chartLo, chartHi]} ticks={xTicks}
                   tickFormatter={v => `${(v as number).toFixed(2)}%`}
-                  tick={{ fill: '#475569', fontSize: 10 }}
-                  axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} tickLine={false} />
+                  tick={{ fill: '#8995a2', fontSize: 10 }}
+                  axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} tickLine={false} />
                 <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`}
-                  tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
-                <Tooltip content={<CDFTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.08)' }} />
-                <Line dataKey="cdf1" name={h1Label} stroke="#60a5fa" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#60a5fa' }} />
-                <Line dataKey="cdf2" name={h2Label} stroke="#94a3b8" strokeWidth={2} strokeDasharray="7 3" dot={false} activeDot={{ r: 4, fill: '#94a3b8' }} />
+                  tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+                <Tooltip content={<CDFTooltip />} cursor={{ stroke: 'rgba(200,220,240,0.08)' }} />
+                <Line dataKey="cdf1" name={h1Label} stroke="#86c0de" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#86c0de' }} />
+                <Line dataKey="cdf2" name={h2Label} stroke="#c6ced8" strokeWidth={2} strokeDasharray="7 3" dot={false} activeDot={{ r: 4, fill: '#c6ced8' }} />
               </LineChart>
             </ResponsiveContainer>
 
             <div style={{ display: 'flex', gap: 20, marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
-              <LegendLine color="#60a5fa" label={h1Label} dashed={false} />
-              <LegendLine color="#94a3b8" label={h2Label} dashed />
-              <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.08)' }} />
+              <LegendLine color="#86c0de" label={h1Label} dashed={false} />
+              <LegendLine color="#c6ced8" label={h2Label} dashed />
+              <div style={{ width: 1, height: 14, background: 'rgba(200,220,240,0.08)' }} />
               {SCENARIOS.map(s => (
                 <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <div style={{ width: 10, height: 10, borderRadius: 2, background: s.area, border: `1px solid ${s.color}55` }} />
-                  <span style={{ color: '#475569', fontSize: 10 }}>{s.label}</span>
+                  <span style={{ color: '#8995a2', fontSize: 10 }}>{s.label}</span>
                 </div>
               ))}
             </div>
@@ -722,7 +708,7 @@ export default function OptionDerivedCDF() {
             <div style={sectionLabel}>Option-Implied Probability Density</div>
             <ResponsiveContainer width="100%" height={190}>
               <LineChart data={chartData} margin={{ top: 8, right: 20, bottom: 4, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
                 <ReferenceArea x1={chartLo}   x2={breaks[0]} fill={SCENARIOS[0].area} stroke="none" ifOverflow="hidden" />
                 <ReferenceArea x1={breaks[0]} x2={breaks[1]} fill={SCENARIOS[1].area} stroke="none" ifOverflow="hidden" />
                 <ReferenceArea x1={breaks[1]} x2={breaks[2]} fill={SCENARIOS[2].area} stroke="none" ifOverflow="hidden" />
@@ -733,13 +719,13 @@ export default function OptionDerivedCDF() {
                 ))}
                 <XAxis dataKey="rate" type="number" domain={[chartLo, chartHi]} ticks={xTicks}
                   tickFormatter={v => `${(v as number).toFixed(2)}%`}
-                  tick={{ fill: '#475569', fontSize: 10 }}
-                  axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} tickLine={false} />
-                <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false}
+                  tick={{ fill: '#8995a2', fontSize: 10 }}
+                  axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} tickLine={false} />
+                <YAxis tick={{ fill: '#8995a2', fontSize: 10 }} axisLine={false} tickLine={false}
                   tickFormatter={v => (v as number).toFixed(2)} width={40} />
-                <Tooltip content={<PDFTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.08)' }} />
-                <Line dataKey="pdf1" name={h1Label} stroke="#60a5fa" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: '#60a5fa' }} />
-                <Line dataKey="pdf2" name={h2Label} stroke="#94a3b8" strokeWidth={2} strokeDasharray="7 3" dot={false} activeDot={{ r: 3, fill: '#94a3b8' }} />
+                <Tooltip content={<PDFTooltip />} cursor={{ stroke: 'rgba(200,220,240,0.08)' }} />
+                <Line dataKey="pdf1" name={h1Label} stroke="#86c0de" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: '#86c0de' }} />
+                <Line dataKey="pdf2" name={h2Label} stroke="#c6ced8" strokeWidth={2} strokeDasharray="7 3" dot={false} activeDot={{ r: 3, fill: '#c6ced8' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -749,12 +735,12 @@ export default function OptionDerivedCDF() {
             <div style={sectionLabel}>Scenario Summary</div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.08)' }}>
                   {['Scenario', 'Range', h1Label, h2Label].map((h, i) => (
                     <th key={h} style={{
                       padding: '4px 10px',
-                      color: i >= 2 ? (i === 2 ? '#60a5fa' : '#94a3b8') : '#475569',
-                      fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em',
+                      color: i >= 2 ? (i === 2 ? '#86c0de' : '#c6ced8') : '#8995a2',
+                      fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
                       textAlign: i === 0 ? 'left' : i === 1 ? 'center' : 'right',
                     }}>{h}</th>
                   ))}
@@ -762,33 +748,33 @@ export default function OptionDerivedCDF() {
               </thead>
               <tbody>
                 {SCENARIOS.map((s, i) => (
-                  <tr key={s.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+                  <tr key={s.id} style={{ borderBottom: '1px solid rgba(200,220,240,0.04)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(200,220,240,0.02)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     <td style={{ padding: '7px 10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
-                        <span style={{ color: '#e2e8f0' }}>{s.label}</span>
+                        <span style={{ color: '#e4eaf1' }}>{s.label}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '7px 10px', textAlign: 'center', fontFamily: 'monospace', color: '#64748b', fontSize: 11 }}>
+                    <td style={{ padding: '7px 10px', textAlign: 'center', fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#9aa5b1', fontSize: 11 }}>
                       {rangeLabel(i)}
                     </td>
-                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: s.color, fontSize: 13 }}>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, color: s.color, fontSize: 13 }}>
                       {(probs1[i] * 100).toFixed(1)}%
                     </td>
-                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: '#94a3b8', fontSize: 13 }}>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, color: '#c6ced8', fontSize: 13 }}>
                       {(probs2[i] * 100).toFixed(1)}%
                     </td>
                   </tr>
                 ))}
-                <tr style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                  <td colSpan={2} style={{ padding: '6px 10px', color: '#334155', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</td>
-                  <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: '#60a5fa' }}>
+                <tr style={{ borderTop: '1px solid rgba(200,220,240,0.08)' }}>
+                  <td colSpan={2} style={{ padding: '6px 10px', color: '#77828f', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</td>
+                  <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, color: '#86c0de' }}>
                     {(probs1.reduce((a, b) => a + b, 0) * 100).toFixed(1)}%
                   </td>
-                  <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: '#94a3b8' }}>
+                  <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, color: '#c6ced8' }}>
                     {(probs2.reduce((a, b) => a + b, 0) * 100).toFixed(1)}%
                   </td>
                 </tr>

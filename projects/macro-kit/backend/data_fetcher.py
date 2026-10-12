@@ -1,7 +1,7 @@
 """
 Time series data fetcher for the analytics hub.
 
-Resolves series IDs from series_catalogue.json to vendor tickers and fetches
+Resolves series IDs from series_catalogue_ea.json to vendor tickers and fetches
 historical data from Bloomberg (via blpapi) or Haver Analytics.
 
 Output format
@@ -57,7 +57,7 @@ from typing import Literal
 
 import pandas as pd
 
-_CATALOGUE_PATH = Path(__file__).parent / "data" / "series_catalogue.json"
+_CATALOGUE_PATH = Path(__file__).parent / "data" / "series_catalogue_ea.json"
 
 # ---------------------------------------------------------------------------
 # Catalogue resolver
@@ -76,7 +76,7 @@ class _CatalogueResolver:
     Parameters
     ----------
     path : path to the JSON catalogue file. Defaults to the EA catalogue
-           (series_catalogue.json) when None.
+           (series_catalogue_ea.json) when None.
     """
 
     def __init__(self, path: Path | None = None) -> None:
@@ -153,7 +153,7 @@ class DataFetcher(ABC):
     Parameters
     ----------
     catalogue_path : path to the JSON catalogue file used for ticker resolution.
-                     Defaults to the EA catalogue (series_catalogue.json) when None.
+                     Defaults to the EA catalogue (series_catalogue_ea.json) when None.
     """
 
     def __init__(self, catalogue_path: Path | None = None) -> None:
@@ -170,7 +170,7 @@ class DataFetcher(ABC):
 
         Parameters
         ----------
-        series_ids : list of IDs from series_catalogue.json
+        series_ids : list of IDs from series_catalogue_ea.json
         start      : "YYYY-MM-DD"  (inclusive)
         end        : "YYYY-MM-DD"  (inclusive)
 
@@ -335,7 +335,7 @@ class HaverFetcher(DataFetcher):
     path : path to the Haver databases directory.
            Alternatively set the HAVER_PATH environment variable.
 
-    Ticker format in series_catalogue.json
+    Ticker format in series_catalogue_ea.json
     ----------------------------------------
     Haver mnemonics are stored as "SERIES@DATABASE"  (e.g. "CPIEZXFE@EUDATA").
     The fetcher splits on "@" to get the series code and database name.
