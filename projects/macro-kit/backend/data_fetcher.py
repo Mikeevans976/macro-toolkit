@@ -57,6 +57,8 @@ from typing import Literal
 
 import pandas as pd
 
+from catalogue import read_catalogue
+
 _CATALOGUE_PATH = Path(__file__).parent / "data" / "series_catalogue_ea.json"
 
 # ---------------------------------------------------------------------------
@@ -86,8 +88,9 @@ class _CatalogueResolver:
                 f"series catalogue not found at {catalogue_path}. "
                 "Run the catalogue build step first."
             )
-        with open(catalogue_path, encoding="utf-8") as f:
-            raw = json.load(f)
+        # Structure comes from this file; vendor tickers are overlaid from the
+        # verified-ticker folder. See catalogue.read_catalogue.
+        raw = read_catalogue(catalogue_path)
 
         # The catalogue has a _meta key at the top level; skip it.
         self._entries: dict[str, dict] = {}
@@ -135,7 +138,21 @@ class _CatalogueResolver:
         return ticker_map, freq_map, skipped
 
 
-_resolver = _CatalogueResolver()
+_resolver: _CatalogueResolver | None = None
+
+
+def _default_resolver() -> _CatalogueResolver:
+    """
+    Load the default EA catalogue on first use.
+
+    Lazy so that importing this module does not require the catalogue to exist —
+    callers running in simulation mode never construct a fetcher, and the ones
+    that try a live fetch catch the FileNotFoundError and fall back.
+    """
+    global _resolver
+    if _resolver is None:
+        _resolver = _CatalogueResolver()
+    return _resolver
 
 
 # ---------------------------------------------------------------------------
@@ -157,7 +174,7 @@ class DataFetcher(ABC):
     """
 
     def __init__(self, catalogue_path: Path | None = None) -> None:
-        self._resolver = _CatalogueResolver(catalogue_path) if catalogue_path else _resolver
+        self._resolver = _CatalogueResolver(catalogue_path) if catalogue_path else _default_resolver()
 
     def fetch(
         self,

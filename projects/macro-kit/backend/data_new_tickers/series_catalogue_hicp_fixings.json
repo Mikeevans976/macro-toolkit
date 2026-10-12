@@ -1,0 +1,50 @@
+{
+  "tool": "Inflation Fixings Monitor — Euro Area",
+  "description": "All tickers consumed by hicp_fixings.py. Single source of truth — the Python module reads tickers directly from this file.",
+  "historical_series": [],
+  "fixings": {
+    "history_base_id": "eur_hicp_xt",
+    "f_series": {
+      "ticker_template": "EUSWIF{n} Comdty",
+      "tenors": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": true,
+      "description": "EUR HICPxT F-series calendar-month fixings. n = calendar month (1=Jan…12=Dec). Bloomberg PX_LAST = implied YoY %. Covers the 12-month cycle starting ~1 year ahead of today."
+    },
+    "t_series": {
+      "ticker_template": "EUSWIT{n} Comdty",
+      "tenors": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": true,
+      "description": "EUR HICPxT T-series calendar-month fixings. Covers the following 12-month cycle. Level reconstruction uses F-series reconstructed levels as the base."
+    }
+  }
+}

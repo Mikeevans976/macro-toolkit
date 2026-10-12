@@ -30,6 +30,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from catalogue import read_catalogue
+
 _CATALOGUE_PATH = Path(__file__).parent / "data" / "series_catalogue_ea.json"
 
 
@@ -68,8 +70,8 @@ def _load_dfm_meta(m_macro: int, catalogue_path: Path | None = None) -> list[dic
             f"series catalogue not found at {path}"
         )
 
-    with open(path, encoding="utf-8") as f:
-        catalogue = json.load(f)
+    # Structure from this file, vendor tickers overlaid from the verified folder.
+    catalogue = read_catalogue(path)
 
     dfm_entries = [
         e for e in catalogue.get("series", [])

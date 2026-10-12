@@ -1,0 +1,212 @@
+{
+  "_meta": {
+    "description": "Sweden-specific series catalogue for the Sweden Macro Heatmap. Single source of truth for Sweden series identity, source, and ingestion metadata. 52 series covering Growth, Inflation, Employment, Wages, and Financial Conditions.",
+    "field_reference": {
+      "id": "Unique machine-readable slug. Used to cross-reference series across tools and config files.",
+      "name": "Human-readable short label.",
+      "description": "What the series measures and why it matters.",
+      "source": "Data vendor: bloomberg | haver | ecb | eurostat | derived.",
+      "ticker_bloomberg": "Bloomberg ticker string (e.g. 'PMITUKG Index'). null if not available on Bloomberg.",
+      "ticker_haver": "Haver mnemonic (e.g. 'PMIUKCO@EMERGE'). null if not available on Haver.",
+      "frequency": "Observation frequency: daily | monthly | quarterly.",
+      "units": "Unit/scale of the raw series as pulled from source.",
+      "typical_lag_days": "Calendar days from reference period end to typical publication date. null for daily market data (no publication lag).",
+      "asset_class": "Grouping: macro_survey | macro_activity | macro_inflation | macro_labour | government_bonds | rates_swaps | inflation_swaps | commodities | volatility.",
+      "geography": "Primary geographic scope of the series.",
+      "tools": "List of tool IDs in the hub that consume this series.",
+      "role": "How the series is used: factor_input (DFM macro block) | target (y-variable in regression model) | predictor (x-variable) | market_data (general market series).",
+      "dfm_factor": "For factor_input series: which DFM factor this series primarily identifies (Growth | Inflation | Employment | Wages). Housing series are assigned Growth.",
+      "dfm_sign": "For factor_input series: +1 if series moves in the same direction as the factor, -1 if inverse (e.g. unemployment rate is -1 for Employment factor).",
+      "dfm_col_index": "Zero-based column index in the DFM observation matrix Y_daily. Must be contiguous 0-47.",
+      "dfm_primary": "True for exactly one series per factor group — the sign-anchor series used for PCA orientation.",
+      "heatmap_group": "Display grouping label used in the Sweden heatmap UI.",
+      "notes": "Free-text caveats, data quirks, or ingestion instructions."
+    }
+  },
+  "series": [
+    {
+      "id": "se_real_gdp_yoy",
+      "name": "Real GDP (y/y)",
+      "description": "Statistics Sweden real GDP year-on-year % change.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "SWGDPYOY Index",
+      "ticker_haver": "senngcy@NORDIC",
+      "frequency": "quarterly",
+      "units": "yoy_pct",
+      "typical_lag_days": 60,
+      "asset_class": "macro_activity",
+      "geography": "sweden",
+      "tools": [
+        "sweden_heatmap"
+      ],
+      "role": "factor_input",
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_col_index": 1,
+      "dfm_primary": false,
+      "heatmap_group": "Real Activity",
+      "notes": null
+    },
+    {
+      "id": "se_silf_pmi_manufacturing",
+      "name": "Silf/Swedbank Mfg PMI",
+      "description": "Silf/Swedbank Sweden Manufacturing PMI. Above 50 = expansion. Primary Growth factor anchor.",
+      "source": "haver",
+      "ticker_bloomberg": null,
+      "ticker_haver": "sesvp@NORDIC",
+      "frequency": "monthly",
+      "units": "index_sa",
+      "typical_lag_days": 5,
+      "asset_class": "macro_survey",
+      "geography": "sweden",
+      "tools": [
+        "sweden_heatmap"
+      ],
+      "role": "factor_input",
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_col_index": 7,
+      "dfm_primary": true,
+      "heatmap_group": "Business Activity",
+      "notes": "Primary Growth indicator for Sweden DFM. ticker_haver could not be confirmed against the real Haver NORDIC database in this pass - needs manual lookup via Haver metadata search before enabling ANALYTICS_DATA_SOURCE=haver for this series."
+    },
+    {
+      "id": "se_silf_pmi_services",
+      "name": "Silf/Swedbank Services PMI",
+      "description": "Silf/Swedbank Sweden Services PMI. Above 50 = expansion.",
+      "source": "haver",
+      "ticker_bloomberg": null,
+      "ticker_haver": "sesvpsb@NORDIC",
+      "frequency": "monthly",
+      "units": "index_sa",
+      "typical_lag_days": 7,
+      "asset_class": "macro_survey",
+      "geography": "sweden",
+      "tools": [
+        "sweden_heatmap"
+      ],
+      "role": "factor_input",
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_col_index": 8,
+      "dfm_primary": false,
+      "heatmap_group": "Business Activity",
+      "notes": "ticker_haver could not be confirmed against the real Haver NORDIC database in this pass - needs manual lookup via Haver metadata search before enabling ANALYTICS_DATA_SOURCE=haver for this series."
+    },
+    {
+      "id": "se_unemployment_rate_lfs",
+      "name": "Unemployment Rate (LFS)",
+      "description": "Statistics Sweden Labour Force Survey unemployment rate, seasonally adjusted. Primary Employment factor anchor.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "SWUERATE Index",
+      "ticker_haver": "seselur@NORDIC",
+      "frequency": "monthly",
+      "units": "pct_sa",
+      "typical_lag_days": 20,
+      "asset_class": "macro_labour",
+      "geography": "sweden",
+      "tools": [
+        "sweden_heatmap"
+      ],
+      "role": "factor_input",
+      "dfm_factor": "Employment",
+      "dfm_sign": -1,
+      "dfm_col_index": 21,
+      "dfm_primary": true,
+      "heatmap_group": "Labour Market",
+      "notes": null
+    },
+    {
+      "id": "se_import_prices_yoy",
+      "name": "Import Prices (y/y)",
+      "description": "Statistics Sweden import price index, year-on-year % change.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "110D1144 Index",
+      "ticker_haver": null,
+      "frequency": "monthly",
+      "units": "yoy_pct",
+      "typical_lag_days": 20,
+      "asset_class": "macro_inflation",
+      "geography": "sweden",
+      "tools": [
+        "sweden_heatmap"
+      ],
+      "role": "factor_input",
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_col_index": 38,
+      "dfm_primary": false,
+      "heatmap_group": "Inflation",
+      "notes": "ticker_haver could not be confirmed against the real Haver NORDIC database in this pass - needs manual lookup via Haver metadata search before enabling ANALYTICS_DATA_SOURCE=haver for this series."
+    },
+    {
+      "id": "se_swestr",
+      "name": "SWESTR",
+      "description": "Swedish krona Short Term Rate (SWESTR), the SEK risk-free overnight benchmark.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "SWESTR Index",
+      "ticker_haver": null,
+      "frequency": "daily",
+      "units": "pct",
+      "typical_lag_days": null,
+      "asset_class": "rates_swaps",
+      "geography": "sweden",
+      "tools": [
+        "sweden_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": null,
+      "heatmap_group": "Financial Conditions",
+      "notes": null
+    },
+    {
+      "id": "se_eursek",
+      "name": "EUR/SEK",
+      "description": "Euro/Swedish Krona exchange rate.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "EURSEK Curncy",
+      "ticker_haver": null,
+      "frequency": "daily",
+      "units": "fx_rate",
+      "typical_lag_days": null,
+      "asset_class": "fx",
+      "geography": "sweden",
+      "tools": [
+        "sweden_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": null,
+      "heatmap_group": "Financial Conditions",
+      "notes": null
+    },
+    {
+      "id": "se_omxs30",
+      "name": "OMXS30",
+      "description": "OMX Stockholm 30 index of the 30 most-traded shares on the Stockholm Stock Exchange.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "OMX Index",
+      "ticker_haver": null,
+      "frequency": "daily",
+      "units": "index",
+      "typical_lag_days": null,
+      "asset_class": "equities",
+      "geography": "sweden",
+      "tools": [
+        "sweden_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": null,
+      "heatmap_group": "Financial Conditions",
+      "notes": null
+    }
+  ]
+}
