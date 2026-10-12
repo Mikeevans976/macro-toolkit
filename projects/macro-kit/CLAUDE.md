@@ -108,7 +108,8 @@ Each regional heatmap page is a single self-contained `.tsx` file (~1,200 lines)
 14. **`BEDynamicsSection`** — 10y breakeven regime analysis
 15. **Main page component** — header, nav, sections composed together
 
-Key styling constants (copy exactly): `cardStyle`, `stickyBg = '#080d1a'`, z-score color thresholds.
+Key styling constants (copy exactly): `cardStyle`, `stickyBg = '#07090c'`, z-score color thresholds (dark-ground diverging scale in `zscoreToColors`).
+
 
 ### UK vs Euro Area differences
 
@@ -156,3 +157,19 @@ Use single-quoted `'EOF'` to prevent shell variable/dollar-sign expansion in JSX
 4. Add entry in `dashboard_config.yaml` under `macro-fundamentals`
 5. Create `frontend/src/pages/<Region>Heatmap.tsx` using the 4-chunk `cat >>` approach
 6. Add import + route in `frontend/src/App.tsx`
+
+---
+
+## Visual system
+
+The UI follows a graphite / glacier design system ("calm instrument"). Do not reintroduce Tailwind's saturated defaults.
+
+| Where | What |
+|------|------|
+| `frontend/src/index.css` | CSS tokens (`--ink-*`, `--fg-*`, `--accent`, `--pos/neg/warn`), `.hub-frame`, `.hub-eyebrow`, `.hub-num`, Recharts overrides |
+| `frontend/src/theme.ts` | Same tokens for inline styles / Recharts props, `categoryColor`, `series`, `chart` presets |
+| `frontend/tailwind.config.js` | `slate`/`gray` remapped to graphite, `blue`/`sky` to glacier; `ink`, `fg`, `accent`, `pos`, `neg`, `warn`, `hairline` |
+| `frontend/src/components/AppShell.tsx` | Fixed left rail (MM monogram, launchpad, ⌘K tool palette, recent tools, sign-out) wrapping every protected route |
+| `frontend/src/components/Glyph.tsx` | Monoline icon set; `TOOL_GLYPH` maps tool id → glyph (add new tools here, not emoji in YAML) |
+
+Rules: numbers use Geist Mono (`fontFamily: "'Geist Mono', ui-monospace, monospace"`), text uses Geist; no emoji, glows or scale-on-hover; panel radius 6; colour only where it carries meaning. Pages don't need their own back button — the rail handles navigation. Use hex (not `var()`) in page inline styles, since pages build colours like `` `${c}22` ``.

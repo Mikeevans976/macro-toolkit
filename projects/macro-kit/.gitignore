@@ -15,3 +15,8 @@ build/
 /data/
 !backend/data/
 .claude/
+
+# Local SQLite runtime state
+*.db
+*.db-shm
+*.db-wal

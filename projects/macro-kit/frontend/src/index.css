@@ -2,9 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Analytics Hub design tokens.
+ * Graphite ink ramp, one glacier accent, desaturated semantics.
+ * JS mirror lives in src/theme.ts — keep the two in sync.
+ */
+:root {
+  color-scheme: dark;
+
+  --ink-0: #07090c;
+  --ink-1: #0b0f14;
+  --ink-2: #10161d;
+  --ink-3: #18202a;
+  --line: rgba(150, 178, 205, 0.09);
+  --line-2: rgba(150, 178, 205, 0.17);
+
+  --fg-1: #e4eaf1;
+  --fg-2: #c6ced8;
+  --fg-3: #9aa5b1;
+  --fg-4: #77828f;
+
+  --accent: #86c0de;
+  --accent-dim: rgba(134, 192, 222, 0.12);
+
+  --pos: #6fc2a2;
+  --neg: #e2826f;
+  --warn: #d6ad66;
+
+  --f-ui: 'Geist', 'Helvetica Neue', Arial, sans-serif;
+  --f-num: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --rail-w: 56px;
+}
+
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+@keyframes hub-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
 }
 
 @layer base {
@@ -15,27 +53,191 @@
   body {
     margin: 0;
     padding: 0;
-    background-color: #080d1a;
-    color: #e2e8f0;
-    font-family: 'Inter', system-ui, sans-serif;
+    background-color: var(--ink-0);
+    color: var(--fg-1);
+    font-family: var(--f-ui);
+    font-feature-settings: 'ss01', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
+  ::selection {
+    background: rgba(134, 192, 222, 0.28);
+    color: var(--fg-1);
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  input, select, textarea, button {
+    font-family: inherit;
+  }
+
+  input[type='checkbox'], input[type='radio'], input[type='range'] {
+    accent-color: var(--accent);
+  }
+
   ::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #0f1a30;
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
+    background: rgba(150, 178, 205, 0.14);
+    border-radius: 4px;
+    border: 2px solid var(--ink-0);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(150, 178, 205, 0.26);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* Mono caps label used for eyebrows, table heads, stat captions */
+  .hub-eyebrow {
+    font-family: var(--f-num);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+
+  .hub-num {
+    font-family: var(--f-num);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Reticle frame: hairline panel with corner ticks */
+  .hub-frame {
+    position: relative;
+    background: var(--ink-1);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .hub-frame::before,
+  .hub-frame::after {
+    content: '';
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    pointer-events: none;
+    border-color: var(--fg-3);
+    border-style: solid;
+    opacity: 0.7;
+  }
+  .hub-frame::before {
+    top: -1px;
+    left: -1px;
+    border-width: 1px 0 0 1px;
+    border-top-left-radius: 6px;
+  }
+  .hub-frame::after {
+    bottom: -1px;
+    right: -1px;
+    border-width: 0 1px 1px 0;
+    border-bottom-right-radius: 6px;
+  }
+
+  .hub-dotgrid {
+    background-image: radial-gradient(rgba(150, 178, 205, 0.055) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
+  }
+
+  .hub-enter {
+    animation: hub-fade-in 0.35s ease-out both;
+  }
+}
+
+/* ─── Shared chart theme (Recharts) ────────────────────────────────────────── */
+
+.recharts-text,
+.recharts-cartesian-axis-tick-value,
+.recharts-legend-item-text,
+.recharts-label {
+  font-family: var(--f-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.recharts-default-tooltip {
+  background: rgba(11, 15, 20, 0.94) !important;
+  border: 1px solid var(--line-2) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  font-family: var(--f-num);
+  font-size: 11px;
+}
+
+.recharts-tooltip-cursor {
+  stroke: rgba(150, 178, 205, 0.22);
+}
+
+/* Bar-chart hover cursor is a filled rect — keep it a faint wash */
+.recharts-rectangle.recharts-tooltip-cursor {
+  fill: rgba(150, 178, 205, 0.05);
+  stroke: none;
+}
+
+.recharts-default-tooltip .recharts-tooltip-label {
+  color: var(--fg-3) !important;
+  margin-bottom: 4px !important;
+}
+
+.recharts-default-tooltip .recharts-tooltip-item {
+  padding: 1px 0 !important;
+}
+
+/* Grids: faint dashed horizontals, near-invisible verticals */
+.recharts-cartesian-grid-horizontal line {
+  stroke: rgba(150, 178, 205, 0.075);
+  stroke-dasharray: 2 4;
+}
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(150, 178, 205, 0.04);
+  stroke-dasharray: 2 4;
+}
+
+/* Axes: hairline baseline, no tick marks, fg-3 labels */
+.recharts-cartesian-axis-line {
+  stroke: rgba(150, 178, 205, 0.16);
+}
+.recharts-cartesian-axis-tick-line {
+  stroke: none;
+}
+.recharts-cartesian-axis-tick-value {
+  fill: var(--fg-3);
+  font-size: 10px;
+}
+
+.recharts-legend-item-text {
+  font-size: 11px;
+}
+
+.recharts-reference-line line {
+  shape-rendering: crispEdges;
+}
+
+/* Native form controls on graphite */
+select option {
+  background: var(--ink-2);
+  color: var(--fg-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

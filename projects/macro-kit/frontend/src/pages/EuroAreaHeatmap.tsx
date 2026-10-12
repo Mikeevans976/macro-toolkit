@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import PageTitle from '../components/PageTitle'
 import {
   LineChart,
   Line,
@@ -35,9 +35,9 @@ interface Group {
 // ─── Styles (matching SwapsRV exactly) ───────────────────────────────────────
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12,
+  background: 'rgba(200,220,240,0.03)',
+  border: '1px solid rgba(200,220,240,0.07)',
+  borderRadius: 6,
   padding: 24,
 }
 
@@ -432,25 +432,25 @@ function formatCellValue(value: number, units: string): string {
 }
 
 function zscoreToColors(z: number): { bg: string; fg: string } {
-  if (z >= 2.0)  return { bg: '#7F1D1D', fg: '#ffffff' }
-  if (z >= 1.0)  return { bg: '#DC2626', fg: '#ffffff' }
-  if (z >= 0.5)  return { bg: '#FCA5A5', fg: '#0f172a' }
-  if (z > -0.5)  return { bg: '#F1F5F9', fg: '#0f172a' }
-  if (z > -1.0)  return { bg: '#93C5FD', fg: '#0f172a' }
-  if (z > -2.0)  return { bg: '#2563EB', fg: '#ffffff' }
-  return           { bg: '#1E3A5F', fg: '#ffffff' }
+  if (z >= 2.0)  return { bg: '#a85a4b', fg: '#fbeee9' }
+  if (z >= 1.0)  return { bg: '#7a4a42', fg: '#f1ddd7' }
+  if (z >= 0.5)  return { bg: '#3f3034', fg: '#e4c9c2' }
+  if (z > -0.5)  return { bg: '#151b23', fg: '#c6ced8' }
+  if (z > -1.0)  return { bg: '#22303d', fg: '#bcd6e6' }
+  if (z > -2.0)  return { bg: '#2f5670', fg: '#e3f0f7' }
+  return           { bg: '#4a86a8', fg: '#f2f9fc' }
 }
 
 // ─── Legend ───────────────────────────────────────────────────────────────────
 
 const LEGEND_STEPS: { bg: string; fg: string; label: string }[] = [
-  { bg: '#7F1D1D', fg: '#ffffff', label: '≥ +2σ' },
-  { bg: '#DC2626', fg: '#ffffff', label: '+1σ' },
-  { bg: '#FCA5A5', fg: '#0f172a', label: '+0.5σ' },
-  { bg: '#F1F5F9', fg: '#0f172a', label: '0' },
-  { bg: '#93C5FD', fg: '#0f172a', label: '−0.5σ' },
-  { bg: '#2563EB', fg: '#ffffff', label: '−1σ' },
-  { bg: '#1E3A5F', fg: '#ffffff', label: '≤ −2σ' },
+  { bg: '#a85a4b', fg: '#fbeee9', label: '≥ +2σ' },
+  { bg: '#7a4a42', fg: '#f1ddd7', label: '+1σ' },
+  { bg: '#3f3034', fg: '#e4c9c2', label: '+0.5σ' },
+  { bg: '#151b23', fg: '#c6ced8', label: '0' },
+  { bg: '#22303d', fg: '#bcd6e6', label: '−0.5σ' },
+  { bg: '#2f5670', fg: '#e3f0f7', label: '−1σ' },
+  { bg: '#4a86a8', fg: '#f2f9fc', label: '≤ −2σ' },
 ]
 
 function Legend() {
@@ -461,7 +461,7 @@ function Legend() {
       gap: 6,
       flexWrap: 'wrap',
     }}>
-      <span style={{ color: '#475569', fontSize: 11, marginRight: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <span style={{ color: '#8995a2', fontSize: 11, marginRight: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         Z-score scale
       </span>
       {LEGEND_STEPS.map((s) => (
@@ -475,7 +475,7 @@ function Legend() {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <span style={{ color: s.fg, fontSize: 9, fontFamily: 'monospace', fontWeight: 600 }}>{s.label}</span>
+            <span style={{ color: s.fg, fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600 }}>{s.label}</span>
           </div>
         </div>
       ))}
@@ -491,7 +491,7 @@ const INDICATOR_W_DEFAULT = 190
 const RIGHT_COL_W = 76
 const UNITS_COL_W = 88
 
-const stickyBg = '#080d1a'
+const stickyBg = '#07090c'
 
 function HeatmapTable() {
   const [indicatorW, setIndicatorW] = useState(INDICATOR_W_DEFAULT)
@@ -523,13 +523,13 @@ function HeatmapTable() {
       maxWidth: CELL_W,
       height: CELL_H,
       textAlign: 'center',
-      fontFamily: 'monospace',
+      fontFamily: "'Geist Mono', ui-monospace, monospace",
       fontSize: 10,
       fontWeight: 500,
       color: fg,
       background: bg,
       padding: 0,
-      border: '1px solid rgba(8,13,26,0.5)',
+      border: '1px solid rgba(7,9,12,0.5)',
       userSelect: 'none',
     }
   }
@@ -539,14 +539,14 @@ function HeatmapTable() {
     minWidth: CELL_W,
     maxWidth: CELL_W,
     textAlign: 'center',
-    color: '#64748b',
+    color: '#9aa5b1',
     fontSize: 10,
-    fontFamily: 'monospace',
+    fontFamily: "'Geist Mono', ui-monospace, monospace",
     padding: '5px 2px',
     fontWeight: 600,
     whiteSpace: 'nowrap',
     background: stickyBg,
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
+    borderBottom: '1px solid rgba(200,220,240,0.07)',
     position: 'sticky',
     top: 0,
     zIndex: 2,
@@ -557,14 +557,14 @@ function HeatmapTable() {
     minWidth: indicatorW,
     maxWidth: indicatorW,
     textAlign: 'left',
-    color: '#64748b',
+    color: '#9aa5b1',
     fontSize: 10,
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
     padding: '5px 12px',
     fontWeight: 600,
     background: stickyBg,
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
+    borderBottom: '1px solid rgba(200,220,240,0.07)',
     position: 'sticky',
     top: 0,
     left: 0,
@@ -577,14 +577,14 @@ function HeatmapTable() {
     minWidth: RIGHT_COL_W,
     maxWidth: RIGHT_COL_W,
     textAlign: 'center',
-    color: '#64748b',
+    color: '#9aa5b1',
     fontSize: 10,
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
     padding: '5px 4px',
     fontWeight: 600,
     background: stickyBg,
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
+    borderBottom: '1px solid rgba(200,220,240,0.07)',
     position: 'sticky',
     top: 0,
     right: rightOffset,
@@ -596,7 +596,7 @@ function HeatmapTable() {
     width: indicatorW,
     minWidth: indicatorW,
     maxWidth: indicatorW,
-    color: '#cbd5e1',
+    color: '#c3ccd6',
     fontSize: 11,
     padding: '0 12px',
     height: CELL_H,
@@ -606,18 +606,18 @@ function HeatmapTable() {
     position: 'sticky',
     left: 0,
     background: stickyBg,
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
-    borderRight: '1px solid rgba(255,255,255,0.07)',
+    borderBottom: '1px solid rgba(200,220,240,0.04)',
+    borderRight: '1px solid rgba(200,220,240,0.07)',
     zIndex: 1,
   }
 
   const groupRowStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.025)',
-    color: '#475569',
+    background: 'rgba(200,220,240,0.025)',
+    color: '#8995a2',
     fontSize: 10,
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
-    fontWeight: 700,
+    fontWeight: 600,
     padding: '4px 12px',
     height: 22,
     position: 'sticky',
@@ -631,11 +631,11 @@ function HeatmapTable() {
     maxWidth: RIGHT_COL_W,
     textAlign: 'center',
     fontSize: 10,
-    fontFamily: 'monospace',
+    fontFamily: "'Geist Mono', ui-monospace, monospace",
     padding: 0,
     height: CELL_H,
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
-    borderLeft: '1px solid rgba(255,255,255,0.06)',
+    borderBottom: '1px solid rgba(200,220,240,0.04)',
+    borderLeft: '1px solid rgba(200,220,240,0.06)',
     background: stickyBg,
   }
 
@@ -652,14 +652,14 @@ function HeatmapTable() {
     minWidth: UNITS_COL_W,
     maxWidth: UNITS_COL_W,
     textAlign: 'center',
-    color: '#64748b',
+    color: '#9aa5b1',
     fontSize: 10,
     textTransform: 'uppercase' as const,
     letterSpacing: '0.05em',
     padding: '5px 4px',
     fontWeight: 600,
     background: stickyBg,
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
+    borderBottom: '1px solid rgba(200,220,240,0.07)',
     position: 'sticky' as const,
     top: 0,
     right: rightOffset,
@@ -703,24 +703,24 @@ function HeatmapTable() {
                   justifyContent: 'center',
                 }}
               >
-                <div style={{ width: 2, height: 14, borderRadius: 1, background: 'rgba(255,255,255,0.18)' }} />
+                <div style={{ width: 2, height: 14, borderRadius: 1, background: 'rgba(200,220,240,0.18)' }} />
               </div>
             </th>
             {MONTH_COLS.map((m, i) => (
               <th key={i} style={headerCellStyle}>{m}</th>
             ))}
-            <th style={{ ...rightHeaderStyle('Last Upd', R_LASTUPD),   borderLeft: '1px solid rgba(255,255,255,0.07)' }}>Last Upd</th>
-            <th style={{ ...unitsHeaderStyle(R_UNITS),                  borderLeft: '1px solid rgba(255,255,255,0.04)' }}>Units</th>
-            <th style={{ ...rightHeaderStyle('As of MTG', R_AS_OF_MTG), borderLeft: '1px solid rgba(255,255,255,0.04)' }}>As of MTG</th>
-            <th style={{ ...rightHeaderStyle('Latest', R_LATEST),       borderLeft: '1px solid rgba(255,255,255,0.04)' }}>Latest</th>
-            <th style={{ ...rightHeaderStyle('Change', R_CHANGE),       borderLeft: '1px solid rgba(255,255,255,0.04)' }}>Change</th>
+            <th style={{ ...rightHeaderStyle('Last Upd', R_LASTUPD),   borderLeft: '1px solid rgba(200,220,240,0.07)' }}>Last Upd</th>
+            <th style={{ ...unitsHeaderStyle(R_UNITS),                  borderLeft: '1px solid rgba(200,220,240,0.04)' }}>Units</th>
+            <th style={{ ...rightHeaderStyle('As of MTG', R_AS_OF_MTG), borderLeft: '1px solid rgba(200,220,240,0.04)' }}>As of MTG</th>
+            <th style={{ ...rightHeaderStyle('Latest', R_LATEST),       borderLeft: '1px solid rgba(200,220,240,0.04)' }}>Latest</th>
+            <th style={{ ...rightHeaderStyle('Change', R_CHANGE),       borderLeft: '1px solid rgba(200,220,240,0.04)' }}>Change</th>
           </tr>
         </thead>
 
         <tbody>
           {GROUPS.map((group) => (
             <React.Fragment key={group.name}>
-              <tr style={{ background: 'rgba(255,255,255,0.025)' }}>
+              <tr style={{ background: 'rgba(200,220,240,0.025)' }}>
                 <td colSpan={N_MONTHS + 6} style={groupRowStyle}>
                   {group.name}
                 </td>
@@ -733,7 +733,7 @@ function HeatmapTable() {
                     const tds = e.currentTarget.querySelectorAll('td')
                     tds.forEach((td) => {
                       if ((td as HTMLElement).dataset.heatcell !== '1') {
-                        ;(td as HTMLElement).style.background = 'rgba(255,255,255,0.04)'
+                        ;(td as HTMLElement).style.background = 'rgba(200,220,240,0.04)'
                       }
                     })
                   }}
@@ -759,7 +759,7 @@ function HeatmapTable() {
                     position: 'sticky',
                     right: R_LASTUPD,
                     zIndex: 2,
-                    color: '#64748b',
+                    color: '#9aa5b1',
                     fontSize: 9,
                   }}>
                     {ind.lastUpd}
@@ -769,16 +769,16 @@ function HeatmapTable() {
                     width: UNITS_COL_W, minWidth: UNITS_COL_W, maxWidth: UNITS_COL_W,
                     textAlign: 'center',
                     fontSize: 9,
-                    fontFamily: 'monospace',
+                    fontFamily: "'Geist Mono', ui-monospace, monospace",
                     padding: 0,
                     height: CELL_H,
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
-                    borderLeft: '1px solid rgba(255,255,255,0.06)',
+                    borderBottom: '1px solid rgba(200,220,240,0.04)',
+                    borderLeft: '1px solid rgba(200,220,240,0.06)',
                     background: stickyBg,
                     position: 'sticky',
                     right: R_UNITS,
                     zIndex: 2,
-                    color: '#475569',
+                    color: '#8995a2',
                     whiteSpace: 'nowrap',
                   }}>
                     {ind.units}
@@ -789,7 +789,7 @@ function HeatmapTable() {
                     position: 'sticky',
                     right: R_AS_OF_MTG,
                     zIndex: 2,
-                    color: '#94a3b8',
+                    color: '#c6ced8',
                   }}>
                     {ind.asOfLastMtg}
                   </td>
@@ -799,7 +799,7 @@ function HeatmapTable() {
                     position: 'sticky',
                     right: R_LATEST,
                     zIndex: 2,
-                    color: '#e2e8f0',
+                    color: '#e4eaf1',
                     fontWeight: 600,
                   }}>
                     {ind.latest}
@@ -811,9 +811,9 @@ function HeatmapTable() {
                     right: R_CHANGE,
                     zIndex: 2,
                     fontWeight: 600,
-                    color: ind.change === '—' ? '#334155'
-                         : ind.change.startsWith('+') ? '#34d399'
-                         : '#f87171',
+                    color: ind.change === '—' ? '#2a333d'
+                         : ind.change.startsWith('+') ? '#6fc2a2'
+                         : '#e2826f',
                   }}>
                     {ind.change}
                   </td>
@@ -844,11 +844,11 @@ const DFM_FACTORS: {
   color: string
   groupIndices: number[]
 }[] = [
-  { key: 'broadMacro', label: 'Broad Macro', color: '#94a3b8', groupIndices: [0, 1, 2, 3, 4] },
-  { key: 'inflation',  label: 'Inflation',   color: '#f87171', groupIndices: [4] },
-  { key: 'growth',     label: 'Growth',      color: '#34d399', groupIndices: [0, 1] },
-  { key: 'employment', label: 'Employment',  color: '#60a5fa', groupIndices: [2] },
-  { key: 'wages',      label: 'Wages',       color: '#a78bfa', groupIndices: [3] },
+  { key: 'broadMacro', label: 'Broad Macro', color: '#c6ced8', groupIndices: [0, 1, 2, 3, 4] },
+  { key: 'inflation',  label: 'Inflation',   color: '#e2826f', groupIndices: [4] },
+  { key: 'growth',     label: 'Growth',      color: '#6fc2a2', groupIndices: [0, 1] },
+  { key: 'employment', label: 'Employment',  color: '#86c0de', groupIndices: [2] },
+  { key: 'wages',      label: 'Wages',       color: '#b49fdb', groupIndices: [3] },
 ]
 
 function computeFactor(groupIndices: number[]): number[] {
@@ -907,10 +907,10 @@ function DFMSection() {
     <div style={cardStyle}>
       {/* Card header */}
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+        <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>
           Macro Factors — DFM Synthesis
         </h2>
-        <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>
+        <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>
           4 factors extracted via Dynamic Factor Model &middot; weekly monitoring of macro fundamentals
         </p>
       </div>
@@ -923,32 +923,32 @@ function DFMSection() {
               data={DFM_CHART_DATA}
               margin={{ top: 8, right: 12, bottom: 0, left: -8 }}
             >
-              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+              <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="month"
-                tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+                tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                 tickLine={false}
-                axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                axisLine={{ stroke: 'rgba(200,220,240,0.08)' }}
                 interval={3}
               />
               <YAxis
                 domain={[-2.5, 2.5]}
-                tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+                tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                 tickLine={false}
                 axisLine={false}
                 tickCount={6}
               />
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.12)" strokeDasharray="4 4" />
               <Tooltip
                 contentStyle={{
-                  background: '#0f172a',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: 8,
+                  background: '#0b0f14',
+                  border: '1px solid rgba(200,220,240,0.12)',
+                  borderRadius: 6,
                   fontSize: 11,
-                  fontFamily: 'monospace',
-                  color: '#e2e8f0',
+                  fontFamily: "'Geist Mono', ui-monospace, monospace",
+                  color: '#e4eaf1',
                 }}
-                labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
                 formatter={(value: number, name: string) => {
                   const factor = DFM_FACTORS.find((f) => f.key === name)
                   return [value.toFixed(2) + 'σ', factor?.label ?? name]
@@ -975,7 +975,7 @@ function DFMSection() {
                 <div style={{
                   width: 24, height: 2, borderRadius: 1, background: f.color,
                 }} />
-                <span style={{ color: '#94a3b8', fontSize: 11 }}>{f.label}</span>
+                <span style={{ color: '#c6ced8', fontSize: 11 }}>{f.label}</span>
               </div>
             ))}
           </div>
@@ -985,7 +985,7 @@ function DFMSection() {
         <div style={{ flex: '0 0 280px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Summary table */}
           <div>
-            <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+            <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
               Factor summary
             </p>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
@@ -994,8 +994,8 @@ function DFMSection() {
                   {['Factor', 'Level (σ)', 'Δ1m', 'Δ3m', 'Δ12m', 'Z-score'].map((h, i) => (
                     <th key={h} style={{
                       textAlign: i === 0 ? 'left' : 'right',
-                      color: '#475569', fontWeight: 600, fontSize: 10,
-                      padding: '4px 6px 6px', borderBottom: '1px solid rgba(255,255,255,0.07)',
+                      color: '#8995a2', fontWeight: 600, fontSize: 10,
+                      padding: '4px 6px 6px', borderBottom: '1px solid rgba(200,220,240,0.07)',
                       whiteSpace: 'nowrap',
                     }}>
                       {h}
@@ -1006,31 +1006,31 @@ function DFMSection() {
               <tbody>
                 {DFM_FACTORS.map((f) => {
                   const st = FACTOR_STATS[f.key]
-                  const levelColor = st.current > 0.3 ? '#f87171' : st.current < -0.3 ? '#60a5fa' : '#94a3b8'
-                  const deltaColor = (d: number) => d > 0.05 ? '#f87171' : d < -0.05 ? '#60a5fa' : '#475569'
-                  const zColor = st.zscore > 0.5 ? '#f87171' : st.zscore < -0.5 ? '#60a5fa' : '#94a3b8'
+                  const levelColor = st.current > 0.3 ? '#e2826f' : st.current < -0.3 ? '#86c0de' : '#c6ced8'
+                  const deltaColor = (d: number) => d > 0.05 ? '#e2826f' : d < -0.05 ? '#86c0de' : '#8995a2'
+                  const zColor = st.zscore > 0.5 ? '#e2826f' : st.zscore < -0.5 ? '#86c0de' : '#c6ced8'
                   const fmt  = (v: number) => (v >= 0 ? '+' : '') + v.toFixed(2)
                   return (
                     <tr key={f.key}>
-                      <td style={{ padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={{ padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <div style={{ width: 8, height: 8, borderRadius: '50%', background: f.color, flexShrink: 0 }} />
-                          <span style={{ color: '#cbd5e1', fontSize: 11, whiteSpace: 'nowrap' }}>{f.label}</span>
+                          <span style={{ color: '#c3ccd6', fontSize: 11, whiteSpace: 'nowrap' }}>{f.label}</span>
                         </div>
                       </td>
-                      <td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: levelColor, fontWeight: 700 }}>
+                      <td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: levelColor, fontWeight: 600 }}>
                         {fmt(st.current)}
                       </td>
-                      <td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: deltaColor(st.d1m) }}>
+                      <td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: deltaColor(st.d1m) }}>
                         {fmt(st.d1m)}
                       </td>
-                      <td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: deltaColor(st.d3m) }}>
+                      <td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: deltaColor(st.d3m) }}>
                         {fmt(st.d3m)}
                       </td>
-                      <td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: deltaColor(st.d12m) }}>
+                      <td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: deltaColor(st.d12m) }}>
                         {fmt(st.d12m)}
                       </td>
-                      <td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: zColor, fontWeight: 600 }}>
+                      <td style={{ textAlign: 'right', padding: '5px 6px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: zColor, fontWeight: 600 }}>
                         {fmt(st.zscore)}
                       </td>
                     </tr>
@@ -1038,19 +1038,19 @@ function DFMSection() {
                 })}
               </tbody>
             </table>
-            <p style={{ color: '#334155', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
+            <p style={{ color: '#77828f', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
               Level: avg z-score across block indicators &middot; Δ = change in level &middot; Z-score: level standardised over the sample window
             </p>
           </div>
 
           {/* DFM notes */}
           <div style={{
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.06)',
-            borderRadius: 8,
+            background: 'rgba(200,220,240,0.02)',
+            border: '1px solid rgba(200,220,240,0.06)',
+            borderRadius: 6,
             padding: '12px 14px',
           }}>
-            <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+            <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
               Methodology
             </p>
             {[
@@ -1062,7 +1062,7 @@ function DFMSection() {
             ].map((note, i) => (
               <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 5 }}>
                 <span style={{ color: DFM_FACTORS[i].color, fontSize: 10, flexShrink: 0, marginTop: 1 }}>●</span>
-                <span style={{ color: '#475569', fontSize: 10, lineHeight: 1.45 }}>{note}</span>
+                <span style={{ color: '#8995a2', fontSize: 10, lineHeight: 1.45 }}>{note}</span>
               </div>
             ))}
           </div>
@@ -1149,10 +1149,10 @@ function ols(y: number[], X: number[][]): OLSResult {
 // ─── PC Regressions ───────────────────────────────────────────────────────────
 
 const REG_FACTORS: { key: string; label: string; color: string }[] = [
-  { key: 'broadMacro', label: 'Broad Macro', color: '#94a3b8' },
-  { key: 'growth',     label: 'Growth',      color: '#34d399' },
-  { key: 'inflation',  label: 'Inflation',   color: '#f87171' },
-  { key: 'employment', label: 'Employment',  color: '#60a5fa' },
+  { key: 'broadMacro', label: 'Broad Macro', color: '#c6ced8' },
+  { key: 'growth',     label: 'Growth',      color: '#6fc2a2' },
+  { key: 'inflation',  label: 'Inflation',   color: '#e2826f' },
+  { key: 'employment', label: 'Employment',  color: '#86c0de' },
 ]
 
 // Design matrix X: [N_MONTHS × 4]
@@ -1280,9 +1280,9 @@ const CURVE_FV_ROWS: CurveFVRow[] = computeCurveFV()
 // ─── Rates section components (API-driven) ────────────────────────────────────
 
 const PC_META = [
-  { key: 'pc1', label: 'PC1 — Level',     color: '#f59e0b' },
-  { key: 'pc2', label: 'PC2 — Slope',     color: '#34d399' },
-  { key: 'pc3', label: 'PC3 — Curvature', color: '#a78bfa' },
+  { key: 'pc1', label: 'PC1 — Level',     color: '#d6ad66' },
+  { key: 'pc2', label: 'PC2 — Slope',     color: '#6fc2a2' },
+  { key: 'pc3', label: 'PC3 — Curvature', color: '#b49fdb' },
 ]
 
 const PC_CHART_DATA = MONTH_COLS.map((month, t) => ({
@@ -1298,10 +1298,10 @@ function YieldPCChart() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+          <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>
             Bund Yield Curve — Principal Components
           </h2>
-          <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>
+          <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>
             PCA on 2/3/5/7/10/15/20/30y Bund yields &middot; synthetic data
           </p>
         </div>
@@ -1310,13 +1310,13 @@ function YieldPCChart() {
           {PC_META.map((pc, k) => (
             <div key={pc.key} style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 8, padding: '4px 10px',
+              background: 'rgba(200,220,240,0.04)',
+              border: '1px solid rgba(200,220,240,0.08)',
+              borderRadius: 6, padding: '4px 10px',
             }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: pc.color }} />
-              <span style={{ color: '#94a3b8', fontSize: 11 }}>{pc.label}</span>
-              <span style={{ color: pc.color, fontSize: 11, fontFamily: 'monospace', fontWeight: 600 }}>
+              <span style={{ color: '#c6ced8', fontSize: 11 }}>{pc.label}</span>
+              <span style={{ color: pc.color, fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600 }}>
                 {(YIELD_PCA.explainedVar[k] * 100).toFixed(1)}%
               </span>
             </div>
@@ -1327,31 +1327,31 @@ function YieldPCChart() {
       {/* Chart */}
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={PC_CHART_DATA} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+          <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
           <XAxis
             dataKey="month"
-            tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+            tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
             tickLine={false}
-            axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+            axisLine={{ stroke: 'rgba(200,220,240,0.08)' }}
             interval={3}
           />
           <YAxis
-            tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+            tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
             tickLine={false}
             axisLine={false}
             tickFormatter={(v) => v.toFixed(2)}
           />
-          <ReferenceLine y={0} stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
+          <ReferenceLine y={0} stroke="rgba(200,220,240,0.12)" strokeDasharray="4 4" />
           <Tooltip
             contentStyle={{
-              background: '#0f172a',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 8,
+              background: '#0b0f14',
+              border: '1px solid rgba(200,220,240,0.12)',
+              borderRadius: 6,
               fontSize: 11,
-              fontFamily: 'monospace',
-              color: '#e2e8f0',
+              fontFamily: "'Geist Mono', ui-monospace, monospace",
+              color: '#e4eaf1',
             }}
-            labelStyle={{ color: '#64748b', marginBottom: 4 }}
+            labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
             formatter={(value: number, name: string) => {
               const pc = PC_META.find(p => p.key === name)
               return [value.toFixed(3), pc?.label ?? name]
@@ -1373,17 +1373,17 @@ function YieldPCChart() {
 
       {/* Loadings table */}
       <div style={{ marginTop: 20 }}>
-        <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+        <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
           Factor loadings (eigenvectors)
         </p>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
           <thead>
             <tr>
-              <th style={{ textAlign: 'left', color: '#475569', fontWeight: 600, fontSize: 10, padding: '4px 8px 6px 0', borderBottom: '1px solid rgba(255,255,255,0.07)', width: 120 }}>
+              <th style={{ textAlign: 'left', color: '#8995a2', fontWeight: 600, fontSize: 10, padding: '4px 8px 6px 0', borderBottom: '1px solid rgba(200,220,240,0.07)', width: 120 }}>
                 Factor
               </th>
               {YIELD_TENORS.map(t => (
-                <th key={t} style={{ textAlign: 'right', color: '#475569', fontWeight: 600, fontSize: 10, padding: '4px 6px 6px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                <th key={t} style={{ textAlign: 'right', color: '#8995a2', fontWeight: 600, fontSize: 10, padding: '4px 6px 6px', borderBottom: '1px solid rgba(200,220,240,0.07)' }}>
                   {t}
                 </th>
               ))}
@@ -1392,20 +1392,20 @@ function YieldPCChart() {
           <tbody>
             {PC_META.map((pc, k) => (
               <tr key={pc.key}>
-                <td style={{ padding: '5px 8px 5px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <td style={{ padding: '5px 8px 5px 0', borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ width: 10, height: 10, borderRadius: '50%', background: pc.color, flexShrink: 0 }} />
-                    <span style={{ color: '#cbd5e1', fontSize: 11 }}>{pc.label}</span>
+                    <span style={{ color: '#c3ccd6', fontSize: 11 }}>{pc.label}</span>
                   </div>
                 </td>
                 {YIELD_PCA.loadings[k].map((l, j) => (
                   <td key={j} style={{
                     textAlign: 'right',
                     padding: '5px 6px',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
-                    fontFamily: 'monospace',
+                    borderBottom: '1px solid rgba(200,220,240,0.04)',
+                    fontFamily: "'Geist Mono', ui-monospace, monospace",
                     fontSize: 10,
-                    color: l > 0.05 ? '#34d399' : l < -0.05 ? '#f87171' : '#475569',
+                    color: l > 0.05 ? '#6fc2a2' : l < -0.05 ? '#e2826f' : '#8995a2',
                   }}>
                     {l >= 0 ? '+' : ''}{l.toFixed(3)}
                   </td>
@@ -1431,10 +1431,10 @@ const REG_CHART_DATA = MONTH_COLS.map((month, t) => ({
 
 function tStatColor(t: number): string {
   const abs = Math.abs(t)
-  if (abs >= 2.58) return '#34d399'   // 1% significance
-  if (abs >= 1.96) return '#fbbf24'   // 5%
-  if (abs >= 1.65) return '#94a3b8'   // 10%
-  return '#475569'                     // not significant
+  if (abs >= 2.58) return '#6fc2a2'   // 1% significance
+  if (abs >= 1.96) return '#dfbb78'   // 5%
+  if (abs >= 1.65) return '#c6ced8'   // 10%
+  return '#8995a2'                     // not significant
 }
 
 function RegressionTable({ reg, pcLabel }: { reg: OLSResult; pcLabel: string }) {
@@ -1443,16 +1443,16 @@ function RegressionTable({ reg, pcLabel }: { reg: OLSResult; pcLabel: string }) 
     <div>
       {/* R² header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 10 }}>
-        <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>{pcLabel}</span>
+        <span style={{ color: '#c6ced8', fontSize: 13, fontWeight: 600 }}>{pcLabel}</span>
         <span style={{
-          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)',
-          borderRadius: 6, padding: '2px 8px', fontFamily: 'monospace', fontSize: 11, color: '#f1f5f9',
+          background: 'rgba(200,220,240,0.05)', border: '1px solid rgba(200,220,240,0.09)',
+          borderRadius: 6, padding: '2px 8px', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, color: '#eef2f6',
         }}>
           R² = {reg.rSquared.toFixed(3)}
         </span>
         <span style={{
-          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)',
-          borderRadius: 6, padding: '2px 8px', fontFamily: 'monospace', fontSize: 11, color: '#94a3b8',
+          background: 'rgba(200,220,240,0.05)', border: '1px solid rgba(200,220,240,0.09)',
+          borderRadius: 6, padding: '2px 8px', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, color: '#c6ced8',
         }}>
           adj. R² = {reg.adjRSquared.toFixed(3)}
         </span>
@@ -1461,7 +1461,7 @@ function RegressionTable({ reg, pcLabel }: { reg: OLSResult; pcLabel: string }) 
         <thead>
           <tr>
             {['Factor', 'Coeff.', 't-stat', 'Sig.'].map(h => (
-              <th key={h} style={{ textAlign: h === 'Factor' ? 'left' : 'right', color: '#475569', fontWeight: 600, fontSize: 10, padding: '4px 8px 6px', borderBottom: '1px solid rgba(255,255,255,0.07)', whiteSpace: 'nowrap' }}>
+              <th key={h} style={{ textAlign: h === 'Factor' ? 'left' : 'right', color: '#8995a2', fontWeight: 600, fontSize: 10, padding: '4px 8px 6px', borderBottom: '1px solid rgba(200,220,240,0.07)', whiteSpace: 'nowrap' }}>
                 {h}
               </th>
             ))}
@@ -1472,19 +1472,19 @@ function RegressionTable({ reg, pcLabel }: { reg: OLSResult; pcLabel: string }) 
             const b = reg.coefficients[k], t = reg.tStats[k]
             return (
               <tr key={f.key}>
-                <td style={{ padding: '5px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <td style={{ padding: '5px 8px', borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: f.color, flexShrink: 0 }} />
-                    <span style={{ color: '#cbd5e1', fontSize: 11 }}>{f.label}</span>
+                    <span style={{ color: '#c3ccd6', fontSize: 11 }}>{f.label}</span>
                   </div>
                 </td>
-                <td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: b >= 0 ? '#34d399' : '#f87171', fontWeight: 600 }}>
+                <td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: b >= 0 ? '#6fc2a2' : '#e2826f', fontWeight: 600 }}>
                   {b >= 0 ? '+' : ''}{b.toFixed(4)}
                 </td>
-                <td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'monospace', color: tStatColor(t) }}>
+                <td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(200,220,240,0.04)', fontFamily: "'Geist Mono', ui-monospace, monospace", color: tStatColor(t) }}>
                   {t >= 0 ? '+' : ''}{t.toFixed(2)}
                 </td>
-                <td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)', color: tStatColor(t), fontWeight: 600 }}>
+                <td style={{ textAlign: 'right', padding: '5px 8px', borderBottom: '1px solid rgba(200,220,240,0.04)', color: tStatColor(t), fontWeight: 600 }}>
                   {Math.abs(t) >= 2.58 ? '***' : Math.abs(t) >= 1.96 ? '**' : Math.abs(t) >= 1.65 ? '*' : '—'}
                 </td>
               </tr>
@@ -1500,10 +1500,10 @@ function PCRegressionSection() {
   return (
     <div style={cardStyle}>
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+        <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>
           Rates–Macro Linkage — PC Regressions
         </h2>
-        <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>
+        <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>
           OLS: PC1 &amp; PC2 of Bund curve regressed on macro factors &middot; *** p&lt;1% &nbsp;** p&lt;5% &nbsp;* p&lt;10%
         </p>
       </div>
@@ -1511,35 +1511,35 @@ function PCRegressionSection() {
       {/* Actual vs Fitted charts */}
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 24 }}>
         {[
-          { label: 'PC1 — Level', actualKey: 'pc1Actual', fittedKey: 'pc1Fitted', color: '#f59e0b' },
-          { label: 'PC2 — Slope', actualKey: 'pc2Actual', fittedKey: 'pc2Fitted', color: '#34d399' },
+          { label: 'PC1 — Level', actualKey: 'pc1Actual', fittedKey: 'pc1Fitted', color: '#d6ad66' },
+          { label: 'PC2 — Slope', actualKey: 'pc2Actual', fittedKey: 'pc2Fitted', color: '#6fc2a2' },
         ].map(({ label, actualKey, fittedKey, color }) => (
           <div key={label} style={{ flex: '1 1 400px', minWidth: 0 }}>
-            <p style={{ color: '#64748b', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>{label}</p>
+            <p style={{ color: '#9aa5b1', fontSize: 11, margin: '0 0 8px', fontWeight: 600 }}>{label}</p>
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={REG_CHART_DATA} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-                <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={4} />
-                <YAxis tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} tickLine={false} axisLine={false} tickFormatter={(v) => v.toFixed(2)} />
-                <ReferenceLine y={0} stroke="rgba(255,255,255,0.10)" strokeDasharray="4 4" />
+                <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
+                <XAxis dataKey="month" tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={4} />
+                <YAxis tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={false} tickFormatter={(v) => v.toFixed(2)} />
+                <ReferenceLine y={0} stroke="rgba(200,220,240,0.10)" strokeDasharray="4 4" />
                 <Tooltip
-                  contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }}
-                  labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                  contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }}
+                  labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
                   formatter={(v: number, n: string) => [v.toFixed(3), n.includes('Actual') ? 'Actual' : 'Fitted']}
                 />
                 <Line type="monotone" dataKey={actualKey} stroke={color} strokeWidth={1.8} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
-                <Line type="monotone" dataKey={fittedKey} stroke="rgba(255,255,255,0.45)" strokeWidth={1.2} strokeDasharray="5 3" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+                <Line type="monotone" dataKey={fittedKey} stroke="rgba(200,220,240,0.45)" strokeWidth={1.2} strokeDasharray="5 3" dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
               </LineChart>
             </ResponsiveContainer>
             {/* Mini legend */}
             <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{ width: 18, height: 2, background: color, borderRadius: 1 }} />
-                <span style={{ color: '#475569', fontSize: 10 }}>Actual</span>
+                <span style={{ color: '#8995a2', fontSize: 10 }}>Actual</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <div style={{ width: 18, height: 0, borderTop: '2px dashed rgba(255,255,255,0.45)', borderRadius: 1 }} />
-                <span style={{ color: '#475569', fontSize: 10 }}>Fitted</span>
+                <div style={{ width: 18, height: 0, borderTop: '2px dashed rgba(200,220,240,0.45)', borderRadius: 1 }} />
+                <span style={{ color: '#8995a2', fontSize: 10 }}>Fitted</span>
               </div>
             </div>
           </div>
@@ -1551,7 +1551,7 @@ function PCRegressionSection() {
         <div style={{ flex: '1 1 280px', minWidth: 0 }}>
           <RegressionTable reg={PC1_REG} pcLabel="PC1 — Level" />
         </div>
-        <div style={{ width: '1px', background: 'rgba(255,255,255,0.07)', flexShrink: 0 }} />
+        <div style={{ width: '1px', background: 'rgba(200,220,240,0.07)', flexShrink: 0 }} />
         <div style={{ flex: '1 1 280px', minWidth: 0 }}>
           <RegressionTable reg={PC2_REG} pcLabel="PC2 — Slope" />
         </div>
@@ -1575,7 +1575,7 @@ function BundFairValueSection() {
   const fv          = BUND_10Y_FAIR_VALUE[N_MONTHS - 1]
   const rc          = BUND_10Y_RICHCHEAP[N_MONTHS - 1]
   const isRich      = rc < 0
-  const rcColor     = rc > 5 ? '#34d399' : rc < -5 ? '#f87171' : '#94a3b8'
+  const rcColor     = rc > 5 ? '#6fc2a2' : rc < -5 ? '#e2826f' : '#c6ced8'
   const rcLabel     = isRich ? 'Rich' : 'Cheap'
 
   return (
@@ -1583,10 +1583,10 @@ function BundFairValueSection() {
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+          <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>
             10y Bund — Macro Fair Value
           </h2>
-          <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>
+          <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>
             PCA inversion: ŷ = μ + L₁·PĈ₁ + L₂·PĈ₂ &middot; macro-implied level via OLS
           </p>
         </div>
@@ -1594,103 +1594,103 @@ function BundFairValueSection() {
         {/* Current reading summary */}
         <div style={{ display: 'flex', gap: 8 }}>
           {[
-            { label: 'Actual',          value: `${current.toFixed(2)}%`,           color: '#f59e0b' },
-            { label: 'PCA (PC1+PC2)',   value: `${BUND_10Y_PCA_FITTED[N_MONTHS - 1].toFixed(2)}%`, color: '#34d399' },
-            { label: 'Macro Fair Value',value: `${fv.toFixed(2)}%`,                color: '#94a3b8' },
+            { label: 'Actual',          value: `${current.toFixed(2)}%`,           color: '#d6ad66' },
+            { label: 'PCA (PC1+PC2)',   value: `${BUND_10Y_PCA_FITTED[N_MONTHS - 1].toFixed(2)}%`, color: '#6fc2a2' },
+            { label: 'Macro Fair Value',value: `${fv.toFixed(2)}%`,                color: '#c6ced8' },
             { label: rcLabel,           value: `${Math.abs(rc).toFixed(1)} bps`,   color: rcColor },
           ].map(({ label, value, color }) => (
             <div key={label} style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 8, padding: '6px 12px', textAlign: 'center',
+              background: 'rgba(200,220,240,0.04)',
+              border: '1px solid rgba(200,220,240,0.08)',
+              borderRadius: 6, padding: '6px 12px', textAlign: 'center',
             }}>
-              <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>{label}</div>
-              <div style={{ color, fontSize: 13, fontFamily: 'monospace', fontWeight: 700 }}>{value}</div>
+              <div style={{ color: '#8995a2', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>{label}</div>
+              <div style={{ color, fontSize: 13, fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600 }}>{value}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Actual vs Fair Value */}
-      <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+      <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
         Actual vs macro fair value (%)
       </p>
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={FAIR_VALUE_CHART_DATA} margin={{ top: 4, right: 12, bottom: 0, left: -8 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-          <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={3} />
-          <YAxis tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(2)}%`} domain={['auto', 'auto']} />
+          <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
+          <XAxis dataKey="month" tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={3} />
+          <YAxis tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(2)}%`} domain={['auto', 'auto']} />
           <Tooltip
-            contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11, fontFamily: 'monospace' }}
-            labelStyle={{ color: '#64748b', marginBottom: 4 }}
+            contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
+            labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
             formatter={(v: number, name: string) => [
               `${v.toFixed(3)}%`,
               name === 'actual' ? 'Actual' : name === 'pcaFitted' ? 'PCA (PC1+PC2)' : 'Macro Fair Value',
             ]}
           />
-          <Line type="monotone" dataKey="actual"    stroke="#f59e0b" strokeWidth={2}   dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-          <Line type="monotone" dataKey="pcaFitted" stroke="#34d399" strokeWidth={1.5} strokeDasharray="3 2" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-          <Line type="monotone" dataKey="fairValue" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="5 3" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+          <Line type="monotone" dataKey="actual"    stroke="#d6ad66" strokeWidth={2}   dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+          <Line type="monotone" dataKey="pcaFitted" stroke="#6fc2a2" strokeWidth={1.5} strokeDasharray="3 2" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+          <Line type="monotone" dataKey="fairValue" stroke="#c6ced8" strokeWidth={1.5} strokeDasharray="5 3" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
         </LineChart>
       </ResponsiveContainer>
 
       {/* Legend */}
       <div style={{ display: 'flex', gap: 20, marginTop: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 20, height: 2, background: '#f59e0b', borderRadius: 1 }} />
-          <span style={{ color: '#475569', fontSize: 10 }}>Actual 10y Bund</span>
+          <div style={{ width: 20, height: 2, background: '#d6ad66', borderRadius: 1 }} />
+          <span style={{ color: '#8995a2', fontSize: 10 }}>Actual 10y Bund</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 20, height: 0, borderTop: '2px dashed #34d399' }} />
-          <span style={{ color: '#475569', fontSize: 10 }}>PCA reconstruction (PC1+PC2, no macro)</span>
+          <div style={{ width: 20, height: 0, borderTop: '2px dashed #6fc2a2' }} />
+          <span style={{ color: '#8995a2', fontSize: 10 }}>PCA reconstruction (PC1+PC2, no macro)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 20, height: 0, borderTop: '2px dashed #94a3b8' }} />
-          <span style={{ color: '#475569', fontSize: 10 }}>Macro fair value (macro-fitted PC1+PC2)</span>
+          <div style={{ width: 20, height: 0, borderTop: '2px dashed #c6ced8' }} />
+          <span style={{ color: '#8995a2', fontSize: 10 }}>Macro fair value (macro-fitted PC1+PC2)</span>
         </div>
       </div>
 
       {/* Rich / Cheap panel */}
-      <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+      <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
         Rich / cheap vs fair value (bps) — positive = cheap, negative = rich
       </p>
       <ResponsiveContainer width="100%" height={140}>
         <AreaChart data={FAIR_VALUE_CHART_DATA} margin={{ top: 4, right: 12, bottom: 0, left: -8 }}>
           <defs>
             <linearGradient id="gradCheap" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%"  stopColor="#34d399" stopOpacity={0.25} />
-              <stop offset="95%" stopColor="#34d399" stopOpacity={0.02} />
+              <stop offset="5%"  stopColor="#6fc2a2" stopOpacity={0.25} />
+              <stop offset="95%" stopColor="#6fc2a2" stopOpacity={0.02} />
             </linearGradient>
             <linearGradient id="gradRich" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="5%"  stopColor="#f87171" stopOpacity={0.25} />
-              <stop offset="95%" stopColor="#f87171" stopOpacity={0.02} />
+              <stop offset="5%"  stopColor="#e2826f" stopOpacity={0.25} />
+              <stop offset="95%" stopColor="#e2826f" stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-          <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={3} />
-          <YAxis tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }} tickLine={false} axisLine={false} tickFormatter={v => `${v > 0 ? '+' : ''}${v}bp`} />
-          <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
+          <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
+          <XAxis dataKey="month" tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={3} />
+          <YAxis tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }} tickLine={false} axisLine={false} tickFormatter={v => `${v > 0 ? '+' : ''}${v}bp`} />
+          <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" />
           <Tooltip
-            contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11, fontFamily: 'monospace' }}
-            labelStyle={{ color: '#64748b', marginBottom: 4 }}
+            contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
+            labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
             formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(1)} bps`, v >= 0 ? 'Cheap' : 'Rich']}
           />
           <Area
             type="monotone"
             dataKey="richCheap"
-            stroke="#94a3b8"
+            stroke="#c6ced8"
             strokeWidth={1.5}
             fill={rc >= 0 ? 'url(#gradCheap)' : 'url(#gradRich)'}
           />
         </AreaChart>
       </ResponsiveContainer>
-      <p style={{ color: '#334155', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
+      <p style={{ color: '#77828f', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
         Fair value = sample mean + PC1 loading × macro-fitted PC1 + PC2 loading × macro-fitted PC2. Residual captures non-macro drivers (positioning, technicals, term premium).
       </p>
 
       {/* ── Curve macro fair value table ── */}
       <div style={{ marginTop: 28 }}>
-        <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+        <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
           Curve macro fair value
         </p>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
@@ -1699,9 +1699,9 @@ function BundFairValueSection() {
               {['', 'Current', 'Fair Value', 'Resid (bp)', 'StdDev (bp)', 'Z-Score'].map((h, i) => (
                 <th key={h} style={{
                   textAlign: i === 0 ? 'left' : 'right',
-                  color: '#475569', fontWeight: 600, fontSize: 10,
+                  color: '#8995a2', fontWeight: 600, fontSize: 10,
                   padding: '4px 10px 6px',
-                  borderBottom: '1px solid rgba(255,255,255,0.07)',
+                  borderBottom: '1px solid rgba(200,220,240,0.07)',
                   whiteSpace: 'nowrap',
                 }}>
                   {h}
@@ -1713,41 +1713,41 @@ function BundFairValueSection() {
             {CURVE_FV_ROWS.map((row, i) => {
               const absZ = Math.abs(row.zscore)
               const zBg = absZ >= 1.5
-                ? (row.zscore > 0 ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)')
+                ? (row.zscore > 0 ? 'rgba(111,194,162,0.12)' : 'rgba(226,130,111,0.12)')
                 : 'transparent'
-              const zColor = row.zscore > 0.5 ? '#34d399' : row.zscore < -0.5 ? '#f87171' : '#94a3b8'
+              const zColor = row.zscore > 0.5 ? '#6fc2a2' : row.zscore < -0.5 ? '#e2826f' : '#c6ced8'
               const isSlope = row.isSpread
               // separator before slopes
-              const topBorder = i === 4 ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(255,255,255,0.04)'
+              const topBorder = i === 4 ? '1px solid rgba(200,220,240,0.10)' : '1px solid rgba(200,220,240,0.04)'
               return (
                 <tr key={row.label} style={{ background: zBg }}>
                   <td style={{
                     padding: '6px 10px',
                     borderBottom: topBorder,
-                    color: '#cbd5e1', fontWeight: 600, fontSize: 11,
-                    fontFamily: 'monospace',
+                    color: '#c3ccd6', fontWeight: 600, fontSize: 11,
+                    fontFamily: "'Geist Mono', ui-monospace, monospace",
                   }}>
                     {row.label}
                   </td>
-                  <td style={{ textAlign: 'right', padding: '6px 10px', borderBottom: topBorder, fontFamily: 'monospace', color: '#e2e8f0' }}>
+                  <td style={{ textAlign: 'right', padding: '6px 10px', borderBottom: topBorder, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }}>
                     {isSlope ? `${row.current.toFixed(1)} bp` : `${row.current.toFixed(2)}%`}
                   </td>
-                  <td style={{ textAlign: 'right', padding: '6px 10px', borderBottom: topBorder, fontFamily: 'monospace', color: '#94a3b8' }}>
+                  <td style={{ textAlign: 'right', padding: '6px 10px', borderBottom: topBorder, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#c6ced8' }}>
                     {isSlope ? `${row.fv.toFixed(1)} bp` : `${row.fv.toFixed(2)}%`}
                   </td>
                   <td style={{
                     textAlign: 'right', padding: '6px 10px', borderBottom: topBorder,
-                    fontFamily: 'monospace',
-                    color: row.resid > 0 ? '#34d399' : '#f87171',
+                    fontFamily: "'Geist Mono', ui-monospace, monospace",
+                    color: row.resid > 0 ? '#6fc2a2' : '#e2826f',
                   }}>
                     {row.resid > 0 ? '+' : ''}{row.resid.toFixed(1)}
                   </td>
-                  <td style={{ textAlign: 'right', padding: '6px 10px', borderBottom: topBorder, fontFamily: 'monospace', color: '#475569' }}>
+                  <td style={{ textAlign: 'right', padding: '6px 10px', borderBottom: topBorder, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#8995a2' }}>
                     {row.stddev.toFixed(1)}
                   </td>
                   <td style={{
                     textAlign: 'right', padding: '6px 10px', borderBottom: topBorder,
-                    fontFamily: 'monospace', fontWeight: 700, color: zColor,
+                    fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, color: zColor,
                   }}>
                     {row.zscore > 0 ? '+' : ''}{row.zscore.toFixed(2)}
                   </td>
@@ -1756,7 +1756,7 @@ function BundFairValueSection() {
             })}
           </tbody>
         </table>
-        <p style={{ color: '#334155', fontSize: 9, margin: '6px 0 0', fontStyle: 'italic' }}>
+        <p style={{ color: '#77828f', fontSize: 9, margin: '6px 0 0', fontStyle: 'italic' }}>
           Positive residual = actual above fair value (cheap). Negative = rich. Z-score = residual ÷ historical StdDev of residuals.
         </p>
       </div>
@@ -1936,10 +1936,10 @@ const DISP_AVG_2S30S = Math.round(
 ) / 10
 
 const REGIME_META = [
-  { key: 'bullSteep', label: 'Bull Steepening', color: '#34d399' },
-  { key: 'bullFlat',  label: 'Bull Flattening',  color: '#60a5fa' },
-  { key: 'bearSteep', label: 'Bear Steepening',  color: '#f59e0b' },
-  { key: 'bearFlat',  label: 'Bear Flattening',  color: '#f87171' },
+  { key: 'bullSteep', label: 'Bull Steepening', color: '#6fc2a2' },
+  { key: 'bullFlat',  label: 'Bull Flattening',  color: '#86c0de' },
+  { key: 'bearSteep', label: 'Bear Steepening',  color: '#d6ad66' },
+  { key: 'bearFlat',  label: 'Bear Flattening',  color: '#e2826f' },
 ] as const
 
 function nearestMonthLabel(data: FullDirPoint[], idx: number): string {
@@ -1954,24 +1954,24 @@ function CurveDynamicsSection() {
     <div style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+          <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>
             2s10s Directionality
           </h2>
-          <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>
+          <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>
             % of daily moves that are bull-steepening or bear-flattening &middot; 3-month (63-day) rolling window
           </p>
         </div>
         <div style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 8, padding: '6px 14px', textAlign: 'center',
+          background: 'rgba(200,220,240,0.04)',
+          border: '1px solid rgba(200,220,240,0.08)',
+          borderRadius: 6, padding: '6px 14px', textAlign: 'center',
         }}>
-          <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>
+          <div style={{ color: '#8995a2', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>
             Current
           </div>
           <div style={{
-            color: DIR_CURRENT_PCT > 55 ? '#34d399' : DIR_CURRENT_PCT < 40 ? '#f87171' : '#f59e0b',
-            fontSize: 20, fontFamily: 'monospace', fontWeight: 700,
+            color: DIR_CURRENT_PCT > 55 ? '#6fc2a2' : DIR_CURRENT_PCT < 40 ? '#e2826f' : '#d6ad66',
+            fontSize: 20, fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600,
           }}>
             {DIR_CURRENT_PCT.toFixed(1)}%
           </div>
@@ -1982,11 +1982,11 @@ function CurveDynamicsSection() {
         <LineChart data={chartData} margin={{ top: 4, right: 12, bottom: 0, left: -8 }}>
           <defs>
             <linearGradient id="dirGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%"  stopColor="#f59e0b" stopOpacity={0.15} />
-              <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}    />
+              <stop offset="5%"  stopColor="#d6ad66" stopOpacity={0.15} />
+              <stop offset="95%" stopColor="#d6ad66" stopOpacity={0}    />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+          <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
           <XAxis
             dataKey="idx"
             type="number"
@@ -1997,30 +1997,30 @@ function CurveDynamicsSection() {
               const pt = DAILY_DIR.find(d => d.idx === idx)
               return pt?.monthLabel ?? ''
             }}
-            tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+            tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
             tickLine={false}
-            axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+            axisLine={{ stroke: 'rgba(200,220,240,0.08)' }}
             interval={0}
           />
           <YAxis
             domain={[0, 100]}
             tickFormatter={v => `${v}%`}
-            tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+            tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
             tickLine={false}
             axisLine={false}
             tickCount={6}
           />
-          <ReferenceLine y={50} stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
+          <ReferenceLine y={50} stroke="rgba(200,220,240,0.12)" strokeDasharray="4 4" />
           <Tooltip
             contentStyle={{
-              background: '#0f172a',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 8,
+              background: '#0b0f14',
+              border: '1px solid rgba(200,220,240,0.12)',
+              borderRadius: 6,
               fontSize: 11,
-              fontFamily: 'monospace',
-              color: '#e2e8f0',
+              fontFamily: "'Geist Mono', ui-monospace, monospace",
+              color: '#e4eaf1',
             }}
-            labelStyle={{ color: '#64748b', marginBottom: 4 }}
+            labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
             labelFormatter={idx => {
               const nearest = DAILY_DIR
                 .filter(d => d.monthLabel && d.idx <= (idx as number))
@@ -2032,16 +2032,16 @@ function CurveDynamicsSection() {
           <Line
             type="monotone"
             dataKey="pct"
-            stroke="#f59e0b"
+            stroke="#d6ad66"
             strokeWidth={1.5}
             dot={false}
-            activeDot={{ r: 3, strokeWidth: 0, fill: '#f59e0b' }}
+            activeDot={{ r: 3, strokeWidth: 0, fill: '#d6ad66' }}
             isAnimationActive={false}
           />
         </LineChart>
       </ResponsiveContainer>
 
-      <p style={{ color: '#334155', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
+      <p style={{ color: '#77828f', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
         Bull-steepening: rates fall &amp; spread widens. Bear-flattening: rates rise &amp; spread narrows.
         &gt;50% = curve behaving in line with macro-driven directionality; &lt;50% = atypical regime dominant.
       </p>
@@ -2062,25 +2062,25 @@ function CurveDynamicsSection() {
           <div style={{ marginTop: 28 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
               <div>
-                <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
+                <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
                   Tail likelihoods — 2s10s
                 </p>
-                <p style={{ color: '#334155', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
+                <p style={{ color: '#77828f', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
                   Bull-steepening + bear-flattening combined &nbsp;·&nbsp; high / rising = deteriorating carry &nbsp;·&nbsp; 3m rolling
                 </p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {[
-                  { label: 'Current', val: current, color: current > avg ? '#f87171' : '#34d399' },
-                  { label: 'Avg',     val: avg,      color: '#475569' },
+                  { label: 'Current', val: current, color: current > avg ? '#e2826f' : '#6fc2a2' },
+                  { label: 'Avg',     val: avg,      color: '#8995a2' },
                 ].map(({ label, val, color }) => (
                   <div key={label} style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.07)',
-                    borderRadius: 8, padding: '4px 12px', textAlign: 'center',
+                    background: 'rgba(200,220,240,0.03)',
+                    border: '1px solid rgba(200,220,240,0.07)',
+                    borderRadius: 6, padding: '4px 12px', textAlign: 'center',
                   }}>
-                    <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{label}</div>
-                    <div style={{ color, fontFamily: 'monospace', fontSize: 13, fontWeight: 700 }}>{val}%</div>
+                    <div style={{ color: '#8995a2', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{label}</div>
+                    <div style={{ color, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 13, fontWeight: 600 }}>{val}%</div>
                   </div>
                 ))}
               </div>
@@ -2088,7 +2088,7 @@ function CurveDynamicsSection() {
 
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={tailData} margin={{ top: 4, right: 12, bottom: 0, left: -8 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+                <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
                 <XAxis
                   dataKey="idx"
                   type="number"
@@ -2096,34 +2096,34 @@ function CurveDynamicsSection() {
                   domain={[0, tailData.length - 1]}
                   ticks={ticks}
                   tickFormatter={idx => labelFor(idx as number)}
-                  tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+                  tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                   tickLine={false}
-                  axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                  axisLine={{ stroke: 'rgba(200,220,240,0.08)' }}
                   interval={0}
                 />
                 <YAxis
                   domain={[0, 100]}
                   tickFormatter={v => `${v}%`}
-                  tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+                  tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                   tickLine={false}
                   axisLine={false}
                   tickCount={6}
                 />
-                <ReferenceLine y={avg}  stroke="rgba(255,255,255,0.25)" strokeDasharray="4 4" label={{ value: 'avg', position: 'insideTopRight', fill: '#475569', fontSize: 9 }} />
+                <ReferenceLine y={avg}  stroke="rgba(200,220,240,0.25)" strokeDasharray="4 4" label={{ value: 'avg', position: 'insideTopRight', fill: '#8995a2', fontSize: 9 }} />
                 <Tooltip
                   contentStyle={{
-                    background: '#0f172a',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: 8, fontSize: 11, fontFamily: 'monospace', color: '#e2e8f0',
+                    background: '#0b0f14',
+                    border: '1px solid rgba(200,220,240,0.12)',
+                    borderRadius: 6, fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1',
                   }}
-                  labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                  labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
                   labelFormatter={idx => labelFor(idx as number)}
                   formatter={(v: number) => [`${v}%`, 'Tail likelihood']}
                 />
                 <Line
                   type="monotone"
                   dataKey="tail"
-                  stroke="#94a3b8"
+                  stroke="#c6ced8"
                   strokeWidth={1.5}
                   dot={false}
                   activeDot={{ r: 3, strokeWidth: 0 }}
@@ -2139,27 +2139,27 @@ function CurveDynamicsSection() {
       <div style={{ marginTop: 28 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
           <div>
-            <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
+            <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
               Balance of risks — 2s10s curve dynamic
             </p>
-            <p style={{ color: '#334155', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
+            <p style={{ color: '#77828f', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
               Recession = bull-steepening moves &nbsp;·&nbsp; Reacceleration = bear-flattening moves &nbsp;·&nbsp; 3m rolling window
             </p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             {[
-              { label: 'Recession',       val: DIR_2S10S[DIR_2S10S.length - 1].bullSteep, color: '#60a5fa' },
-              { label: 'Reacceleration',  val: DIR_2S10S[DIR_2S10S.length - 1].bearFlat,  color: '#f87171' },
+              { label: 'Recession',       val: DIR_2S10S[DIR_2S10S.length - 1].bullSteep, color: '#86c0de' },
+              { label: 'Reacceleration',  val: DIR_2S10S[DIR_2S10S.length - 1].bearFlat,  color: '#e2826f' },
             ].map(({ label, val, color }) => (
               <div key={label} style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: 8, padding: '4px 12px', textAlign: 'center',
+                background: 'rgba(200,220,240,0.03)',
+                border: '1px solid rgba(200,220,240,0.07)',
+                borderRadius: 6, padding: '4px 12px', textAlign: 'center',
               }}>
-                <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+                <div style={{ color: '#8995a2', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
                   {label}
                 </div>
-                <div style={{ color, fontFamily: 'monospace', fontSize: 13, fontWeight: 700 }}>
+                <div style={{ color, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 13, fontWeight: 600 }}>
                   {val}%
                 </div>
               </div>
@@ -2172,7 +2172,7 @@ function CurveDynamicsSection() {
             data={DIR_2S10S.map(d => ({ idx: d.idx, recession: d.bullSteep, reacceleration: d.bearFlat }))}
             margin={{ top: 4, right: 12, bottom: 0, left: -8 }}
           >
-            <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+            <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
             <XAxis
               dataKey="idx"
               type="number"
@@ -2183,27 +2183,27 @@ function CurveDynamicsSection() {
                 const found = DIR_2S10S.filter(d => d.monthLabel && d.idx <= (idx as number)).slice(-1)[0]
                 return found?.monthLabel ?? ''
               }}
-              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
               tickLine={false}
-              axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+              axisLine={{ stroke: 'rgba(200,220,240,0.08)' }}
               interval={0}
             />
             <YAxis
               domain={[0, 100]}
               tickFormatter={v => `${v}%`}
-              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
               tickLine={false}
               axisLine={false}
               tickCount={6}
             />
-            <ReferenceLine y={25} stroke="rgba(255,255,255,0.08)" strokeDasharray="4 4" />
+            <ReferenceLine y={25} stroke="rgba(200,220,240,0.08)" strokeDasharray="4 4" />
             <Tooltip
               contentStyle={{
-                background: '#0f172a',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 8, fontSize: 11, fontFamily: 'monospace', color: '#e2e8f0',
+                background: '#0b0f14',
+                border: '1px solid rgba(200,220,240,0.12)',
+                borderRadius: 6, fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1',
               }}
-              labelStyle={{ color: '#64748b', marginBottom: 4 }}
+              labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
               labelFormatter={idx => {
                 const found = DIR_2S10S.filter(d => d.monthLabel && d.idx <= (idx as number)).slice(-1)[0]
                 return found?.monthLabel ?? String(idx)
@@ -2213,23 +2213,23 @@ function CurveDynamicsSection() {
                 name === 'recession' ? 'Recession (bull-steep)' : 'Reacceleration (bear-flat)',
               ]}
             />
-            <Line type="monotone" dataKey="recession"      stroke="#60a5fa" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
-            <Line type="monotone" dataKey="reacceleration" stroke="#f87171" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+            <Line type="monotone" dataKey="recession"      stroke="#86c0de" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+            <Line type="monotone" dataKey="reacceleration" stroke="#e2826f" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
 
         <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 20, height: 2, background: '#60a5fa', borderRadius: 1 }} />
-            <span style={{ color: '#475569', fontSize: 10 }}>Recession (bull-steepening)</span>
+            <div style={{ width: 20, height: 2, background: '#86c0de', borderRadius: 1 }} />
+            <span style={{ color: '#8995a2', fontSize: 10 }}>Recession (bull-steepening)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 20, height: 2, background: '#f87171', borderRadius: 1 }} />
-            <span style={{ color: '#475569', fontSize: 10 }}>Reacceleration (bear-flattening)</span>
+            <div style={{ width: 20, height: 2, background: '#e2826f', borderRadius: 1 }} />
+            <span style={{ color: '#8995a2', fontSize: 10 }}>Reacceleration (bear-flattening)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 20, height: 0, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
-            <span style={{ color: '#334155', fontSize: 10 }}>25% baseline</span>
+            <div style={{ width: 20, height: 0, borderTop: '1px dashed rgba(200,220,240,0.08)' }} />
+            <span style={{ color: '#77828f', fontSize: 10 }}>25% baseline</span>
           </div>
         </div>
       </div>
@@ -2244,13 +2244,13 @@ function CurveDynamicsSection() {
           const ticks = data.filter(d => d.monthLabel !== null).map(d => d.idx)
           return (
             <div key={label} style={{ flex: '1 1 420px', minWidth: 0 }}>
-              <p style={{ color: '#64748b', fontSize: 11, fontWeight: 600, margin: '0 0 10px' }}>
+              <p style={{ color: '#9aa5b1', fontSize: 11, fontWeight: 600, margin: '0 0 10px' }}>
                 {label} — 3m rolling regime breakdown
               </p>
 
               <ResponsiveContainer width="100%" height={200}>
                 <AreaChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
-                  <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+                  <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
                   <XAxis
                     dataKey="idx"
                     type="number"
@@ -2258,29 +2258,29 @@ function CurveDynamicsSection() {
                     domain={[0, data.length - 1]}
                     ticks={ticks}
                     tickFormatter={idx => nearestMonthLabel(data, idx as number)}
-                    tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                    tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                     tickLine={false}
-                    axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                    axisLine={{ stroke: 'rgba(200,220,240,0.08)' }}
                     interval={0}
                   />
                   <YAxis
                     domain={[0, 100]}
                     tickFormatter={v => `${v}%`}
-                    tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                    tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                     tickLine={false}
                     axisLine={false}
                     tickCount={6}
                   />
                   <Tooltip
                     contentStyle={{
-                      background: '#0f172a',
-                      border: '1px solid rgba(255,255,255,0.12)',
-                      borderRadius: 8,
+                      background: '#0b0f14',
+                      border: '1px solid rgba(200,220,240,0.12)',
+                      borderRadius: 6,
                       fontSize: 10,
-                      fontFamily: 'monospace',
-                      color: '#e2e8f0',
+                      fontFamily: "'Geist Mono', ui-monospace, monospace",
+                      color: '#e4eaf1',
                     }}
-                    labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                    labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
                     labelFormatter={idx => nearestMonthLabel(data, idx as number)}
                     formatter={(v: number, name: string) => {
                       const meta = REGIME_META.find(r => r.key === name)
@@ -2308,8 +2308,8 @@ function CurveDynamicsSection() {
                 {REGIME_META.map(r => (
                   <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <div style={{ width: 8, height: 8, borderRadius: 2, background: r.color }} />
-                    <span style={{ color: '#475569', fontSize: 10 }}>{r.label}</span>
-                    <span style={{ color: r.color, fontFamily: 'monospace', fontSize: 10, fontWeight: 700 }}>
+                    <span style={{ color: '#8995a2', fontSize: 10 }}>{r.label}</span>
+                    <span style={{ color: r.color, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 600 }}>
                       {current[r.key]}%
                     </span>
                   </div>
@@ -2325,14 +2325,14 @@ function CurveDynamicsSection() {
         {REGIME_META.map(r => (
           <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <div style={{ width: 10, height: 10, borderRadius: 2, background: r.color, opacity: 0.8 }} />
-            <span style={{ color: '#475569', fontSize: 10 }}>{r.label}</span>
+            <span style={{ color: '#8995a2', fontSize: 10 }}>{r.label}</span>
           </div>
         ))}
       </div>
 
       {/* ── Frequency table ── */}
       <div style={{ marginTop: 28 }}>
-        <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px' }}>
+        <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px' }}>
           Frequency of curve moves by horizon
         </p>
         <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
@@ -2341,20 +2341,20 @@ function CurveDynamicsSection() {
             { label: '2s30s', rows: FREQ_2S30S },
           ] as const).map(({ label, rows }) => (
             <div key={label} style={{ flex: '1 1 320px', minWidth: 0 }}>
-              <p style={{ color: '#64748b', fontSize: 10, fontWeight: 600, margin: '0 0 8px', fontFamily: 'monospace' }}>
+              <p style={{ color: '#9aa5b1', fontSize: 10, fontWeight: 600, margin: '0 0 8px', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                 {label}
               </p>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
                   <tr>
-                    <th style={{ textAlign: 'left', color: '#475569', fontWeight: 600, fontSize: 10, padding: '4px 10px 6px 0', borderBottom: '1px solid rgba(255,255,255,0.07)', width: 44 }}>
+                    <th style={{ textAlign: 'left', color: '#8995a2', fontWeight: 600, fontSize: 10, padding: '4px 10px 6px 0', borderBottom: '1px solid rgba(200,220,240,0.07)', width: 44 }}>
                       Horizon
                     </th>
                     {REGIME_META.map(r => (
                       <th key={r.key} style={{
                         textAlign: 'right', fontWeight: 600, fontSize: 10,
                         padding: '4px 8px 6px',
-                        borderBottom: '1px solid rgba(255,255,255,0.07)',
+                        borderBottom: '1px solid rgba(200,220,240,0.07)',
                         color: r.color,
                         whiteSpace: 'nowrap',
                       }}>
@@ -2364,9 +2364,9 @@ function CurveDynamicsSection() {
                     <th style={{
                       textAlign: 'right', fontWeight: 600, fontSize: 10,
                       padding: '4px 8px 6px',
-                      borderBottom: '1px solid rgba(255,255,255,0.07)',
-                      color: '#94a3b8', whiteSpace: 'nowrap',
-                      borderLeft: '1px solid rgba(255,255,255,0.07)',
+                      borderBottom: '1px solid rgba(200,220,240,0.07)',
+                      color: '#c6ced8', whiteSpace: 'nowrap',
+                      borderLeft: '1px solid rgba(200,220,240,0.07)',
                     }}>
                       Dispersion
                     </th>
@@ -2377,13 +2377,13 @@ function CurveDynamicsSection() {
                     const dominant: RegimeKey = (['bullSteep', 'bullFlat', 'bearSteep', 'bearFlat'] as RegimeKey[])
                       .reduce((a, b) => row[a] >= row[b] ? a : b)
                     // Dispersion colour: low = high conviction (green), high = low conviction (red)
-                    const dispColor = row.dispersion < 25 ? '#34d399' : row.dispersion > 50 ? '#f87171' : '#94a3b8'
+                    const dispColor = row.dispersion < 25 ? '#6fc2a2' : row.dispersion > 50 ? '#e2826f' : '#c6ced8'
                     return (
-                      <tr key={row.horizon} style={{ background: ri % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent' }}>
+                      <tr key={row.horizon} style={{ background: ri % 2 === 0 ? 'rgba(200,220,240,0.015)' : 'transparent' }}>
                         <td style={{
                           padding: '6px 10px 6px 0',
-                          borderBottom: '1px solid rgba(255,255,255,0.04)',
-                          color: '#94a3b8', fontFamily: 'monospace', fontWeight: 700, fontSize: 11,
+                          borderBottom: '1px solid rgba(200,220,240,0.04)',
+                          color: '#c6ced8', fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, fontSize: 11,
                         }}>
                           {row.horizon}
                         </td>
@@ -2394,10 +2394,10 @@ function CurveDynamicsSection() {
                             <td key={r.key} style={{
                               textAlign: 'right',
                               padding: '6px 8px',
-                              borderBottom: '1px solid rgba(255,255,255,0.04)',
-                              fontFamily: 'monospace',
+                              borderBottom: '1px solid rgba(200,220,240,0.04)',
+                              fontFamily: "'Geist Mono', ui-monospace, monospace",
                               fontWeight: isDom ? 700 : 400,
-                              color: isDom ? r.color : '#475569',
+                              color: isDom ? r.color : '#8995a2',
                               background: isDom ? `${r.color}14` : 'transparent',
                             }}>
                               {val}%
@@ -2406,9 +2406,9 @@ function CurveDynamicsSection() {
                         })}
                         <td style={{
                           textAlign: 'right', padding: '6px 8px',
-                          borderBottom: '1px solid rgba(255,255,255,0.04)',
-                          borderLeft: '1px solid rgba(255,255,255,0.07)',
-                          fontFamily: 'monospace', fontWeight: 600,
+                          borderBottom: '1px solid rgba(200,220,240,0.04)',
+                          borderLeft: '1px solid rgba(200,220,240,0.07)',
+                          fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600,
                           color: dispColor,
                         }}>
                           {row.dispersion.toFixed(1)}%
@@ -2421,7 +2421,7 @@ function CurveDynamicsSection() {
             </div>
           ))}
         </div>
-        <p style={{ color: '#334155', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
+        <p style={{ color: '#77828f', fontSize: 9, margin: '8px 0 0', fontStyle: 'italic' }}>
           Dominant regime per horizon highlighted. Dispersion = σ of the 4 regime frequencies (mean = 25%); low = high conviction.
         </p>
       </div>
@@ -2430,27 +2430,27 @@ function CurveDynamicsSection() {
       <div style={{ marginTop: 28 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
           <div>
-            <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
+            <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
               Dispersion in curve dynamic — 3m rolling window
             </p>
-            <p style={{ color: '#334155', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
+            <p style={{ color: '#77828f', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
               ↓ dispersion = conviction &nbsp;·&nbsp; ↑ dispersion = noise / mixed signals
             </p>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
             {[
-              { label: '2s10s', avg: DISP_AVG_2S10S, color: '#f59e0b' },
-              { label: '2s30s', avg: DISP_AVG_2S30S, color: '#a78bfa' },
+              { label: '2s10s', avg: DISP_AVG_2S10S, color: '#d6ad66' },
+              { label: '2s30s', avg: DISP_AVG_2S30S, color: '#b49fdb' },
             ].map(({ label, avg, color }) => (
               <div key={label} style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: 8, padding: '4px 12px', textAlign: 'center',
+                background: 'rgba(200,220,240,0.03)',
+                border: '1px solid rgba(200,220,240,0.07)',
+                borderRadius: 6, padding: '4px 12px', textAlign: 'center',
               }}>
-                <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+                <div style={{ color: '#8995a2', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
                   {label} avg
                 </div>
-                <div style={{ color, fontFamily: 'monospace', fontSize: 13, fontWeight: 700 }}>
+                <div style={{ color, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 13, fontWeight: 600 }}>
                   {avg.toFixed(1)}%
                 </div>
               </div>
@@ -2460,7 +2460,7 @@ function CurveDynamicsSection() {
 
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={ROLLING_DISP} margin={{ top: 4, right: 12, bottom: 0, left: -8 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+            <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
             <XAxis
               dataKey="idx"
               type="number"
@@ -2471,28 +2471,28 @@ function CurveDynamicsSection() {
                 const found = ROLLING_DISP.filter(d => d.monthLabel && d.idx <= (idx as number)).slice(-1)[0]
                 return found?.monthLabel ?? ''
               }}
-              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
               tickLine={false}
-              axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+              axisLine={{ stroke: 'rgba(200,220,240,0.08)' }}
               interval={0}
             />
             <YAxis
               domain={[0, 100]}
               tickFormatter={v => `${v}%`}
-              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
               tickLine={false}
               axisLine={false}
               tickCount={6}
             />
-            <ReferenceLine y={DISP_AVG_2S10S} stroke="#f59e0b" strokeDasharray="4 4" strokeOpacity={0.4} />
-            <ReferenceLine y={DISP_AVG_2S30S} stroke="#a78bfa" strokeDasharray="4 4" strokeOpacity={0.4} />
+            <ReferenceLine y={DISP_AVG_2S10S} stroke="#d6ad66" strokeDasharray="4 4" strokeOpacity={0.4} />
+            <ReferenceLine y={DISP_AVG_2S30S} stroke="#b49fdb" strokeDasharray="4 4" strokeOpacity={0.4} />
             <Tooltip
               contentStyle={{
-                background: '#0f172a',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 8, fontSize: 11, fontFamily: 'monospace', color: '#e2e8f0',
+                background: '#0b0f14',
+                border: '1px solid rgba(200,220,240,0.12)',
+                borderRadius: 6, fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1',
               }}
-              labelStyle={{ color: '#64748b', marginBottom: 4 }}
+              labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
               labelFormatter={idx => {
                 const found = ROLLING_DISP.filter(d => d.monthLabel && d.idx <= (idx as number)).slice(-1)[0]
                 return found?.monthLabel ?? String(idx)
@@ -2502,25 +2502,25 @@ function CurveDynamicsSection() {
                 name === 'disp2s10s' ? '2s10s dispersion' : '2s30s dispersion',
               ]}
             />
-            <Line type="monotone" dataKey="disp2s10s" stroke="#f59e0b" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
-            <Line type="monotone" dataKey="disp2s30s" stroke="#a78bfa" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+            <Line type="monotone" dataKey="disp2s10s" stroke="#d6ad66" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+            <Line type="monotone" dataKey="disp2s30s" stroke="#b49fdb" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
 
         <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
-          {[{ label: '2s10s', color: '#f59e0b' }, { label: '2s30s', color: '#a78bfa' }].map(({ label, color }) => (
+          {[{ label: '2s10s', color: '#d6ad66' }, { label: '2s30s', color: '#b49fdb' }].map(({ label, color }) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 20, height: 2, background: color, borderRadius: 1 }} />
-              <span style={{ color: '#475569', fontSize: 10 }}>{label}</span>
+              <span style={{ color: '#8995a2', fontSize: 10 }}>{label}</span>
             </div>
           ))}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 20, height: 0, borderTop: '2px dashed rgba(245,158,11,0.4)' }} />
-            <span style={{ color: '#334155', fontSize: 10 }}>2s10s avg</span>
+            <div style={{ width: 20, height: 0, borderTop: '2px dashed rgba(214,173,102,0.4)' }} />
+            <span style={{ color: '#77828f', fontSize: 10 }}>2s10s avg</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 20, height: 0, borderTop: '2px dashed rgba(167,139,250,0.4)' }} />
-            <span style={{ color: '#334155', fontSize: 10 }}>2s30s avg</span>
+            <div style={{ width: 20, height: 0, borderTop: '2px dashed rgba(180,159,219,0.4)' }} />
+            <span style={{ color: '#77828f', fontSize: 10 }}>2s30s avg</span>
           </div>
         </div>
       </div>
@@ -2565,10 +2565,10 @@ const DAILY_BE = _genDailyBE()
 // Classification: Δyield × ΔBE
 // Bear-Wide (Expansion), Bull-Tight (Slowdown), Bull-Wide (Stagflation), Bear-Tight (Goldilocks)
 const BE_REGIME_META = [
-  { key: 'expansion',   label: 'Expansion',   sub: 'Bear Widening',  color: '#34d399' },
-  { key: 'slowdown',    label: 'Slowdown',     sub: 'Bull Tightening', color: '#60a5fa' },
-  { key: 'stagflation', label: 'Stagflation',  sub: 'Bull Widening',  color: '#f87171' },
-  { key: 'goldilocks',  label: 'Goldilocks',   sub: 'Bear Tightening', color: '#f59e0b' },
+  { key: 'expansion',   label: 'Expansion',   sub: 'Bear Widening',  color: '#6fc2a2' },
+  { key: 'slowdown',    label: 'Slowdown',     sub: 'Bull Tightening', color: '#86c0de' },
+  { key: 'stagflation', label: 'Stagflation',  sub: 'Bull Widening',  color: '#e2826f' },
+  { key: 'goldilocks',  label: 'Goldilocks',   sub: 'Bear Tightening', color: '#d6ad66' },
 ] as const
 
 type BERegimeKey = typeof BE_REGIME_META[number]['key']
@@ -2758,10 +2758,10 @@ const SCENARIO_ROLLING: ScenarioProbsPoint[] = DIR_2S10S.map((c, i) => {
 })
 
 const SCENARIO_META = [
-  { key: 'hardLanding',    label: 'Hard Landing',   desc: 'Recessionary bull steepening / growth shock',   color: '#60a5fa' },
-  { key: 'softLanding',    label: 'Soft Landing',   desc: 'Mild disinflation with orderly curve flattening', color: '#34d399' },
-  { key: 'noLanding',      label: 'No Landing',     desc: 'Resilient growth, rates rangebound / bear steep', color: '#f59e0b' },
-  { key: 'reacceleration', label: 'Reacceleration', desc: 'Reflation — bear flattening or expansion regime', color: '#f87171' },
+  { key: 'hardLanding',    label: 'Hard Landing',   desc: 'Recessionary bull steepening / growth shock',   color: '#86c0de' },
+  { key: 'softLanding',    label: 'Soft Landing',   desc: 'Mild disinflation with orderly curve flattening', color: '#6fc2a2' },
+  { key: 'noLanding',      label: 'No Landing',     desc: 'Resilient growth, rates rangebound / bear steep', color: '#d6ad66' },
+  { key: 'reacceleration', label: 'Reacceleration', desc: 'Reflation — bear flattening or expansion regime', color: '#e2826f' },
 ] as const
 
 type ScenarioKey = typeof SCENARIO_META[number]['key']
@@ -2775,10 +2775,10 @@ function ScenarioProbabilitiesSection() {
     <div style={cardStyle}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+        <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>
           Scenario Probabilities
         </h2>
-        <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>
+        <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>
           Discretised from 3m regime frequencies &middot; two independent signals: 2s10s curve dynamics &amp; 10y breakeven
         </p>
       </div>
@@ -2791,12 +2791,12 @@ function ScenarioProbabilitiesSection() {
         ] as const).map(({ label, probs, note }) => (
           <div key={label} style={{
             flex: '1 1 340px', minWidth: 0,
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: 10,
+            background: 'rgba(200,220,240,0.02)',
+            border: '1px solid rgba(200,220,240,0.07)',
+            borderRadius: 6,
             padding: '16px 20px',
           }}>
-            <p style={{ color: '#64748b', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 14px' }}>
+            <p style={{ color: '#9aa5b1', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 14px' }}>
               {label}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -2807,13 +2807,13 @@ function ScenarioProbabilitiesSection() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                         <div style={{ width: 8, height: 8, borderRadius: 2, background: sc.color, flexShrink: 0 }} />
-                        <span style={{ color: '#cbd5e1', fontSize: 11, fontWeight: 600 }}>{sc.label}</span>
+                        <span style={{ color: '#c3ccd6', fontSize: 11, fontWeight: 600 }}>{sc.label}</span>
                       </div>
                       <span style={{
                         color: sc.color,
-                        fontFamily: 'monospace',
+                        fontFamily: "'Geist Mono', ui-monospace, monospace",
                         fontSize: 13,
-                        fontWeight: 700,
+                        fontWeight: 600,
                       }}>
                         {pct}%
                       </span>
@@ -2821,7 +2821,7 @@ function ScenarioProbabilitiesSection() {
                     {/* Bar */}
                     <div style={{
                       height: 6, borderRadius: 3,
-                      background: 'rgba(255,255,255,0.06)',
+                      background: 'rgba(200,220,240,0.06)',
                       overflow: 'hidden',
                     }}>
                       <div style={{
@@ -2833,14 +2833,14 @@ function ScenarioProbabilitiesSection() {
                         transition: 'width 0.4s ease',
                       }} />
                     </div>
-                    <p style={{ color: '#334155', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
+                    <p style={{ color: '#77828f', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>
                       {sc.desc}
                     </p>
                   </div>
                 )
               })}
             </div>
-            <p style={{ color: '#334155', fontSize: 9, margin: '12px 0 0', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 8 }}>
+            <p style={{ color: '#77828f', fontSize: 9, margin: '12px 0 0', borderTop: '1px solid rgba(200,220,240,0.05)', paddingTop: 8 }}>
               {note}
             </p>
           </div>
@@ -2848,37 +2848,37 @@ function ScenarioProbabilitiesSection() {
       </div>
 
       {/* ── Rolling scenario probability charts ── */}
-      <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 16px' }}>
+      <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 16px' }}>
         Rolling scenario probabilities — 3m window
       </p>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
 
         {/* Curve-derived rolling */}
         <div style={{ flex: '1 1 420px', minWidth: 0 }}>
-          <p style={{ color: '#64748b', fontSize: 10, fontWeight: 600, margin: '0 0 8px' }}>
+          <p style={{ color: '#9aa5b1', fontSize: 10, fontWeight: 600, margin: '0 0 8px' }}>
             2s10s Curve signal
           </p>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={SCENARIO_ROLLING} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
-              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+              <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="idx"
                 type="number" scale="linear"
                 domain={[0, SCENARIO_ROLLING.length - 1]}
                 ticks={scTicks}
                 tickFormatter={idx => labelFor(idx as number)}
-                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
-                tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={0}
+                tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
+                tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={0}
               />
               <YAxis
                 domain={[0, 100]} tickFormatter={v => `${v}%`}
-                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                 tickLine={false} axisLine={false} tickCount={6}
               />
-              <ReferenceLine y={25} stroke="rgba(255,255,255,0.08)" strokeDasharray="4 4" />
+              <ReferenceLine y={25} stroke="rgba(200,220,240,0.08)" strokeDasharray="4 4" />
               <Tooltip
-                contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }}
-                labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }}
+                labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
                 labelFormatter={idx => labelFor(idx as number)}
                 formatter={(v: number, name: string) => {
                   const sc = SCENARIO_META.find(s => `curve${s.key.charAt(0).toUpperCase()}${s.key.slice(1)}` === name
@@ -2887,40 +2887,40 @@ function ScenarioProbabilitiesSection() {
                   return [`${v}%`, sc?.label ?? name]
                 }}
               />
-              <Line type="monotone" dataKey="curveHard"    stroke="#60a5fa" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
-              <Line type="monotone" dataKey="curveSoft"    stroke="#34d399" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
-              <Line type="monotone" dataKey="curveNo"      stroke="#f59e0b" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
-              <Line type="monotone" dataKey="curveReaccel" stroke="#f87171" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="curveHard"    stroke="#86c0de" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="curveSoft"    stroke="#6fc2a2" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="curveNo"      stroke="#d6ad66" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="curveReaccel" stroke="#e2826f" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         {/* BE-derived rolling */}
         <div style={{ flex: '1 1 420px', minWidth: 0 }}>
-          <p style={{ color: '#64748b', fontSize: 10, fontWeight: 600, margin: '0 0 8px' }}>
+          <p style={{ color: '#9aa5b1', fontSize: 10, fontWeight: 600, margin: '0 0 8px' }}>
             10y Breakeven signal
           </p>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={SCENARIO_ROLLING} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
-              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+              <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="idx"
                 type="number" scale="linear"
                 domain={[0, SCENARIO_ROLLING.length - 1]}
                 ticks={scTicks}
                 tickFormatter={idx => labelFor(idx as number)}
-                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
-                tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={0}
+                tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
+                tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={0}
               />
               <YAxis
                 domain={[0, 100]} tickFormatter={v => `${v}%`}
-                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                 tickLine={false} axisLine={false} tickCount={6}
               />
-              <ReferenceLine y={25} stroke="rgba(255,255,255,0.08)" strokeDasharray="4 4" />
+              <ReferenceLine y={25} stroke="rgba(200,220,240,0.08)" strokeDasharray="4 4" />
               <Tooltip
-                contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }}
-                labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }}
+                labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
                 labelFormatter={idx => labelFor(idx as number)}
                 formatter={(v: number, name: string) => {
                   const map: Record<string, string> = {
@@ -2930,10 +2930,10 @@ function ScenarioProbabilitiesSection() {
                   return [`${v}%`, map[name] ?? name]
                 }}
               />
-              <Line type="monotone" dataKey="beHard"    stroke="#60a5fa" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
-              <Line type="monotone" dataKey="beSoft"    stroke="#34d399" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
-              <Line type="monotone" dataKey="beNo"      stroke="#f59e0b" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
-              <Line type="monotone" dataKey="beReaccel" stroke="#f87171" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="beHard"    stroke="#86c0de" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="beSoft"    stroke="#6fc2a2" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="beNo"      stroke="#d6ad66" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="beReaccel" stroke="#e2826f" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -2944,16 +2944,16 @@ function ScenarioProbabilitiesSection() {
         {SCENARIO_META.map(sc => (
           <div key={sc.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 20, height: 2, background: sc.color, borderRadius: 1 }} />
-            <span style={{ color: '#475569', fontSize: 10 }}>{sc.label}</span>
+            <span style={{ color: '#8995a2', fontSize: 10 }}>{sc.label}</span>
           </div>
         ))}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 20, height: 0, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
-          <span style={{ color: '#334155', fontSize: 10 }}>25% uniform baseline</span>
+          <div style={{ width: 20, height: 0, borderTop: '1px dashed rgba(200,220,240,0.08)' }} />
+          <span style={{ color: '#77828f', fontSize: 10 }}>25% uniform baseline</span>
         </div>
       </div>
 
-      <p style={{ color: '#334155', fontSize: 9, margin: '12px 0 0', fontStyle: 'italic' }}>
+      <p style={{ color: '#77828f', fontSize: 9, margin: '12px 0 0', fontStyle: 'italic' }}>
         Probabilities derived by mapping regime frequencies through fixed scenario weight matrices and normalising to 100%.
         Curve weights: bull-steep→hard (1.0), bull-flat→soft (0.7)/no (0.3), bear-steep→no (0.5)/reaccel (0.5), bear-flat→reaccel (1.0).
         BE weights: slowdown→hard (0.6)/soft (0.4), goldilocks→soft (0.5)/no (0.5), expansion→no (0.4)/reaccel (0.6), stagflation→hard (0.5)/reaccel (0.5).
@@ -2972,10 +2972,10 @@ function BEDynamicsSection() {
     <div style={cardStyle}>
       {/* Header */}
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+        <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>
           10y Breakeven Directionality
         </h2>
-        <p style={{ color: '#475569', fontSize: 12, margin: '4px 0 0' }}>
+        <p style={{ color: '#8995a2', fontSize: 12, margin: '4px 0 0' }}>
           Comovement of 10y Bund yield &amp; 10y EUR inflation breakeven &middot; 4 macro scenarios &middot; 3m rolling window
         </p>
       </div>
@@ -2987,14 +2987,14 @@ function BEDynamicsSection() {
             <div style={{ width: 10, height: 10, borderRadius: 2, background: r.color }} />
             <div>
               <span style={{ color: r.color, fontSize: 11, fontWeight: 600 }}>{r.label}</span>
-              <span style={{ color: '#334155', fontSize: 10 }}> · {r.sub}</span>
+              <span style={{ color: '#77828f', fontSize: 10 }}> · {r.sub}</span>
             </div>
           </div>
         ))}
       </div>
 
       {/* ── Frequency table ── */}
-      <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+      <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
         Likelihood of different scenarios
       </p>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, marginBottom: 28 }}>
@@ -3003,50 +3003,50 @@ function BEDynamicsSection() {
           <tr>
             <th style={{ width: 60 }} />
             <th colSpan={2} style={{
-              textAlign: 'center', fontWeight: 700, fontSize: 10,
+              textAlign: 'center', fontWeight: 600, fontSize: 10,
               padding: '4px 8px 4px',
-              color: '#34d399',
-              borderBottom: '1px solid rgba(52,211,153,0.25)',
-              borderLeft: '1px solid rgba(255,255,255,0.07)',
+              color: '#6fc2a2',
+              borderBottom: '1px solid rgba(111,194,162,0.25)',
+              borderLeft: '1px solid rgba(200,220,240,0.07)',
               letterSpacing: '0.04em',
             }}>
               Correl &gt; 0
             </th>
             <th colSpan={2} style={{
-              textAlign: 'center', fontWeight: 700, fontSize: 10,
+              textAlign: 'center', fontWeight: 600, fontSize: 10,
               padding: '4px 8px 4px',
-              color: '#f87171',
-              borderBottom: '1px solid rgba(248,113,113,0.25)',
-              borderLeft: '1px solid rgba(255,255,255,0.07)',
+              color: '#e2826f',
+              borderBottom: '1px solid rgba(226,130,111,0.25)',
+              borderLeft: '1px solid rgba(200,220,240,0.07)',
               letterSpacing: '0.04em',
             }}>
               Correl &lt; 0
             </th>
-            <th style={{ borderLeft: '1px solid rgba(255,255,255,0.07)' }} />
+            <th style={{ borderLeft: '1px solid rgba(200,220,240,0.07)' }} />
           </tr>
           {/* Row 2: regime names + sub-labels */}
           <tr>
-            <th style={{ textAlign: 'left', color: '#475569', fontWeight: 600, fontSize: 10, padding: '2px 10px 6px 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <th style={{ textAlign: 'left', color: '#8995a2', fontWeight: 600, fontSize: 10, padding: '2px 10px 6px 0', borderBottom: '1px solid rgba(200,220,240,0.07)' }}>
               Horizon
             </th>
             {BE_REGIME_META.map((r, i) => (
               <th key={r.key} style={{
                 textAlign: 'right', fontWeight: 600, fontSize: 10,
                 padding: '2px 8px 6px',
-                borderBottom: '1px solid rgba(255,255,255,0.07)',
-                borderLeft: (i === 0 || i === 2) ? '1px solid rgba(255,255,255,0.07)' : undefined,
+                borderBottom: '1px solid rgba(200,220,240,0.07)',
+                borderLeft: (i === 0 || i === 2) ? '1px solid rgba(200,220,240,0.07)' : undefined,
                 color: r.color, whiteSpace: 'nowrap', lineHeight: 1.35,
               }}>
                 {r.label}<br />
-                <span style={{ color: '#334155', fontWeight: 400, fontSize: 9 }}>{r.sub}</span>
+                <span style={{ color: '#77828f', fontWeight: 400, fontSize: 9 }}>{r.sub}</span>
               </th>
             ))}
             <th style={{
               textAlign: 'right', fontWeight: 600, fontSize: 10,
               padding: '2px 8px 6px',
-              borderBottom: '1px solid rgba(255,255,255,0.07)',
-              color: '#94a3b8', whiteSpace: 'nowrap',
-              borderLeft: '1px solid rgba(255,255,255,0.07)',
+              borderBottom: '1px solid rgba(200,220,240,0.07)',
+              color: '#c6ced8', whiteSpace: 'nowrap',
+              borderLeft: '1px solid rgba(200,220,240,0.07)',
             }}>
               Dispersion
             </th>
@@ -3057,10 +3057,10 @@ function BEDynamicsSection() {
             const dominant = (['expansion','slowdown','stagflation','goldilocks'] as BERegimeKey[])
               .reduce((a, b) => row[a] >= row[b] ? a : b)
             const domMeta  = BE_REGIME_META.find(r => r.key === dominant)!
-            const dispColor = row.dispersion < 25 ? '#34d399' : row.dispersion > 50 ? '#f87171' : '#94a3b8'
+            const dispColor = row.dispersion < 25 ? '#6fc2a2' : row.dispersion > 50 ? '#e2826f' : '#c6ced8'
             return (
-              <tr key={row.horizon} style={{ background: ri % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent' }}>
-                <td style={{ padding: '6px 10px 6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#94a3b8', fontFamily: 'monospace', fontWeight: 700, fontSize: 11 }}>
+              <tr key={row.horizon} style={{ background: ri % 2 === 0 ? 'rgba(200,220,240,0.015)' : 'transparent' }}>
+                <td style={{ padding: '6px 10px 6px 0', borderBottom: '1px solid rgba(200,220,240,0.04)', color: '#c6ced8', fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, fontSize: 11 }}>
                   {row.horizon}
                 </td>
                 {BE_REGIME_META.map(r => {
@@ -3069,10 +3069,10 @@ function BEDynamicsSection() {
                   return (
                     <td key={r.key} style={{
                       textAlign: 'right', padding: '6px 8px',
-                      borderBottom: '1px solid rgba(255,255,255,0.04)',
-                      fontFamily: 'monospace',
+                      borderBottom: '1px solid rgba(200,220,240,0.04)',
+                      fontFamily: "'Geist Mono', ui-monospace, monospace",
                       fontWeight: isDom ? 700 : 400,
-                      color: isDom ? domMeta.color : '#475569',
+                      color: isDom ? domMeta.color : '#8995a2',
                       background: isDom ? `${domMeta.color}14` : 'transparent',
                     }}>
                       {val}%
@@ -3081,9 +3081,9 @@ function BEDynamicsSection() {
                 })}
                 <td style={{
                   textAlign: 'right', padding: '6px 8px',
-                  borderBottom: '1px solid rgba(255,255,255,0.04)',
-                  borderLeft: '1px solid rgba(255,255,255,0.07)',
-                  fontFamily: 'monospace', fontWeight: 600, color: dispColor,
+                  borderBottom: '1px solid rgba(200,220,240,0.04)',
+                  borderLeft: '1px solid rgba(200,220,240,0.07)',
+                  fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, color: dispColor,
                 }}>
                   {row.dispersion.toFixed(1)}%
                 </td>
@@ -3098,7 +3098,7 @@ function BEDynamicsSection() {
 
         {/* Expansion + Slowdown line chart */}
         <div style={{ flex: '1 1 420px', minWidth: 0 }}>
-          <p style={{ color: '#64748b', fontSize: 10, fontWeight: 600, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <p style={{ color: '#9aa5b1', fontSize: 10, fontWeight: 600, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Orthodox moves — normalised (Expansion + Slowdown = 100%)
           </p>
           <ResponsiveContainer width="100%" height={220}>
@@ -3113,61 +3113,61 @@ function BEDynamicsSection() {
               })}
               margin={{ top: 4, right: 8, bottom: 0, left: -12 }}
             >
-              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+              <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
               <XAxis dataKey="idx" type="number" scale="linear"
                 domain={[0, BE_DIR.length - 1]}
                 ticks={beTicks}
                 tickFormatter={idx => labelFor(idx as number)}
-                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
-                tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={0}
+                tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
+                tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={0}
               />
               <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`}
-                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                 tickLine={false} axisLine={false} tickCount={6}
               />
-              <ReferenceLine y={50} stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
+              <ReferenceLine y={50} stroke="rgba(200,220,240,0.12)" strokeDasharray="4 4" />
               <Tooltip
-                contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }}
-                labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }}
+                labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
                 labelFormatter={idx => labelFor(idx as number)}
                 formatter={(v: number, name: string) => [
                   `${v}%`,
                   name === 'expansion' ? 'Expansion (normalised)' : 'Slowdown (normalised)',
                 ]}
               />
-              <Line type="monotone" dataKey="expansion" stroke="#34d399" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
-              <Line type="monotone" dataKey="slowdown"  stroke="#60a5fa" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="expansion" stroke="#6fc2a2" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="slowdown"  stroke="#86c0de" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
           <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 2, background: '#34d399', borderRadius: 1 }} /><span style={{ color: '#475569', fontSize: 10 }}>Expansion</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 2, background: '#60a5fa', borderRadius: 1 }} /><span style={{ color: '#475569', fontSize: 10 }}>Slowdown</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 0, borderTop: '1px dashed rgba(255,255,255,0.12)' }} /><span style={{ color: '#334155', fontSize: 10 }}>50% baseline</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 2, background: '#6fc2a2', borderRadius: 1 }} /><span style={{ color: '#8995a2', fontSize: 10 }}>Expansion</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 2, background: '#86c0de', borderRadius: 1 }} /><span style={{ color: '#8995a2', fontSize: 10 }}>Slowdown</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><div style={{ width: 18, height: 0, borderTop: '1px dashed rgba(200,220,240,0.12)' }} /><span style={{ color: '#77828f', fontSize: 10 }}>50% baseline</span></div>
           </div>
         </div>
 
         {/* Stacked full-breakdown chart */}
         <div style={{ flex: '1 1 420px', minWidth: 0 }}>
-          <p style={{ color: '#64748b', fontSize: 10, fontWeight: 600, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <p style={{ color: '#9aa5b1', fontSize: 10, fontWeight: 600, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             All four scenarios — 3m rolling
           </p>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={BE_DIR} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
-              <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+              <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
               <XAxis dataKey="idx" type="number" scale="linear"
                 domain={[0, BE_DIR.length - 1]}
                 ticks={beTicks}
                 tickFormatter={idx => labelFor(idx as number)}
-                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
-                tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={0}
+                tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
+                tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={0}
               />
               <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`}
-                tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }}
+                tick={{ fill: '#8995a2', fontSize: 8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                 tickLine={false} axisLine={false} tickCount={6}
               />
               <Tooltip
-                contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 10, fontFamily: 'monospace', color: '#e2e8f0' }}
-                labelStyle={{ color: '#64748b', marginBottom: 4 }}
+                contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 10, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }}
+                labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
                 labelFormatter={idx => labelFor(idx as number)}
                 formatter={(v: number, name: string) => {
                   const meta = BE_REGIME_META.find(r => r.key === name)
@@ -3186,8 +3186,8 @@ function BEDynamicsSection() {
             {BE_REGIME_META.map(r => (
               <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <div style={{ width: 10, height: 10, borderRadius: 2, background: r.color, opacity: 0.8 }} />
-                <span style={{ color: '#475569', fontSize: 10 }}>{r.label}</span>
-                <span style={{ color: r.color, fontFamily: 'monospace', fontSize: 10, fontWeight: 700 }}>
+                <span style={{ color: '#8995a2', fontSize: 10 }}>{r.label}</span>
+                <span style={{ color: r.color, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 600 }}>
                   {currentBE[r.key]}%
                 </span>
               </div>
@@ -3200,43 +3200,43 @@ function BEDynamicsSection() {
       <div style={{ marginTop: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
           <div>
-            <p style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
+            <p style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
               Dispersion in BE dynamic — 3m rolling
             </p>
-            <p style={{ color: '#334155', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>↓ dispersion = conviction &nbsp;·&nbsp; ↑ dispersion = mixed signals</p>
+            <p style={{ color: '#77828f', fontSize: 9, margin: '3px 0 0', fontStyle: 'italic' }}>↓ dispersion = conviction &nbsp;·&nbsp; ↑ dispersion = mixed signals</p>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8, padding: '4px 12px', textAlign: 'center' }}>
-            <div style={{ color: '#475569', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>avg</div>
-            <div style={{ color: '#34d399', fontFamily: 'monospace', fontSize: 13, fontWeight: 700 }}>{BE_DISP_AVG.toFixed(1)}%</div>
+          <div style={{ background: 'rgba(200,220,240,0.03)', border: '1px solid rgba(200,220,240,0.07)', borderRadius: 6, padding: '4px 12px', textAlign: 'center' }}>
+            <div style={{ color: '#8995a2', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>avg</div>
+            <div style={{ color: '#6fc2a2', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 13, fontWeight: 600 }}>{BE_DISP_AVG.toFixed(1)}%</div>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={180}>
           <LineChart data={BE_ROLLING_DISP} margin={{ top: 4, right: 12, bottom: 0, left: -8 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+            <CartesianGrid stroke="rgba(200,220,240,0.05)" strokeDasharray="3 3" />
             <XAxis dataKey="idx" type="number" scale="linear"
               domain={[0, BE_ROLLING_DISP.length - 1]}
               ticks={beTicks}
               tickFormatter={idx => labelFor(idx as number)}
-              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
-              tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.08)' }} interval={0}
+              tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
+              tickLine={false} axisLine={{ stroke: 'rgba(200,220,240,0.08)' }} interval={0}
             />
             <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`}
-              tick={{ fill: '#475569', fontSize: 9, fontFamily: 'monospace' }}
+              tick={{ fill: '#8995a2', fontSize: 9, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
               tickLine={false} axisLine={false} tickCount={6}
             />
-            <ReferenceLine y={BE_DISP_AVG} stroke="rgba(52,211,153,0.3)" strokeDasharray="4 4" />
+            <ReferenceLine y={BE_DISP_AVG} stroke="rgba(111,194,162,0.3)" strokeDasharray="4 4" />
             <Tooltip
-              contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11, fontFamily: 'monospace', color: '#e2e8f0' }}
-              labelStyle={{ color: '#64748b', marginBottom: 4 }}
+              contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }}
+              labelStyle={{ color: '#9aa5b1', marginBottom: 4 }}
               labelFormatter={idx => labelFor(idx as number)}
               formatter={(v: number) => [`${v.toFixed(1)}%`, 'BE dispersion']}
             />
-            <Line type="monotone" dataKey="disp" stroke="#34d399" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
+            <Line type="monotone" dataKey="disp" stroke="#6fc2a2" strokeWidth={1.5} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      <p style={{ color: '#334155', fontSize: 9, margin: '10px 0 0', fontStyle: 'italic' }}>
+      <p style={{ color: '#77828f', fontSize: 9, margin: '10px 0 0', fontStyle: 'italic' }}>
         Orthodox moves (positive correlation): Expansion (bear-wide) + Slowdown (bull-tight) dominate c.72–96% of the cycle.
         Non-orthodox: Stagflation (bull-wide) = growth shock; Goldilocks (bear-tight) = early-cycle re-rating.
       </p>
@@ -3255,7 +3255,6 @@ function fmtTimestamp(d: Date): string {
 }
 
 export default function EuroAreaHeatmap() {
-  const navigate = useNavigate()
   const [timestamp, setTimestamp] = useState(() => fmtTimestamp(new Date()))
   const [refreshing, setRefreshing] = useState(false)
 
@@ -3268,14 +3267,14 @@ export default function EuroAreaHeatmap() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a' }}>
+    <div style={{ minHeight: '100vh', background: '#07090c' }}>
       {/* Gradient overlay */}
       <div
         style={{
           position: 'fixed',
           inset: 0,
           pointerEvents: 'none',
-          background: 'radial-gradient(ellipse at 50% -10%, rgba(59,130,246,0.06) 0%, transparent 55%)',
+          background: 'radial-gradient(ellipse at 50% -10%, rgba(106,169,204,0.06) 0%, transparent 55%)',
         }}
       />
 
@@ -3289,47 +3288,13 @@ export default function EuroAreaHeatmap() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '14px 24px',
-          background: 'rgba(8,13,26,0.85)',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(7,9,12,0.85)',
+          borderBottom: '1px solid rgba(200,220,240,0.07)',
           backdropFilter: 'blur(12px)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.09)',
-              color: '#94a3b8',
-              cursor: 'pointer',
-              fontSize: 14,
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-              e.currentTarget.style.color = '#e2e8f0'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-              e.currentTarget.style.color = '#94a3b8'
-            }}
-          >
-            ←
-          </button>
-          <div>
-            <h1 style={{ color: '#ffffff', fontSize: 15, fontWeight: 600, margin: 0, lineHeight: 1.2 }}>
-              Euro Area — Macro Heatmap
-            </h1>
-            <p style={{ color: '#475569', fontSize: 11, margin: 0, marginTop: 2 }}>
-              Dynamic Factor Model &middot; Simulated Data
-            </p>
-          </div>
+          <PageTitle category="Macro Fundamentals" categoryId="macro-fundamentals" flag="🇪🇺" title={<>Euro Area — Macro Heatmap</>} subtitle={<>Dynamic Factor Model · Simulated Data</>} />
         </div>
 
         {/* Right side badges */}
@@ -3339,35 +3304,35 @@ export default function EuroAreaHeatmap() {
             disabled={refreshing}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 8, padding: '5px 12px',
-              color: '#94a3b8', fontSize: 12, cursor: refreshing ? 'not-allowed' : 'pointer',
+              background: 'rgba(200,220,240,0.06)',
+              border: '1px solid rgba(200,220,240,0.1)',
+              borderRadius: 6, padding: '5px 12px',
+              color: '#c6ced8', fontSize: 12, cursor: refreshing ? 'not-allowed' : 'pointer',
               opacity: refreshing ? 0.5 : 1, transition: 'all 0.15s',
             }}
-            onMouseEnter={(e) => { if (!refreshing) { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#e2e8f0' } }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#94a3b8' }}
+            onMouseEnter={(e) => { if (!refreshing) { e.currentTarget.style.background = 'rgba(200,220,240,0.1)'; e.currentTarget.style.color = '#e4eaf1' } }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(200,220,240,0.06)'; e.currentTarget.style.color = '#c6ced8' }}
           >
             <span style={{ display: 'inline-block', animation: refreshing ? 'spin 1s linear infinite' : 'none' }}>↻</span>
             {refreshing ? 'Refreshing…' : 'Refresh'}
           </button>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 8, padding: '5px 12px',
+            background: 'rgba(200,220,240,0.04)',
+            border: '1px solid rgba(200,220,240,0.08)',
+            borderRadius: 6, padding: '5px 12px',
           }}>
-            <span style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Generated</span>
-            <span style={{ color: '#94a3b8', fontSize: 11, fontFamily: 'monospace', fontWeight: 500 }}>{timestamp}</span>
+            <span style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Generated</span>
+            <span style={{ color: '#c6ced8', fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 500 }}>{timestamp}</span>
           </div>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: 'rgba(59,130,246,0.08)',
-            border: '1px solid rgba(59,130,246,0.18)',
-            borderRadius: 8, padding: '5px 12px',
+            background: 'rgba(106,169,204,0.08)',
+            border: '1px solid rgba(106,169,204,0.18)',
+            borderRadius: 6, padding: '5px 12px',
           }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', opacity: 0.8 }} />
-            <span style={{ color: '#60a5fa', fontSize: 11, fontWeight: 500 }}>Jun 2023 – Jun 2025</span>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#6aa9cc', opacity: 0.8 }} />
+            <span style={{ color: '#86c0de', fontSize: 11, fontWeight: 500 }}>Jun 2023 – Jun 2025</span>
           </div>
         </div> {/* end right badges */}
       </header>
@@ -3415,12 +3380,12 @@ export default function EuroAreaHeatmap() {
           {/* Card header */}
           <div style={{
             padding: '16px 20px 12px',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            borderBottom: '1px solid rgba(200,220,240,0.06)',
           }}>
-            <h2 style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 600, margin: 0 }}>
+            <h2 style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>
               Macro Fundamentals — Z-Score Heatmap
             </h2>
-            <p style={{ color: '#475569', fontSize: 12, margin: 0, marginTop: 3 }}>
+            <p style={{ color: '#8995a2', fontSize: 12, margin: 0, marginTop: 3 }}>
               Z-scores relative to 3-year rolling window &middot; 25 monthly observations &middot; 83 indicators across 7 blocks
             </p>
           </div>
@@ -3432,7 +3397,7 @@ export default function EuroAreaHeatmap() {
         </div>
 
         {/* Footer note */}
-        <p style={{ color: '#334155', fontSize: 10, textAlign: 'center', margin: 0, fontStyle: 'italic' }}>
+        <p style={{ color: '#77828f', fontSize: 10, textAlign: 'center', margin: 0, fontStyle: 'italic' }}>
           Data is simulated for illustrative purposes only. Z-scores generated via deterministic DFM-inspired time series.
         </p>
       </main>

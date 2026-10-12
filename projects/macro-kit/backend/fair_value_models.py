@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import threading
 import warnings
 
 import numpy as np
@@ -772,42 +773,56 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
     }
 
 
-# ─── Pre-compute ──────────────────────────────────────────────────────────────
+# ─── Lazy compute ─────────────────────────────────────────────────────────────
+# The rolling Elastic Net fits take ~1 min, so they run on the first request
+# rather than at import (which would block API startup and every --reload).
 # Try Bloomberg live data first; fall back to simulation on any failure.
 
-_source = os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower()
-_live_result = None
+_RESULT: dict | None = None
+_RESULT_LOCK = threading.Lock()
 
-if _source == "bloomberg":
-    _live_result = _fetch_live_data(
-        start="2004-01-01",
-        end=pd.Timestamp.today().strftime("%Y-%m-%d"),
-    )
 
-if _live_result is not None:
-    _VARS, _live_dates = _live_result
-    DATES = _live_dates    # override module-level DATES with live date range
-    T = len(DATES)         # override T
-    data_source = "bloomberg"
-else:
-    _VARS = _simulate()
-    data_source = "simulation"
+def _precompute() -> dict:
+    global DATES, T
+    _source = os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower()
+    _live_result = None
 
-_RESULTS: dict[str, dict] = {}
-for _m in _MODEL_DEFS:
-    _X = np.column_stack([_VARS[k] for k in _m["x_keys"]])
-    _y = _VARS[_m["y_key"]]
-    _RESULTS[_m["id"]] = {
-        "title": _m["title"],
-        "group": _m["group"],
-        **_rolling_elastic_net(_X, _y, _m["x_names"]),
+    if _source == "bloomberg":
+        _live_result = _fetch_live_data(
+            start="2004-01-01",
+            end=pd.Timestamp.today().strftime("%Y-%m-%d"),
+        )
+
+    if _live_result is not None:
+        _VARS, _live_dates = _live_result
+        DATES = _live_dates    # override module-level DATES with live date range
+        T = len(DATES)         # override T
+        data_source = "bloomberg"
+    else:
+        _VARS = _simulate()
+        data_source = "simulation"
+
+    results: dict[str, dict] = {}
+    for _m in _MODEL_DEFS:
+        _X = np.column_stack([_VARS[k] for k in _m["x_keys"]])
+        _y = _VARS[_m["y_key"]]
+        results[_m["id"]] = {
+            "title": _m["title"],
+            "group": _m["group"],
+            **_rolling_elastic_net(_X, _y, _m["x_names"]),
+        }
+
+    return {
+        "groups":      _GROUPS,
+        "model_ids":   [m["id"] for m in _MODEL_DEFS],
+        "models":      results,
+        "data_source": data_source,
     }
 
 
 def get_fair_value_models_data() -> dict:
-    return {
-        "groups":      _GROUPS,
-        "model_ids":   [m["id"] for m in _MODEL_DEFS],
-        "models":      _RESULTS,
-        "data_source": data_source,
-    }
+    global _RESULT
+    with _RESULT_LOCK:
+        if _RESULT is None:
+            _RESULT = _precompute()
+        return _RESULT

@@ -34,6 +34,8 @@ Bloomberg tickers (⚠️ verify ASW tickers before live use):
   EUR 1m10y vol: EUSV0001 Index
 """
 
+import threading
+import time
 import warnings
 from typing import Optional
 
@@ -439,7 +441,7 @@ def _simulate_data(n_days: int = 1260, seed: int = 42) -> tuple:
 
 # ─── Main compute function ────────────────────────────────────────────────────
 
-def compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool = False) -> dict:
+def _compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool = False) -> dict:
     """
     Compute EGB RV monitor for Bund, OAT, BTP, Bonos, Belgium, Portugal,
     Netherlands, Austria, Finland.
@@ -448,7 +450,7 @@ def compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool 
       as_of, min_date, max_date, data_source,
       rv_monitor   : list of RV rows (level, changes, z-score, pctile, vol, carry, repo sensitivities)
       beta_monitor : list of beta regression rows
-      series       : 1y daily series per expression
+      series       : full daily history per expression, as (dates, values) arrays
       groups       : group metadata for display
     """
     _end   = (pd.Timestamp(as_of_date) if as_of_date else pd.Timestamp.today()).strftime("%Y-%m-%d")
@@ -509,66 +511,65 @@ def compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool 
             ys_valid = ys[valid]
             splines[country] = _build_spline(list(ts_valid), ys_valid)
 
-    # ── Build expression time series — fully vectorised ───────────────────
-    # yield_df columns are (country, tenor) MultiIndex; values in %.
-    # Express all levels in bps: yield legs × 100, ASW legs in bps already.
-    yield_bps = yield_df * 100.0   # shape (n_days, n_yield_cols)
-
-    # Pre-build an ASW bps DataFrame aligned to yield_df.index
+    # ── Build expression time series — one matrix product ─────────────────
+    # Stack yield legs (bps) and ASW legs (bps) into one panel M (n_days × n_cols);
+    # every expression is a weighted sum of panel columns, so S = M @ W.
     asw_bps = asw_df.reindex(yield_df.index, method="ffill") if not asw_df.empty else pd.DataFrame(index=yield_df.index)
+    col_keys = [("Y",) + tuple(c) for c in yield_df.columns] + [("A",) + tuple(c) for c in asw_bps.columns]
+    col_pos  = {k: i for i, k in enumerate(col_keys)}
+    M = np.hstack([
+        yield_df.to_numpy(dtype=float) * 100.0,
+        asw_bps.to_numpy(dtype=float) if len(asw_bps.columns) else np.empty((n, 0)),
+    ])
 
-    expr_series: dict[str, pd.Series] = {}
+    exprs: list[tuple[str, str, list]] = []
+    W_rows: list[list[tuple[int, float]]] = []
     for label, group, legs in ALL_EXPRESSIONS:
-        s = pd.Series(0.0, index=yield_df.index, dtype=float)
-        valid = True
+        terms = []
         for country, tenor, weight in legs:
-            if country.endswith("_ASW"):
-                base = country.replace("_ASW", "")
-                col  = (base, tenor)
-                if col not in asw_bps.columns:
-                    valid = False; break
-                s = s + weight * asw_bps[col]
-            else:
-                col = (country, tenor)
-                if col not in yield_bps.columns:
-                    valid = False; break
-                s = s + weight * yield_bps[col]
-        if valid:
-            expr_series[label] = s.rename(label)
-        else:
-            expr_series[label] = pd.Series(np.nan, index=yield_df.index, name=label)
+            key = ("A", country[:-4], tenor) if country.endswith("_ASW") else ("Y", country, tenor)
+            if key not in col_pos:
+                terms = None
+                break
+            terms.append((col_pos[key], float(weight)))
+        if terms:
+            exprs.append((label, group, legs))
+            W_rows.append(terms)
+
+    W = np.zeros((M.shape[1], len(exprs)))
+    used = np.zeros((M.shape[1], len(exprs)), dtype=bool)
+    for j, terms in enumerate(W_rows):
+        for i, w in terms:
+            W[i, j] += w
+            used[i, j] = True
+    nan_M = np.isnan(M)
+    S = np.nan_to_num(M) @ W
+    S[(nan_M.astype(np.int32) @ used.astype(np.int32)) > 0] = np.nan   # any NaN leg → NaN
 
     # ── Beta explanatory variables ─────────────────────────────────────────
-    def _safe_series(ca, ta, wa, cb=None, tb=None, wb=None):
-        s = yield_df.get((ca, ta))
-        if s is None:
-            return pd.Series(np.nan, index=yield_df.index)
-        result = s * wa * 100.0
-        if cb is not None:
-            sb = yield_df.get((cb, tb))
-            if sb is not None:
-                result = result + sb * wb * 100.0
-        return result
+    def _col(c, t):
+        return yield_df[(c, t)].to_numpy(dtype=float) * 100.0 if (c, t) in yield_df.columns else np.full(n, np.nan)
 
-    bund10y_s   = _safe_series("Bund", 10, +1)
-    spread10y_s = _safe_series("OAT",  10, +1, "Bund", 10, -1)
-    slope_s     = _safe_series("Bund", 10, +1, "Bund",  2, -1)
-
-    beta_df = pd.DataFrame({
-        "bund10y":   bund10y_s,
-        "spread10y": spread10y_s,
-        "slope":     slope_s,
-        "vol1m10y":  vol_s,
-    }, index=yield_df.index).dropna()
+    beta_X = np.column_stack([
+        _col("Bund", 10),
+        _col("OAT", 10) - _col("Bund", 10),
+        _col("Bund", 10) - _col("Bund", 2),
+        vol_s.to_numpy(dtype=float),
+    ])
+    beta_ok = ~np.isnan(beta_X).any(axis=1)
 
     # ── RV + carry + beta ─────────────────────────────────────────────────
     rv_monitor   = []
     beta_monitor = []
-    series_out   = {}
+    series_out: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+    dates_str = np.array(yield_df.index.strftime("%Y-%m-%d"))
 
-    for label, group, legs in ALL_EXPRESSIONS:
-        series = expr_series[label].dropna()
-        if len(series) < 10:
+    for j, (label, group, legs) in enumerate(exprs):
+        col_s = S[:, j]
+        pos   = np.flatnonzero(~np.isnan(col_s))
+        v     = col_s[pos]
+        ns    = len(v)
+        if ns < 10:
             continue
 
         # Check all required legs have data
@@ -579,20 +580,23 @@ def compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool 
         if not all(c in splines for c in yield_countries):
             continue
 
-        current = float(series.iloc[-1])
-        ns = len(series)
-        d1d = round(float(series.iloc[-1] - series.iloc[-2]),  2) if ns >= 2  else None
-        d1w = round(float(series.iloc[-1] - series.iloc[-6]),  2) if ns >= 6  else None
-        d1m = round(float(series.iloc[-1] - series.iloc[-22]), 2) if ns >= 22 else None
+        current = float(v[-1])
+        d1d = round(float(v[-1] - v[-2]),  2) if ns >= 2  else None
+        d1w = round(float(v[-1] - v[-6]),  2) if ns >= 6  else None
+        d1m = round(float(v[-1] - v[-22]), 2) if ns >= 22 else None
 
-        window  = series.iloc[-win_1y:]
+        window  = v[-win_1y:]
         mean_1y = float(window.mean())
-        std_1y  = float(window.std())
+        std_1y  = float(window.std(ddof=1)) if len(window) > 1 else 0.0
         zscore  = round((current - mean_1y) / std_1y, 2) if std_1y > 0 else 0.0
-        pctile  = round(float(stats.percentileofscore(window.values, current)), 1)
+        # scipy.stats.percentileofscore(kind="rank")
+        left    = int((window < current).sum())
+        right   = int((window <= current).sum())
+        pctile  = round((left + right + (1 if right > left else 0)) * 50.0 / len(window), 1)
 
-        daily_ch_3m = series.diff().iloc[-win_3m:]
-        vol3m = round(float(daily_ch_3m.std()) * (252 ** 0.5), 2)
+        dv = np.diff(v)
+        daily_ch_3m = dv[-win_3m:]
+        vol3m = round(float(daily_ch_3m.std(ddof=1)) * (252 ** 0.5), 2) if len(daily_ch_3m) > 1 else 0.0
 
         # Carry — split into income carry and roll components
         income_carry, roll_bps = 0.0, 0.0
@@ -629,24 +633,17 @@ def compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool 
             "bonos_repo_sens":   repo_sens["Bonos"],
         })
 
-        # 1y time series
-        window1y = series.iloc[-win_1y:]
-        series_out[label] = [
-            {"date": d.strftime("%Y-%m-%d"), "value": round(float(v), 2)}
-            for d, v in zip(window1y.index, window1y.values)
-        ]
+        # Full history — kept as arrays; serialised only when requested
+        series_out[label] = (dates_str[pos], np.round(v, 2))
 
-        # Beta regression
-        y_full  = series.diff().dropna()
-        common  = y_full.index.intersection(beta_df.index)
-        if len(common) < 30:
+        # Beta regression on daily changes (diff over the series' own valid dates)
+        sel = beta_ok[pos[1:]]
+        if sel.sum() < 30:
             continue
-        y  = y_full.loc[common].values
-        Xr = beta_df.loc[common].values
-        X  = np.hstack([np.ones((len(y), 1)), Xr])
+        y  = dv[sel]
+        X  = np.hstack([np.ones((len(y), 1)), beta_X[pos[1:]][sel]])
         coeffs, _, _, _ = np.linalg.lstsq(X, y, rcond=None)
-        y_hat  = X @ coeffs
-        resid  = y - y_hat
+        resid  = y - X @ coeffs
         ss_res = float(np.sum(resid ** 2))
         ss_tot = float(np.sum((y - y.mean()) ** 2))
         r2     = round(1.0 - ss_res / ss_tot, 3) if ss_tot > 0 else 0.0
@@ -677,3 +674,50 @@ def compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool 
         "series":       series_out,
         "groups":       GROUP_META,
     }
+
+
+# ─── Cached public API ────────────────────────────────────────────────────────
+#
+# A full run is ~1k expressions over ~6y of history (plus several BBG requests
+# when live), so results are cached per (as_of_date, use_individual_bonds).
+# The monitor payload omits per-expression series; the detail view fetches the
+# one it needs via get_egb_series(), served from the same cache entry.
+
+_CACHE_TTL_S = 15 * 60
+_cache: dict[tuple, tuple[float, dict]] = {}
+_cache_lock = threading.Lock()
+
+
+def _cached_result(as_of_date: Optional[str], use_individual_bonds: bool, refresh: bool = False) -> dict:
+    key = (as_of_date or None, bool(use_individual_bonds))
+    now = time.monotonic()
+    with _cache_lock:
+        hit = _cache.get(key)
+        if hit and not refresh and now - hit[0] < _CACHE_TTL_S:
+            return hit[1]
+        result = _compute_egb_rv(as_of_date=as_of_date, use_individual_bonds=use_individual_bonds)
+        _cache[key] = (now, result)
+        return result
+
+
+def compute_egb_rv(
+    as_of_date: Optional[str] = None,
+    use_individual_bonds: bool = False,
+    refresh: bool = False,
+) -> dict:
+    """Monitor payload (everything except per-expression series). See _compute_egb_rv."""
+    result = _cached_result(as_of_date, use_individual_bonds, refresh)
+    return {k: v for k, v in result.items() if k != "series"}
+
+
+def get_egb_series(
+    label: str,
+    as_of_date: Optional[str] = None,
+    use_individual_bonds: bool = False,
+) -> list[dict]:
+    """Full daily history for one expression: [{date, value}, ...]."""
+    result = _cached_result(as_of_date, use_individual_bonds)
+    if label not in result["series"]:
+        raise KeyError(label)
+    dates, values = result["series"][label]
+    return [{"date": d, "value": float(v)} for d, v in zip(dates, values)]

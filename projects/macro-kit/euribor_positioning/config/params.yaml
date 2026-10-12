@@ -1,0 +1,207 @@
+database:
+  path: "euribor_positioning.db"
+
+ingestion:
+  knowledge_date_lag_days: 1   # T+1 business day
+
+signal:
+  confidence_weight_cap: 2.0
+  ewma_vol_span: 60
+  halflife_whites_days: 30
+  halflife_reds_days: 45
+  halflife_greens_days: 60
+  halflife_blues_days: 90
+
+expiry_drain:
+  fraction_of_3m_peak: 0.10
+  lookback_business_days: 63
+
+quadrant:
+  deadband_k: 0.30
+  deadband_oi_fraction: 0.005
+  short_covering_multiplier_max: 2.0
+  short_covering_volume_threshold: 1.5
+  short_covering_impact_threshold: 1.5
+
+turnover:
+  churn_volume_percentile: 80
+  churn_doi_percentile: 20
+  transfer_volume_percentile: 20
+  transfer_doi_percentile: 80
+
+dv01:
+  eur_per_bp_per_contract: 25.0
+
+spreads:
+  pack_cv_threshold: 0.30          # CV of |ΔOI| across 4 legs to flag as pack
+  bundle_cv_threshold: 0.35        # CV threshold for 8-leg bundle
+  pair_corr_threshold: 0.50        # rolling |corr(ΔOI_i, ΔOI_j)| to flag as spread pair
+  pair_ratio_max: 1.50             # |ΔOI_i/ΔOI_j| must be in [1/1.5, 1.5] to match
+  rolling_corr_window: 60          # days for rolling pairwise correlation
+  rolling_corr_min_periods: 20     # minimum obs before using correlation
+  min_doi_abs: 50                  # ignore ΔOI below this (noise floor)
+
+normalisation:
+  zscore_trailing_window: 252       # business days for trailing z-score
+  vol_reference_annualised_bp: 50.0 # baseline vol for vol-scaling (bp annualised)
+  vol_annualisation_factor: 252     # business days per year
+  cog_use_abs_dv01: true            # weight CoG by |dv01| not signed dv01
+
+contracts:
+  euribor_root: "FEI"
+  estr_root: "FEF"
+  imm_months:
+    H: 3
+    M: 6
+    U: 9
+    Z: 12
+
+bloomberg:
+  euribor_bbg_root: "ER"      # Bloomberg root for ICE 3M Euribor futures → ERH25 Comdty
+  estr_bbg_root: "ERS"        # Bloomberg root for ICE 3M €STR futures — verify with Bloomberg
+  bbg_yellow_key: "Comdty"
+
+# ── Instrument registry ──────────────────────────────────────────────────────
+# Each entry defines a futures product. Key fields:
+#   roots             : list of internal DB root codes for this instrument
+#   bbg_root          : Bloomberg ticker prefix (e.g. "ER" → "ERH25 Comdty")
+#   dv01_per_contract : EUR/USD/GBP per basis point per lot (approximate for bond futures)
+#   currency          : display currency
+#   type              : "stir" (quarterly strip, pack/bundle) | "bond" (2-4 active contracts)
+#   display_name      : label shown in the UI dropdown
+
+instruments:
+
+  euribor:
+    display_name: "Euribor 3M"
+    roots: ["FEI"]
+    bbg_root: "ER"
+    dv01_per_contract: 25.0
+    currency: "EUR"
+    type: "stir"
+
+  sofr:
+    display_name: "SOFR 3M"
+    roots: ["FSO"]
+    bbg_root: "SR3"
+    dv01_per_contract: 25.0
+    currency: "USD"
+    type: "stir"
+
+  sonia:
+    display_name: "SONIA 3M"
+    roots: ["FSN"]
+    bbg_root: "SOA"
+    dv01_per_contract: 25.0
+    currency: "GBP"
+    type: "stir"
+
+  schatz:
+    display_name: "Schatz 2y"
+    roots: ["FDU"]
+    bbg_root: "DU"
+    dv01_per_contract: 20.0     # approximate; varies with CTD
+    currency: "EUR"
+    type: "bond"
+
+  bobl:
+    display_name: "Bobl 5y"
+    roots: ["FOE"]
+    bbg_root: "OE"
+    dv01_per_contract: 45.0
+    currency: "EUR"
+    type: "bond"
+
+  bund:
+    display_name: "Bund 10y"
+    roots: ["FRX"]
+    bbg_root: "RX"
+    dv01_per_contract: 90.0
+    currency: "EUR"
+    type: "bond"
+
+  buxl:
+    display_name: "Buxl 30y"
+    roots: ["FUB"]
+    bbg_root: "UB"
+    dv01_per_contract: 220.0
+    currency: "EUR"
+    type: "bond"
+
+  oat:
+    display_name: "OAT 10y"
+    roots: ["FOT"]
+    bbg_root: "OAT"
+    dv01_per_contract: 90.0
+    currency: "EUR"
+    type: "bond"
+
+  btp:
+    display_name: "BTP 10y"
+    roots: ["FIK"]
+    bbg_root: "IK"
+    dv01_per_contract: 90.0
+    currency: "EUR"
+    type: "bond"
+
+  ust2:
+    display_name: "US 2y Note"
+    roots: ["FTU"]
+    bbg_root: "TU"
+    dv01_per_contract: 43.0
+    currency: "USD"
+    type: "bond"
+
+  ust5:
+    display_name: "US 5y Note"
+    roots: ["FFV"]
+    bbg_root: "FV"
+    dv01_per_contract: 48.0
+    currency: "USD"
+    type: "bond"
+
+  ust10:
+    display_name: "US 10y Note"
+    roots: ["FTY"]
+    bbg_root: "TY"
+    dv01_per_contract: 75.0
+    currency: "USD"
+    type: "bond"
+
+  ust30:
+    display_name: "US 30y Bond"
+    roots: ["FUS"]
+    bbg_root: "US"
+    dv01_per_contract: 165.0
+    currency: "USD"
+    type: "bond"
+
+  ust_ultra:
+    display_name: "US Ultra Bond"
+    roots: ["FWN"]
+    bbg_root: "WN"
+    dv01_per_contract: 185.0
+    currency: "USD"
+    type: "bond"
+
+kalman:
+  init_variance: 1.0e8         # large initial uncertainty
+  lambda_init: 0.95            # starting value for optimisation
+  beta_init: 1.0
+  q_init: 1.0e4
+  r_init: 1.0e5
+  max_iter: 500
+  r2_threshold: 0.30           # acceptance test threshold
+
+migration:
+  ratio_lower: 0.70            # Euribor ΔOI fall must be ≥70% matched by €STR rise
+  ratio_upper: 1.30            # and ≤130% (beyond this it's new €STR longs, not migration)
+  min_estr_oi_change: 500      # minimum absolute €STR OI increase to trigger flag
+  correction_weight: 1.0       # fraction of matched migration to suppress (1.0 = full suppression)
+
+options:
+  expiry_dow: 4                # option expiry weekday: 4 = Friday (3rd Friday of month)
+  expiry_week: 3               # 3rd occurrence
+  ecb_proximity_days: 2        # flag within N calendar days of ECB meeting
+  large_oi_move_pct: 0.02      # OI move > 2% of trailing mean OI triggers option flag
+  option_downweight: 0.3       # flagged observations get w_adjusted multiplied by this

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import PageTitle from '../components/PageTitle'
 import axios from 'axios'
+import Glyph from '../components/Glyph'
 import {
   LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine, ComposedChart, Area,
@@ -31,20 +32,20 @@ interface MomentumData {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BG = '#080d1a'
-const ACCENT = '#6366f1'
-const GREEN = '#22c55e'
-const RED = '#ef4444'
-const MUTED = '#475569'
+const BG = '#07090c'
+const ACCENT = '#8b8fd8'
+const GREEN = '#5fb592'
+const RED = '#d9705e'
+const MUTED = '#8995a2'
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12,
+  background: 'rgba(200,220,240,0.03)',
+  border: '1px solid rgba(200,220,240,0.07)',
+  borderRadius: 6,
   padding: '16px 20px',
 }
 
-const stickyBg = '#080d1a'
+const stickyBg = '#07090c'
 
 type Tab = 'cta-momentum'
 const TABS: { id: Tab; label: string }[] = [
@@ -67,11 +68,11 @@ function getLabel(composite: number | null, isYield: boolean): string {
 
 function labelColor(label: string): string {
   if (label === 'Strong Long') return GREEN
-  if (label === 'Long') return '#86efac'
-  if (label === 'Neutral') return '#94a3b8'
-  if (label === 'Short') return '#fca5a5'
+  if (label === 'Long') return '#9dd6bd'
+  if (label === 'Neutral') return '#c6ced8'
+  if (label === 'Short') return '#ecaa9c'
   if (label === 'Strong Short') return RED
-  return '#94a3b8'
+  return '#c6ced8'
 }
 
 function fmtZ(v: number | null): string {
@@ -97,11 +98,11 @@ interface TooltipProps {
 function SimpleTooltip({ active, payload, label }: TooltipProps) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-      <div style={{ color: '#94a3b8', marginBottom: 4 }}>{label}</div>
+    <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+      <div style={{ color: '#c6ced8', marginBottom: 4 }}>{label}</div>
       {payload.map((p, i) => (
         p.value != null && (
-          <div key={i} style={{ color: p.color || '#f1f5f9' }}>
+          <div key={i} style={{ color: p.color || '#eef2f6' }}>
             {p.name}: {typeof p.value === 'number' ? p.value.toFixed(4) : p.value}
           </div>
         )
@@ -113,7 +114,6 @@ function SimpleTooltip({ active, payload, label }: TooltipProps) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Momentum() {
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<Tab>('cta-momentum')
   const [ticker, setTicker] = useState('')
   const [startYear, setStartYear] = useState(2010)
@@ -186,35 +186,17 @@ export default function Momentum() {
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, color: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif', padding: '24px' }}>
+    <div style={{ minHeight: '100vh', background: BG, color: '#eef2f6', fontFamily: "'Geist', system-ui, sans-serif", padding: '24px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.10)',
-            borderRadius: 8, padding: '6px 14px',
-            color: '#94a3b8', fontSize: 13, cursor: 'pointer',
-          }}
-        >
-          ← Back
-        </button>
-        <div>
-          <div style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>
-            Momentum
-          </div>
-          <div style={{ color: MUTED, fontSize: 11, marginTop: 1 }}>
-            Technicals
-          </div>
-        </div>
+        <PageTitle category="Technicals" categoryId="technicals" title={<>Momentum</>} subtitle={<>Technicals</>} />
       </div>
 
       {/* Tab bar */}
       <div style={{
         display: 'flex', gap: 4, marginBottom: 20,
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        borderBottom: '1px solid rgba(200,220,240,0.07)',
         position: 'sticky', top: 0, zIndex: 10, background: stickyBg, paddingBottom: 0,
       }}>
         {TABS.map(tab => (
@@ -224,7 +206,7 @@ export default function Momentum() {
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               padding: '8px 16px', fontSize: 13, fontWeight: 500,
-              color: activeTab === tab.id ? ACCENT : '#64748b',
+              color: activeTab === tab.id ? ACCENT : '#9aa5b1',
               borderBottom: activeTab === tab.id ? `2px solid ${ACCENT}` : '2px solid transparent',
               marginBottom: -1,
               transition: 'color 0.15s',
@@ -249,10 +231,10 @@ export default function Momentum() {
               onKeyDown={e => e.key === 'Enter' && handleFetch()}
               placeholder="e.g. GDBR10 Index"
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(200,220,240,0.06)',
+                border: '1px solid rgba(200,220,240,0.12)',
                 borderRadius: 6, padding: '6px 10px',
-                color: '#f1f5f9', fontSize: 13, width: 200,
+                color: '#eef2f6', fontSize: 13, width: 200,
                 outline: 'none',
               }}
             />
@@ -267,10 +249,10 @@ export default function Momentum() {
               value={startYear}
               onChange={e => setStartYear(Number(e.target.value))}
               style={{
-                background: '#0f172a',
-                border: '1px solid rgba(255,255,255,0.12)',
+                background: '#0b0f14',
+                border: '1px solid rgba(200,220,240,0.12)',
                 borderRadius: 6, padding: '6px 10px',
-                color: '#f1f5f9', fontSize: 13, cursor: 'pointer',
+                color: '#eef2f6', fontSize: 13, cursor: 'pointer',
                 outline: 'none',
               }}
             >
@@ -280,7 +262,7 @@ export default function Momentum() {
 
           {/* Yield series toggle */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignSelf: 'flex-end', paddingBottom: 2 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: '#94a3b8' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: '#c6ced8' }}>
               <input
                 type="checkbox"
                 checked={isYieldSeries}
@@ -297,9 +279,9 @@ export default function Momentum() {
               onClick={handleFetch}
               disabled={loading || !ticker.trim()}
               style={{
-                background: loading || !ticker.trim() ? 'rgba(99,102,241,0.3)' : ACCENT,
+                background: loading || !ticker.trim() ? 'rgba(139,143,216,0.3)' : ACCENT,
                 border: 'none', borderRadius: 6, padding: '7px 18px',
-                color: '#fff', fontSize: 13, fontWeight: 600,
+                color: '#f4f7fa', fontSize: 13, fontWeight: 600,
                 cursor: loading || !ticker.trim() ? 'not-allowed' : 'pointer',
                 transition: 'background 0.15s',
               }}
@@ -311,7 +293,7 @@ export default function Momentum() {
 
         {/* Yield series hint */}
         {isYieldSeries && (
-          <div style={{ marginTop: 10, fontSize: 11, color: '#64748b' }}>
+          <div style={{ marginTop: 10, fontSize: 11, color: '#9aa5b1' }}>
             Yield series mode: positive composite = yields trending UP = bonds SHORT. Direction labels and position are flipped for display.
           </div>
         )}
@@ -319,7 +301,7 @@ export default function Momentum() {
 
       {/* Error */}
       {error && (
-        <div style={{ ...cardStyle, borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)', color: RED, marginBottom: 20, fontSize: 13 }}>
+        <div style={{ ...cardStyle, borderColor: 'rgba(217,112,94,0.3)', background: 'rgba(217,112,94,0.05)', color: RED, marginBottom: 20, fontSize: 13 }}>
           {error}
         </div>
       )}
@@ -336,23 +318,23 @@ export default function Momentum() {
 
             {/* Top row: label, z-score, percentile */}
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 28, fontWeight: 800, color: labelColor(effectiveCurrent.label ?? '') }}>
+              <span style={{ fontSize: 28, fontWeight: 600, color: labelColor(effectiveCurrent.label ?? '') }}>
                 {effectiveCurrent.label}
               </span>
-              <span style={{ fontSize: 20, fontWeight: 600, color: '#cbd5e1' }}>
+              <span style={{ fontSize: 20, fontWeight: 600, color: '#c3ccd6' }}>
                 {fmtZ(effectiveCurrent.composite)}
               </span>
               <span style={{ fontSize: 14, color: MUTED }}>
                 {ordinalSuffix(effectiveCurrent.composite_pctile)} pctile
               </span>
-              <span style={{ fontSize: 12, color: '#64748b', marginLeft: 'auto' }}>
+              <span style={{ fontSize: 12, color: '#9aa5b1', marginLeft: 'auto' }}>
                 as of {effectiveCurrent.date}
               </span>
             </div>
 
             {/* Percentile bar */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ height: 6, background: 'rgba(255,255,255,0.07)', borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ height: 6, background: 'rgba(200,220,240,0.07)', borderRadius: 3, overflow: 'hidden' }}>
                 <div style={{
                   height: '100%',
                   width: `${Math.max(0, Math.min(100, effectiveCurrent.composite_pctile))}%`,
@@ -362,9 +344,9 @@ export default function Momentum() {
                 }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                <span style={{ fontSize: 10, color: '#334155' }}>0</span>
-                <span style={{ fontSize: 10, color: '#334155' }}>50</span>
-                <span style={{ fontSize: 10, color: '#334155' }}>100</span>
+                <span style={{ fontSize: 10, color: '#77828f' }}>0</span>
+                <span style={{ fontSize: 10, color: '#77828f' }}>50</span>
+                <span style={{ fontSize: 10, color: '#77828f' }}>100</span>
               </div>
             </div>
 
@@ -377,12 +359,12 @@ export default function Momentum() {
                 const arrow = lbl.includes('Long') ? '↑' : lbl.includes('Short') ? '↓' : '→'
                 return (
                   <div key={lb} style={{
-                    background: 'rgba(255,255,255,0.04)',
+                    background: 'rgba(200,220,240,0.04)',
                     border: `1px solid ${col}33`,
-                    borderRadius: 8, padding: '10px 12px',
+                    borderRadius: 6, padding: '10px 12px',
                   }}>
                     <div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>{lb}</div>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: col }}>{fmtZ(z)}</div>
+                    <div style={{ fontSize: 17, fontWeight: 600, color: col }}>{fmtZ(z)}</div>
                     <div style={{ fontSize: 12, color: col, marginTop: 3 }}>
                       {arrow} {lbl}
                     </div>
@@ -392,12 +374,12 @@ export default function Momentum() {
             </div>
 
             {/* Position summary */}
-            <div style={{ marginTop: 14, fontSize: 12, color: '#64748b' }}>
+            <div style={{ marginTop: 14, fontSize: 12, color: '#9aa5b1' }}>
               Vol-scaled position: <span style={{ color: effectiveCurrent.position >= 0 ? GREEN : RED, fontWeight: 600 }}>
                 {effectiveCurrent.position >= 0 ? '+' : ''}{effectiveCurrent.position.toFixed(2)}
               </span>
               <span style={{ marginLeft: 6 }}>(10% vol target, clipped ±8)</span>
-              {isYieldSeries && <span style={{ marginLeft: 6, color: '#475569' }}>[bond equivalent]</span>}
+              {isYieldSeries && <span style={{ marginLeft: 6, color: '#8995a2' }}>[bond equivalent]</span>}
             </div>
           </div>
 
@@ -408,16 +390,16 @@ export default function Momentum() {
             </div>
             <ResponsiveContainer width="100%" height={180}>
               <LineChart syncId="momentum" data={chartData} margin={{ top: 8, right: 80, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
+                <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 10, fill: '#475569' }}
+                  tick={{ fontSize: 10, fill: '#8995a2' }}
                   tickLine={false}
                   axisLine={false}
                   interval={Math.floor(chartData.length / 6)}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: '#475569' }}
+                  tick={{ fontSize: 10, fill: '#8995a2' }}
                   tickLine={false}
                   axisLine={false}
                   width={50}
@@ -444,16 +426,16 @@ export default function Momentum() {
             </div>
             <ResponsiveContainer width="100%" height={220}>
               <ComposedChart syncId="momentum" data={chartData} margin={{ top: 8, right: 80, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
+                <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 10, fill: '#475569' }}
+                  tick={{ fontSize: 10, fill: '#8995a2' }}
                   tickLine={false}
                   axisLine={false}
                   interval={Math.floor(chartData.length / 6)}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: '#475569' }}
+                  tick={{ fontSize: 10, fill: '#8995a2' }}
                   tickLine={false}
                   axisLine={false}
                   width={50}
@@ -495,7 +477,7 @@ export default function Momentum() {
                 />
 
                 {/* Reference lines */}
-                <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeWidth={1} />
+                <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeWidth={1} />
                 <ReferenceLine y={1.5} stroke={GREEN} strokeDasharray="3 3" strokeOpacity={0.4}>
                   <Label value="Strong Long" position="right" style={{ fontSize: 10, fill: GREEN, fillOpacity: 0.7 }} />
                 </ReferenceLine>
@@ -519,23 +501,23 @@ export default function Momentum() {
             </div>
             <ResponsiveContainer width="100%" height={220}>
               <ComposedChart syncId="momentum" data={chartData} margin={{ top: 8, right: 80, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
+                <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 10, fill: '#475569' }}
+                  tick={{ fontSize: 10, fill: '#8995a2' }}
                   tickLine={false}
                   axisLine={false}
                   interval={Math.floor(chartData.length / 6)}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: '#475569' }}
+                  tick={{ fontSize: 10, fill: '#8995a2' }}
                   tickLine={false}
                   axisLine={false}
                   width={50}
                   tickFormatter={(v: number) => v.toFixed(1)}
                 />
                 <Tooltip content={<SimpleTooltip />} />
-                <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeWidth={1} />
+                <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeWidth={1} />
                 <ReferenceLine y={1.5} stroke={GREEN} strokeDasharray="3 3" strokeOpacity={0.4}>
                   <Label value="Strong Long" position="right" style={{ fontSize: 10, fill: GREEN, fillOpacity: 0.7 }} />
                 </ReferenceLine>
@@ -544,17 +526,17 @@ export default function Momentum() {
                 <ReferenceLine y={-1.5} stroke={RED} strokeDasharray="3 3" strokeOpacity={0.4}>
                   <Label value="Strong Short" position="right" style={{ fontSize: 10, fill: RED, fillOpacity: 0.7 }} />
                 </ReferenceLine>
-                <Line type="monotone" dataKey="1M"  stroke="#f59e0b" strokeWidth={1.2} dot={false} connectNulls={false} name="1M"  />
-                <Line type="monotone" dataKey="3M"  stroke="#38bdf8" strokeWidth={1.2} dot={false} connectNulls={false} name="3M"  />
-                <Line type="monotone" dataKey="6M"  stroke="#a78bfa" strokeWidth={1.2} dot={false} connectNulls={false} name="6M"  />
-                <Line type="monotone" dataKey="12M" stroke="#fb923c" strokeWidth={1.2} dot={false} connectNulls={false} name="12M" />
+                <Line type="monotone" dataKey="1M"  stroke="#d6ad66" strokeWidth={1.2} dot={false} connectNulls={false} name="1M"  />
+                <Line type="monotone" dataKey="3M"  stroke="#7cc3dc" strokeWidth={1.2} dot={false} connectNulls={false} name="3M"  />
+                <Line type="monotone" dataKey="6M"  stroke="#b49fdb" strokeWidth={1.2} dot={false} connectNulls={false} name="6M"  />
+                <Line type="monotone" dataKey="12M" stroke="#dd9562" strokeWidth={1.2} dot={false} connectNulls={false} name="12M" />
               </ComposedChart>
             </ResponsiveContainer>
             <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
-              {([['1M', '#f59e0b'], ['3M', '#38bdf8'], ['6M', '#a78bfa'], ['12M', '#fb923c']] as [string, string][]).map(([lb, col]) => (
+              {([['1M', '#d6ad66'], ['3M', '#7cc3dc'], ['6M', '#b49fdb'], ['12M', '#dd9562']] as [string, string][]).map(([lb, col]) => (
                 <div key={lb} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <div style={{ width: 20, height: 2, background: col, borderRadius: 1 }} />
-                  <span style={{ fontSize: 11, color: '#64748b' }}>{lb}</span>
+                  <span style={{ fontSize: 11, color: '#9aa5b1' }}>{lb}</span>
                 </div>
               ))}
             </div>
@@ -567,16 +549,16 @@ export default function Momentum() {
             </div>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart syncId="momentum" data={chartData} margin={{ top: 8, right: 80, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
+                <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 10, fill: '#475569' }}
+                  tick={{ fontSize: 10, fill: '#8995a2' }}
                   tickLine={false}
                   axisLine={false}
                   interval={Math.floor(chartData.length / 6)}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: '#475569' }}
+                  tick={{ fontSize: 10, fill: '#8995a2' }}
                   tickLine={false}
                   axisLine={false}
                   width={50}
@@ -584,7 +566,7 @@ export default function Momentum() {
                   domain={[-8.2, 8.2]}
                 />
                 <Tooltip content={<SimpleTooltip />} />
-                <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeWidth={1} />
+                <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeWidth={1} />
                 <Bar dataKey="position" name="Position" maxBarSize={6}>
                   {chartData.map((entry, index) => (
                     <Cell
@@ -596,7 +578,7 @@ export default function Momentum() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            <div style={{ fontSize: 11, color: '#334155', marginTop: 8 }}>
+            <div style={{ fontSize: 11, color: '#77828f', marginTop: 8 }}>
               Position clipped to ±8. Each bar = 5-business-day interval.
             </div>
           </div>
@@ -607,8 +589,8 @@ export default function Momentum() {
       {/* Empty state */}
       {!data && !loading && !error && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', gap: 12 }}>
-          <div style={{ fontSize: 36, opacity: 0.3 }}>📈</div>
-          <div style={{ color: '#334155', fontSize: 14 }}>Enter a Bloomberg ticker and click Fetch to compute CTA momentum signals.</div>
+          <div style={{ color: '#77828f' }}><Glyph name="trend" size={32} /></div>
+          <div style={{ color: '#77828f', fontSize: 14 }}>Enter a Bloomberg ticker and click Fetch to compute CTA momentum signals.</div>
         </div>
       )}
 

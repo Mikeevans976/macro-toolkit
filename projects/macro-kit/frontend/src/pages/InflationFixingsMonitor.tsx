@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import PageTitle from '../components/PageTitle'
 import { useNavigate } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -7,20 +8,20 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BG = '#080d1a'
-const MUTED = '#475569'
+const BG = '#07090c'
+const MUTED = '#8995a2'
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12,
+  background: 'rgba(200,220,240,0.03)',
+  border: '1px solid rgba(200,220,240,0.07)',
+  borderRadius: 6,
   padding: '16px 20px',
 }
 
 type Region    = 'EUR' | 'GBP' | 'USD'
 type EurSubtab = 'index-levels' | 'fixings'
 
-const REGION_COLORS: Record<Region, string> = { EUR: '#6366f1', GBP: '#38bdf8', USD: '#f59e0b' }
+const REGION_COLORS: Record<Region, string> = { EUR: '#8b8fd8', GBP: '#7cc3dc', USD: '#d6ad66' }
 const REGION_LABELS: Record<Region, string>  = { EUR: 'Euro Area', GBP: 'United Kingdom', USD: 'United States' }
 
 // ─── RNG ──────────────────────────────────────────────────────────────────────
@@ -225,13 +226,13 @@ interface HicpSeriesDef {
 }
 
 const HICP_SERIES: HicpSeriesDef[] = [
-  { key: 'headline',  label: 'HICP Headline',    color: '#6366f1', ticker: 'EUHICP Index',    blockStart: true,  inChart: true  },
-  { key: 'hicpXT',   label: 'HICP ex Tobacco',   color: '#818cf8', ticker: 'EUHICPXT Index',  blockStart: false, inChart: false },
-  { key: 'core',      label: 'HICP Core',         color: '#38bdf8', ticker: 'EUHICPXFE Index', blockStart: true,  inChart: true  },
-  { key: 'coreGoods', label: 'Core Goods',        color: '#7dd3fc', ticker: 'EUHICPIG Index',  blockStart: false, inChart: false },
-  { key: 'services',  label: 'Services',          color: '#a5b4fc', ticker: 'EUHICPSER Index', blockStart: false, inChart: false },
-  { key: 'energy',    label: 'HICP Energy',       color: '#f59e0b', ticker: 'EUHICPEN Index',  blockStart: true,  inChart: true  },
-  { key: 'food',      label: 'Food incl. A&T',    color: '#22c55e', ticker: 'EUHICPF Index',   blockStart: true,  inChart: true  },
+  { key: 'headline',  label: 'HICP Headline',    color: '#8b8fd8', ticker: 'EUHICP Index',    blockStart: true,  inChart: true  },
+  { key: 'hicpXT',   label: 'HICP ex Tobacco',   color: '#9ea2e2', ticker: 'EUHICPXT Index',  blockStart: false, inChart: false },
+  { key: 'core',      label: 'HICP Core',         color: '#7cc3dc', ticker: 'EUHICPXFE Index', blockStart: true,  inChart: true  },
+  { key: 'coreGoods', label: 'Core Goods',        color: '#a0d6e8', ticker: 'EUHICPIG Index',  blockStart: false, inChart: false },
+  { key: 'services',  label: 'Services',          color: '#b9bdea', ticker: 'EUHICPSER Index', blockStart: false, inChart: false },
+  { key: 'energy',    label: 'HICP Energy',       color: '#d6ad66', ticker: 'EUHICPEN Index',  blockStart: true,  inChart: true  },
+  { key: 'food',      label: 'Food incl. A&T',    color: '#5fb592', ticker: 'EUHICPF Index',   blockStart: true,  inChart: true  },
 ]
 
 // ─── Derived metrics ──────────────────────────────────────────────────────────
@@ -264,8 +265,8 @@ function IndexTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-      <div style={{ color: '#94a3b8', marginBottom: 6 }}>{label}</div>
+    <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+      <div style={{ color: '#c6ced8', marginBottom: 6 }}>{label}</div>
       {payload.map((p, i) => (
         <div key={i} style={{ color: p.color, marginBottom: 2 }}>
           {p.name}: <span style={{ fontWeight: 600 }}>{p.value.toFixed(2)}</span>
@@ -281,7 +282,7 @@ const fmtPct = (v: number | null, dp = 2) =>
   v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(dp)}%`
 
 const pctColor = (v: number | null) =>
-  v == null ? MUTED : v > 0.05 ? '#22c55e' : v < -0.05 ? '#ef4444' : '#94a3b8'
+  v == null ? MUTED : v > 0.05 ? '#5fb592' : v < -0.05 ? '#d9705e' : '#c6ced8'
 
 // ─── EUR · Index Levels subtab ────────────────────────────────────────────────
 
@@ -316,19 +317,19 @@ function EurIndexLevels({ data }: { data: HicpPoint[] }) {
     ...th,
     borderLeft: s.blockStart
       ? `2px solid ${s.color}88`
-      : `1px solid rgba(255,255,255,0.06)`,
+      : `1px solid rgba(200,220,240,0.06)`,
   })
 
   const td = (color?: string): React.CSSProperties => ({
     padding: '5px 10px', fontSize: 11, textAlign: 'right',
-    fontVariantNumeric: 'tabular-nums', color: color ?? '#f1f5f9',
+    fontVariantNumeric: 'tabular-nums', color: color ?? '#eef2f6',
   })
 
   const tdFirst = (s: HicpSeriesDef, color?: string): React.CSSProperties => ({
     ...td(color),
     borderLeft: s.blockStart
       ? `2px solid ${s.color}66`
-      : `1px solid rgba(255,255,255,0.05)`,
+      : `1px solid rgba(200,220,240,0.05)`,
   })
 
   return (
@@ -351,13 +352,13 @@ function EurIndexLevels({ data }: { data: HicpPoint[] }) {
                 {!s.blockStart && <span style={{ color: s.color, marginRight: 4 }}>↳</span>}
                 {s.label}
               </div>
-              <div style={{ fontSize: isMain ? 22 : 18, fontWeight: 800, color: s.color, letterSpacing: '-0.02em' }}>
+              <div style={{ fontSize: isMain ? 22 : 18, fontWeight: 600, color: s.color, letterSpacing: '-0.02em' }}>
                 {level.toFixed(2)}
               </div>
-              <div style={{ fontSize: 11, color: yoy >= 0 ? '#22c55e' : '#ef4444', marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: yoy >= 0 ? '#5fb592' : '#d9705e', marginTop: 2 }}>
                 {yoy >= 0 ? '+' : ''}{yoy.toFixed(1)}% YoY
               </div>
-              <div style={{ fontSize: 9, color: '#334155', marginTop: 3 }}>
+              <div style={{ fontSize: 9, color: '#77828f', marginTop: 3 }}>
                 {s.ticker} · {latest.date}
               </div>
             </div>
@@ -371,24 +372,24 @@ function EurIndexLevels({ data }: { data: HicpPoint[] }) {
           <div style={{ fontSize: 12, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             HICP Index Levels — Euro Area
           </div>
-          <div style={{ fontSize: 10, color: '#334155' }}>2015 = 100</div>
+          <div style={{ fontSize: 10, color: '#77828f' }}>2015 = 100</div>
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 16 }}>
           Jan 2000 – Jun 2025 · Simulated
         </div>
         <ResponsiveContainer width="100%" height={320}>
           <LineChart data={data} margin={{ top: 8, right: 24, bottom: 4, left: 0 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
+            <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
             <XAxis
               dataKey="date"
               ticks={xTicks}
               tickFormatter={d => d.slice(0, 4)}
-              tick={{ fontSize: 10, fill: '#475569' }}
+              tick={{ fontSize: 10, fill: '#8995a2' }}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: '#475569' }}
+              tick={{ fontSize: 10, fill: '#8995a2' }}
               tickLine={false}
               axisLine={false}
               width={44}
@@ -403,12 +404,12 @@ function EurIndexLevels({ data }: { data: HicpPoint[] }) {
         </ResponsiveContainer>
         <div style={{ display: 'flex', gap: 20, marginTop: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
           {chartSeries.map(s => (
-            <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#94a3b8' }}>
+            <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#c6ced8' }}>
               <div style={{ width: 22, height: 2, background: s.color, borderRadius: 1, flexShrink: 0 }} />
               {s.label}
             </div>
           ))}
-          <div style={{ fontSize: 10, color: '#334155', alignSelf: 'center' }}>
+          <div style={{ fontSize: 10, color: '#77828f', alignSelf: 'center' }}>
             Core Goods &amp; Services shown in table only
           </div>
         </div>
@@ -419,7 +420,7 @@ function EurIndexLevels({ data }: { data: HicpPoint[] }) {
         <div style={{ fontSize: 12, color: MUTED, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Recent Prints
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 14 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 14 }}>
           MoM SA computed via STL decomposition (Loess, period = 12) · ↳ = sub-component of the block above
         </div>
 
@@ -435,7 +436,7 @@ function EurIndexLevels({ data }: { data: HicpPoint[] }) {
                 opacity: s.blockStart ? 1 : 0.7,
                 flexShrink: 0,
               }} />
-              <span style={{ color: s.blockStart ? '#94a3b8' : '#64748b' }}>
+              <span style={{ color: s.blockStart ? '#c6ced8' : '#9aa5b1' }}>
                 {!s.blockStart && '↳ '}{s.label}
               </span>
             </div>
@@ -446,7 +447,7 @@ function EurIndexLevels({ data }: { data: HicpPoint[] }) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               {/* Block headers */}
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
                 <th style={{ ...th, textAlign: 'left', width: 72 }} rowSpan={2}>Date</th>
                 {HICP_SERIES.map(s => (
                   <th key={s.key} colSpan={4}
@@ -456,7 +457,7 @@ function EurIndexLevels({ data }: { data: HicpPoint[] }) {
                       color: s.color,
                       paddingBottom: 4,
                       borderBottom: `2px solid ${s.color}${s.blockStart ? 'bb' : '55'}`,
-                      borderLeft: s.blockStart ? `2px solid ${s.color}88` : `1px solid rgba(255,255,255,0.06)`,
+                      borderLeft: s.blockStart ? `2px solid ${s.color}88` : `1px solid rgba(200,220,240,0.06)`,
                       background: `${s.color}08`,
                       fontSize: s.blockStart ? 10 : 9,
                     }}>
@@ -465,7 +466,7 @@ function EurIndexLevels({ data }: { data: HicpPoint[] }) {
                 ))}
               </tr>
               {/* Sub-headers */}
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.09)' }}>
+              <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.09)' }}>
                 {HICP_SERIES.map(s => (
                   ['Level', 'YoY', 'MoM', 'SA'].map((h, hi) => (
                     <th key={`${s.key}-${h}`} style={{
@@ -486,12 +487,12 @@ function EurIndexLevels({ data }: { data: HicpPoint[] }) {
                 return (
                   <tr key={pt.date}
                     style={{
-                      borderBottom: '1px solid rgba(255,255,255,0.04)',
-                      background: i === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
+                      borderBottom: '1px solid rgba(200,220,240,0.04)',
+                      background: i === 0 ? 'rgba(200,220,240,0.02)' : 'transparent',
                     }}>
-                    <td style={{ ...td(), textAlign: 'left', color: i === 0 ? '#f1f5f9' : '#94a3b8', fontWeight: i === 0 ? 600 : 400 }}>
+                    <td style={{ ...td(), textAlign: 'left', color: i === 0 ? '#eef2f6' : '#c6ced8', fontWeight: i === 0 ? 600 : 400 }}>
                       {new Date(pt.date + '-02').toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })}
-                      {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#6366f1' }}>latest</span>}
+                      {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#8b8fd8' }}>latest</span>}
                     </td>
                     {HICP_SERIES.map(s => {
                       const m = rowMetrics[s.key]
@@ -571,7 +572,7 @@ function EurFixings() {
     </div>
   )
   if (error || !data) return (
-    <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: '#ef4444' }}>
+    <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: '#d9705e' }}>
       Failed to load fixings: {error}
     </div>
   )
@@ -604,7 +605,7 @@ function EurFixings() {
     v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(3)}%`
 
   const momColor = (v: number | null) =>
-    v == null ? MUTED : v > 0.05 ? '#22c55e' : v < -0.05 ? '#ef4444' : '#94a3b8'
+    v == null ? MUTED : v > 0.05 ? '#5fb592' : v < -0.05 ? '#d9705e' : '#c6ced8'
 
   const th: React.CSSProperties = {
     padding: '5px 12px', color: MUTED, fontWeight: 500, fontSize: 10,
@@ -613,24 +614,24 @@ function EurFixings() {
   }
   const td = (color?: string): React.CSSProperties => ({
     padding: '5px 12px', fontSize: 11, textAlign: 'right',
-    fontVariantNumeric: 'tabular-nums', color: color ?? '#f1f5f9',
+    fontVariantNumeric: 'tabular-nums', color: color ?? '#eef2f6',
   })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <div style={{ fontSize: 11, color: '#334155' }}>As of {as_of_date}</div>
+        <div style={{ fontSize: 11, color: '#77828f' }}>As of {as_of_date}</div>
         <div style={{
           fontSize: 10, padding: '2px 8px', borderRadius: 4,
-          background: data_source === 'bloomberg' ? 'rgba(34,197,94,0.12)' : 'rgba(251,191,36,0.10)',
-          color:      data_source === 'bloomberg' ? '#22c55e' : '#fbbf24',
-          border:    `1px solid ${data_source === 'bloomberg' ? 'rgba(34,197,94,0.25)' : 'rgba(251,191,36,0.2)'}`,
+          background: data_source === 'bloomberg' ? 'rgba(95,181,146,0.12)' : 'rgba(223,187,120,0.10)',
+          color:      data_source === 'bloomberg' ? '#5fb592' : '#dfbb78',
+          border:    `1px solid ${data_source === 'bloomberg' ? 'rgba(95,181,146,0.25)' : 'rgba(223,187,120,0.2)'}`,
         }}>
           {data_source === 'bloomberg' ? 'Live · Bloomberg' : 'Simulated'}
         </div>
-        <div style={{ fontSize: 10, color: '#334155' }}>
-          Last EUHICPXT: <span style={{ color: '#818cf8', fontWeight: 600 }}>{last_known_hicp_xt.toFixed(2)}</span>
+        <div style={{ fontSize: 10, color: '#77828f' }}>
+          Last EUHICPXT: <span style={{ color: '#9ea2e2', fontWeight: 600 }}>{last_known_hicp_xt.toFixed(2)}</span>
         </div>
       </div>
 
@@ -639,46 +640,46 @@ function EurFixings() {
           <div style={{ fontSize: 12, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             HICP-XT — History &amp; Implied Fixing Curve
           </div>
-          <div style={{ fontSize: 10, color: '#334155' }}>Index level (2015 = 100)</div>
+          <div style={{ fontSize: 10, color: '#77828f' }}>Index level (2015 = 100)</div>
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 16 }}>
           EUHICPXT Index (history) · EUSWIF1–12 &amp; EUSWIT1–12 Comdty (YoY → reconstructed levels)
         </div>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={chartData} margin={{ top: 8, right: 24, bottom: 4, left: 0 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} interval={5} />
-            <YAxis tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} width={48} domain={['auto', 'auto']} tickFormatter={(v: number) => v.toFixed(1)} />
+            <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} interval={5} />
+            <YAxis tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} width={48} domain={['auto', 'auto']} tickFormatter={(v: number) => v.toFixed(1)} />
             <Tooltip
               content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null
                 const pt = payload[0].payload as ChartPoint
                 const level = pt.histLevel ?? pt.fixLevel
                 return (
-                  <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-                    <div style={{ color: '#94a3b8', marginBottom: 4 }}>{label}</div>
-                    <div style={{ color: pt.isForward ? '#6366f1' : '#818cf8' }}>
+                  <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+                    <div style={{ color: '#c6ced8', marginBottom: 4 }}>{label}</div>
+                    <div style={{ color: pt.isForward ? '#8b8fd8' : '#9ea2e2' }}>
                       {pt.isForward ? 'Implied' : 'Actual'}: <strong>{level?.toFixed(2) ?? '—'}</strong>
                     </div>
-                    {pt.isForward && <div style={{ color: '#334155', fontSize: 10, marginTop: 2 }}>Reconstructed from YoY fixing</div>}
+                    {pt.isForward && <div style={{ color: '#77828f', fontSize: 10, marginTop: 2 }}>Reconstructed from YoY fixing</div>}
                   </div>
                 )
               }}
             />
             <Line type="monotone" dataKey="histLevel" name="EUHICPXT"
-              stroke="#818cf8" strokeWidth={1.5} dot={false} connectNulls />
+              stroke="#9ea2e2" strokeWidth={1.5} dot={false} connectNulls />
             <Line type="monotone" dataKey="fixLevel" name="Implied (fixings)"
-              stroke="#6366f1" strokeWidth={2} strokeDasharray="4 2"
-              dot={{ r: 2, fill: '#6366f1' }} connectNulls />
+              stroke="#8b8fd8" strokeWidth={2} strokeDasharray="4 2"
+              dot={{ r: 2, fill: '#8b8fd8' }} connectNulls />
           </LineChart>
         </ResponsiveContainer>
         <div style={{ display: 'flex', gap: 20, marginTop: 12, justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#94a3b8' }}>
-            <div style={{ width: 22, height: 2, background: '#818cf8', borderRadius: 1 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#c6ced8' }}>
+            <div style={{ width: 22, height: 2, background: '#9ea2e2', borderRadius: 1 }} />
             EUHICPXT history
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#94a3b8' }}>
-            <div style={{ width: 22, height: 2, background: '#6366f1', borderRadius: 1, borderTop: '2px dashed #6366f1' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#c6ced8' }}>
+            <div style={{ width: 22, height: 2, background: '#8b8fd8', borderRadius: 1, borderTop: '2px dashed #8b8fd8' }} />
             Reconstructed fixings
           </div>
         </div>
@@ -688,13 +689,13 @@ function EurFixings() {
         <div style={{ fontSize: 12, color: MUTED, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Fixing Detail
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 14 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 14 }}>
           Level reconstructed from YoY rate × EUHICPXT base · MoM SA = MoM NSA − seasonal factor
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.07)' }}>
                 {['#', 'Month', 'BBG Ticker', 'YoY', 'Level', 'MoM NSA', 'MoM SA'].map(h => (
                   <th key={h} style={{ ...th, textAlign: h === 'BBG Ticker' || h === 'Month' ? 'left' : 'right' }}>{h}</th>
                 ))}
@@ -703,14 +704,14 @@ function EurFixings() {
             <tbody>
               {fixings.map((f, i) => (
                 <tr key={`${f.ticker}-${i}`}
-                  style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: i === 0 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
-                  <td style={{ ...td('#475569'), textAlign: 'right', width: 32 }}>{i + 1}</td>
+                  style={{ borderBottom: '1px solid rgba(200,220,240,0.04)', background: i === 0 ? 'rgba(200,220,240,0.02)' : 'transparent' }}>
+                  <td style={{ ...td('#8995a2'), textAlign: 'right', width: 32 }}>{i + 1}</td>
                   <td style={{ ...td(), textAlign: 'left' }}>
                     {new Date(f.calendar_month + '-02').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
-                    {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#6366f1' }}>nearest</span>}
-                    {i === 12 && <span style={{ marginLeft: 6, fontSize: 9, color: '#475569' }}>T-series</span>}
+                    {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#8b8fd8' }}>nearest</span>}
+                    {i === 12 && <span style={{ marginLeft: 6, fontSize: 9, color: '#8995a2' }}>T-series</span>}
                   </td>
-                  <td style={{ padding: '5px 12px', fontSize: 10, color: '#475569', fontFamily: 'monospace', textAlign: 'left' }}>
+                  <td style={{ padding: '5px 12px', fontSize: 10, color: '#8995a2', fontFamily: "'Geist Mono', ui-monospace, monospace", textAlign: 'left' }}>
                     {f.ticker}
                   </td>
                   <td style={td(momColor(f.yoy_implied))}>
@@ -724,7 +725,7 @@ function EurFixings() {
             </tbody>
           </table>
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginTop: 10 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginTop: 10 }}>
           Months 1–12: EUSWIF series · Months 13–24: EUSWIT series (T-series base = reconstructed F-series)
         </div>
       </div>
@@ -775,7 +776,7 @@ function GbpFixings() {
     </div>
   )
   if (error || !data) return (
-    <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: '#ef4444' }}>
+    <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: '#d9705e' }}>
       Failed to load fixings: {error}
     </div>
   )
@@ -808,7 +809,7 @@ function GbpFixings() {
     v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(3)}%`
 
   const momColor = (v: number | null) =>
-    v == null ? MUTED : v > 0.05 ? '#22c55e' : v < -0.05 ? '#ef4444' : '#94a3b8'
+    v == null ? MUTED : v > 0.05 ? '#5fb592' : v < -0.05 ? '#d9705e' : '#c6ced8'
 
   const th: React.CSSProperties = {
     padding: '5px 12px', color: MUTED, fontWeight: 500, fontSize: 10,
@@ -817,24 +818,24 @@ function GbpFixings() {
   }
   const td = (color?: string): React.CSSProperties => ({
     padding: '5px 12px', fontSize: 11, textAlign: 'right',
-    fontVariantNumeric: 'tabular-nums', color: color ?? '#f1f5f9',
+    fontVariantNumeric: 'tabular-nums', color: color ?? '#eef2f6',
   })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <div style={{ fontSize: 11, color: '#334155' }}>As of {as_of_date}</div>
+        <div style={{ fontSize: 11, color: '#77828f' }}>As of {as_of_date}</div>
         <div style={{
           fontSize: 10, padding: '2px 8px', borderRadius: 4,
-          background: data_source === 'bloomberg' ? 'rgba(34,197,94,0.12)' : 'rgba(251,191,36,0.10)',
-          color:      data_source === 'bloomberg' ? '#22c55e' : '#fbbf24',
-          border:    `1px solid ${data_source === 'bloomberg' ? 'rgba(34,197,94,0.25)' : 'rgba(251,191,36,0.2)'}`,
+          background: data_source === 'bloomberg' ? 'rgba(95,181,146,0.12)' : 'rgba(223,187,120,0.10)',
+          color:      data_source === 'bloomberg' ? '#5fb592' : '#dfbb78',
+          border:    `1px solid ${data_source === 'bloomberg' ? 'rgba(95,181,146,0.25)' : 'rgba(223,187,120,0.2)'}`,
         }}>
           {data_source === 'bloomberg' ? 'Live · Bloomberg' : 'Simulated'}
         </div>
-        <div style={{ fontSize: 10, color: '#334155' }}>
-          Last RPI: <span style={{ color: '#fbbf24', fontWeight: 600 }}>{last_known_rpi.toFixed(2)}</span>
+        <div style={{ fontSize: 10, color: '#77828f' }}>
+          Last RPI: <span style={{ color: '#dfbb78', fontWeight: 600 }}>{last_known_rpi.toFixed(2)}</span>
         </div>
       </div>
 
@@ -843,46 +844,46 @@ function GbpFixings() {
           <div style={{ fontSize: 12, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             RPI — History &amp; Implied Fixing Curve
           </div>
-          <div style={{ fontSize: 10, color: '#334155' }}>Index level</div>
+          <div style={{ fontSize: 10, color: '#77828f' }}>Index level</div>
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 16 }}>
           UKCERPI Index (history) · UKRPIF1–12 &amp; UKRPIT1–12 Comdty (YoY → reconstructed levels)
         </div>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={chartData} margin={{ top: 8, right: 24, bottom: 4, left: 0 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} interval={5} />
-            <YAxis tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} width={48} domain={['auto', 'auto']} tickFormatter={(v: number) => v.toFixed(1)} />
+            <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} interval={5} />
+            <YAxis tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} width={48} domain={['auto', 'auto']} tickFormatter={(v: number) => v.toFixed(1)} />
             <Tooltip
               content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null
                 const pt = payload[0].payload as ChartPoint
                 const level = pt.histLevel ?? pt.fixLevel
                 return (
-                  <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-                    <div style={{ color: '#94a3b8', marginBottom: 4 }}>{label}</div>
-                    <div style={{ color: pt.isForward ? '#fbbf24' : '#fcd34d' }}>
+                  <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+                    <div style={{ color: '#c6ced8', marginBottom: 4 }}>{label}</div>
+                    <div style={{ color: pt.isForward ? '#dfbb78' : '#e6c88e' }}>
                       {pt.isForward ? 'Implied' : 'Actual'}: <strong>{level?.toFixed(2) ?? '—'}</strong>
                     </div>
-                    {pt.isForward && <div style={{ color: '#334155', fontSize: 10, marginTop: 2 }}>Reconstructed from YoY fixing</div>}
+                    {pt.isForward && <div style={{ color: '#77828f', fontSize: 10, marginTop: 2 }}>Reconstructed from YoY fixing</div>}
                   </div>
                 )
               }}
             />
             <Line type="monotone" dataKey="histLevel" name="RPI history"
-              stroke="#fcd34d" strokeWidth={1.5} dot={false} connectNulls />
+              stroke="#e6c88e" strokeWidth={1.5} dot={false} connectNulls />
             <Line type="monotone" dataKey="fixLevel" name="Implied (fixings)"
-              stroke="#fbbf24" strokeWidth={2} strokeDasharray="4 2"
-              dot={{ r: 2, fill: '#fbbf24' }} connectNulls />
+              stroke="#dfbb78" strokeWidth={2} strokeDasharray="4 2"
+              dot={{ r: 2, fill: '#dfbb78' }} connectNulls />
           </LineChart>
         </ResponsiveContainer>
         <div style={{ display: 'flex', gap: 20, marginTop: 12, justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#94a3b8' }}>
-            <div style={{ width: 22, height: 2, background: '#fcd34d', borderRadius: 1 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#c6ced8' }}>
+            <div style={{ width: 22, height: 2, background: '#e6c88e', borderRadius: 1 }} />
             RPI history
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#94a3b8' }}>
-            <div style={{ width: 22, height: 2, background: '#fbbf24', borderRadius: 1, borderTop: '2px dashed #fbbf24' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#c6ced8' }}>
+            <div style={{ width: 22, height: 2, background: '#dfbb78', borderRadius: 1, borderTop: '2px dashed #dfbb78' }} />
             Implied (fixings)
           </div>
         </div>
@@ -892,13 +893,13 @@ function GbpFixings() {
         <div style={{ fontSize: 12, color: MUTED, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Fixing Detail
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 14 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 14 }}>
           Level reconstructed from YoY rate × UKCERPI base · MoM SA = MoM NSA − seasonal factor
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.07)' }}>
                 {['#', 'Month', 'BBG Ticker', 'YoY', 'Level', 'MoM NSA', 'MoM SA'].map(h => (
                   <th key={h} style={{ ...th, textAlign: h === 'BBG Ticker' || h === 'Month' ? 'left' : 'right' }}>{h}</th>
                 ))}
@@ -907,14 +908,14 @@ function GbpFixings() {
             <tbody>
               {fixings.map((f, i) => (
                 <tr key={`${f.ticker}-${i}`}
-                  style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: i === 0 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
-                  <td style={{ ...td('#475569'), textAlign: 'right', width: 32 }}>{i + 1}</td>
+                  style={{ borderBottom: '1px solid rgba(200,220,240,0.04)', background: i === 0 ? 'rgba(200,220,240,0.02)' : 'transparent' }}>
+                  <td style={{ ...td('#8995a2'), textAlign: 'right', width: 32 }}>{i + 1}</td>
                   <td style={{ ...td(), textAlign: 'left' }}>
                     {new Date(f.calendar_month + '-02').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
-                    {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#fbbf24' }}>nearest</span>}
-                    {i === 12 && <span style={{ marginLeft: 6, fontSize: 9, color: '#475569' }}>T-series</span>}
+                    {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#dfbb78' }}>nearest</span>}
+                    {i === 12 && <span style={{ marginLeft: 6, fontSize: 9, color: '#8995a2' }}>T-series</span>}
                   </td>
-                  <td style={{ padding: '5px 12px', fontSize: 10, color: '#475569', fontFamily: 'monospace', textAlign: 'left' }}>
+                  <td style={{ padding: '5px 12px', fontSize: 10, color: '#8995a2', fontFamily: "'Geist Mono', ui-monospace, monospace", textAlign: 'left' }}>
                     {f.ticker}
                   </td>
                   <td style={td(momColor(f.yoy_implied))}>
@@ -928,7 +929,7 @@ function GbpFixings() {
             </tbody>
           </table>
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginTop: 10 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginTop: 10 }}>
           Months 1–12: UKRPIF series · Months 13–24: UKRPIT series (T-series base = reconstructed F-series)
         </div>
       </div>
@@ -1006,13 +1007,13 @@ interface CpiSeriesDef {
 }
 
 const GBP_SERIES: CpiSeriesDef[] = [
-  { key: 'rpi',      label: 'RPI',                  color: '#fbbf24', ticker: 'UKCERPI Index',   blockStart: true,  inChart: true  },
-  { key: 'cpi',      label: 'CPI',                  color: '#6366f1', ticker: 'UKRPCJPA Index',  blockStart: true,  inChart: true  },
-  { key: 'cpiCore',  label: 'CPI Core',              color: '#38bdf8', ticker: 'UKCRCORE Index',  blockStart: true,  inChart: true  },
-  { key: 'services', label: 'CPI Services',          color: '#a5b4fc', ticker: 'UKRPCJSR Index',  blockStart: false, inChart: false },
-  { key: 'goods',    label: 'CPI Core Goods',        color: '#7dd3fc', ticker: 'UKRPCJCG Index',  blockStart: false, inChart: false },
-  { key: 'energy',   label: 'CPI Energy',            color: '#f97316', ticker: 'UKRPCJEN Index',  blockStart: true,  inChart: true  },
-  { key: 'food',     label: 'Food, Alc. & Tobacco',  color: '#22c55e', ticker: 'UKRPCJFT Index',  blockStart: true,  inChart: false },
+  { key: 'rpi',      label: 'RPI',                  color: '#dfbb78', ticker: 'UKCERPI Index',   blockStart: true,  inChart: true  },
+  { key: 'cpi',      label: 'CPI',                  color: '#8b8fd8', ticker: 'UKRPCJPA Index',  blockStart: true,  inChart: true  },
+  { key: 'cpiCore',  label: 'CPI Core',              color: '#7cc3dc', ticker: 'UKCRCORE Index',  blockStart: true,  inChart: true  },
+  { key: 'services', label: 'CPI Services',          color: '#b9bdea', ticker: 'UKRPCJSR Index',  blockStart: false, inChart: false },
+  { key: 'goods',    label: 'CPI Core Goods',        color: '#a0d6e8', ticker: 'UKRPCJCG Index',  blockStart: false, inChart: false },
+  { key: 'energy',   label: 'CPI Energy',            color: '#d48853', ticker: 'UKRPCJEN Index',  blockStart: true,  inChart: true  },
+  { key: 'food',     label: 'Food, Alc. & Tobacco',  color: '#5fb592', ticker: 'UKRPCJFT Index',  blockStart: true,  inChart: false },
 ]
 
 function generateCpiLevels(): CpiPoint[] {
@@ -1078,15 +1079,15 @@ function GbpIndexLevels({ data }: { data: CpiPoint[] }) {
   }
   const thFirst = (s: CpiSeriesDef): React.CSSProperties => ({
     ...th,
-    borderLeft: s.blockStart ? `2px solid ${s.color}88` : `1px solid rgba(255,255,255,0.06)`,
+    borderLeft: s.blockStart ? `2px solid ${s.color}88` : `1px solid rgba(200,220,240,0.06)`,
   })
   const td = (color?: string): React.CSSProperties => ({
     padding: '5px 10px', fontSize: 11, textAlign: 'right',
-    fontVariantNumeric: 'tabular-nums', color: color ?? '#f1f5f9',
+    fontVariantNumeric: 'tabular-nums', color: color ?? '#eef2f6',
   })
   const tdFirst = (s: CpiSeriesDef, color?: string): React.CSSProperties => ({
     ...td(color),
-    borderLeft: s.blockStart ? `2px solid ${s.color}66` : `1px solid rgba(255,255,255,0.05)`,
+    borderLeft: s.blockStart ? `2px solid ${s.color}66` : `1px solid rgba(200,220,240,0.05)`,
   })
 
   return (
@@ -1109,13 +1110,13 @@ function GbpIndexLevels({ data }: { data: CpiPoint[] }) {
                 {!s.blockStart && <span style={{ color: s.color, marginRight: 4 }}>↳</span>}
                 {s.label}
               </div>
-              <div style={{ fontSize: isMain ? 22 : 18, fontWeight: 800, color: s.color, letterSpacing: '-0.02em' }}>
+              <div style={{ fontSize: isMain ? 22 : 18, fontWeight: 600, color: s.color, letterSpacing: '-0.02em' }}>
                 {level.toFixed(2)}
               </div>
-              <div style={{ fontSize: 11, color: yoy >= 0 ? '#22c55e' : '#ef4444', marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: yoy >= 0 ? '#5fb592' : '#d9705e', marginTop: 2 }}>
                 {yoy >= 0 ? '+' : ''}{yoy.toFixed(1)}% YoY
               </div>
-              <div style={{ fontSize: 9, color: '#334155', marginTop: 3 }}>
+              <div style={{ fontSize: 9, color: '#77828f', marginTop: 3 }}>
                 {s.ticker} · {latest.date}
               </div>
             </div>
@@ -1129,17 +1130,17 @@ function GbpIndexLevels({ data }: { data: CpiPoint[] }) {
           <div style={{ fontSize: 12, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             CPI / RPI Index Levels — United Kingdom
           </div>
-          <div style={{ fontSize: 10, color: '#334155' }}>2015 = 100</div>
+          <div style={{ fontSize: 10, color: '#77828f' }}>2015 = 100</div>
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 16 }}>
           Jan 2000 – Jun 2025 · Simulated
         </div>
         <ResponsiveContainer width="100%" height={320}>
           <LineChart data={data} margin={{ top: 8, right: 24, bottom: 4, left: 0 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
+            <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
             <XAxis dataKey="date" ticks={xTicks} tickFormatter={d => d.slice(0, 4)}
-              tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false}
+              tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} />
+            <YAxis tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false}
               width={44} tickFormatter={(v: number) => v.toFixed(0)} />
             <Tooltip content={<IndexTooltip />} />
             {chartSeries.map(s => (
@@ -1150,12 +1151,12 @@ function GbpIndexLevels({ data }: { data: CpiPoint[] }) {
         </ResponsiveContainer>
         <div style={{ display: 'flex', gap: 20, marginTop: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
           {chartSeries.map(s => (
-            <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#94a3b8' }}>
+            <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#c6ced8' }}>
               <div style={{ width: 22, height: 2, background: s.color, borderRadius: 1, flexShrink: 0 }} />
               {s.label}
             </div>
           ))}
-          <div style={{ fontSize: 10, color: '#334155', alignSelf: 'center' }}>
+          <div style={{ fontSize: 10, color: '#77828f', alignSelf: 'center' }}>
             Services, Core Goods &amp; Food shown in table only
           </div>
         </div>
@@ -1166,7 +1167,7 @@ function GbpIndexLevels({ data }: { data: CpiPoint[] }) {
         <div style={{ fontSize: 12, color: MUTED, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Recent Prints
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 14 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 14 }}>
           MoM SA computed via STL decomposition (Loess, period = 12) · ↳ = sub-component of the block above
         </div>
 
@@ -1179,7 +1180,7 @@ function GbpIndexLevels({ data }: { data: CpiPoint[] }) {
                 borderRadius: 2, background: s.color,
                 opacity: s.blockStart ? 1 : 0.7, flexShrink: 0,
               }} />
-              <span style={{ color: s.blockStart ? '#94a3b8' : '#64748b' }}>
+              <span style={{ color: s.blockStart ? '#c6ced8' : '#9aa5b1' }}>
                 {!s.blockStart && '↳ '}{s.label}
               </span>
             </div>
@@ -1189,13 +1190,13 @@ function GbpIndexLevels({ data }: { data: CpiPoint[] }) {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
                 <th style={{ ...th, textAlign: 'left', width: 72 }} rowSpan={2}>Date</th>
                 {GBP_SERIES.map(s => (
                   <th key={s.key} colSpan={4} style={{
                     ...th, textAlign: 'center', color: s.color, paddingBottom: 4,
                     borderBottom: `2px solid ${s.color}${s.blockStart ? 'bb' : '55'}`,
-                    borderLeft: s.blockStart ? `2px solid ${s.color}88` : `1px solid rgba(255,255,255,0.06)`,
+                    borderLeft: s.blockStart ? `2px solid ${s.color}88` : `1px solid rgba(200,220,240,0.06)`,
                     background: `${s.color}08`,
                     fontSize: s.blockStart ? 10 : 9,
                   }}>
@@ -1203,7 +1204,7 @@ function GbpIndexLevels({ data }: { data: CpiPoint[] }) {
                   </th>
                 ))}
               </tr>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.09)' }}>
+              <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.09)' }}>
                 {GBP_SERIES.map(s => (
                   ['Level', 'YoY', 'MoM', 'SA'].map((h, hi) => (
                     <th key={`${s.key}-${h}`} style={{ ...th, ...(hi === 0 ? thFirst(s) : {}) }}>{h}</th>
@@ -1217,12 +1218,12 @@ function GbpIndexLevels({ data }: { data: CpiPoint[] }) {
                 for (const s of GBP_SERIES) rowMetrics[s.key] = metrics[s.key].find(m => m.date === pt.date)!
                 return (
                   <tr key={pt.date} style={{
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
-                    background: i === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
+                    borderBottom: '1px solid rgba(200,220,240,0.04)',
+                    background: i === 0 ? 'rgba(200,220,240,0.02)' : 'transparent',
                   }}>
-                    <td style={{ ...td(), textAlign: 'left', color: i === 0 ? '#f1f5f9' : '#94a3b8', fontWeight: i === 0 ? 600 : 400 }}>
+                    <td style={{ ...td(), textAlign: 'left', color: i === 0 ? '#eef2f6' : '#c6ced8', fontWeight: i === 0 ? 600 : 400 }}>
                       {new Date(pt.date + '-02').toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })}
-                      {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#38bdf8' }}>latest</span>}
+                      {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#7cc3dc' }}>latest</span>}
                     </td>
                     {GBP_SERIES.map(s => {
                       const m = rowMetrics[s.key]
@@ -1294,11 +1295,11 @@ interface UsdSeriesDef {
 }
 
 const USD_SERIES: UsdSeriesDef[] = [
-  { key: 'cpiNsa',       label: 'CPI (NSA)',       color: '#f59e0b', ticker: 'CPURNSA Index',   blockStart: true,  inChart: true  },
-  { key: 'cpiSa',        label: 'CPI (SA)',         color: '#fbbf24', ticker: 'CPURNSA Index†',  blockStart: false, inChart: true  },
-  { key: 'cpiCore',      label: 'Core CPI',         color: '#38bdf8', ticker: 'CPUPAXFE Index',  blockStart: true,  inChart: true  },
-  { key: 'coreGoods',    label: 'Core Goods',       color: '#7dd3fc', ticker: 'CPUPAXFEG Index', blockStart: false, inChart: false },
-  { key: 'coreServices', label: 'Core Services',    color: '#a5b4fc', ticker: 'CPUPAXFES Index', blockStart: false, inChart: false },
+  { key: 'cpiNsa',       label: 'CPI (NSA)',       color: '#d6ad66', ticker: 'CPURNSA Index',   blockStart: true,  inChart: true  },
+  { key: 'cpiSa',        label: 'CPI (SA)',         color: '#dfbb78', ticker: 'CPURNSA Index†',  blockStart: false, inChart: true  },
+  { key: 'cpiCore',      label: 'Core CPI',         color: '#7cc3dc', ticker: 'CPUPAXFE Index',  blockStart: true,  inChart: true  },
+  { key: 'coreGoods',    label: 'Core Goods',       color: '#a0d6e8', ticker: 'CPUPAXFEG Index', blockStart: false, inChart: false },
+  { key: 'coreServices', label: 'Core Services',    color: '#b9bdea', ticker: 'CPUPAXFES Index', blockStart: false, inChart: false },
 ]
 
 function generateUsdCpiLevels(): UsdCpiPoint[] {
@@ -1376,15 +1377,15 @@ function UsdIndexLevels({ data }: { data: UsdCpiPoint[] }) {
   }
   const thFirst = (s: UsdSeriesDef): React.CSSProperties => ({
     ...th,
-    borderLeft: s.blockStart ? `2px solid ${s.color}88` : `1px solid rgba(255,255,255,0.06)`,
+    borderLeft: s.blockStart ? `2px solid ${s.color}88` : `1px solid rgba(200,220,240,0.06)`,
   })
   const td = (color?: string): React.CSSProperties => ({
     padding: '5px 10px', fontSize: 11, textAlign: 'right',
-    fontVariantNumeric: 'tabular-nums', color: color ?? '#f1f5f9',
+    fontVariantNumeric: 'tabular-nums', color: color ?? '#eef2f6',
   })
   const tdFirst = (s: UsdSeriesDef, color?: string): React.CSSProperties => ({
     ...td(color),
-    borderLeft: s.blockStart ? `2px solid ${s.color}66` : `1px solid rgba(255,255,255,0.05)`,
+    borderLeft: s.blockStart ? `2px solid ${s.color}66` : `1px solid rgba(200,220,240,0.05)`,
   })
 
   return (
@@ -1407,13 +1408,13 @@ function UsdIndexLevels({ data }: { data: UsdCpiPoint[] }) {
                 {!s.blockStart && <span style={{ color: s.color, marginRight: 4 }}>↳</span>}
                 {s.label}
               </div>
-              <div style={{ fontSize: isMain ? 22 : 18, fontWeight: 800, color: s.color, letterSpacing: '-0.02em' }}>
+              <div style={{ fontSize: isMain ? 22 : 18, fontWeight: 600, color: s.color, letterSpacing: '-0.02em' }}>
                 {level.toFixed(2)}
               </div>
-              <div style={{ fontSize: 11, color: yoy >= 0 ? '#22c55e' : '#ef4444', marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: yoy >= 0 ? '#5fb592' : '#d9705e', marginTop: 2 }}>
                 {yoy >= 0 ? '+' : ''}{yoy.toFixed(1)}% YoY
               </div>
-              <div style={{ fontSize: 9, color: '#334155', marginTop: 3 }}>
+              <div style={{ fontSize: 9, color: '#77828f', marginTop: 3 }}>
                 {s.ticker} · {latest.date}
               </div>
             </div>
@@ -1427,17 +1428,17 @@ function UsdIndexLevels({ data }: { data: UsdCpiPoint[] }) {
           <div style={{ fontSize: 12, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             CPI Index Levels — United States
           </div>
-          <div style={{ fontSize: 10, color: '#334155' }}>1982-84 = 100</div>
+          <div style={{ fontSize: 10, color: '#77828f' }}>1982-84 = 100</div>
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 16 }}>
           Jan 2000 – Jun 2025 · 1982-84 = 100 · Simulated
         </div>
         <ResponsiveContainer width="100%" height={320}>
           <LineChart data={data} margin={{ top: 8, right: 24, bottom: 4, left: 0 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
+            <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
             <XAxis dataKey="date" ticks={xTicks} tickFormatter={d => d.slice(0, 4)}
-              tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false}
+              tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} />
+            <YAxis tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false}
               width={44} tickFormatter={(v: number) => v.toFixed(0)} />
             <Tooltip content={<IndexTooltip />} />
             {chartSeries.map(s => (
@@ -1448,12 +1449,12 @@ function UsdIndexLevels({ data }: { data: UsdCpiPoint[] }) {
         </ResponsiveContainer>
         <div style={{ display: 'flex', gap: 20, marginTop: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
           {chartSeries.map(s => (
-            <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#94a3b8' }}>
+            <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#c6ced8' }}>
               <div style={{ width: 22, height: 2, background: s.color, borderRadius: 1, flexShrink: 0 }} />
               {s.label}
             </div>
           ))}
-          <div style={{ fontSize: 10, color: '#334155', alignSelf: 'center' }}>
+          <div style={{ fontSize: 10, color: '#77828f', alignSelf: 'center' }}>
             Core Goods &amp; Services shown in table only
           </div>
         </div>
@@ -1464,7 +1465,7 @@ function UsdIndexLevels({ data }: { data: UsdCpiPoint[] }) {
         <div style={{ fontSize: 12, color: MUTED, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Recent Prints
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 14 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 14 }}>
           MoM SA computed via STL decomposition (Loess, period = 12) · ↳ = sub-component of the block above
         </div>
 
@@ -1477,7 +1478,7 @@ function UsdIndexLevels({ data }: { data: UsdCpiPoint[] }) {
                 borderRadius: 2, background: s.color,
                 opacity: s.blockStart ? 1 : 0.7, flexShrink: 0,
               }} />
-              <span style={{ color: s.blockStart ? '#94a3b8' : '#64748b' }}>
+              <span style={{ color: s.blockStart ? '#c6ced8' : '#9aa5b1' }}>
                 {!s.blockStart && '↳ '}{s.label}
               </span>
             </div>
@@ -1487,13 +1488,13 @@ function UsdIndexLevels({ data }: { data: UsdCpiPoint[] }) {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
                 <th style={{ ...th, textAlign: 'left', width: 72 }} rowSpan={2}>Date</th>
                 {USD_SERIES.map(s => (
                   <th key={s.key} colSpan={4} style={{
                     ...th, textAlign: 'center', color: s.color, paddingBottom: 4,
                     borderBottom: `2px solid ${s.color}${s.blockStart ? 'bb' : '55'}`,
-                    borderLeft: s.blockStart ? `2px solid ${s.color}88` : `1px solid rgba(255,255,255,0.06)`,
+                    borderLeft: s.blockStart ? `2px solid ${s.color}88` : `1px solid rgba(200,220,240,0.06)`,
                     background: `${s.color}08`,
                     fontSize: s.blockStart ? 10 : 9,
                   }}>
@@ -1501,7 +1502,7 @@ function UsdIndexLevels({ data }: { data: UsdCpiPoint[] }) {
                   </th>
                 ))}
               </tr>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.09)' }}>
+              <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.09)' }}>
                 {USD_SERIES.map(s => (
                   ['Level', 'YoY', 'MoM', 'SA'].map((h, hi) => (
                     <th key={`${s.key}-${h}`} style={{ ...th, ...(hi === 0 ? thFirst(s) : {}) }}>{h}</th>
@@ -1515,12 +1516,12 @@ function UsdIndexLevels({ data }: { data: UsdCpiPoint[] }) {
                 for (const s of USD_SERIES) rowMetrics[s.key] = metrics[s.key].find(m => m.date === pt.date)!
                 return (
                   <tr key={pt.date} style={{
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
-                    background: i === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
+                    borderBottom: '1px solid rgba(200,220,240,0.04)',
+                    background: i === 0 ? 'rgba(200,220,240,0.02)' : 'transparent',
                   }}>
-                    <td style={{ ...td(), textAlign: 'left', color: i === 0 ? '#f1f5f9' : '#94a3b8', fontWeight: i === 0 ? 600 : 400 }}>
+                    <td style={{ ...td(), textAlign: 'left', color: i === 0 ? '#eef2f6' : '#c6ced8', fontWeight: i === 0 ? 600 : 400 }}>
                       {new Date(pt.date + '-02').toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })}
-                      {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#f59e0b' }}>latest</span>}
+                      {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#d6ad66' }}>latest</span>}
                     </td>
                     {USD_SERIES.map(s => {
                       const m = rowMetrics[s.key]
@@ -1537,7 +1538,7 @@ function UsdIndexLevels({ data }: { data: UsdCpiPoint[] }) {
             </tbody>
           </table>
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginTop: 10 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginTop: 10 }}>
           † CPI SA computed via STL seasonal decomposition
         </div>
       </div>
@@ -1588,7 +1589,7 @@ function UsdFixings() {
     </div>
   )
   if (error || !data) return (
-    <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: '#ef4444' }}>
+    <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: '#d9705e' }}>
       Failed to load fixings: {error}
     </div>
   )
@@ -1621,7 +1622,7 @@ function UsdFixings() {
     v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(3)}%`
 
   const momColor = (v: number | null) =>
-    v == null ? MUTED : v > 0.05 ? '#22c55e' : v < -0.05 ? '#ef4444' : '#94a3b8'
+    v == null ? MUTED : v > 0.05 ? '#5fb592' : v < -0.05 ? '#d9705e' : '#c6ced8'
 
   const th: React.CSSProperties = {
     padding: '5px 12px', color: MUTED, fontWeight: 500, fontSize: 10,
@@ -1630,24 +1631,24 @@ function UsdFixings() {
   }
   const td = (color?: string): React.CSSProperties => ({
     padding: '5px 12px', fontSize: 11, textAlign: 'right',
-    fontVariantNumeric: 'tabular-nums', color: color ?? '#f1f5f9',
+    fontVariantNumeric: 'tabular-nums', color: color ?? '#eef2f6',
   })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <div style={{ fontSize: 11, color: '#334155' }}>As of {as_of_date}</div>
+        <div style={{ fontSize: 11, color: '#77828f' }}>As of {as_of_date}</div>
         <div style={{
           fontSize: 10, padding: '2px 8px', borderRadius: 4,
-          background: data_source === 'bloomberg' ? 'rgba(34,197,94,0.12)' : 'rgba(251,191,36,0.10)',
-          color:      data_source === 'bloomberg' ? '#22c55e' : '#fbbf24',
-          border:    `1px solid ${data_source === 'bloomberg' ? 'rgba(34,197,94,0.25)' : 'rgba(251,191,36,0.2)'}`,
+          background: data_source === 'bloomberg' ? 'rgba(95,181,146,0.12)' : 'rgba(223,187,120,0.10)',
+          color:      data_source === 'bloomberg' ? '#5fb592' : '#dfbb78',
+          border:    `1px solid ${data_source === 'bloomberg' ? 'rgba(95,181,146,0.25)' : 'rgba(223,187,120,0.2)'}`,
         }}>
           {data_source === 'bloomberg' ? 'Live · Bloomberg' : 'Simulated'}
         </div>
-        <div style={{ fontSize: 10, color: '#334155' }}>
-          Last CPI: <span style={{ color: '#f59e0b', fontWeight: 600 }}>{last_known_cpi.toFixed(2)}</span>
+        <div style={{ fontSize: 10, color: '#77828f' }}>
+          Last CPI: <span style={{ color: '#d6ad66', fontWeight: 600 }}>{last_known_cpi.toFixed(2)}</span>
         </div>
       </div>
 
@@ -1656,46 +1657,46 @@ function UsdFixings() {
           <div style={{ fontSize: 12, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             CPI (NSA) — History &amp; Implied Fixing Curve
           </div>
-          <div style={{ fontSize: 10, color: '#334155' }}>Index level (1982-84 = 100)</div>
+          <div style={{ fontSize: 10, color: '#77828f' }}>Index level (1982-84 = 100)</div>
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 16 }}>
           CPURNSA Index (history) · USCPIF1–12 &amp; USCPIT1–12 Comdty (YoY → reconstructed levels)
         </div>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={chartData} margin={{ top: 8, right: 24, bottom: 4, left: 0 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} interval={5} />
-            <YAxis tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} width={48} domain={['auto', 'auto']} tickFormatter={(v: number) => v.toFixed(1)} />
+            <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} interval={5} />
+            <YAxis tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} width={48} domain={['auto', 'auto']} tickFormatter={(v: number) => v.toFixed(1)} />
             <Tooltip
               content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null
                 const pt = payload[0].payload as ChartPoint
                 const level = pt.histLevel ?? pt.fixLevel
                 return (
-                  <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-                    <div style={{ color: '#94a3b8', marginBottom: 4 }}>{label}</div>
-                    <div style={{ color: pt.isForward ? '#f59e0b' : '#fbbf24' }}>
+                  <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+                    <div style={{ color: '#c6ced8', marginBottom: 4 }}>{label}</div>
+                    <div style={{ color: pt.isForward ? '#d6ad66' : '#dfbb78' }}>
                       {pt.isForward ? 'Implied' : 'Actual'}: <strong>{level?.toFixed(2) ?? '—'}</strong>
                     </div>
-                    {pt.isForward && <div style={{ color: '#334155', fontSize: 10, marginTop: 2 }}>Reconstructed from YoY fixing</div>}
+                    {pt.isForward && <div style={{ color: '#77828f', fontSize: 10, marginTop: 2 }}>Reconstructed from YoY fixing</div>}
                   </div>
                 )
               }}
             />
             <Line type="monotone" dataKey="histLevel" name="CPI (NSA) history"
-              stroke="#fbbf24" strokeWidth={1.5} dot={false} connectNulls />
+              stroke="#dfbb78" strokeWidth={1.5} dot={false} connectNulls />
             <Line type="monotone" dataKey="fixLevel" name="Implied (fixings)"
-              stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 2"
-              dot={{ r: 2, fill: '#f59e0b' }} connectNulls />
+              stroke="#d6ad66" strokeWidth={2} strokeDasharray="4 2"
+              dot={{ r: 2, fill: '#d6ad66' }} connectNulls />
           </LineChart>
         </ResponsiveContainer>
         <div style={{ display: 'flex', gap: 20, marginTop: 12, justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#94a3b8' }}>
-            <div style={{ width: 22, height: 2, background: '#fbbf24', borderRadius: 1 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#c6ced8' }}>
+            <div style={{ width: 22, height: 2, background: '#dfbb78', borderRadius: 1 }} />
             CPI (NSA) history
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#94a3b8' }}>
-            <div style={{ width: 22, height: 2, background: '#f59e0b', borderRadius: 1, borderTop: '2px dashed #f59e0b' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#c6ced8' }}>
+            <div style={{ width: 22, height: 2, background: '#d6ad66', borderRadius: 1, borderTop: '2px dashed #d6ad66' }} />
             Implied (fixings)
           </div>
         </div>
@@ -1705,13 +1706,13 @@ function UsdFixings() {
         <div style={{ fontSize: 12, color: MUTED, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Fixing Detail
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginBottom: 14 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginBottom: 14 }}>
           Level reconstructed from YoY rate × CPURNSA base · MoM SA = MoM NSA − seasonal factor
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.07)' }}>
                 {['#', 'Month', 'BBG Ticker', 'YoY', 'Level', 'MoM NSA', 'MoM SA'].map(h => (
                   <th key={h} style={{ ...th, textAlign: h === 'BBG Ticker' || h === 'Month' ? 'left' : 'right' }}>{h}</th>
                 ))}
@@ -1720,14 +1721,14 @@ function UsdFixings() {
             <tbody>
               {fixings.map((f, i) => (
                 <tr key={`${f.ticker}-${i}`}
-                  style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: i === 0 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
-                  <td style={{ ...td('#475569'), textAlign: 'right', width: 32 }}>{i + 1}</td>
+                  style={{ borderBottom: '1px solid rgba(200,220,240,0.04)', background: i === 0 ? 'rgba(200,220,240,0.02)' : 'transparent' }}>
+                  <td style={{ ...td('#8995a2'), textAlign: 'right', width: 32 }}>{i + 1}</td>
                   <td style={{ ...td(), textAlign: 'left' }}>
                     {new Date(f.calendar_month + '-02').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
-                    {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#f59e0b' }}>nearest</span>}
-                    {i === 12 && <span style={{ marginLeft: 6, fontSize: 9, color: '#475569' }}>T-series</span>}
+                    {i === 0 && <span style={{ marginLeft: 6, fontSize: 9, color: '#d6ad66' }}>nearest</span>}
+                    {i === 12 && <span style={{ marginLeft: 6, fontSize: 9, color: '#8995a2' }}>T-series</span>}
                   </td>
-                  <td style={{ padding: '5px 12px', fontSize: 10, color: '#475569', fontFamily: 'monospace', textAlign: 'left' }}>
+                  <td style={{ padding: '5px 12px', fontSize: 10, color: '#8995a2', fontFamily: "'Geist Mono', ui-monospace, monospace", textAlign: 'left' }}>
                     {f.ticker}
                   </td>
                   <td style={td(momColor(f.yoy_implied))}>
@@ -1741,10 +1742,10 @@ function UsdFixings() {
             </tbody>
           </table>
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginTop: 10 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginTop: 10 }}>
           Months 1–12: USCPIF series · Months 13–24: USCPIT series (T-series base = reconstructed F-series)
         </div>
-        <div style={{ fontSize: 10, color: '#334155', marginTop: 4 }}>
+        <div style={{ fontSize: 10, color: '#77828f', marginTop: 4 }}>
           † Live Bloomberg: use USSWIT&#123;n&#125; Curncy interpolated to calendar months
         </div>
       </div>
@@ -1781,7 +1782,6 @@ const GBP_SUBTABS: { id: GbpSubtab; label: string }[] = [
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function InflationFixingsMonitor() {
-  const navigate = useNavigate()
   const [region,    setRegion]    = useState<Region>('EUR')
   const [eurSubtab, setEurSubtab] = useState<EurSubtab>('index-levels')
   const [gbpSubtab, setGbpSubtab] = useState<GbpSubtab>('index-levels')
@@ -1793,23 +1793,16 @@ export default function InflationFixingsMonitor() {
   const regionColor = REGION_COLORS[region]
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, color: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif', padding: '24px' }}>
+    <div style={{ minHeight: '100vh', background: BG, color: '#eef2f6', fontFamily: "'Geist', system-ui, sans-serif", padding: '24px' }}>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <button onClick={() => navigate('/')}
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 8, padding: '6px 14px', color: '#94a3b8', fontSize: 13, cursor: 'pointer' }}>
-          ← Back
-        </button>
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>Inflation Fixings Monitor</div>
-          <div style={{ color: MUTED, fontSize: 11, marginTop: 1 }}>Inflation Markets · Simulated data</div>
-        </div>
+        <PageTitle category="Inflation Markets" categoryId="inflation-markets" title={<>Inflation Fixings Monitor</>} subtitle={<>Inflation Markets · Simulated data</>} />
       </div>
 
-      <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'sticky', top: 0, zIndex: 10, background: BG }}>
+      <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid rgba(200,220,240,0.07)', position: 'sticky', top: 0, zIndex: 10, background: BG }}>
         {(['EUR', 'GBP', 'USD'] as Region[]).map(r => (
           <button key={r} onClick={() => setRegion(r)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px 18px', fontSize: 13, fontWeight: 500, color: region === r ? REGION_COLORS[r] : '#64748b', borderBottom: region === r ? `2px solid ${REGION_COLORS[r]}` : '2px solid transparent', marginBottom: -1, transition: 'color 0.15s' }}>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px 18px', fontSize: 13, fontWeight: 500, color: region === r ? REGION_COLORS[r] : '#9aa5b1', borderBottom: region === r ? `2px solid ${REGION_COLORS[r]}` : '2px solid transparent', marginBottom: -1, transition: 'color 0.15s' }}>
             {REGION_LABELS[r]}
           </button>
         ))}
@@ -1819,10 +1812,10 @@ export default function InflationFixingsMonitor() {
 
         {region === 'EUR' && (
           <>
-            <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid rgba(200,220,240,0.05)' }}>
               {EUR_SUBTABS.map(st => (
                 <button key={st.id} onClick={() => setEurSubtab(st.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 14px', fontSize: 12, fontWeight: 500, color: eurSubtab === st.id ? regionColor : '#64748b', borderBottom: eurSubtab === st.id ? `2px solid ${regionColor}` : '2px solid transparent', marginBottom: -1 }}>
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 14px', fontSize: 12, fontWeight: 500, color: eurSubtab === st.id ? regionColor : '#9aa5b1', borderBottom: eurSubtab === st.id ? `2px solid ${regionColor}` : '2px solid transparent', marginBottom: -1 }}>
                   {st.label}
                 </button>
               ))}
@@ -1834,10 +1827,10 @@ export default function InflationFixingsMonitor() {
 
         {region === 'GBP' && (
           <>
-            <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid rgba(200,220,240,0.05)' }}>
               {GBP_SUBTABS.map(st => (
                 <button key={st.id} onClick={() => setGbpSubtab(st.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 14px', fontSize: 12, fontWeight: 500, color: gbpSubtab === st.id ? regionColor : '#64748b', borderBottom: gbpSubtab === st.id ? `2px solid ${regionColor}` : '2px solid transparent', marginBottom: -1 }}>
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 14px', fontSize: 12, fontWeight: 500, color: gbpSubtab === st.id ? regionColor : '#9aa5b1', borderBottom: gbpSubtab === st.id ? `2px solid ${regionColor}` : '2px solid transparent', marginBottom: -1 }}>
                   {st.label}
                 </button>
               ))}
@@ -1849,10 +1842,10 @@ export default function InflationFixingsMonitor() {
 
         {region === 'USD' && (
           <>
-            <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid rgba(200,220,240,0.05)' }}>
               {USD_SUBTABS.map(st => (
                 <button key={st.id} onClick={() => setUsdSubtab(st.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 14px', fontSize: 12, fontWeight: 500, color: usdSubtab === st.id ? regionColor : '#64748b', borderBottom: usdSubtab === st.id ? `2px solid ${regionColor}` : '2px solid transparent', marginBottom: -1 }}>
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 14px', fontSize: 12, fontWeight: 500, color: usdSubtab === st.id ? regionColor : '#9aa5b1', borderBottom: usdSubtab === st.id ? `2px solid ${regionColor}` : '2px solid transparent', marginBottom: -1 }}>
                   {st.label}
                 </button>
               ))}

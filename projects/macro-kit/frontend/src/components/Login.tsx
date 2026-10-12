@@ -1,6 +1,8 @@
 import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import Monogram from './Monogram'
+import { clearDashboardConfig } from '../hubData'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -25,6 +27,7 @@ export default function Login() {
       })
 
       localStorage.setItem('access_token', response.data.access_token)
+      clearDashboardConfig()
       navigate('/', { replace: true })
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
@@ -38,146 +41,91 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#080d1a] bg-radial-stars px-4">
-      {/* Subtle star-field overlay */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.08) 0%, transparent 60%)',
-        }}
-      />
-
-      <div className="relative w-full max-w-sm">
-        {/* Logo / title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 mb-4">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-9 h-9">
-              {/* Body */}
-              <ellipse cx="32" cy="36" rx="8" ry="13" fill="#C8A84B"/>
-              {/* Head */}
-              <circle cx="32" cy="18" r="6" fill="#C8A84B"/>
-              {/* Beak */}
-              <path d="M32 22 L29 26 L35 26 Z" fill="#8B6914"/>
-              {/* Left wing */}
-              <path d="M24 30 C16 24 4 28 2 20 C8 18 14 22 20 26 C16 20 10 12 14 8 C18 12 20 20 24 28 C22 22 20 14 24 10 C26 16 26 24 26 32Z" fill="#C8A84B"/>
-              {/* Right wing */}
-              <path d="M40 30 C48 24 60 28 62 20 C56 18 50 22 44 26 C48 20 54 12 50 8 C46 12 44 20 40 28 C42 22 44 14 40 10 C38 16 38 24 38 32Z" fill="#C8A84B"/>
-              {/* Tail feathers */}
-              <path d="M26 48 L24 58 L28 54 L32 60 L36 54 L40 58 L38 48Z" fill="#C8A84B"/>
-              {/* Left talon */}
-              <path d="M27 49 L22 56 M27 49 L24 57 M27 49 L26 57" stroke="#8B6914" strokeWidth="1.5" strokeLinecap="round"/>
-              {/* Right talon */}
-              <path d="M37 49 L42 56 M37 49 L40 57 M37 49 L38 57" stroke="#8B6914" strokeWidth="1.5" strokeLinecap="round"/>
-              {/* Eye */}
-              <circle cx="30" cy="17" r="1.5" fill="#1a1a1a"/>
-            </svg>
+    <div className="min-h-screen grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] bg-ink-0">
+      {/* Left: identity panel */}
+      <aside className="hidden lg:flex relative flex-col justify-between p-12 border-r border-hairline hub-dotgrid overflow-hidden">
+        <div className="flex items-center gap-3">
+          <Monogram size={34} />
+          <div className="leading-tight">
+            <div className="text-[13px] font-medium text-fg-1">Analytics Hub</div>
+            <div className="hub-num text-[10px] tracking-[0.14em] uppercase text-fg-3">Team Massimo Marzeglia</div>
           </div>
-          <h1
-            className="text-3xl font-bold tracking-tight text-white"
-            style={{
-              textShadow:
-                '0 0 30px rgba(59,130,246,0.6), 0 0 60px rgba(59,130,246,0.2)',
-            }}
-          >
-            Analytics Hub
-          </h1>
-          <p className="mt-2 text-sm text-slate-400">
-            Sign in to access the dashboard
-          </p>
         </div>
 
-        {/* Card */}
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl p-8 space-y-5"
-          style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          {error && (
-            <div className="rounded-lg px-4 py-3 text-sm text-red-300 bg-red-500/10 border border-red-500/20">
-              {error}
-            </div>
-          )}
+        <svg viewBox="0 0 460 120" className="w-full max-w-[460px] h-auto" aria-hidden="true">
+          {[0, 30, 60, 90].map((y) => (
+            <line key={y} x1="0" x2="460" y1={y + 10} y2={y + 10} stroke="rgba(150,178,205,0.08)" strokeDasharray="2 4" />
+          ))}
+          <path
+            d="M0 92 C40 88 60 70 95 72 S150 96 190 80 S250 40 290 46 S350 70 385 52 S430 24 460 28"
+            fill="none" stroke="#86c0de" strokeWidth="1.3"
+          />
+          <path
+            d="M0 70 C50 74 80 86 120 82 S190 58 230 62 S300 86 340 78 S420 60 460 64"
+            fill="none" stroke="#77828f" strokeWidth="1"
+          />
+          <circle cx="460" cy="28" r="2.6" fill="#86c0de" />
+        </svg>
+      </aside>
 
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">
-              Username
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              autoComplete="username"
-              placeholder="admin"
-              className="w-full rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-all"
-              style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.1)',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.border = '1px solid rgba(59,130,246,0.5)'
-                e.currentTarget.style.boxShadow =
-                  '0 0 0 3px rgba(59,130,246,0.1)'
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.border =
-                  '1px solid rgba(255,255,255,0.1)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            />
+      {/* Right: sign-in */}
+      <main className="flex items-center justify-center px-5 py-16">
+        <div className="w-full max-w-[340px] hub-enter">
+          <div className="lg:hidden flex items-center gap-3 mb-10">
+            <Monogram size={32} />
+            <span className="text-[13px] font-medium text-fg-1">Analytics Hub</span>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              placeholder="••••••••"
-              className="w-full rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-all"
-              style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.1)',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.border = '1px solid rgba(59,130,246,0.5)'
-                e.currentTarget.style.boxShadow =
-                  '0 0 0 3px rgba(59,130,246,0.1)'
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.border =
-                  '1px solid rgba(255,255,255,0.1)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            />
-          </div>
+          <h2 className="text-[22px] font-normal tracking-[-0.02em] text-fg-1 m-0">Sign in</h2>
+          <p className="mt-1.5 mb-8 text-[13px] text-fg-3">Use your Analytics Hub account.</p>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              background: loading
-                ? 'rgba(59,130,246,0.4)'
-                : 'linear-gradient(135deg, #3b82f6, #2563eb)',
-              boxShadow: loading
-                ? 'none'
-                : '0 0 20px rgba(59,130,246,0.3)',
-            }}
-          >
-            {loading ? 'Signing in…' : 'Sign In'}
-          </button>
-        </form>
-      </div>
+          <form onSubmit={handleSubmit} className="grid gap-5">
+            {error && (
+              <div className="rounded px-3.5 py-2.5 text-[13px] text-neg bg-neg/10 border border-neg/20">
+                {error}
+              </div>
+            )}
+
+            <label className="grid gap-1.5">
+              <span className="hub-eyebrow">Username</span>
+              <input
+                id="login-username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                autoComplete="username"
+                className="w-full rounded bg-ink-1 border border-[rgba(150,178,205,0.17)] px-3.5 py-2.5 text-[14px] text-fg-1 outline-none transition-colors duration-150 focus:border-accent"
+                style={{ outline: 'none' }}
+              />
+            </label>
+
+            <label className="grid gap-1.5">
+              <span className="hub-eyebrow">Password</span>
+              <input
+                id="login-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                className="w-full rounded bg-ink-1 border border-[rgba(150,178,205,0.17)] px-3.5 py-2.5 text-[14px] text-fg-1 outline-none transition-colors duration-150 focus:border-accent"
+                style={{ outline: 'none' }}
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 w-full rounded py-2.5 text-[13px] font-medium text-ink-0 bg-accent transition-opacity duration-150 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+
+          <p className="mt-10 hub-num text-[10px] text-fg-4">Session expires after 8 hours.</p>
+        </div>
+      </main>
     </div>
   )
 }

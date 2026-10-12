@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import PageTitle from '../components/PageTitle'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
   ScatterChart,
   Scatter,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -14,6 +13,7 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from 'recharts'
+import ExpressionDetail, { fmtBp, type SeriesPoint, type StatGroupDef } from '../components/ExpressionDetail'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -53,11 +53,6 @@ interface BetaRow {
   residual_zscore: number
 }
 
-interface SeriesPoint {
-  date: string
-  value: number
-}
-
 interface SwapsRVData {
   as_of: string
   min_date: string
@@ -66,33 +61,34 @@ interface SwapsRVData {
   rv_monitor: RVRow[]
   beta_monitor: BetaRow[]
   series: Record<string, SeriesPoint[]>
+  history?: { dates: string[]; values: Record<string, (number | null)[]> }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function zscoreStyle(z: number): { background: string; color: string; fontWeight?: string } {
-  if (z > 1.5)  return { background: 'rgba(239,68,68,0.12)',  color: '#f87171' }
-  if (z > 0.75) return { background: 'rgba(245,158,11,0.12)', color: '#fbbf24' }
-  if (z < -1.5) return { background: 'rgba(16,185,129,0.12)', color: '#34d399' }
-  if (z < -0.75)return { background: 'rgba(16,185,129,0.07)', color: '#6ee7b7' }
-  return { background: 'transparent', color: '#94a3b8' }
+  if (z > 1.5)  return { background: 'rgba(217,112,94,0.12)',  color: '#e2826f' }
+  if (z > 0.75) return { background: 'rgba(214,173,102,0.12)', color: '#dfbb78' }
+  if (z < -1.5) return { background: 'rgba(88,173,142,0.12)', color: '#6fc2a2' }
+  if (z < -0.75)return { background: 'rgba(88,173,142,0.07)', color: '#8fd1b6' }
+  return { background: 'transparent', color: '#c6ced8' }
 }
 
 function pctileBarColor(p: number): string {
-  if (p > 75) return '#f87171'
-  if (p < 25) return '#34d399'
-  return '#fbbf24'
+  if (p > 75) return '#e2826f'
+  if (p < 25) return '#6fc2a2'
+  return '#dfbb78'
 }
 
 function r2Color(r2: number): string {
-  if (r2 >= 0.6) return '#34d399'
-  if (r2 >= 0.3) return '#fbbf24'
-  return '#f87171'
+  if (r2 >= 0.6) return '#6fc2a2'
+  if (r2 >= 0.3) return '#dfbb78'
+  return '#e2826f'
 }
 
 function changeCellStyle(v: number | null): { color: string } {
-  if (v === null) return { color: '#475569' }
-  return { color: v > 0 ? '#f87171' : v < 0 ? '#34d399' : '#94a3b8' }
+  if (v === null) return { color: '#8995a2' }
+  return { color: v > 0 ? '#e2826f' : v < 0 ? '#6fc2a2' : '#c6ced8' }
 }
 
 function fmtChange(v: number | null): string {
@@ -123,8 +119,8 @@ function bubbleRadius(beta: number): number {
   return Math.max(5, Math.min(20, Math.abs(beta) * 14 + 4))
 }
 
-const CURVE_COLOR = '#3b82f6'   // blue
-const FLY_COLOR   = '#10b981'   // emerald
+const CURVE_COLOR = '#6aa9cc'   // blue
+const FLY_COLOR   = '#58ad8e'   // emerald
 
 const BETA_VARS: { key: keyof BetaRow; label: string }[] = [
   { key: 'beta_1y10y_fwd',  label: '1y10y Fwd' },
@@ -143,11 +139,11 @@ function makeShape(isFly: boolean, focusLabel: string | null, onBubbleClick: (la
     const radius = isSelected ? r + 2 : r
     return (
       <g opacity={isFocused ? 1 : 0.15} style={{ cursor: 'pointer' }} onClick={() => onBubbleClick(payload.label)}>
-        <circle cx={cx} cy={cy} r={radius} fill={baseColor} stroke={isSelected ? '#fff' : baseColor}
+        <circle cx={cx} cy={cy} r={radius} fill={baseColor} stroke={isSelected ? '#f4f7fa' : baseColor}
           strokeWidth={isSelected ? 1.5 : 0} strokeOpacity={0.6} fillOpacity={isSelected ? 1 : 0.82} />
         <text x={cx + radius + 4} y={cy} dominantBaseline="middle"
           fontSize={isSelected ? 10 : 9} fontWeight={isSelected ? 700 : 400}
-          fill={isSelected ? '#f1f5f9' : '#94a3b8'}
+          fill={isSelected ? '#eef2f6' : '#c6ced8'}
           style={{ pointerEvents: 'none', userSelect: 'none' }}>{payload.label}</text>
       </g>
     )
@@ -161,19 +157,19 @@ function makeCarryVolTooltip(betaVarLabel: string) {
     const betaLbl = `β ${betaVarLabel}`.padEnd(12)
     return (
       <div style={{
-        background: 'rgba(8,13,26,0.96)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        borderRadius: 8,
+        background: 'rgba(7,9,12,0.96)',
+        border: '1px solid rgba(200,220,240,0.12)',
+        borderRadius: 6,
         padding: '10px 14px',
         fontSize: 12,
       }}>
-        <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 6, fontFamily: 'monospace' }}>{d.label}</div>
-        <div style={{ color: '#64748b' }}>Z-score (1y)&nbsp;&nbsp;<span style={{ color: '#f1f5f9' }}>{d.x.toFixed(2)}</span></div>
-        <div style={{ color: '#64748b' }}>C/V ratio&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: d.y > 0 ? '#34d399' : '#f87171' }}>{d.y.toFixed(2)}</span></div>
-        <div style={{ color: '#64748b' }}>Carry (1y)&nbsp;&nbsp;&nbsp;<span style={{ color: '#cbd5e1' }}>{d.carry1y_bps.toFixed(1)} bp</span></div>
-        <div style={{ color: '#64748b' }}>3m RVol&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#cbd5e1' }}>{d.vol3m_bps.toFixed(1)} bp</span></div>
-        <div style={{ color: '#64748b' }}>Level&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#cbd5e1' }}>{d.value_bps.toFixed(1)} bp</span></div>
-        <div style={{ color: '#64748b' }}>{betaLbl}&nbsp;<span style={{ color: '#cbd5e1' }}>{d.beta.toFixed(3)}</span></div>
+        <div style={{ color: '#e4eaf1', fontWeight: 600, marginBottom: 6, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{d.label}</div>
+        <div style={{ color: '#9aa5b1' }}>Z-score (1y)&nbsp;&nbsp;<span style={{ color: '#eef2f6' }}>{d.x.toFixed(2)}</span></div>
+        <div style={{ color: '#9aa5b1' }}>C/V ratio&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: d.y > 0 ? '#6fc2a2' : '#e2826f' }}>{d.y.toFixed(2)}</span></div>
+        <div style={{ color: '#9aa5b1' }}>Carry (1y)&nbsp;&nbsp;&nbsp;<span style={{ color: '#c3ccd6' }}>{d.carry1y_bps.toFixed(1)} bp</span></div>
+        <div style={{ color: '#9aa5b1' }}>3m RVol&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#c3ccd6' }}>{d.vol3m_bps.toFixed(1)} bp</span></div>
+        <div style={{ color: '#9aa5b1' }}>Level&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#c3ccd6' }}>{d.value_bps.toFixed(1)} bp</span></div>
+        <div style={{ color: '#9aa5b1' }}>{betaLbl}&nbsp;<span style={{ color: '#c3ccd6' }}>{d.beta.toFixed(3)}</span></div>
       </div>
     )
   }
@@ -281,9 +277,9 @@ function CarryVolChart({ rvMonitor, betaMonitor, focusLabel, onBubbleClick, beta
         <button
           onClick={() => { setZoomMode(z => !z); setDrag(null) }}
           style={{
-            background: zoomMode ? 'rgba(59,130,246,0.25)' : 'rgba(255,255,255,0.06)',
-            border: zoomMode ? '1px solid rgba(59,130,246,0.4)' : '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 6, color: zoomMode ? '#93c5fd' : '#64748b',
+            background: zoomMode ? 'rgba(106,169,204,0.25)' : 'rgba(200,220,240,0.06)',
+            border: zoomMode ? '1px solid rgba(106,169,204,0.4)' : '1px solid rgba(200,220,240,0.1)',
+            borderRadius: 6, color: zoomMode ? '#a9d2e8' : '#9aa5b1',
             fontSize: 11, padding: '3px 10px', cursor: 'pointer',
           }}
         >
@@ -293,8 +289,8 @@ function CarryVolChart({ rvMonitor, betaMonitor, focusLabel, onBubbleClick, beta
           <button
             onClick={() => setZoomDomain(null)}
             style={{
-              background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)',
-              borderRadius: 6, color: '#93c5fd', fontSize: 11, padding: '3px 10px', cursor: 'pointer',
+              background: 'rgba(106,169,204,0.15)', border: '1px solid rgba(106,169,204,0.3)',
+              borderRadius: 6, color: '#a9d2e8', fontSize: 11, padding: '3px 10px', cursor: 'pointer',
             }}
           >
             ↺ Reset zoom
@@ -306,33 +302,33 @@ function CarryVolChart({ rvMonitor, betaMonitor, focusLabel, onBubbleClick, beta
       <div style={{ position: 'relative', width: '100%', height: CHART_H }}>
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={CHART_MARGIN}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
             <XAxis
               type="number" dataKey="x" name="Z-score"
               domain={[xLo, xHi]} allowDataOverflow
-              stroke="#475569" tick={{ fill: '#64748b', fontSize: 11 }}
+              stroke="#8995a2" tick={{ fill: '#9aa5b1', fontSize: 11 }}
               tickFormatter={(v: number) => v.toFixed(1)}
-              label={{ value: '1Y Z-score of level', position: 'insideBottom', offset: -28, fill: '#475569', fontSize: 11 }}
+              label={{ value: '1Y Z-score of level', position: 'insideBottom', offset: -28, fill: '#8995a2', fontSize: 11 }}
             />
             <YAxis
               type="number" dataKey="y" name="C/V"
               domain={[yLo, yHi]} allowDataOverflow
-              stroke="#475569" tick={{ fill: '#64748b', fontSize: 11 }}
+              stroke="#8995a2" tick={{ fill: '#9aa5b1', fontSize: 11 }}
               tickFormatter={(v: number) => v.toFixed(1)}
-              label={{ value: '1y carry / 3m realised vol', angle: -90, position: 'insideLeft', offset: -40, fill: '#475569', fontSize: 11 }}
+              label={{ value: '1y carry / 3m realised vol', angle: -90, position: 'insideLeft', offset: -40, fill: '#8995a2', fontSize: 11 }}
             />
             <Tooltip content={<TooltipContent />} cursor={false} />
             {/* quadrant shading */}
             <ReferenceArea x1={0} x2={xHi} y1={0} y2={yHi}
-              fill="rgba(52,211,153,0.025)"
+              fill="rgba(111,194,162,0.025)"
               label={{ value: 'Receive / Flatten ↗', position: 'insideTopRight', fill: '#34d39966', fontSize: 10, fontStyle: 'italic' }}
             />
             <ReferenceArea x1={xLo} x2={0} y1={yLo} y2={0}
-              fill="rgba(248,113,113,0.025)"
+              fill="rgba(226,130,111,0.025)"
               label={{ value: '↙ Pay / Steepen', position: 'insideBottomLeft', fill: '#f8717166', fontSize: 10, fontStyle: 'italic' }}
             />
-            <ReferenceLine x={0} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
+            <ReferenceLine x={0} stroke="rgba(200,220,240,0.15)" strokeDasharray="4 4" />
+            <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeDasharray="4 4" />
             <Scatter data={curves} shape={curveShape} isAnimationActive={false} />
             <Scatter data={flies}  shape={flyShape}   isAnimationActive={false} />
           </ScatterChart>
@@ -365,8 +361,8 @@ function CarryVolChart({ rvMonitor, betaMonitor, focusLabel, onBubbleClick, beta
               top: Math.min(drag.py1, drag.py2),
               width: Math.abs(drag.px2 - drag.px1),
               height: Math.abs(drag.py2 - drag.py1),
-              background: 'rgba(59,130,246,0.12)',
-              border: '1px solid rgba(59,130,246,0.5)',
+              background: 'rgba(106,169,204,0.12)',
+              border: '1px solid rgba(106,169,204,0.5)',
               pointerEvents: 'none',
             }} />
           )}
@@ -377,13 +373,13 @@ function CarryVolChart({ rvMonitor, betaMonitor, focusLabel, onBubbleClick, beta
       <div style={{ display: 'flex', alignItems: 'center', gap: 20, justifyContent: 'center', marginTop: 4 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <svg width={14} height={14}><circle cx={7} cy={7} r={6} fill={CURVE_COLOR} fillOpacity={0.82} /></svg>
-          <span style={{ color: '#64748b', fontSize: 11 }}>Curves</span>
+          <span style={{ color: '#9aa5b1', fontSize: 11 }}>Curves</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <svg width={14} height={14}><circle cx={7} cy={7} r={6} fill={FLY_COLOR} fillOpacity={0.82} /></svg>
-          <span style={{ color: '#64748b', fontSize: 11 }}>Flies</span>
+          <span style={{ color: '#9aa5b1', fontSize: 11 }}>Flies</span>
         </div>
-        <span style={{ color: '#334155', fontSize: 10, fontStyle: 'italic' }}>
+        <span style={{ color: '#77828f', fontSize: 10, fontStyle: 'italic' }}>
           Bubble size = |β {betaVarLabel}| &nbsp;·&nbsp; Positive carry → receiver/flattener
         </span>
       </div>
@@ -404,17 +400,17 @@ function StructureSelect({ rvMonitor, value, onChange, label = 'Focus on', inclu
   const flies  = rvMonitor.filter(r => r.group === 'fly')
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <span style={{ color: '#475569', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+      <span style={{ color: '#8995a2', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
         {label}
       </span>
       <select
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value || null)}
         style={{
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 8,
-          color: '#e2e8f0',
+          background: 'rgba(200,220,240,0.05)',
+          border: '1px solid rgba(200,220,240,0.1)',
+          borderRadius: 6,
+          color: '#e4eaf1',
           fontSize: 12,
           padding: '5px 10px',
           outline: 'none',
@@ -435,7 +431,7 @@ function StructureSelect({ rvMonitor, value, onChange, label = 'Focus on', inclu
       </select>
       {value && (
         <button onClick={() => onChange(null)}
-          style={{ color: '#475569', fontSize: 11, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          style={{ color: '#8995a2', fontSize: 11, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           ✕ clear
         </button>
       )}
@@ -443,157 +439,75 @@ function StructureSelect({ rvMonitor, value, onChange, label = 'Focus on', inclu
   )
 }
 
-// ─── Detail Chart ─────────────────────────────────────────────────────────────
+// ─── Expression Detail ────────────────────────────────────────────────────────
 
-function DetailTooltip({ active, payload }: any) {
-  if (!active || !payload?.length) return null
-  const d = payload[0].payload
-  return (
-    <div style={{
-      background: 'rgba(8,13,26,0.96)',
-      border: '1px solid rgba(255,255,255,0.12)',
-      borderRadius: 8,
-      padding: '8px 12px',
-      fontSize: 12,
-    }}>
-      <div style={{ color: '#64748b', marginBottom: 2 }}>{d.date}</div>
-      <div style={{ color: '#f1f5f9', fontVariantNumeric: 'tabular-nums' }}>{(d.value as number).toFixed(1)} bp</div>
-    </div>
-  )
-}
-
-function fmtAxisDate(d: string): string {
-  const dt = new Date(d)
-  return dt.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })
-}
-
-function DetailChart({ label, seriesData, rvRow, rvMonitor, onBack, onSwitch }: {
+function DetailChart({ label, history, rvRow, betaRow, rvMonitor, onBack, onSwitch }: {
   label: string
-  seriesData: SeriesPoint[]
+  history: SeriesPoint[]
   rvRow: RVRow
+  betaRow?: BetaRow
   rvMonitor: RVRow[]
   onBack: () => void
   onSwitch: (label: string) => void
 }) {
-  const values = seriesData.map(d => d.value)
-  const mean   = values.reduce((a, b) => a + b, 0) / values.length
-  const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length
-  const std    = Math.sqrt(variance)
-
-  const refLines = [
-    { y: mean + 2 * std, color: '#ef4444', dash: '3 3', tag: '+2σ' },
-    { y: mean + std,     color: '#f59e0b', dash: '3 3', tag: '+1σ' },
-    { y: mean,           color: 'rgba(255,255,255,0.45)', dash: '5 3', tag: 'μ' },
-    { y: mean - std,     color: '#10b981', dash: '3 3', tag: '-1σ' },
-    { y: mean - 2 * std, color: '#34d399', dash: '3 3', tag: '-2σ' },
-  ]
-
-  const stats = [
-    { label: 'Current',   value: `${values[values.length - 1].toFixed(1)} bp`, color: '#f1f5f9' },
-    { label: '1y Mean',   value: `${mean.toFixed(1)} bp`,                      color: '#94a3b8' },
-    { label: '1y Std',    value: `${std.toFixed(1)} bp`,                       color: '#94a3b8' },
-    { label: 'Z-score',   value: rvRow.zscore_1y.toFixed(2),                   color: zscoreStyle(rvRow.zscore_1y).color },
-    { label: 'Carry (1y)',value: `${rvRow.carry1y_bps.toFixed(1)} bp`,         color: rvRow.carry1y_bps > 0 ? '#34d399' : '#f87171' },
-    { label: '3m RVol',   value: `${rvRow.vol3m_bps.toFixed(1)} bp`,           color: '#94a3b8' },
-    { label: 'C/V',       value: rvRow.carry_vol_ratio !== null ? rvRow.carry_vol_ratio.toFixed(2) : '—',
-      color: (rvRow.carry_vol_ratio ?? 0) > 0 ? '#34d399' : '#f87171' },
-  ]
-
-  const tickInterval = Math.max(1, Math.floor(seriesData.length / 6))
+  const carryGroup: StatGroupDef = {
+    title: 'Carry & betas',
+    items: [
+      { label: 'Carry (1y)', value: fmtBp(rvRow.carry1y_bps), color: rvRow.carry1y_bps > 0 ? '#6fc2a2' : '#e2826f' },
+      { label: '3m RVol',    value: fmtBp(rvRow.vol3m_bps), sub: 'ann.' },
+      { label: 'Carry / Vol', value: rvRow.carry_vol_ratio !== null ? rvRow.carry_vol_ratio.toFixed(2) : '—',
+        color: (rvRow.carry_vol_ratio ?? 0) > 0 ? '#6fc2a2' : '#e2826f' },
+      ...(betaRow ? [
+        { label: 'β 1y10y fwd', value: fmtBeta(betaRow.beta_1y10y_fwd) },
+        { label: 'Beta R²',     value: `${Math.round(betaRow.r2 * 100)}%`, color: r2Color(betaRow.r2) },
+        { label: 'Residual Z',  value: betaRow.residual_zscore.toFixed(2), color: zscoreStyle(betaRow.residual_zscore).color },
+      ] : []),
+    ],
+  }
 
   return (
-    <div>
-      {/* Header row: back + selector */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+    <ExpressionDetail
+      history={history}
+      extraGroups={[carryGroup]}
+      footnote="Level and positioning stats use the selected lookback; carry, 3m RVol and betas are the monitor's fixed-window figures. Positive carry → receiver / flattener."
+      header={<>
         <button
           onClick={onBack}
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.09)',
-            borderRadius: 8, padding: '5px 12px',
-            color: '#94a3b8', fontSize: 12, cursor: 'pointer',
+            background: 'rgba(200,220,240,0.05)',
+            border: '1px solid rgba(200,220,240,0.09)',
+            borderRadius: 6, padding: '5px 12px',
+            color: '#c6ced8', fontSize: 12, cursor: 'pointer',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#e2e8f0' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(200,220,240,0.1)'; e.currentTarget.style.color = '#e4eaf1' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(200,220,240,0.05)'; e.currentTarget.style.color = '#c6ced8' }}
         >
           ← Overview
         </button>
         <StructureSelect rvMonitor={rvMonitor} value={label} onChange={(l) => l && onSwitch(l)} label="Structure" includeGroups={false} />
         <span style={{
-          fontFamily: 'monospace', fontWeight: 700, fontSize: 15, color: '#e2e8f0',
-          background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.25)',
+          fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, fontSize: 15, color: '#e4eaf1',
+          background: 'rgba(106,169,204,0.12)', border: '1px solid rgba(106,169,204,0.25)',
           borderRadius: 6, padding: '3px 10px',
         }}>{label}</span>
-        <span style={{ color: '#475569', fontSize: 12 }}>{rvRow.group}</span>
-      </div>
-
-      {/* Stats strip */}
-      <div style={{
-        display: 'flex', gap: 0, marginBottom: 24,
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: 10, overflow: 'hidden',
-      }}>
-        {stats.map(({ label: lbl, value, color }, i) => (
-          <div key={lbl} style={{
-            flex: 1, padding: '12px 16px', textAlign: 'center',
-            borderRight: i < stats.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
-          }}>
-            <div style={{ color: '#475569', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{lbl}</div>
-            <div style={{ color, fontSize: 15, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Line chart */}
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={seriesData} margin={{ top: 10, right: 56, bottom: 36, left: 48 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-          <XAxis
-            dataKey="date" stroke="#475569" tick={{ fill: '#64748b', fontSize: 10 }}
-            tickFormatter={fmtAxisDate} interval={tickInterval}
-            label={{ value: 'Date', position: 'insideBottom', offset: -24, fill: '#475569', fontSize: 11 }}
-          />
-          <YAxis
-            stroke="#475569" tick={{ fill: '#64748b', fontSize: 11 }}
-            tickFormatter={(v: number) => v.toFixed(0)} domain={['auto', 'auto']} width={44}
-            label={{ value: 'Level (bp)', angle: -90, position: 'insideLeft', offset: -32, fill: '#475569', fontSize: 11 }}
-          />
-          <Tooltip content={<DetailTooltip />} />
-          {refLines.map(({ y, color, dash, tag }) => (
-            <ReferenceLine key={tag} y={y} stroke={color} strokeDasharray={dash} strokeWidth={1.2}
-              label={{ value: tag, position: 'right', fill: color, fontSize: 9, fontWeight: 600 }}
-            />
-          ))}
-          <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} dot={false} isAnimationActive={false} />
-        </LineChart>
-      </ResponsiveContainer>
-
-      {/* Reference key */}
-      <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap' }}>
-        {refLines.map(({ tag, color }) => (
-          <div key={tag} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 20, height: 1.5, background: color, borderRadius: 1 }} />
-            <span style={{ color: '#475569', fontSize: 10 }}>{tag}</span>
-          </div>
-        ))}
-      </div>
-    </div>
+        <span style={{ color: '#8995a2', fontSize: 12 }}>{rvRow.group}</span>
+      </>}
+    />
   )
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12,
+  background: 'rgba(200,220,240,0.03)',
+  border: '1px solid rgba(200,220,240,0.07)',
+  borderRadius: 6,
   padding: 24,
 }
 
 const thStyle: React.CSSProperties = {
-  color: '#64748b',
+  color: '#9aa5b1',
   fontSize: 11,
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
@@ -604,14 +518,14 @@ const thStyle: React.CSSProperties = {
 
 const tdBase: React.CSSProperties = {
   padding: '7px 12px',
-  borderBottom: '1px solid rgba(255,255,255,0.04)',
+  borderBottom: '1px solid rgba(200,220,240,0.04)',
   fontSize: 13,
   fontVariantNumeric: 'tabular-nums',
 }
 
 const groupHeaderTd: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.02)',
-  color: '#475569',
+  background: 'rgba(200,220,240,0.02)',
+  color: '#8995a2',
   fontSize: 11,
   textTransform: 'uppercase',
   letterSpacing: '0.06em',
@@ -623,7 +537,11 @@ const groupHeaderTd: React.CSSProperties = {
 
 // ─── RV Monitor Table ─────────────────────────────────────────────────────────
 
-function RVMonitorTable({ rows }: { rows: RVRow[] }) {
+function RVMonitorTable({ rows, selected, onSelect }: {
+  rows: RVRow[]
+  selected: string | null
+  onSelect: (label: string) => void
+}) {
   type SortKey = keyof RVRow
   const [sortKey, setSortKey] = useState<SortKey>('zscore_1y')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
@@ -654,34 +572,39 @@ function RVMonitorTable({ rows }: { rows: RVRow[] }) {
       return (
         <tr
           key={row.label}
-          style={{ cursor: 'default' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+          onClick={() => onSelect(row.label)}
+          title={`Show ${row.label} history`}
+          style={{
+            cursor: 'pointer',
+            background: selected === row.label ? 'rgba(106,169,204,0.08)' : 'transparent',
+          }}
+          onMouseEnter={(e) => { if (selected !== row.label) e.currentTarget.style.background = 'rgba(200,220,240,0.03)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = selected === row.label ? 'rgba(106,169,204,0.08)' : 'transparent' }}
         >
-          <td style={{ ...tdBase, fontFamily: 'monospace', color: '#e2e8f0', textAlign: 'left' }}>{row.label}</td>
-          <td style={{ ...tdBase, color: '#ffffff', textAlign: 'right' }}>{row.value_bps.toFixed(1)}</td>
+          <td style={{ ...tdBase, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1', textAlign: 'left' }}>{row.label}</td>
+          <td style={{ ...tdBase, color: '#f4f7fa', textAlign: 'right' }}>{row.value_bps.toFixed(1)}</td>
           <td style={{ ...tdBase, ...changeCellStyle(row.d1d_bps), textAlign: 'right' }}>{fmtChange(row.d1d_bps)}</td>
           <td style={{ ...tdBase, ...changeCellStyle(row.d1w_bps), textAlign: 'right' }}>{fmtChange(row.d1w_bps)}</td>
           <td style={{ ...tdBase, ...changeCellStyle(row.d1m_bps), textAlign: 'right' }}>{fmtChange(row.d1m_bps)}</td>
-          <td style={{ ...tdBase, color: '#94a3b8', textAlign: 'right' }}>{row.vol3m_bps.toFixed(1)}</td>
+          <td style={{ ...tdBase, color: '#c6ced8', textAlign: 'right' }}>{row.vol3m_bps.toFixed(1)}</td>
           <td style={{
             ...tdBase,
             textAlign: 'right',
-            color: row.carry1y_bps > 0 ? '#34d399' : row.carry1y_bps < 0 ? '#f87171' : '#94a3b8',
+            color: row.carry1y_bps > 0 ? '#6fc2a2' : row.carry1y_bps < 0 ? '#e2826f' : '#c6ced8',
           }}>{row.carry1y_bps.toFixed(1)}</td>
           <td style={{
             ...tdBase,
             textAlign: 'right',
             color: row.carry_vol_ratio === null
-              ? '#475569'
-              : row.carry_vol_ratio > 0 ? '#34d399' : row.carry_vol_ratio < 0 ? '#f87171' : '#94a3b8',
+              ? '#8995a2'
+              : row.carry_vol_ratio > 0 ? '#6fc2a2' : row.carry_vol_ratio < 0 ? '#e2826f' : '#c6ced8',
             fontWeight: row.carry_vol_ratio !== null && Math.abs(row.carry_vol_ratio) >= 0.5 ? 600 : 400,
           }}>{row.carry_vol_ratio === null ? '—' : row.carry_vol_ratio.toFixed(2)}</td>
           <td style={{ ...tdBase, ...zStyle, textAlign: 'right', borderRadius: 4 }}>{row.zscore_1y.toFixed(2)}</td>
           <td style={{ ...tdBase, textAlign: 'right' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-              <span style={{ color: '#cbd5e1' }}>{row.pctile_1y.toFixed(1)}</span>
-              <div style={{ width: 60, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+              <span style={{ color: '#c3ccd6' }}>{row.pctile_1y.toFixed(1)}</span>
+              <div style={{ width: 60, height: 4, background: 'rgba(200,220,240,0.08)', borderRadius: 2, overflow: 'hidden' }}>
                 <div style={{ width: `${row.pctile_1y}%`, height: '100%', background: barColor, borderRadius: 2 }} />
               </div>
             </div>
@@ -715,7 +638,7 @@ function RVMonitorTable({ rows }: { rows: RVRow[] }) {
                   textAlign: col.align,
                   cursor: 'pointer',
                   userSelect: 'none',
-                  color: sortKey === col.key ? '#93c5fd' : '#64748b',
+                  color: sortKey === col.key ? '#a9d2e8' : '#9aa5b1',
                 }}
               >
                 {col.label}{sortKey === col.key ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}
@@ -736,7 +659,11 @@ function RVMonitorTable({ rows }: { rows: RVRow[] }) {
 
 // ─── Beta Monitor Table ───────────────────────────────────────────────────────
 
-function BetaMonitorTable({ rows }: { rows: BetaRow[] }) {
+function BetaMonitorTable({ rows, selected, onSelect }: {
+  rows: BetaRow[]
+  selected: string | null
+  onSelect: (label: string) => void
+}) {
   type SortKey = keyof BetaRow
   const [sortKey, setSortKey] = useState<SortKey>('r2')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
@@ -767,17 +694,22 @@ function BetaMonitorTable({ rows }: { rows: BetaRow[] }) {
       return (
         <tr
           key={row.label}
-          style={{ cursor: 'default' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+          onClick={() => onSelect(row.label)}
+          title={`Show ${row.label} history`}
+          style={{
+            cursor: 'pointer',
+            background: selected === row.label ? 'rgba(106,169,204,0.08)' : 'transparent',
+          }}
+          onMouseEnter={(e) => { if (selected !== row.label) e.currentTarget.style.background = 'rgba(200,220,240,0.03)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = selected === row.label ? 'rgba(106,169,204,0.08)' : 'transparent' }}
         >
-          <td style={{ ...tdBase, fontFamily: 'monospace', color: '#e2e8f0', textAlign: 'left' }}>{row.label}</td>
-          <td style={{ ...tdBase, color: '#cbd5e1', textAlign: 'right' }}>{fmtBeta(row.beta_1y10y_fwd)}</td>
-          <td style={{ ...tdBase, color: '#cbd5e1', textAlign: 'right' }}>{fmtBeta(row.beta_2y1y_fwd)}</td>
-          <td style={{ ...tdBase, color: '#cbd5e1', textAlign: 'right' }}>{fmtBeta(row.beta_1m10y_vol)}</td>
-          <td style={{ ...tdBase, color: '#cbd5e1', textAlign: 'right' }}>{fmtBeta(row.beta_1y10y_vol)}</td>
+          <td style={{ ...tdBase, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1', textAlign: 'left' }}>{row.label}</td>
+          <td style={{ ...tdBase, color: '#c3ccd6', textAlign: 'right' }}>{fmtBeta(row.beta_1y10y_fwd)}</td>
+          <td style={{ ...tdBase, color: '#c3ccd6', textAlign: 'right' }}>{fmtBeta(row.beta_2y1y_fwd)}</td>
+          <td style={{ ...tdBase, color: '#c3ccd6', textAlign: 'right' }}>{fmtBeta(row.beta_1m10y_vol)}</td>
+          <td style={{ ...tdBase, color: '#c3ccd6', textAlign: 'right' }}>{fmtBeta(row.beta_1y10y_vol)}</td>
           <td style={{ ...tdBase, color: r2c, textAlign: 'right', fontWeight: 600 }}>{Math.round(row.r2 * 100)}%</td>
-          <td style={{ ...tdBase, ...rzStyle, textAlign: 'right', fontWeight: 700, borderRadius: 4 }}>{row.residual_zscore.toFixed(2)}</td>
+          <td style={{ ...tdBase, ...rzStyle, textAlign: 'right', fontWeight: 600, borderRadius: 4 }}>{row.residual_zscore.toFixed(2)}</td>
         </tr>
       )
     })
@@ -804,7 +736,7 @@ function BetaMonitorTable({ rows }: { rows: BetaRow[] }) {
                   textAlign: col.align,
                   cursor: 'pointer',
                   userSelect: 'none',
-                  color: sortKey === col.key ? '#93c5fd' : '#64748b',
+                  color: sortKey === col.key ? '#a9d2e8' : '#9aa5b1',
                 }}
               >
                 {col.label}{sortKey === col.key ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}
@@ -843,7 +775,25 @@ export default function SwapsRV() {
   const [focusLabel, setFocusLabel] = useState<string | null>(null)
   const [detailLabel, setDetailLabel] = useState<string | null>(null)
   const [betaVar, setBetaVar] = useState<string>('beta_1y10y_fwd')
+  const detailRef = useRef<HTMLElement>(null)
   const navigate = useNavigate()
+
+  // Full history for one expression; falls back to the 1y series if the backend omits it
+  function historyFor(label: string): SeriesPoint[] {
+    const h = data?.history
+    if (h && h.values[label]) {
+      const out: SeriesPoint[] = []
+      h.values[label].forEach((v, i) => { if (v !== null) out.push({ date: h.dates[i], value: v }) })
+      return out
+    }
+    return data?.series[label] ?? []
+  }
+
+  function openDetail(label: string) {
+    setFocusLabel(label)
+    setDetailLabel(label)
+    detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   function fetchData(isRefresh = false, date?: string, ccy?: string) {
     const token = localStorage.getItem('access_token')
@@ -895,13 +845,13 @@ export default function SwapsRV() {
   useEffect(() => { fetchData() }, [navigate])
 
   return (
-    <div className="min-h-screen" style={{ background: '#080d1a' }}>
+    <div className="min-h-screen" style={{ background: '#07090c' }}>
       {/* Gradient overlay */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse at 50% -10%, rgba(59,130,246,0.06) 0%, transparent 55%)',
+            'radial-gradient(ellipse at 50% -10%, rgba(106,169,204,0.06) 0%, transparent 55%)',
         }}
       />
 
@@ -909,45 +859,20 @@ export default function SwapsRV() {
       <header
         className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
         style={{
-          background: 'rgba(8,13,26,0.85)',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(7,9,12,0.85)',
+          borderBottom: '1px solid rgba(200,220,240,0.07)',
           backdropFilter: 'blur(12px)',
         }}
       >
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-150"
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.09)',
-              color: '#94a3b8',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-              e.currentTarget.style.color = '#e2e8f0'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-              e.currentTarget.style.color = '#94a3b8'
-            }}
-          >
-            ←
-          </button>
-          <div>
-            <h1 className="text-base font-semibold text-white leading-tight">
-              Swap RV Monitor
-            </h1>
-          </div>
-        </div>
+        <PageTitle category="Futures / Swaps / Vol" categoryId="futures-swaps-vol" title="Swap RV Monitor" subtitle="Carry · roll · OIS-discounted curves and flies" />
 
         {/* Currency toggle */}
         <div
           className="flex items-center"
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 8,
+            background: 'rgba(200,220,240,0.04)',
+            border: '1px solid rgba(200,220,240,0.08)',
+            borderRadius: 6,
             padding: 3,
             gap: 2,
           }}
@@ -965,10 +890,10 @@ export default function SwapsRV() {
                 cursor: currency === key ? 'default' : 'pointer',
                 transition: 'all 0.15s',
                 background: currency === key
-                  ? 'rgba(59,130,246,0.25)'
+                  ? 'rgba(106,169,204,0.25)'
                   : 'transparent',
-                color: currency === key ? '#93c5fd' : '#64748b',
-                outline: currency === key ? '1px solid rgba(59,130,246,0.35)' : 'none',
+                color: currency === key ? '#a9d2e8' : '#9aa5b1',
+                outline: currency === key ? '1px solid rgba(106,169,204,0.35)' : 'none',
               }}
             >
               {label}
@@ -979,7 +904,7 @@ export default function SwapsRV() {
         <div className="flex items-center gap-3">
           {data && (
             <div className="flex items-center gap-2">
-              <span style={{ color: '#475569', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ color: '#8995a2', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 as of
               </span>
               <input
@@ -993,11 +918,11 @@ export default function SwapsRV() {
                   if (d) fetchData(false, d)
                 }}
                 style={{
-                  background: 'rgba(59,130,246,0.1)',
-                  border: '1px solid rgba(59,130,246,0.2)',
-                  borderRadius: 8,
+                  background: 'rgba(106,169,204,0.1)',
+                  border: '1px solid rgba(106,169,204,0.2)',
+                  borderRadius: 6,
                   padding: '4px 10px',
-                  color: '#93c5fd',
+                  color: '#a9d2e8',
                   fontSize: 12,
                   fontVariantNumeric: 'tabular-nums',
                   outline: 'none',
@@ -1012,19 +937,19 @@ export default function SwapsRV() {
             disabled={refreshing}
             className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: '#94a3b8',
+              background: 'rgba(200,220,240,0.06)',
+              border: '1px solid rgba(200,220,240,0.1)',
+              color: '#c6ced8',
             }}
             onMouseEnter={(e) => {
               if (!refreshing) {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-                e.currentTarget.style.color = '#e2e8f0'
+                e.currentTarget.style.background = 'rgba(200,220,240,0.1)'
+                e.currentTarget.style.color = '#e4eaf1'
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
-              e.currentTarget.style.color = '#94a3b8'
+              e.currentTarget.style.background = 'rgba(200,220,240,0.06)'
+              e.currentTarget.style.color = '#c6ced8'
             }}
           >
             <span style={{ display: 'inline-block', animation: refreshing ? 'spin 1s linear infinite' : 'none' }}>
@@ -1045,13 +970,13 @@ export default function SwapsRV() {
       {/* No data */}
       {!loading && noData && (
         <div className="flex flex-col items-center justify-center py-32 gap-4">
-          <div style={{ color: '#475569', fontSize: 14 }}>
+          <div style={{ color: '#8995a2', fontSize: 14 }}>
             No {currency} data available yet.
           </div>
-          <div style={{ color: '#334155', fontSize: 12, textAlign: 'center', maxWidth: 420 }}>
-            Populate <code style={{ color: '#64748b' }}>data/{currency.toLowerCase() === 'gbp' ? 'gbp_sonia' : 'usd_sofr'}_forwards.csv</code>,&nbsp;
-            <code style={{ color: '#64748b' }}>{currency.toLowerCase()}_beta_variables.csv</code> and&nbsp;
-            <code style={{ color: '#64748b' }}>{currency.toLowerCase() === 'gbp' ? 'gbp_sonia' : 'usd_sofr'}_swaps.csv</code> to enable this view.
+          <div style={{ color: '#77828f', fontSize: 12, textAlign: 'center', maxWidth: 420 }}>
+            Populate <code style={{ color: '#9aa5b1' }}>data/{currency.toLowerCase() === 'gbp' ? 'gbp_sonia' : 'usd_sofr'}_forwards.csv</code>,&nbsp;
+            <code style={{ color: '#9aa5b1' }}>{currency.toLowerCase()}_beta_variables.csv</code> and&nbsp;
+            <code style={{ color: '#9aa5b1' }}>{currency.toLowerCase() === 'gbp' ? 'gbp_sonia' : 'usd_sofr'}_swaps.csv</code> to enable this view.
           </div>
         </div>
       )}
@@ -1070,13 +995,14 @@ export default function SwapsRV() {
           }}
         >
           {/* A. Carry/Vol vs Z-score / Detail view */}
-          <section>
+          <section ref={detailRef} style={{ scrollMarginTop: 88 }}>
             <div style={cardStyle}>
-              {detailLabel && data.series[detailLabel] ? (
+              {detailLabel && historyFor(detailLabel).length > 1 && data.rv_monitor.some(r => r.label === detailLabel) ? (
                 <DetailChart
                   label={detailLabel}
-                  seriesData={data.series[detailLabel]}
+                  history={historyFor(detailLabel)}
                   rvRow={data.rv_monitor.find(r => r.label === detailLabel)!}
+                  betaRow={data.beta_monitor.find(b => b.label === detailLabel)}
                   rvMonitor={data.rv_monitor}
                   onBack={() => setDetailLabel(null)}
                   onSwitch={(l) => { setDetailLabel(l); setFocusLabel(l) }}
@@ -1092,19 +1018,19 @@ export default function SwapsRV() {
                       <>
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
                           <div>
-                            <h2 style={{ color: '#f1f5f9', fontSize: 16, fontWeight: 600, margin: 0 }}>
+                            <h2 style={{ color: '#eef2f6', fontSize: 16, fontWeight: 600, margin: 0 }}>
                               Carry / Vol vs Z-score
                             </h2>
-                            <p style={{ color: '#475569', fontSize: 12, marginTop: 4 }}>
-                              Click a bubble to view its 1y history
+                            <p style={{ color: '#8995a2', fontSize: 12, marginTop: 4 }}>
+                              Click a bubble or a table row to view its history and summary stats
                             </p>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ color: '#475569', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Size by β</span>
+                              <span style={{ color: '#8995a2', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Size by β</span>
                               <select value={betaVar} onChange={(e) => setBetaVar(e.target.value)} style={{
-                                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: 8, color: '#e2e8f0', fontSize: 12, padding: '5px 10px',
+                                background: 'rgba(200,220,240,0.05)', border: '1px solid rgba(200,220,240,0.1)',
+                                borderRadius: 6, color: '#e4eaf1', fontSize: 12, padding: '5px 10px',
                                 outline: 'none', cursor: 'pointer', colorScheme: 'dark',
                               }}>
                                 {BETA_VARS.map(({ key, label }) => (
@@ -1124,7 +1050,7 @@ export default function SwapsRV() {
                           rvMonitor={data.rv_monitor}
                           betaMonitor={data.beta_monitor}
                           focusLabel={chartFocusLabel}
-                          onBubbleClick={(l) => { setFocusLabel(l); setDetailLabel(l) }}
+                          onBubbleClick={openDetail}
                           betaVar={betaVar}
                           groupFilter={chartGroupFilter}
                         />
@@ -1140,14 +1066,14 @@ export default function SwapsRV() {
           <section>
             <div style={cardStyle}>
               <div style={{ marginBottom: 20 }}>
-                <h2 style={{ color: '#f1f5f9', fontSize: 16, fontWeight: 600, margin: 0 }}>
+                <h2 style={{ color: '#eef2f6', fontSize: 16, fontWeight: 600, margin: 0 }}>
                   RV Monitor
                 </h2>
-                <p style={{ color: '#475569', fontSize: 12, marginTop: 4 }}>
-                  1y z-scores &amp; percentiles
+                <p style={{ color: '#8995a2', fontSize: 12, marginTop: 4 }}>
+                  1y z-scores &amp; percentiles · click a row for its history
                 </p>
               </div>
-              <RVMonitorTable rows={data.rv_monitor} />
+              <RVMonitorTable rows={data.rv_monitor} selected={detailLabel} onSelect={openDetail} />
             </div>
           </section>
 
@@ -1155,14 +1081,14 @@ export default function SwapsRV() {
           <section>
             <div style={cardStyle}>
               <div style={{ marginBottom: 20 }}>
-                <h2 style={{ color: '#f1f5f9', fontSize: 16, fontWeight: 600, margin: 0 }}>
+                <h2 style={{ color: '#eef2f6', fontSize: 16, fontWeight: 600, margin: 0 }}>
                   Beta Monitor
                 </h2>
-                <p style={{ color: '#475569', fontSize: 12, marginTop: 4 }}>
+                <p style={{ color: '#8995a2', fontSize: 12, marginTop: 4 }}>
                   OLS on 1y daily changes (bps)
                 </p>
               </div>
-              <BetaMonitorTable rows={data.beta_monitor} />
+              <BetaMonitorTable rows={data.beta_monitor} selected={detailLabel} onSelect={openDetail} />
             </div>
           </section>
         </main>

@@ -1,12 +1,16 @@
+import asyncio
+import json
 import os
+import queue as _queue_module
+import uuid
 from datetime import timedelta
 from pathlib import Path
 from typing import Optional
 
 import yaml
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 
@@ -16,12 +20,26 @@ from auth import (
     bootstrap_admin,
     create_access_token,
     get_current_user,
+    verify_token,
 )
 
 # Create admin user from env vars on first deploy (no-op if users.json exists)
 bootstrap_admin()
+
+from agents.storage import init_db, create_run, get_runs, get_run, get_events
+from pod.roster import AGENTS as POD_ALL_AGENTS, ENABLED as POD_AGENTS, roster_entry
+from pod.workflows import WORKFLOWS as POD_WORKFLOWS, workflow_info
+from pod.storage import (get_views as pod_get_views, get_usage as pod_get_usage,
+                         get_model_overrides as pod_get_model_overrides,
+                         set_model_override as pod_set_model_override)
+from pod import models as pod_models
+from pod.config import anthropic_configured, openrouter_configured
+from pod.engine import run_workflow_background, run_single_agent_background, get_queue
+
+init_db()
+
 from swaps_rv import compute_rv
-from egb_rv import compute_egb_rv
+from egb_rv import compute_egb_rv, get_egb_series
 from hicp_fixings import get_hicp_fixings
 from rpi_fixings import get_rpi_fixings
 from us_cpi_fixings import get_us_cpi_fixings
@@ -105,8 +123,12 @@ from fitted_bond_curves import (
     get_bond_detail as fbc_bond_detail,
     predict_new_issue as fbc_new_issue,
 )
+from euribor_positioning_router import router as positioning_router
 
 app = FastAPI(title="Analytics Hub API", version="1.0.0")
+
+# Include routers
+app.include_router(positioning_router)
 
 # CORS for local development
 app.add_middleware(
@@ -377,7 +399,7 @@ async def global_yields(current_user: dict = Depends(get_current_user)):
 
 
 @app.get("/api/tools/fair-value-models")
-async def fair_value_models(current_user: dict = Depends(get_current_user)):
+def fair_value_models(current_user: dict = Depends(get_current_user)):
     """Rolling Elastic Net fair value models for HICPxT inflation swaps."""
     return get_fair_value_models_data()
 
@@ -591,12 +613,27 @@ async def inflation_fixings_usd(
 
 
 @app.get("/api/tools/egb-rv")
-async def get_egb_rv(
+def get_egb_rv(
+    date: str | None = None,
+    use_individual_bonds: bool = False,
+    refresh: bool = False,
+    current_user: dict = Depends(get_current_user),
+):
+    return compute_egb_rv(as_of_date=date, use_individual_bonds=use_individual_bonds, refresh=refresh)
+
+
+@app.get("/api/tools/egb-rv/series")
+def get_egb_rv_series(
+    label: str,
     date: str | None = None,
     use_individual_bonds: bool = False,
     current_user: dict = Depends(get_current_user),
 ):
-    return compute_egb_rv(as_of_date=date, use_individual_bonds=use_individual_bonds)
+    """Full daily history for a single EGB expression (detail view)."""
+    try:
+        return get_egb_series(label, as_of_date=date, use_individual_bonds=use_individual_bonds)
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Unknown expression: {label}")
 
 
 @app.get("/api/tools/swaps-rv")
@@ -843,6 +880,213 @@ async def mean_reversion_forward_hist(
     )
     result["horizon_date"] = target_ts.strftime("%Y-%m-%d")
     return result
+
+
+# ---------------------------------------------------------------------------
+# Agents — Global Macro Pod (backend/pod/; design in docs/GLOBAL_MACRO_POD_PROPOSAL.md)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/agents/roster")
+async def agents_roster(
+    desk: Optional[str] = None,
+    include_planned: bool = False,
+    current_user: dict = Depends(get_current_user),
+):
+    pool = POD_ALL_AGENTS if include_planned else POD_AGENTS
+    agents = [a for a in pool.values() if desk is None or a.desk == desk]
+    overrides = pod_get_model_overrides()
+    entries = []
+    for a in agents:
+        e = roster_entry(a)
+        e["model_override"] = overrides.get(a.id)
+        e["model_label"] = pod_models.resolve(a).label if a.enabled else e["model_id"]
+        entries.append(e)
+    return {"roster": entries}
+
+
+def _pod_model_or_400(model: Optional[str]) -> Optional[str]:
+    if not model:
+        return None
+    try:
+        spec = pod_models.validate(model)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    if spec.provider == "openrouter" and not openrouter_configured():
+        raise HTTPException(status_code=400, detail="OPENROUTER_API_KEY is not set (add it to backend/.env).")
+    return spec.spec
+
+
+@app.get("/api/agents/models")
+async def agents_models(refresh: bool = False, current_user: dict = Depends(get_current_user)):
+    """Models the pod can run on: Claude tiers plus open-weight, tool-capable OpenRouter models."""
+    try:
+        openrouter = await asyncio.to_thread(pod_models.openrouter_models, refresh)
+        openrouter_error = None
+    except Exception as exc:
+        openrouter, openrouter_error = [], f"Could not load the OpenRouter catalogue: {exc}"
+    return {
+        "anthropic": pod_models.anthropic_models(),
+        "openrouter": openrouter,
+        "anthropic_configured": anthropic_configured(),
+        "openrouter_configured": openrouter_configured(),
+        "openrouter_error": openrouter_error,
+    }
+
+
+@app.put("/api/agents/{agent_id}/model")
+async def agents_set_model(agent_id: str, body: dict, current_user: dict = Depends(get_current_user)):
+    """Set (or clear, with model=null) the stored model override for one agent."""
+    if agent_id not in POD_AGENTS:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found")
+    model = _pod_model_or_400(body.get("model"))
+    pod_set_model_override(agent_id, model)
+    return {"agent_id": agent_id, "model_override": model}
+
+
+@app.get("/api/agents/workflows")
+async def agents_workflows(current_user: dict = Depends(get_current_user)):
+    return {"workflows": workflow_info()}
+
+
+@app.post("/api/agents/run")
+async def agents_run(
+    body: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    question = (body.get("question") or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="question is required")
+    workflow = body.get("workflow") or "rates-desk"
+    if workflow not in POD_WORKFLOWS:
+        raise HTTPException(status_code=400, detail=f"Unknown workflow '{workflow}'")
+
+    model = _pod_model_or_400(body.get("model"))
+
+    run_id = str(uuid.uuid4())
+    username = current_user.get("username", "unknown")
+    create_run(run_id, question, username, agent_id=workflow)
+    run_workflow_background(run_id, workflow, question, model)   # returns immediately
+
+    return {"run_id": run_id, "status": "pending"}
+
+
+@app.get("/api/agents/stream/{run_id}")
+async def agents_stream(
+    run_id: str,
+    token: str = Query(..., description="JWT bearer token (EventSource can't send headers)"),
+):
+    # Validate token manually (EventSource can't send Authorization header)
+    try:
+        username = verify_token(token)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    run = get_run(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    async def event_generator():
+        # 1. Replay already-stored events so late consumers catch up
+        stored = get_events(run_id)
+        for ev in stored:
+            payload = {
+                "type": ev["event_type"],
+                "agent": ev["agent_name"],
+                "content": ev["content"],
+                "timestamp": ev["timestamp"],
+            }
+            yield f"data: {json.dumps(payload)}\n\n"
+
+        # 2. If run already finished, send final state and close
+        current_run = get_run(run_id)
+        if current_run and current_run["status"] in ("done", "error"):
+            replayed_synthesis = any(ev["event_type"] == "synthesis" for ev in stored)
+            if current_run["status"] == "done" and current_run.get("output") and not replayed_synthesis:
+                yield f"data: {json.dumps({'type': 'synthesis', 'agent': 'Head of Fixed Income', 'content': current_run['output']})}\n\n"
+            yield f"data: {json.dumps({'type': current_run['status'], 'run_id': run_id, 'content': ''})}\n\n"
+            return
+
+        # 3. Stream live events from the in-memory queue
+        q = get_queue(run_id)
+        if q is None:
+            # Queue not yet created (race condition on fast connections) — wait briefly
+            for _ in range(20):
+                await asyncio.sleep(0.2)
+                q = get_queue(run_id)
+                if q is not None:
+                    break
+
+        if q is None:
+            yield f"data: {json.dumps({'type': 'error', 'run_id': run_id, 'content': 'Queue not found — run may have already completed'})}\n\n"
+            return
+
+        while True:
+            try:
+                event = q.get_nowait()
+                yield f"data: {json.dumps(event)}\n\n"
+                if event.get("type") in ("done", "error"):
+                    break
+            except _queue_module.Empty:
+                await asyncio.sleep(0.3)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
+
+
+@app.post("/api/agents/{agent_id}/run")
+async def agent_single_run(
+    agent_id: str,
+    body: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    if agent_id not in POD_AGENTS:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found")
+    question = (body.get("question") or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="question is required")
+
+    model = _pod_model_or_400(body.get("model"))
+
+    run_id = str(uuid.uuid4())
+    username = current_user.get("username", "unknown")
+    create_run(run_id, question, username, agent_id=agent_id)
+    run_single_agent_background(run_id, agent_id, question, model)   # returns immediately
+
+    return {"run_id": run_id, "status": "pending"}
+
+
+@app.get("/api/agents/runs")
+async def agents_runs(
+    agent_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+):
+    username = current_user.get("username", "unknown")
+    runs = get_runs(username=username, agent_id=agent_id)
+    return {"runs": runs}
+
+
+@app.get("/api/agents/runs/{run_id}")
+async def agents_run_detail(
+    run_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    run = get_run(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+    events = get_events(run_id)
+    return {
+        "run": run,
+        "events": events,
+        "views": pod_get_views(run_id=run_id, since_days=3650, limit=200),
+        "usage": pod_get_usage(run_id),
+    }
 
 
 # ---------------------------------------------------------------------------

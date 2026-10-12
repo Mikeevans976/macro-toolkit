@@ -4,7 +4,7 @@
 // external regression variables (size, age, deliverability), with residuals
 // used as rich/cheap indicators and analysed with OU mean-reversion models.
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import PageTitle, { headerBar } from '../components/PageTitle'
 import {
   CartesianGrid, Cell, ComposedChart, Line, LineChart,
   ReferenceDot, ReferenceLine, ResponsiveContainer, Scatter,
@@ -133,29 +133,29 @@ type Tab = 'curve' | 'residuals' | 'coefficients' | 'richcheap' | 'detail' | 'ne
 
 // ─── Styling constants (match existing pages) ─────────────────────────────────
 
-const BG = '#080d1a'
-const ACCENT = '#A855F7'
-const ACCENT_DIM = 'rgba(168,85,247,0.15)'
-const ACCENT_BORDER = 'rgba(168,85,247,0.45)'
-const POS = '#10B981'
-const NEG = '#EF4444'
-const AMBER = '#F59E0B'
+const BG = '#07090c'
+const ACCENT = '#b08ad0'
+const ACCENT_DIM = 'rgba(176,138,208,0.15)'
+const ACCENT_BORDER = 'rgba(176,138,208,0.45)'
+const POS = '#58ad8e'
+const NEG = '#d9705e'
+const AMBER = '#d6ad66'
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12, padding: '18px 20px',
+  background: 'rgba(200,220,240,0.03)',
+  border: '1px solid rgba(200,220,240,0.07)',
+  borderRadius: 6, padding: '18px 20px',
 }
 const sectionLabel: React.CSSProperties = {
-  fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-  letterSpacing: '0.08em', color: '#64748b', marginBottom: 12,
+  fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+  letterSpacing: '0.08em', color: '#9aa5b1', marginBottom: 12,
 }
-const TICK_STYLE = { fill: '#64748b', fontSize: 11 }
-const GRID_STROKE = 'rgba(255,255,255,0.04)'
+const TICK_STYLE = { fill: '#9aa5b1', fontSize: 11 }
+const GRID_STROKE = 'rgba(200,220,240,0.04)'
 
 const SECTOR_COLORS: Record<string, string> = {
-  BKO: '#38bdf8',
-  OBL: '#10B981',
-  DBR: '#A855F7',
+  BKO: '#7cc3dc',
+  OBL: '#58ad8e',
+  DBR: '#b08ad0',
 }
 
 function fmt(v: number | null | undefined, decimals = 2): string {
@@ -170,9 +170,9 @@ function StatCard({ label, value, sub, color }: {
 }) {
   return (
     <div style={{ ...cardStyle, padding: '14px 18px', flex: 1, minWidth: 140 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#64748b' }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 700, marginTop: 6, color: color ?? '#f1f5f9', fontFamily: 'ui-monospace, monospace' }}>{value}</div>
-      {sub && <div style={{ fontSize: 10, color: '#475569', marginTop: 4 }}>{sub}</div>}
+      <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#9aa5b1' }}>{label}</div>
+      <div style={{ fontSize: 22, fontWeight: 600, marginTop: 6, color: color ?? '#eef2f6', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{value}</div>
+      {sub && <div style={{ fontSize: 10, color: '#8995a2', marginTop: 4 }}>{sub}</div>}
     </div>
   )
 }
@@ -182,11 +182,11 @@ function TabButton({ label, active, onClick }: {
 }) {
   return (
     <button onClick={onClick} style={{
-      padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+      padding: '7px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600,
       cursor: 'pointer',
-      background: active ? ACCENT_DIM : 'rgba(255,255,255,0.03)',
-      border: `1px solid ${active ? ACCENT_BORDER : 'rgba(255,255,255,0.08)'}`,
-      color: active ? ACCENT : '#94a3b8',
+      background: active ? ACCENT_DIM : 'rgba(200,220,240,0.03)',
+      border: `1px solid ${active ? ACCENT_BORDER : 'rgba(200,220,240,0.08)'}`,
+      color: active ? ACCENT : '#c6ced8',
     }}>
       {label}
     </button>
@@ -197,13 +197,13 @@ function ChartTooltip({ active, payload, label, unit }: any) {
   if (!active || !payload?.length) return null
   return (
     <div style={{
-      background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)',
-      borderRadius: 8, padding: '8px 12px', fontSize: 12,
+      background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)',
+      borderRadius: 6, padding: '8px 12px', fontSize: 12,
     }}>
-      <div style={{ color: '#64748b', marginBottom: 4 }}>{label}</div>
+      <div style={{ color: '#9aa5b1', marginBottom: 4 }}>{label}</div>
       {payload.map((p: any, i: number) => (
         p.value != null && (
-          <div key={i} style={{ color: p.color ?? '#e2e8f0' }}>
+          <div key={i} style={{ color: p.color ?? '#e4eaf1' }}>
             {p.name}: <b>{typeof p.value === 'number' ? fmt(p.value, 3) : p.value}</b>{unit ?? ''}
           </div>
         )
@@ -237,17 +237,17 @@ function UniverseEditorCard({ ed }: { ed: UniverseEditor }) {
         <TabButton label="Custom bond list (BBG tickers)" active={ed.customMode}
           onClick={() => ed.setCustomMode(true)} />
         <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-            letterSpacing: '0.06em', color: '#64748b' }}>As-of date</span>
+          <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
+            letterSpacing: '0.06em', color: '#9aa5b1' }}>As-of date</span>
           <input type="date" value={ed.asOf}
             onChange={e => { ed.setAsOf(e.target.value); ed.onAsOfChange(e.target.value) }}
-            style={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 8, padding: '6px 10px', color: '#e2e8f0', fontSize: 12.5,
-              fontFamily: 'ui-monospace, monospace', colorScheme: 'dark' }} />
+            style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)',
+              borderRadius: 6, padding: '6px 10px', color: '#e4eaf1', fontSize: 12.5,
+              fontFamily: "'Geist Mono', ui-monospace, monospace", colorScheme: 'dark' }} />
           {ed.asOf && (
             <button onClick={() => { ed.setAsOf(''); ed.onAsOfChange('') }}
               title="Reset to today"
-              style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>
+              style={{ background: 'none', border: 'none', color: '#9aa5b1', cursor: 'pointer', fontSize: 13 }}>
               ↺ today
             </button>
           )}
@@ -263,9 +263,9 @@ function UniverseEditorCard({ ed }: { ed: UniverseEditor }) {
             spellCheck={false}
             style={{
               width: '100%', boxSizing: 'border-box', resize: 'vertical',
-              background: '#0d1425', border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 8, padding: '10px 12px', color: '#e2e8f0',
-              fontSize: 12.5, fontFamily: 'ui-monospace, monospace', lineHeight: 1.7,
+              background: '#0b0f14', border: '1px solid rgba(200,220,240,0.12)',
+              borderRadius: 6, padding: '10px 12px', color: '#e4eaf1',
+              fontSize: 12.5, fontFamily: "'Geist Mono', ui-monospace, monospace", lineHeight: 1.7,
             }}
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 10 }}>
@@ -273,7 +273,7 @@ function UniverseEditorCard({ ed }: { ed: UniverseEditor }) {
               onClick={() => ed.onApply(true)}
               disabled={ed.loading || nTickers < 5}
               style={{
-                padding: '8px 22px', borderRadius: 8,
+                padding: '8px 22px', borderRadius: 6,
                 border: `1px solid ${ACCENT_BORDER}`, background: ACCENT_DIM,
                 color: ACCENT, fontSize: 13, fontWeight: 600,
                 cursor: ed.loading || nTickers < 5 ? 'not-allowed' : 'pointer',
@@ -281,12 +281,12 @@ function UniverseEditorCard({ ed }: { ed: UniverseEditor }) {
               }}>
               {ed.loading ? 'Fitting…' : 'Fit curve'}
             </button>
-            <span style={{ fontSize: 11, color: nTickers < 5 ? AMBER : '#475569' }}>
+            <span style={{ fontSize: 11, color: nTickers < 5 ? AMBER : '#8995a2' }}>
               {nTickers} ticker{nTickers === 1 ? '' : 's'}{nTickers < 5 ? ' — at least 5 required' : ''}
             </span>
           </div>
-          <div style={{ fontSize: 11, color: '#475569', marginTop: 8, lineHeight: 1.6 }}>
-            Format: <span style={{ fontFamily: 'ui-monospace, monospace', color: '#64748b' }}>ISSUER COUPON MM/DD/YY [Govt]</span> — coupon
+          <div style={{ fontSize: 11, color: '#8995a2', marginTop: 8, lineHeight: 1.6 }}>
+            Format: <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#9aa5b1' }}>ISSUER COUPON MM/DD/YY [Govt]</span> — coupon
             and maturity are taken from the ticker; reference data (issue date, amount outstanding)
             is simulated deterministically per ticker until Bloomberg is connected. Spline knots
             adapt automatically to the maturity span and bond count.
@@ -347,14 +347,14 @@ function CurveTab({ result, editor }: { result: FitResult; editor: UniverseEdito
           <ComposedChart margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
             <CartesianGrid stroke={GRID_STROKE} />
             <XAxis dataKey="ttm" type="number" domain={[0, 34]} tick={TICK_STYLE}
-              label={{ value: 'Years to maturity', position: 'insideBottom', offset: -5, fill: '#475569', fontSize: 11 }} />
+              label={{ value: 'Years to maturity', position: 'insideBottom', offset: -5, fill: '#8995a2', fontSize: 11 }} />
             <YAxis dataKey="ytm" type="number" domain={['auto', 'auto']} tick={TICK_STYLE} tickFormatter={(v: number) => v.toFixed(2)}
-              label={{ value: 'Yield (%)', angle: -90, position: 'insideLeft', fill: '#475569', fontSize: 11 }} />
+              label={{ value: 'Yield (%)', angle: -90, position: 'insideLeft', fill: '#8995a2', fontSize: 11 }} />
             <Tooltip content={<ChartTooltip unit="%" />} />
             {/* Knot positions: faint vertical guides… */}
             {knotPoints.map(p => (
               <ReferenceLine key={`kl-${p.knot}`} x={p.knot}
-                stroke="rgba(168,85,247,0.18)" strokeDasharray="3 4" />
+                stroke="rgba(176,138,208,0.18)" strokeDasharray="3 4" />
             ))}
             <Line data={curveData} dataKey="zero" name="Fitted zero curve" type="monotone"
               stroke={AMBER} strokeWidth={2} dot={false} xAxisId={0} yAxisId={0}
@@ -366,23 +366,23 @@ function CurveTab({ result, editor }: { result: FitResult; editor: UniverseEdito
                   const { cx, cy } = props as { cx: number; cy: number }
                   return (
                     <path d={`M ${cx} ${cy - 5} L ${cx + 4} ${cy} L ${cx} ${cy + 5} L ${cx - 4} ${cy} Z`}
-                      fill={ACCENT} stroke="#0a0f1e" strokeWidth={1} />
+                      fill={ACCENT} stroke="#090c10" strokeWidth={1} />
                   )
                 }} />
             ))}
             {Object.entries(scatterBySector).map(([sector, pts]) => (
               <Scatter key={sector} data={pts.map(p => ({ ttm: p.ttm, ytm: p.ytm, name: p.name }))}
-                name={sector} fill={SECTOR_COLORS[sector] ?? '#94a3b8'} isAnimationActive={false} />
+                name={sector} fill={SECTOR_COLORS[sector] ?? '#c6ced8'} isAnimationActive={false} />
             ))}
           </ComposedChart>
         </ResponsiveContainer>
-        <div style={{ display: 'flex', gap: 18, marginTop: 8, fontSize: 11, color: '#64748b', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 18, marginTop: 8, fontSize: 11, color: '#9aa5b1', flexWrap: 'wrap' }}>
           <span><span style={{ color: AMBER }}>—</span> fitted zero-coupon curve h(τ)</span>
           {knotPoints.length > 0 && (
             <span><span style={{ color: ACCENT }}>◆</span> spline knots ({result.config.knots_source ?? 'auto'})</span>
           )}
           {Object.keys(scatterBySector).map(s => (
-            <span key={s}><span style={{ color: SECTOR_COLORS[s] ?? '#94a3b8' }}>●</span> {s} (bond YTMs)</span>
+            <span key={s}><span style={{ color: SECTOR_COLORS[s] ?? '#c6ced8' }}>●</span> {s} (bond YTMs)</span>
           ))}
         </div>
       </div>
@@ -393,15 +393,15 @@ function CurveTab({ result, editor }: { result: FitResult; editor: UniverseEdito
           <ComposedChart data={curveData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
             <CartesianGrid stroke={GRID_STROKE} />
             <XAxis dataKey="ttm" type="number" domain={[0, 'auto']} tick={TICK_STYLE}
-              label={{ value: 'Years to maturity', position: 'insideBottom', offset: -5, fill: '#475569', fontSize: 11 }} />
+              label={{ value: 'Years to maturity', position: 'insideBottom', offset: -5, fill: '#8995a2', fontSize: 11 }} />
             <YAxis domain={[0, 1]} tick={TICK_STYLE} tickFormatter={(v: number) => v.toFixed(2)} />
             <Tooltip content={<ChartTooltip />} />
-            <ReferenceLine y={1} stroke="rgba(255,255,255,0.12)" strokeDasharray="3 3" />
+            <ReferenceLine y={1} stroke="rgba(200,220,240,0.12)" strokeDasharray="3 3" />
             <Line dataKey="df" name="Discount factor" type="monotone"
-              stroke="#38bdf8" strokeWidth={2} dot={false} isAnimationActive={false} />
+              stroke="#7cc3dc" strokeWidth={2} dot={false} isAnimationActive={false} />
           </ComposedChart>
         </ResponsiveContainer>
-        <div style={{ fontSize: 11, color: '#475569', marginTop: 6, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 11, color: '#8995a2', marginTop: 6, lineHeight: 1.6 }}>
           The price of a zero-coupon bond as a fraction of face value. By construction φ(0) = 1
           (criterion C2, no-arbitrage at the short end) and φ(τ) → 0 as τ → ∞ (criterion C1).
           Every bond&apos;s fitted price is its cash flows valued off this single function.
@@ -410,8 +410,8 @@ function CurveTab({ result, editor }: { result: FitResult; editor: UniverseEdito
 
       <div style={cardStyle}>
         <div style={sectionLabel}>Methodology — H&S Chapter 8</div>
-        <div style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.75 }}>
-          Bond prices are modelled as <span style={{ fontFamily: 'ui-monospace, monospace', color: '#e2e8f0' }}>
+        <div style={{ fontSize: 12.5, color: '#c6ced8', lineHeight: 1.75 }}>
+          Bond prices are modelled as <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }}>
           P&#7522; = Σ C&#7522;&#8342;·φ(τ&#7522;&#8342;) + Σ γ&#8342;·X&#7522;&#8342; + ε&#7522;</span> —
           cash flows discounted with a fitted discount function φ(τ) = e^(−h(τ)·τ), plus a
           cross-sectional regression on external conditioning variables (issue size, age,
@@ -455,11 +455,11 @@ function ResidualsTab({ result }: { result: FitResult }) {
           <ComposedChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
             <CartesianGrid stroke={GRID_STROKE} />
             <XAxis dataKey="ttm" type="number" domain={[0, 34]} tick={TICK_STYLE}
-              label={{ value: 'Years to maturity', position: 'insideBottom', offset: -5, fill: '#475569', fontSize: 11 }} />
+              label={{ value: 'Years to maturity', position: 'insideBottom', offset: -5, fill: '#8995a2', fontSize: 11 }} />
             <YAxis type="number" domain={[-maxAbs, maxAbs]} tick={TICK_STYLE} tickFormatter={(v: number) => v.toFixed(unit === 'bp' ? 1 : 2)}
-              label={{ value: unit === 'bp' ? 'Residual (bp)' : 'Residual (EUR)', angle: -90, position: 'insideLeft', fill: '#475569', fontSize: 11 }} />
+              label={{ value: unit === 'bp' ? 'Residual (bp)' : 'Residual (EUR)', angle: -90, position: 'insideLeft', fill: '#8995a2', fontSize: 11 }} />
             <Tooltip content={<ChartTooltip unit={unit === 'bp' ? ' bp' : ' EUR'} />} />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" />
+            <ReferenceLine y={0} stroke="rgba(200,220,240,0.2)" />
             <Scatter dataKey="value" name="Residual" isAnimationActive={false}>
               {data.map((d, i) => (
                 <Cell key={i} fill={d.deliverable ? AMBER : (d.value > 0 ? NEG : POS)} />
@@ -467,7 +467,7 @@ function ResidualsTab({ result }: { result: FitResult }) {
             </Scatter>
           </ComposedChart>
         </ResponsiveContainer>
-        <div style={{ display: 'flex', gap: 18, marginTop: 8, fontSize: 11, color: '#64748b' }}>
+        <div style={{ display: 'flex', gap: 18, marginTop: 8, fontSize: 11, color: '#9aa5b1' }}>
           <span><span style={{ color: NEG }}>●</span> rich</span>
           <span><span style={{ color: POS }}>●</span> cheap</span>
           <span><span style={{ color: AMBER }}>●</span> futures-deliverable issue</span>
@@ -481,14 +481,14 @@ function ResidualsTab({ result }: { result: FitResult }) {
 
 function CoefficientsTab({ result }: { result: FitResult }) {
   const thStyle: React.CSSProperties = {
-    textAlign: 'left', padding: '8px 12px', fontSize: 10, fontWeight: 700,
-    textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b',
-    borderBottom: '1px solid rgba(255,255,255,0.08)',
+    textAlign: 'left', padding: '8px 12px', fontSize: 10, fontWeight: 600,
+    textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9aa5b1',
+    borderBottom: '1px solid rgba(200,220,240,0.08)',
   }
   const tdStyle: React.CSSProperties = {
-    padding: '9px 12px', fontSize: 13, color: '#e2e8f0',
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
-    fontFamily: 'ui-monospace, monospace',
+    padding: '9px 12px', fontSize: 13, color: '#e4eaf1',
+    borderBottom: '1px solid rgba(200,220,240,0.04)',
+    fontFamily: "'Geist Mono', ui-monospace, monospace",
   }
   return (
     <>
@@ -512,8 +512,8 @@ function CoefficientsTab({ result }: { result: FitResult }) {
                 <tr key={c.variable}>
                   <td style={{ ...tdStyle, fontFamily: 'inherit' }}>{c.label}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', color: good ? POS : AMBER }}>{fmt(c.estimate, 4)}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right', color: '#64748b' }}>{fmt(c.true_value, 4)}</td>
-                  <td style={{ ...tdStyle, color: '#64748b', fontFamily: 'inherit' }}>{c.units}</td>
+                  <td style={{ ...tdStyle, textAlign: 'right', color: '#9aa5b1' }}>{fmt(c.true_value, 4)}</td>
+                  <td style={{ ...tdStyle, color: '#9aa5b1', fontFamily: 'inherit' }}>{c.units}</td>
                 </tr>
               )
             })}
@@ -523,16 +523,16 @@ function CoefficientsTab({ result }: { result: FitResult }) {
 
       <div style={cardStyle}>
         <div style={sectionLabel}>Interpretation</div>
-        <div style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.8 }}>
-          <b style={{ color: '#e2e8f0' }}>Amount outstanding</b> — a positive coefficient means larger
+        <div style={{ fontSize: 12.5, color: '#c6ced8', lineHeight: 1.8 }}>
+          <b style={{ color: '#e4eaf1' }}>Amount outstanding</b> — a positive coefficient means larger
           issues trade expensive: the benchmark effect. H&S estimated EUR 0.025 per EUR 1bn on
           7 Dec 2012 Bund data.<br />
-          <b style={{ color: '#e2e8f0' }}>Issue age</b> — a negative coefficient means bonds cheapen as
+          <b style={{ color: '#e4eaf1' }}>Issue age</b> — a negative coefficient means bonds cheapen as
           they age (off-the-run effect); H&S: −2.7 cents/year.<br />
-          <b style={{ color: '#e2e8f0' }}>Deliverability</b> — the variable is the bond&apos;s BPV when it
+          <b style={{ color: '#e4eaf1' }}>Deliverability</b> — the variable is the bond&apos;s BPV when it
           is deliverable into the futures contract (zero otherwise), so the coefficient reads directly
           as the number of basis points of richness for deliverable issues; H&S found 2–4 bp.<br />
-          <span style={{ color: '#64748b' }}>
+          <span style={{ color: '#9aa5b1' }}>
             Since this page runs on synthetic data with known pricing effects, the &quot;True&quot; column
             validates the optimiser: estimates should be near truth when identification is good.
             The tiny Schatz basket (2 issues, small BPVs) is genuinely hard to identify — especially
@@ -568,15 +568,15 @@ function RichCheapTab({ result, onSelectBond }: {
   }
 
   const thStyle: React.CSSProperties = {
-    textAlign: 'right', padding: '8px 10px', fontSize: 10, fontWeight: 700,
-    textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b',
-    borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
+    textAlign: 'right', padding: '8px 10px', fontSize: 10, fontWeight: 600,
+    textTransform: 'uppercase', letterSpacing: '0.05em', color: '#9aa5b1',
+    borderBottom: '1px solid rgba(200,220,240,0.08)', cursor: 'pointer',
     whiteSpace: 'nowrap', userSelect: 'none',
   }
   const tdStyle: React.CSSProperties = {
-    padding: '7px 10px', fontSize: 12.5, color: '#e2e8f0', textAlign: 'right',
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
-    fontFamily: 'ui-monospace, monospace', whiteSpace: 'nowrap',
+    padding: '7px 10px', fontSize: 12.5, color: '#e4eaf1', textAlign: 'right',
+    borderBottom: '1px solid rgba(200,220,240,0.04)',
+    fontFamily: "'Geist Mono', ui-monospace, monospace", whiteSpace: 'nowrap',
   }
   const arrow = (k: SortKey) => sortKey === k ? (sortAsc ? ' ↑' : ' ↓') : ''
 
@@ -606,12 +606,12 @@ function RichCheapTab({ result, onSelectBond }: {
           <tbody>
             {rows.map(b => {
               const rc = b.residual_bp
-              const rcColor = rc > 1 ? NEG : rc < -1 ? POS : '#e2e8f0'
-              const avgColor = (v: number) => v > 1 ? NEG : v < -1 ? POS : '#94a3b8'
+              const rcColor = rc > 1 ? NEG : rc < -1 ? POS : '#e4eaf1'
+              const avgColor = (v: number) => v > 1 ? NEG : v < -1 ? POS : '#c6ced8'
               return (
                 <tr key={b.bond_id} onClick={() => onSelectBond(b.bond_id)}
                   style={{ cursor: 'pointer' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(200,220,240,0.03)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                   <td style={{ ...tdStyle, textAlign: 'left', fontFamily: 'inherit' }}>
                     <span style={{ color: SECTOR_COLORS[b.sector], marginRight: 6 }}>●</span>{b.name}
@@ -619,21 +619,21 @@ function RichCheapTab({ result, onSelectBond }: {
                   <td style={{ ...tdStyle, color: AMBER }}>{b.deliverable ?? ''}</td>
                   <td style={tdStyle}>{fmt(b.ttm, 1)}</td>
                   <td style={tdStyle}>{fmt(b.ytm, 3)}</td>
-                  <td style={{ ...tdStyle, color: '#64748b' }}>{fmt(b.fitted_ytm, 3)}</td>
-                  <td style={{ ...tdStyle, color: rcColor, fontWeight: 700 }}>{fmt(rc, 1)}</td>
+                  <td style={{ ...tdStyle, color: '#9aa5b1' }}>{fmt(b.fitted_ytm, 3)}</td>
+                  <td style={{ ...tdStyle, color: rcColor, fontWeight: 600 }}>{fmt(rc, 1)}</td>
                   <td style={{ ...tdStyle, color: avgColor(b.avg_resid_1m_bp) }}>{fmt(b.avg_resid_1m_bp, 1)}</td>
                   <td style={{ ...tdStyle, color: avgColor(b.avg_resid_3m_bp) }}>{fmt(b.avg_resid_3m_bp, 1)}</td>
                   <td style={{ ...tdStyle, color: rcColor }}>{fmt(b.residual_eur, 3)}</td>
-                  <td style={{ ...tdStyle, color: Math.abs(b.ou_zscore) > 2 ? AMBER : '#e2e8f0' }}>{fmt(b.ou_zscore, 1)}</td>
+                  <td style={{ ...tdStyle, color: Math.abs(b.ou_zscore) > 2 ? AMBER : '#e4eaf1' }}>{fmt(b.ou_zscore, 1)}</td>
                   <td style={tdStyle}>{fmt(b.ou_half_life, 0)}</td>
-                  <td style={{ ...tdStyle, color: b.sharpe_2w > 1 ? POS : '#e2e8f0' }}>{fmt(b.sharpe_2w, 2)}</td>
+                  <td style={{ ...tdStyle, color: b.sharpe_2w > 1 ? POS : '#e4eaf1' }}>{fmt(b.sharpe_2w, 2)}</td>
                 </tr>
               )
             })}
           </tbody>
         </table>
       </div>
-      <div style={{ fontSize: 11, color: '#475569', marginTop: 10, lineHeight: 1.7 }}>
+      <div style={{ fontSize: 11, color: '#8995a2', marginTop: 10, lineHeight: 1.7 }}>
         Residual: <span style={{ color: NEG }}>positive = rich</span> (short candidate),{' '}
         <span style={{ color: POS }}>negative = cheap</span> (long candidate). Per H&S p.178, naked
         z-scores ignore reversion speed — so t½ (OU half-life) and the ex-ante 2-week Sharpe ratio of
@@ -692,17 +692,17 @@ function NewIssueTab({ token, config }: {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', boxSizing: 'border-box', fontSize: 13, padding: '8px 10px',
-    borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)',
-    background: '#0d1425', color: '#e2e8f0', fontFamily: 'ui-monospace, monospace',
+    borderRadius: 6, border: '1px solid rgba(200,220,240,0.12)',
+    background: '#0b0f14', color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace",
   }
   const lblStyle: React.CSSProperties = {
-    fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-    letterSpacing: '0.06em', color: '#64748b', marginBottom: 5,
+    fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
+    letterSpacing: '0.06em', color: '#9aa5b1', marginBottom: 5,
   }
   const tdStyle: React.CSSProperties = {
-    padding: '8px 12px', fontSize: 13, color: '#e2e8f0',
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
-    fontFamily: 'ui-monospace, monospace',
+    padding: '8px 12px', fontSize: 13, color: '#e4eaf1',
+    borderBottom: '1px solid rgba(200,220,240,0.04)',
+    fontFamily: "'Geist Mono', ui-monospace, monospace",
   }
 
   return (
@@ -731,9 +731,9 @@ function NewIssueTab({ token, config }: {
           </div>
           <button onClick={price} disabled={loading || !maturity.trim()}
             style={{
-              padding: '9px 26px', borderRadius: 8,
+              padding: '9px 26px', borderRadius: 6,
               border: `1px solid ${ACCENT_BORDER}`, background: ACCENT_DIM,
-              color: ACCENT, fontSize: 13, fontWeight: 700,
+              color: ACCENT, fontSize: 13, fontWeight: 600,
               cursor: loading || !maturity.trim() ? 'not-allowed' : 'pointer',
               opacity: loading || !maturity.trim() ? 0.5 : 1,
             }}>
@@ -765,23 +765,23 @@ function NewIssueTab({ token, config }: {
                   <tr>
                     <td style={tdStyle}>Cash flows off fitted curve Σ C·φ(τ)</td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(out.curve_pv, 4)}</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', color: '#64748b' }}>—</td>
+                    <td style={{ ...tdStyle, textAlign: 'right', color: '#9aa5b1' }}>—</td>
                   </tr>
                   {out.effects.map((e, i) => (
                     <tr key={i}>
-                      <td style={{ ...tdStyle, color: '#94a3b8' }}>{e.label}</td>
-                      <td style={{ ...tdStyle, textAlign: 'right', color: e.eur > 0 ? NEG : e.eur < 0 ? POS : '#64748b' }}>
+                      <td style={{ ...tdStyle, color: '#c6ced8' }}>{e.label}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', color: e.eur > 0 ? NEG : e.eur < 0 ? POS : '#9aa5b1' }}>
                         {e.eur >= 0 ? '+' : ''}{fmt(e.eur, 4)}
                       </td>
-                      <td style={{ ...tdStyle, textAlign: 'right', color: '#64748b' }}>{fmt(e.bp, 1)} bp</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', color: '#9aa5b1' }}>{fmt(e.bp, 1)} bp</td>
                     </tr>
                   ))}
                   <tr>
-                    <td style={{ ...tdStyle, fontWeight: 700, borderTop: '1px solid rgba(255,255,255,0.12)' }}>Predicted dirty price</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: ACCENT, borderTop: '1px solid rgba(255,255,255,0.12)' }}>
+                    <td style={{ ...tdStyle, fontWeight: 600, borderTop: '1px solid rgba(200,220,240,0.12)' }}>Predicted dirty price</td>
+                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600, color: ACCENT, borderTop: '1px solid rgba(200,220,240,0.12)' }}>
                       {fmt(out.predicted_price, 4)}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'right', color: '#64748b', borderTop: '1px solid rgba(255,255,255,0.12)' }}>
+                    <td style={{ ...tdStyle, textAlign: 'right', color: '#9aa5b1', borderTop: '1px solid rgba(200,220,240,0.12)' }}>
                       {fmt(out.spread_to_curve_bp, 1)} bp
                     </td>
                   </tr>
@@ -794,10 +794,10 @@ function NewIssueTab({ token, config }: {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    <td style={{ ...tdStyle, color: '#64748b', fontSize: 10, textTransform: 'uppercase', fontFamily: 'inherit' }}>Bond</td>
-                    <td style={{ ...tdStyle, color: '#64748b', fontSize: 10, textTransform: 'uppercase', textAlign: 'right', fontFamily: 'inherit' }}>TTM</td>
-                    <td style={{ ...tdStyle, color: '#64748b', fontSize: 10, textTransform: 'uppercase', textAlign: 'right', fontFamily: 'inherit' }}>YTM</td>
-                    <td style={{ ...tdStyle, color: '#64748b', fontSize: 10, textTransform: 'uppercase', textAlign: 'right', fontFamily: 'inherit' }}>Resid bp</td>
+                    <td style={{ ...tdStyle, color: '#9aa5b1', fontSize: 10, textTransform: 'uppercase', fontFamily: 'inherit' }}>Bond</td>
+                    <td style={{ ...tdStyle, color: '#9aa5b1', fontSize: 10, textTransform: 'uppercase', textAlign: 'right', fontFamily: 'inherit' }}>TTM</td>
+                    <td style={{ ...tdStyle, color: '#9aa5b1', fontSize: 10, textTransform: 'uppercase', textAlign: 'right', fontFamily: 'inherit' }}>YTM</td>
+                    <td style={{ ...tdStyle, color: '#9aa5b1', fontSize: 10, textTransform: 'uppercase', textAlign: 'right', fontFamily: 'inherit' }}>Resid bp</td>
                   </tr>
                 </thead>
                 <tbody>
@@ -806,14 +806,14 @@ function NewIssueTab({ token, config }: {
                       <td style={tdStyle}>{n.name}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(n.ttm, 1)}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(n.ytm, 3)}</td>
-                      <td style={{ ...tdStyle, textAlign: 'right', color: n.residual_bp > 1 ? NEG : n.residual_bp < -1 ? POS : '#e2e8f0' }}>
+                      <td style={{ ...tdStyle, textAlign: 'right', color: n.residual_bp > 1 ? NEG : n.residual_bp < -1 ? POS : '#e4eaf1' }}>
                         {fmt(n.residual_bp, 1)}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <div style={{ fontSize: 11, color: '#475569', marginTop: 10, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 11, color: '#8995a2', marginTop: 10, lineHeight: 1.6 }}>
                 Sanity check: neighbouring bonds&apos; current residuals suggest how much local
                 richness/cheapness to anticipate via the &quot;extra bp&quot; input.
               </div>
@@ -822,7 +822,7 @@ function NewIssueTab({ token, config }: {
 
           <div style={cardStyle}>
             <div style={sectionLabel}>Use case (H&S p.180)</div>
-            <div style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.75 }}>
+            <div style={{ fontSize: 12.5, color: '#c6ced8', lineHeight: 1.75 }}>
               New issues follow a regular schedule, so a yet-to-be-announced bond can affect futures
               pricing before it exists — e.g. a new Schatz that will become CTD. Forecast its coupon
               (the fitted par coupon is the natural default) and maturity, add the systematic effects
@@ -841,14 +841,14 @@ function NewIssueTab({ token, config }: {
 
 function BenchmarksTab({ result }: { result: FitResult }) {
   const thStyle: React.CSSProperties = {
-    textAlign: 'right', padding: '8px 12px', fontSize: 10, fontWeight: 700,
-    textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b',
-    borderBottom: '1px solid rgba(255,255,255,0.08)',
+    textAlign: 'right', padding: '8px 12px', fontSize: 10, fontWeight: 600,
+    textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9aa5b1',
+    borderBottom: '1px solid rgba(200,220,240,0.08)',
   }
   const tdStyle: React.CSSProperties = {
-    padding: '9px 12px', fontSize: 13, color: '#e2e8f0', textAlign: 'right',
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
-    fontFamily: 'ui-monospace, monospace',
+    padding: '9px 12px', fontSize: 13, color: '#e4eaf1', textAlign: 'right',
+    borderBottom: '1px solid rgba(200,220,240,0.04)',
+    fontFamily: "'Geist Mono', ui-monospace, monospace",
   }
   const chartData = result.benchmarks.map(b => ({ tenor: b.tenor, par: b.par_coupon }))
   return (
@@ -871,7 +871,7 @@ function BenchmarksTab({ result }: { result: FitResult }) {
                   <td style={{ ...tdStyle, textAlign: 'left' }}>{b.tenor}y</td>
                   <td style={tdStyle}>{fmt(b.discount_factor, 4)}</td>
                   <td style={tdStyle}>{fmt(b.annuity, 4)}</td>
-                  <td style={{ ...tdStyle, color: ACCENT, fontWeight: 700 }}>{fmt(b.par_coupon, 3)}</td>
+                  <td style={{ ...tdStyle, color: ACCENT, fontWeight: 600 }}>{fmt(b.par_coupon, 3)}</td>
                 </tr>
               ))}
             </tbody>
@@ -883,7 +883,7 @@ function BenchmarksTab({ result }: { result: FitResult }) {
             <LineChart data={chartData} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
               <CartesianGrid stroke={GRID_STROKE} />
               <XAxis dataKey="tenor" type="number" domain={[0, 31]} tick={TICK_STYLE}
-                label={{ value: 'Tenor (years)', position: 'insideBottom', offset: -5, fill: '#475569', fontSize: 11 }} />
+                label={{ value: 'Tenor (years)', position: 'insideBottom', offset: -5, fill: '#8995a2', fontSize: 11 }} />
               <YAxis domain={['auto', 'auto']} tick={TICK_STYLE} tickFormatter={(v: number) => v.toFixed(2)} />
               <Tooltip content={<ChartTooltip unit="%" />} />
               <Line dataKey="par" name="Par coupon" type="monotone" stroke={ACCENT} strokeWidth={2}
@@ -894,7 +894,7 @@ function BenchmarksTab({ result }: { result: FitResult }) {
       </div>
       <div style={cardStyle}>
         <div style={sectionLabel}>Why this matters (H&S p.180–181)</div>
-        <div style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.75 }}>
+        <div style={{ fontSize: 12.5, color: '#c6ced8', lineHeight: 1.75 }}>
           The fitted discount function lets us price a <i>notional</i> bond that doesn&apos;t exist —
           e.g. a true constant-maturity 10y trading at par — via C = 100·(1 − Z₁₀)/A₁₀. These
           synthetic benchmarks produce structural-break-free time series (unlike swap-based series
@@ -951,21 +951,21 @@ function BondDetailTab({ result, bondId, token, config, onSelectBond }: {
 
   if (!bondId) {
     return (
-      <div style={{ ...cardStyle, textAlign: 'center', padding: 60, color: '#475569' }}>
+      <div style={{ ...cardStyle, textAlign: 'center', padding: 60, color: '#8995a2' }}>
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>No bond selected</div>
         <div style={{ fontSize: 12 }}>Pick a bond from the Rich / Cheap table, or choose below.</div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginTop: 18 }}>
           {result.bonds.slice(0, 12).map(b => (
             <button key={b.bond_id} onClick={() => onSelectBond(b.bond_id)} style={{
               padding: '5px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8',
+              background: 'rgba(200,220,240,0.03)', border: '1px solid rgba(200,220,240,0.08)', color: '#c6ced8',
             }}>{b.name}</button>
           ))}
         </div>
       </div>
     )
   }
-  if (loading) return <div style={{ textAlign: 'center', color: '#64748b', padding: 60 }}>Loading bond history…</div>
+  if (loading) return <div style={{ textAlign: 'center', color: '#9aa5b1', padding: 60 }}>Loading bond history…</div>
   if (error) return <div style={{ ...cardStyle, color: NEG, fontSize: 13 }}>{error}</div>
   if (!detail) return null
 
@@ -989,10 +989,10 @@ function BondDetailTab({ result, bondId, token, config, onSelectBond }: {
           sub={bondRow ? `${bondRow.size_bn}bn · age ${fmt(bondRow.age, 1)}y${bondRow.deliverable ? ` · ${bondRow.deliverable} deliverable` : ''}` : undefined} />
         <StatCard label="Residual" value={`${fmt(detail.residual_bp, 1)} bp`}
           sub={`${fmt(detail.residual_eur * 100, 1)} cents`}
-          color={detail.residual_bp > 1 ? NEG : detail.residual_bp < -1 ? POS : '#f1f5f9'} />
+          color={detail.residual_bp > 1 ? NEG : detail.residual_bp < -1 ? POS : '#eef2f6'} />
         <StatCard label="OU half-life" value={`${fmt(ou.half_life_days, 0)} bd`} sub={`κ = ${fmt(ou.k, 2)} (ann.)`} />
         <StatCard label="Z-score" value={fmt(ou.current_zscore, 2)} sub={`σ∞ = ${fmt(ou.stationary_std, 2)} bp`}
-          color={Math.abs(ou.current_zscore) > 2 ? AMBER : '#f1f5f9'} />
+          color={Math.abs(ou.current_zscore) > 2 ? AMBER : '#eef2f6'} />
       </div>
 
       <div style={cardStyle}>
@@ -1005,8 +1005,8 @@ function BondDetailTab({ result, bondId, token, config, onSelectBond }: {
             <Tooltip content={<ChartTooltip unit=" bp" />} />
             <ReferenceLine y={ou.mu} stroke={ACCENT} strokeDasharray="4 4"
               label={{ value: 'μ', fill: ACCENT, fontSize: 11, position: 'right' }} />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
-            <Line dataKey="value" name="Residual" stroke="#38bdf8" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+            <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" />
+            <Line dataKey="value" name="Residual" stroke="#7cc3dc" strokeWidth={1.5} dot={false} isAnimationActive={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -1023,10 +1023,10 @@ function BondDetailTab({ result, bondId, token, config, onSelectBond }: {
             <Area dataKey="band90" name="5–95%" stroke="none" fill={ACCENT} fillOpacity={0.12} isAnimationActive={false} />
             <Area dataKey="band50" name="25–75%" stroke="none" fill={ACCENT} fillOpacity={0.22} isAnimationActive={false} />
             <Line dataKey="mean" name="E[ε]" stroke={ACCENT} strokeWidth={2} dot={false} isAnimationActive={false} />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
+            <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" />
           </ComposedChart>
         </ResponsiveContainer>
-        <div style={{ fontSize: 11, color: '#475569', marginTop: 8, lineHeight: 1.7 }}>
+        <div style={{ fontSize: 11, color: '#8995a2', marginTop: 8, lineHeight: 1.7 }}>
           Expected convergence path of the residual under the estimated OU process, with 50% and 90%
           bands. H&S p.178: the speed of reversion — not the naked z-score — determines what to
           expect tomorrow; a z of 2.0 with a 200-day half-life tells you almost nothing.
@@ -1039,7 +1039,6 @@ function BondDetailTab({ result, bondId, token, config, onSelectBond }: {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FittedBondCurves() {
-  const navigate = useNavigate()
   const token = localStorage.getItem('access_token') ?? ''
 
   const [functionalForm, setFunctionalForm] = useState('cubic_spline')
@@ -1209,32 +1208,24 @@ export default function FittedBondCurves() {
   ]
 
   const selStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 8, padding: '7px 10px', color: '#f1f5f9', fontSize: 12.5,
+    background: 'rgba(200,220,240,0.05)', border: '1px solid rgba(200,220,240,0.12)',
+    borderRadius: 6, padding: '7px 10px', color: '#eef2f6', fontSize: 12.5,
   }
   const ctlLabel: React.CSSProperties = {
-    fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-    letterSpacing: '0.06em', color: '#64748b', marginBottom: 5,
+    fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
+    letterSpacing: '0.06em', color: '#9aa5b1', marginBottom: 5,
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, color: '#f1f5f9', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: BG, color: '#eef2f6', fontFamily: "'Geist', system-ui, sans-serif" }}>
 
       {/* Header */}
       <div style={{
-        background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)',
-        padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16,
-        position: 'sticky', top: 0, zIndex: 10, backdropFilter: 'blur(8px)',
+        ...headerBar, zIndex: 10,
+        padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 16,
       }}>
-        <button onClick={() => navigate('/')}
-          style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>
-          ←
-        </button>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>Fitted Bond Curves</div>
-          <div style={{ fontSize: 11, color: '#64748b' }}>
-            Rich/cheap via fitted discount curves — Huggins & Schaller Ch. 8
-          </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <PageTitle category="Market Structure & Analysis" categoryId="market-structure" title="Fitted Bond Curves" subtitle="Rich/cheap via fitted discount curves · Huggins & Schaller Ch. 8" />
         </div>
 
       </div>
@@ -1246,17 +1237,17 @@ export default function FittedBondCurves() {
         <div style={{
           width: 210, flexShrink: 0, position: 'sticky', top: 57,
           height: 'calc(100vh - 57px)', overflowY: 'auto',
-          borderRight: '1px solid rgba(255,255,255,0.1)',
-          background: '#0a0f1e', padding: '16px 12px',
+          borderRight: '1px solid rgba(200,220,240,0.1)',
+          background: '#090c10', padding: '16px 12px',
           display: 'flex', flexDirection: 'column', gap: 6,
         }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', letterSpacing: '0.1em',
+          <div style={{ fontSize: 10, fontWeight: 600, color: '#9aa5b1', letterSpacing: '0.1em',
             textTransform: 'uppercase', marginBottom: 8 }}>
             Saved Curves
           </div>
 
           {savedCurves.length === 0 && (
-            <div style={{ fontSize: 11, color: '#475569', fontStyle: 'italic', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 11, color: '#8995a2', fontStyle: 'italic', lineHeight: 1.5 }}>
               No curves saved yet.
             </div>
           )}
@@ -1265,19 +1256,19 @@ export default function FittedBondCurves() {
             <div key={idx} style={{
               display: 'flex', alignItems: 'center', gap: 4,
               borderRadius: 6, padding: '5px 8px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              background: 'rgba(200,220,240,0.03)',
+              border: '1px solid rgba(200,220,240,0.06)',
               cursor: 'pointer',
             }}
               onClick={() => loadCurve(idx)}
             >
-              <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: '#cbd5e1' }}>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: '#c3ccd6' }}>
                 <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
-                <span style={{ fontSize: 10, color: '#475569' }}>{c.tickers.length} bonds</span>
+                <span style={{ fontSize: 10, color: '#8995a2' }}>{c.tickers.length} bonds</span>
               </span>
               <button
                 onClick={e => { e.stopPropagation(); deleteCurve(idx) }}
-                style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer',
+                style={{ background: 'none', border: 'none', color: '#8995a2', cursor: 'pointer',
                   fontSize: 13, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
                 title="Delete"
               >×</button>
@@ -1285,7 +1276,7 @@ export default function FittedBondCurves() {
           ))}
 
           {/* Save current */}
-          <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid rgba(200,220,240,0.06)' }}>
             {customMode && currentTickers().length >= 5 ? (
               showSaveInput ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1296,17 +1287,17 @@ export default function FittedBondCurves() {
                     placeholder="Curve name…"
                     autoFocus
                     style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, border: `1px solid ${ACCENT_BORDER}`,
-                      background: '#0d1425', color: '#e2e8f0', width: '100%', boxSizing: 'border-box' }}
+                      background: '#0b0f14', color: '#e4eaf1', width: '100%', boxSizing: 'border-box' }}
                   />
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button onClick={saveCurve}
-                      style={{ flex: 1, fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(168,85,247,0.7)',
+                      style={{ flex: 1, fontSize: 11, fontWeight: 600, color: '#f4f7fa', background: 'rgba(176,138,208,0.7)',
                         border: 'none', borderRadius: 6, padding: '4px 0', cursor: 'pointer' }}>
                       Save
                     </button>
                     <button onClick={() => setShowSaveInput(false)}
-                      style={{ fontSize: 11, color: '#475569', background: 'none',
-                        border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}>
+                      style={{ fontSize: 11, color: '#8995a2', background: 'none',
+                        border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}>
                       ✕
                     </button>
                   </div>
@@ -1319,7 +1310,7 @@ export default function FittedBondCurves() {
                 </button>
               )
             ) : (
-              <div style={{ fontSize: 10, color: '#334155', textAlign: 'center', lineHeight: 1.4 }}>
+              <div style={{ fontSize: 10, color: '#77828f', textAlign: 'center', lineHeight: 1.4 }}>
                 Enter a custom bond list (≥ 5 tickers) in Curve &amp; Fit to save it
               </div>
             )}
@@ -1330,13 +1321,13 @@ export default function FittedBondCurves() {
         <div style={{ flex: 1, minWidth: 0, maxWidth: 1280, margin: '0 auto', padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {error && (
-          <div style={{ ...cardStyle, borderColor: 'rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.05)', color: NEG, fontSize: 13, padding: '12px 18px' }}>
+          <div style={{ ...cardStyle, borderColor: 'rgba(217,112,94,0.4)', background: 'rgba(217,112,94,0.05)', color: NEG, fontSize: 13, padding: '12px 18px' }}>
             {error}
           </div>
         )}
 
         {loading && (
-          <div style={{ textAlign: 'center', color: '#64748b', padding: 80, fontSize: 14 }}>
+          <div style={{ textAlign: 'center', color: '#9aa5b1', padding: 80, fontSize: 14 }}>
             Running joint curve + regression optimisation…
           </div>
         )}
@@ -1344,7 +1335,7 @@ export default function FittedBondCurves() {
         {result && !loading && (
           <>
             {result.simulation_mode && (
-              <div style={{ ...cardStyle, padding: '10px 16px', borderColor: 'rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.05)', fontSize: 12, color: '#f59e0b' }}>
+              <div style={{ ...cardStyle, padding: '10px 16px', borderColor: 'rgba(214,173,102,0.3)', background: 'rgba(214,173,102,0.05)', fontSize: 12, color: '#d6ad66' }}>
                 Simulation mode — synthetic German bond universe with known pricing effects
                 (Bloomberg replacement pending). The Coefficients tab shows true vs estimated values.
               </div>
@@ -1378,11 +1369,11 @@ export default function FittedBondCurves() {
         <div style={{
           width: 240, flexShrink: 0, position: 'sticky', top: 57,
           height: 'calc(100vh - 57px)', overflowY: 'auto',
-          borderLeft: '1px solid rgba(255,255,255,0.1)',
-          background: '#0a0f1e', padding: '16px 14px',
+          borderLeft: '1px solid rgba(200,220,240,0.1)',
+          background: '#090c10', padding: '16px 14px',
           display: 'flex', flexDirection: 'column', gap: 16,
         }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', letterSpacing: '0.1em',
+          <div style={{ fontSize: 10, fontWeight: 600, color: '#9aa5b1', letterSpacing: '0.1em',
             textTransform: 'uppercase' }}>
             Curve Assumptions
           </div>
@@ -1410,8 +1401,8 @@ export default function FittedBondCurves() {
                         padding: '2px 8px', borderRadius: 5, fontSize: 10, fontWeight: 600, cursor: 'pointer',
                         textTransform: 'capitalize',
                         background: knotsMode === m ? ACCENT_DIM : 'transparent',
-                        border: `1px solid ${knotsMode === m ? ACCENT_BORDER : 'rgba(255,255,255,0.1)'}`,
-                        color: knotsMode === m ? ACCENT : '#64748b',
+                        border: `1px solid ${knotsMode === m ? ACCENT_BORDER : 'rgba(200,220,240,0.1)'}`,
+                        color: knotsMode === m ? ACCENT : '#9aa5b1',
                       }}>{m}</button>
                   ))}
                 </div>
@@ -1422,15 +1413,15 @@ export default function FittedBondCurves() {
                   <span key={k} style={{
                     display: 'inline-flex', alignItems: 'center', gap: 3,
                     padding: '2px 7px', borderRadius: 5, fontSize: 11,
-                    fontFamily: 'ui-monospace, monospace',
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: knotsMode === 'manual' ? '#e2e8f0' : '#64748b',
+                    fontFamily: "'Geist Mono', ui-monospace, monospace",
+                    background: 'rgba(200,220,240,0.04)',
+                    border: '1px solid rgba(200,220,240,0.08)',
+                    color: knotsMode === 'manual' ? '#e4eaf1' : '#9aa5b1',
                   }}>
                     {k}
                     {knotsMode === 'manual' && (
                       <button onClick={() => setManualKnots(manualKnots.filter(x => x !== k))}
-                        style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer',
+                        style={{ background: 'none', border: 'none', color: '#8995a2', cursor: 'pointer',
                           fontSize: 12, lineHeight: 1, padding: 0 }}>×</button>
                     )}
                   </span>
@@ -1446,8 +1437,8 @@ export default function FittedBondCurves() {
                       onKeyDown={e => { if (e.key === 'Enter') addKnot() }}
                       placeholder="Add knot, e.g. 12.5"
                       style={{ flex: 1, minWidth: 0, fontSize: 11, padding: '5px 8px', borderRadius: 6,
-                        border: '1px solid rgba(255,255,255,0.12)', background: '#0d1425',
-                        color: '#e2e8f0', fontFamily: 'ui-monospace, monospace' }}
+                        border: '1px solid rgba(200,220,240,0.12)', background: '#0b0f14',
+                        color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace" }}
                     />
                     <button onClick={addKnot} disabled={!knotDraft.trim()}
                       style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
@@ -1464,13 +1455,13 @@ export default function FittedBondCurves() {
                   )}
                 </>
               ) : (
-                <div style={{ fontSize: 10, color: '#475569', marginTop: 6, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 10, color: '#8995a2', marginTop: 6, lineHeight: 1.5 }}>
                   Automatic placement — H&S p.174 grid, trimmed to the maturity span and thinned
                   for small universes. Switch to Manual to edit.
                 </div>
               )}
 
-              <div style={{ fontSize: 10, color: '#334155', marginTop: 8, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 10, color: '#77828f', marginTop: 8, lineHeight: 1.5 }}>
                 H&S p.174: changes in the curve&apos;s first derivative concentrate at the front end
                 (monetary policy), so it&apos;s typically advisable to widen knot spacing with maturity.
               </div>
@@ -1481,7 +1472,7 @@ export default function FittedBondCurves() {
               <input type="number" min={3} max={12} value={nExp}
                 onChange={e => setNExp(Math.max(3, Math.min(12, Number(e.target.value) || 7)))}
                 style={{ ...selStyle, width: '100%', boxSizing: 'border-box' }} />
-              <div style={{ fontSize: 10, color: '#475569', marginTop: 6, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 10, color: '#8995a2', marginTop: 6, lineHeight: 1.5 }}>
                 df(t) = Σ βⱼ·e^(−jtα). H&S p.174: seven is a good starting point — too few makes
                 the curve sticky, too many follows each outlier too closely.
               </div>
@@ -1513,22 +1504,22 @@ export default function FittedBondCurves() {
             <div style={ctlLabel}>External variables</div>
             {([['size', 'Issue size'], ['age', 'Issue age']] as const).map(([v, label]) => (
               <label key={v} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12,
-                color: extVars.has(v) ? '#e2e8f0' : '#64748b', cursor: 'pointer', padding: '3px 0' }}>
+                color: extVars.has(v) ? '#e4eaf1' : '#9aa5b1', cursor: 'pointer', padding: '3px 0' }}>
                 <input type="checkbox" checked={extVars.has(v)} onChange={() => toggleExtVar(v)}
                   style={{ accentColor: ACCENT }} />
                 {label}
               </label>
             ))}
-            <div style={{ fontSize: 10, color: '#475569', margin: '6px 0 2px' }}>Deliverability (× BPV):</div>
+            <div style={{ fontSize: 10, color: '#8995a2', margin: '6px 0 2px' }}>Deliverability (× BPV):</div>
             {(['Schatz', 'Bobl', 'Bund', 'Buxl'] as const).map(v => (
               <label key={v} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12,
-                color: extVars.has(v) ? '#e2e8f0' : '#64748b', cursor: 'pointer', padding: '3px 0' }}>
+                color: extVars.has(v) ? '#e4eaf1' : '#9aa5b1', cursor: 'pointer', padding: '3px 0' }}>
                 <input type="checkbox" checked={extVars.has(v)} onChange={() => toggleExtVar(v)}
                   style={{ accentColor: ACCENT }} />
                 {v} deliverable
               </label>
             ))}
-            <div style={{ fontSize: 10, color: '#334155', marginTop: 6, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 10, color: '#77828f', marginTop: 6, lineHeight: 1.5 }}>
               Effects you exclude are no longer &quot;explained away&quot; and show up in the
               residuals instead — e.g. untick a contract to see its deliverables screen as rich.
             </div>
@@ -1538,16 +1529,16 @@ export default function FittedBondCurves() {
             onClick={refitWithAssumptions}
             disabled={loading || (functionalForm === 'cubic_spline' && knotsMode === 'manual' && manualKnots.length < 4)}
             style={{
-              width: '100%', padding: '9px 0', borderRadius: 8,
+              width: '100%', padding: '9px 0', borderRadius: 6,
               border: `1px solid ${ACCENT_BORDER}`, background: ACCENT_DIM,
-              color: ACCENT, fontSize: 13, fontWeight: 700,
+              color: ACCENT, fontSize: 13, fontWeight: 600,
               cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1,
             }}>
             {loading ? 'Fitting…' : 'Refit curve'}
           </button>
 
           {result && (
-            <div style={{ fontSize: 10, color: '#475569', lineHeight: 1.6, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
+            <div style={{ fontSize: 10, color: '#8995a2', lineHeight: 1.6, borderTop: '1px solid rgba(200,220,240,0.06)', paddingTop: 10 }}>
               Last fit: {result.config.functional_form === 'cubic_spline'
                 ? `cubic spline, ${result.config.knots?.length ?? 0} knots (${result.config.knots_source ?? 'auto'})`
                 : `${result.config.n_exp_splines} exponential splines`}

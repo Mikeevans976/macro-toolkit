@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Login from './components/Login'
 import Dashboard from './components/Dashboard'
+import AppShell from './components/AppShell'
 import SwapsRV from './pages/SwapsRV'
 import EGBRV from './pages/EGBRV'
 import EuroAreaHeatmap from './pages/EuroAreaHeatmap'
@@ -25,13 +26,17 @@ import MeanReversion from './pages/MeanReversion'
 import PCAAnalysis from './pages/PCAAnalysis'
 import CorrelationRegimes from './pages/CorrelationRegimes'
 import FittedBondCurves from './pages/FittedBondCurves'
+import AgentsPod from './pages/AgentsPod'
+import AgentPage from './pages/AgentPage'
+import MacroOptionsMonitor from './pages/MacroOptionsMonitor'
+import PositioningTracker from './pages/PositioningTracker'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('access_token')
   if (!token) {
     return <Navigate to="/login" replace />
   }
-  return <>{children}</>
+  return <AppShell>{children}</AppShell>
 }
 
 export default function App() {
@@ -71,6 +76,11 @@ export default function App() {
         <Route path="/tools/pca-analysis" element={<ProtectedRoute><PCAAnalysis /></ProtectedRoute>} />
         <Route path="/tools/correlation-regimes" element={<ProtectedRoute><CorrelationRegimes /></ProtectedRoute>} />
         <Route path="/tools/fitted-bond-curves" element={<ProtectedRoute><FittedBondCurves /></ProtectedRoute>} />
+        <Route path="/tools/agents/fixed-income-pod" element={<ProtectedRoute><AgentsPod /></ProtectedRoute>} />
+        {/* Individual agent pages — specific pod route must come before the wildcard :agentId */}
+        <Route path="/tools/agents/:agentId" element={<ProtectedRoute><AgentPage /></ProtectedRoute>} />
+        <Route path="/tools/macro-options-monitor" element={<ProtectedRoute><MacroOptionsMonitor /></ProtectedRoute>} />
+        <Route path="/tools/euribor-positioning" element={<ProtectedRoute><PositioningTracker /></ProtectedRoute>} />
         {/* Catch-all: redirect unknown paths to dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

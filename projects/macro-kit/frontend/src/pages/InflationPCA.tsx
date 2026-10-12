@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import PageTitle from '../components/PageTitle'
 import {
   LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine,
@@ -72,7 +72,7 @@ const CURVES: Record<string, {
   vol: number
 }> = {
   btpei: {
-    label: 'BTPei', color: '#6366f1',
+    label: 'BTPei', color: '#8b8fd8',
     bonds: [
       { label: 'BTPei 28', maturity: 2028, bbgTicker: 'ITIL28 Index' },
       { label: 'BTPei 30', maturity: 2030, bbgTicker: 'ITIL30 Index' },
@@ -88,7 +88,7 @@ const CURVES: Record<string, {
     vol: 1.0,
   },
   oatei: {
-    label: 'OATei', color: '#38bdf8',
+    label: 'OATei', color: '#7cc3dc',
     bonds: [
       { label: 'OATei 27', maturity: 2027, bbgTicker: 'FROB27I Index' },
       { label: 'OATei 29', maturity: 2029, bbgTicker: 'FROB29I Index' },
@@ -103,7 +103,7 @@ const CURVES: Record<string, {
     vol: 0.85,
   },
   dbrei: {
-    label: 'DBRei', color: '#f59e0b',
+    label: 'DBRei', color: '#d6ad66',
     bonds: [
       { label: 'DBRei 26', maturity: 2026, bbgTicker: 'DBIBL26 Index' },
       { label: 'DBRei 30', maturity: 2030, bbgTicker: 'DBIBL30 Index' },
@@ -117,7 +117,7 @@ const CURVES: Record<string, {
     vol: 0.80,
   },
   uki: {
-    label: 'UKi', color: '#22c55e',
+    label: 'UKi', color: '#5fb592',
     bonds: [
       { label: 'UKi 27', maturity: 2027, bbgTicker: 'UKTIIL27 Index' },
       { label: 'UKi 30', maturity: 2030, bbgTicker: 'UKTIIL30 Index' },
@@ -377,24 +377,24 @@ function computeFlies(
 
 // ─── Styling ──────────────────────────────────────────────────────────────────
 
-const BG = '#080d1a'
-const MUTED = '#475569'
-const RED = '#ef4444'
-const PC_COLORS = ['#6366f1', '#f59e0b', '#a78bfa']
+const BG = '#07090c'
+const MUTED = '#8995a2'
+const RED = '#d9705e'
+const PC_COLORS = ['#8b8fd8', '#d6ad66', '#b49fdb']
 const PC_NAMES  = ['Level', 'Slope', 'Curvature']
 
 const signalColor: Record<string, string> = {
-  'Very Rich':  '#ef4444',
-  'Rich':       '#fca5a5',
-  'Neutral':    '#94a3b8',
-  'Cheap':      '#86efac',
-  'Very Cheap': '#22c55e',
+  'Very Rich':  '#d9705e',
+  'Rich':       '#ecaa9c',
+  'Neutral':    '#c6ced8',
+  'Cheap':      '#9dd6bd',
+  'Very Cheap': '#5fb592',
 }
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12,
+  background: 'rgba(200,220,240,0.03)',
+  border: '1px solid rgba(200,220,240,0.07)',
+  borderRadius: 6,
   padding: '16px 20px',
 }
 
@@ -407,10 +407,10 @@ function SimpleTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-      <div style={{ color: '#94a3b8', marginBottom: 4 }}>{label}</div>
+    <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+      <div style={{ color: '#c6ced8', marginBottom: 4 }}>{label}</div>
       {payload.filter(p => p.value != null).map((p, i) => (
-        <div key={i} style={{ color: p.color || '#f1f5f9' }}>
+        <div key={i} style={{ color: p.color || '#eef2f6' }}>
           {p.name}: {typeof p.value === 'number' ? p.value.toFixed(2) : p.value}
         </div>
       ))}
@@ -424,7 +424,6 @@ const BDATES = generateBdates(N_DAYS)
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function InflationPCA() {
-  const navigate   = useNavigate()
   const [curveId, setCurveId]         = useState('btpei')
   const [yieldType, setYieldType]     = useState<YieldType>('real')
   const [selectedFly, setSelectedFly] = useState<string | null>(null)
@@ -521,35 +520,26 @@ export default function InflationPCA() {
     : []
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, color: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif', padding: '24px' }}>
+    <div style={{ minHeight: '100vh', background: BG, color: '#eef2f6', fontFamily: "'Geist', system-ui, sans-serif", padding: '24px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <button onClick={() => navigate('/')}
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 8, padding: '6px 14px', color: '#94a3b8', fontSize: 13, cursor: 'pointer' }}>
-          ← Back
-        </button>
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>Inflation PCA</div>
-          <div style={{ color: MUTED, fontSize: 11, marginTop: 1 }}>
-            Inflation Markets · PCA on 1y daily yield changes ·{' '}
+        <PageTitle category="Inflation Markets" categoryId="inflation-markets" title={<>Inflation PCA</>} subtitle={<>Inflation Markets · PCA on 1y daily yield changes ·{' '}
             {apiLoading
-              ? <span style={{ color: '#64748b' }}>loading…</span>
+              ? <span style={{ color: '#9aa5b1' }}>loading…</span>
               : apiData
-                ? <span style={{ color: apiData.data_source === 'bloomberg' ? '#22c55e' : '#f59e0b' }}>
+                ? <span style={{ color: apiData.data_source === 'bloomberg' ? '#5fb592' : '#d6ad66' }}>
                     {apiData.data_source === 'bloomberg' ? 'Live (Bloomberg)' : 'Simulated data'}
                   </span>
-                : <span style={{ color: '#64748b' }}>Simulated data</span>
-            }
-          </div>
-        </div>
+                : <span style={{ color: '#9aa5b1' }}>Simulated data</span>
+            }</>} />
       </div>
 
       {/* Curve tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'sticky', top: 0, zIndex: 10, background: BG }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid rgba(200,220,240,0.07)', position: 'sticky', top: 0, zIndex: 10, background: BG }}>
         {CURVE_ORDER.map(id => (
           <button key={id} onClick={() => { setCurveId(id); setYieldType('real'); setSelectedFly(null); setShowAll(false); setNameFilter('') }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: 13, fontWeight: 500, color: curveId === id ? CURVES[id].color : '#64748b', borderBottom: curveId === id ? `2px solid ${CURVES[id].color}` : '2px solid transparent', marginBottom: -1, transition: 'color 0.15s' }}>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: 13, fontWeight: 500, color: curveId === id ? CURVES[id].color : '#9aa5b1', borderBottom: curveId === id ? `2px solid ${CURVES[id].color}` : '2px solid transparent', marginBottom: -1, transition: 'color 0.15s' }}>
             {CURVES[id].label}
           </button>
         ))}
@@ -561,11 +551,11 @@ export default function InflationPCA() {
         {YIELD_TYPES.map(yt => (
           <button key={yt.id} onClick={() => { setYieldType(yt.id); setSelectedFly(null) }}
             title={yt.description}
-            style={{ background: yieldType === yt.id ? `${cfg.color}22` : 'rgba(255,255,255,0.04)', border: `1px solid ${yieldType === yt.id ? cfg.color + '66' : 'rgba(255,255,255,0.08)'}`, borderRadius: 8, padding: '7px 20px', color: yieldType === yt.id ? cfg.color : '#64748b', fontSize: 13, fontWeight: yieldType === yt.id ? 700 : 400, cursor: 'pointer', transition: 'all 0.15s' }}>
+            style={{ background: yieldType === yt.id ? `${cfg.color}22` : 'rgba(200,220,240,0.04)', border: `1px solid ${yieldType === yt.id ? cfg.color + '66' : 'rgba(200,220,240,0.08)'}`, borderRadius: 6, padding: '7px 20px', color: yieldType === yt.id ? cfg.color : '#9aa5b1', fontSize: 13, fontWeight: yieldType === yt.id ? 700 : 400, cursor: 'pointer', transition: 'all 0.15s' }}>
             {yt.label}
           </button>
         ))}
-        <span style={{ alignSelf: 'center', fontSize: 11, color: '#334155', marginLeft: 4 }}>
+        <span style={{ alignSelf: 'center', fontSize: 11, color: '#77828f', marginLeft: 4 }}>
           {YIELD_TYPES.find(yt => yt.id === yieldType)?.description}
         </span>
       </div>
@@ -579,9 +569,9 @@ export default function InflationPCA() {
               <div style={{ fontSize: 11, color: MUTED, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 PC{i+1} — {PC_NAMES[i]}
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: PC_COLORS[i] }}>{v.toFixed(1)}%</div>
-              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>variance explained (Δyields)</div>
-              <div style={{ marginTop: 8, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2 }}>
+              <div style={{ fontSize: 26, fontWeight: 600, color: PC_COLORS[i] }}>{v.toFixed(1)}%</div>
+              <div style={{ fontSize: 11, color: '#9aa5b1', marginTop: 2 }}>variance explained (Δyields)</div>
+              <div style={{ marginTop: 8, height: 4, background: 'rgba(200,220,240,0.06)', borderRadius: 2 }}>
                 <div style={{ height: '100%', width: `${Math.min(v, 100)}%`, background: PC_COLORS[i], borderRadius: 2 }} />
               </div>
             </div>
@@ -598,9 +588,9 @@ export default function InflationPCA() {
             </div>
             <ResponsiveContainer width="100%" height={170}>
               <LineChart data={curveData} margin={{ top: 8, right: 12, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
-                <XAxis dataKey="bond" tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} width={40}
+                <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
+                <XAxis dataKey="bond" tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} width={40}
                   tickFormatter={(v: number) => v.toFixed(0) + 'bp'} />
                 <Tooltip content={<SimpleTooltip />} />
                 <Line type="monotone" dataKey="current" stroke={cfg.color} strokeWidth={2} dot={{ r: 3, fill: cfg.color }} name="Current" />
@@ -622,10 +612,10 @@ export default function InflationPCA() {
                   </div>
                   <ResponsiveContainer width="100%" height={130}>
                     <BarChart data={loadingsData} margin={{ top: 4, right: 2, bottom: 4, left: 0 }}>
-                      <XAxis dataKey="bond" tick={{ fontSize: 9, fill: '#475569' }} tickLine={false} axisLine={false} />
-                      <YAxis tick={{ fontSize: 9, fill: '#475569' }} tickLine={false} axisLine={false} width={28}
+                      <XAxis dataKey="bond" tick={{ fontSize: 9, fill: '#8995a2' }} tickLine={false} axisLine={false} />
+                      <YAxis tick={{ fontSize: 9, fill: '#8995a2' }} tickLine={false} axisLine={false} width={28}
                         tickFormatter={(v: number) => v.toFixed(2)} />
-                      <ReferenceLine y={0} stroke="rgba(255,255,255,0.12)" />
+                      <ReferenceLine y={0} stroke="rgba(200,220,240,0.12)" />
                       <Tooltip content={<SimpleTooltip />} />
                       <Bar dataKey={`PC${pcIdx+1}`} name={`PC${pcIdx+1}`}>
                         {loadingsData.map((entry, i) => (
@@ -650,7 +640,7 @@ export default function InflationPCA() {
             <div style={{ fontSize: 12, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
               PCA-Neutral Butterflies
             </div>
-            <div style={{ fontSize: 11, color: '#334155', flexShrink: 0 }}>
+            <div style={{ fontSize: 11, color: '#77828f', flexShrink: 0 }}>
               {flies.length} flies
               {!showAll && !nameFilter && ` · showing top 20 rich + top 20 cheap`}
             </div>
@@ -660,12 +650,12 @@ export default function InflationPCA() {
                 value={nameFilter}
                 onChange={e => setNameFilter(e.target.value)}
                 placeholder="search fly, e.g. 32s35s"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: '5px 10px', color: '#f1f5f9', fontSize: 12, width: 170, outline: 'none' }}
+                style={{ background: 'rgba(200,220,240,0.06)', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 6, padding: '5px 10px', color: '#eef2f6', fontSize: 12, width: 170, outline: 'none' }}
               />
               {/* Show all toggle */}
               <button
                 onClick={() => setShowAll(v => !v)}
-                style={{ background: showAll ? cfg.color : 'rgba(255,255,255,0.06)', border: `1px solid ${showAll ? cfg.color : 'rgba(255,255,255,0.12)'}`, borderRadius: 6, padding: '5px 12px', color: showAll ? '#fff' : '#94a3b8', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ background: showAll ? cfg.color : 'rgba(200,220,240,0.06)', border: `1px solid ${showAll ? cfg.color : 'rgba(200,220,240,0.12)'}`, borderRadius: 6, padding: '5px 12px', color: showAll ? '#f4f7fa' : '#c6ced8', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 {showAll ? 'Top 20 only' : 'Show all'}
               </button>
             </div>
@@ -674,7 +664,7 @@ export default function InflationPCA() {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                <tr style={{ borderBottom: '1px solid rgba(200,220,240,0.07)' }}>
                   {['Fly', 'Weights (L / −1 / R)', 'Spread (bp)', '3m Avg (bp)', 'Std (bp)', 'Z-score', 'Net DV01 ($/bp)', 'Signal'].map(h => (
                     <th key={h} style={{ textAlign: h === 'Fly' ? 'left' : 'right', padding: '6px 10px', color: MUTED, fontWeight: 500, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                       {h}
@@ -692,8 +682,8 @@ export default function InflationPCA() {
                     <React.Fragment key={fly.name + '_' + rowIdx}>
                       {showDivider && (
                         <tr key="divider">
-                          <td colSpan={8} style={{ padding: '6px 10px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                            <span style={{ fontSize: 10, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                          <td colSpan={8} style={{ padding: '6px 10px', background: 'rgba(200,220,240,0.02)', borderTop: '1px solid rgba(200,220,240,0.08)', borderBottom: '1px solid rgba(200,220,240,0.08)' }}>
+                            <span style={{ fontSize: 10, color: '#5fb592', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
                               ▼ Cheap
                             </span>
                           </td>
@@ -701,34 +691,34 @@ export default function InflationPCA() {
                       )}
                       {rowIdx === 0 && !showAll && !nameFilter.trim() && richCount > 0 && (
                         <tr key="rich-label">
-                          <td colSpan={8} style={{ padding: '6px 10px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                            <span style={{ fontSize: 10, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                          <td colSpan={8} style={{ padding: '6px 10px', background: 'rgba(200,220,240,0.02)', borderBottom: '1px solid rgba(200,220,240,0.08)' }}>
+                            <span style={{ fontSize: 10, color: '#d9705e', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
                               ▼ Rich
                             </span>
                           </td>
                         </tr>
                       )}
                       <tr key={fly.name} onClick={() => setSelectedFly(fly.name)}
-                        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: isActive ? 'rgba(255,255,255,0.04)' : 'transparent', cursor: 'pointer' }}>
-                        <td style={{ padding: '7px 10px', color: isActive ? cfg.color : '#94a3b8', fontWeight: isActive ? 700 : 400, fontVariantNumeric: 'tabular-nums' }}>
+                        style={{ borderBottom: '1px solid rgba(200,220,240,0.04)', background: isActive ? 'rgba(200,220,240,0.04)' : 'transparent', cursor: 'pointer' }}>
+                        <td style={{ padding: '7px 10px', color: isActive ? cfg.color : '#c6ced8', fontWeight: isActive ? 700 : 400, fontVariantNumeric: 'tabular-nums' }}>
                           {fly.name}
                         </td>
-                        <td style={{ textAlign: 'right', padding: '7px 10px', color: '#64748b', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
+                        <td style={{ textAlign: 'right', padding: '7px 10px', color: '#9aa5b1', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
                           {fly.wLeft.toFixed(3)} / −1 / {fly.wRight.toFixed(3)}
                         </td>
-                        <td style={{ textAlign: 'right', padding: '7px 10px', color: '#f1f5f9', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                        <td style={{ textAlign: 'right', padding: '7px 10px', color: '#eef2f6', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
                           {fly.current.toFixed(1)}
                         </td>
-                        <td style={{ textAlign: 'right', padding: '7px 10px', color: '#94a3b8', fontVariantNumeric: 'tabular-nums' }}>
+                        <td style={{ textAlign: 'right', padding: '7px 10px', color: '#c6ced8', fontVariantNumeric: 'tabular-nums' }}>
                           {fly.avg3m.toFixed(1)}
                         </td>
-                        <td style={{ textAlign: 'right', padding: '7px 10px', color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
+                        <td style={{ textAlign: 'right', padding: '7px 10px', color: '#9aa5b1', fontVariantNumeric: 'tabular-nums' }}>
                           {fly.std3m.toFixed(1)}
                         </td>
-                        <td style={{ textAlign: 'right', padding: '7px 10px', color: scol, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                        <td style={{ textAlign: 'right', padding: '7px 10px', color: scol, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                           {fly.zscore >= 0 ? '+' : ''}{fly.zscore.toFixed(2)}σ
                         </td>
-                        <td style={{ textAlign: 'right', padding: '7px 10px', color: Math.abs(fly.netDV01) < 50 ? '#22c55e' : '#f59e0b', fontVariantNumeric: 'tabular-nums', fontSize: 11 }}>
+                        <td style={{ textAlign: 'right', padding: '7px 10px', color: Math.abs(fly.netDV01) < 50 ? '#5fb592' : '#d6ad66', fontVariantNumeric: 'tabular-nums', fontSize: 11 }}>
                           {fly.netDV01 >= 0 ? '+$' : '−$'}{Math.abs(fly.netDV01).toFixed(0)}
                         </td>
                         <td style={{ textAlign: 'right', padding: '7px 10px' }}>
@@ -743,7 +733,7 @@ export default function InflationPCA() {
               </tbody>
             </table>
           </div>
-          <div style={{ fontSize: 10, color: '#334155', marginTop: 10 }}>
+          <div style={{ fontSize: 10, color: '#77828f', marginTop: 10 }}>
             Weights are yield-space (not DV01-weighted). Net DV01 = (wL×dur_L − dur_belly + wR×dur_R) × $100 per $1MM belly notional. Approx duration = (maturity − 2026) × 0.92. Collapses to zero when DV01-weighted.
           </div>
         </div>
@@ -752,43 +742,43 @@ export default function InflationPCA() {
         {activeFly && (
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: cfg.color }}>{activeFly.name}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: cfg.color }}>{activeFly.name}</div>
               <div style={{ fontSize: 12, color: signalColor[activeFly.signal], fontWeight: 600 }}>
                 {activeFly.current.toFixed(1)} bp &nbsp;·&nbsp;
                 {activeFly.signal} &nbsp;·&nbsp;
                 {activeFly.zscore >= 0 ? '+' : ''}{activeFly.zscore.toFixed(2)}σ vs 3m avg ({activeFly.avg3m.toFixed(1)} bp)
               </div>
             </div>
-            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: '#9aa5b1', marginBottom: 12 }}>
               {cfg.bonds[activeFly.leftIdx].label} ×{activeFly.wLeft.toFixed(3)}
               &ensp;/&ensp;{cfg.bonds[activeFly.bellyIdx].label} ×(−1)
               &ensp;/&ensp;{cfg.bonds[activeFly.rightIdx].label} ×{activeFly.wRight.toFixed(3)}
             </div>
             <ResponsiveContainer width="100%" height={420}>
               <LineChart data={flyChartData} margin={{ top: 8, right: 80, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false}
+                <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false}
                   interval={Math.floor(flyChartData.length / 6)} />
-                <YAxis tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={false} width={40}
+                <YAxis tick={{ fontSize: 10, fill: '#8995a2' }} tickLine={false} axisLine={false} width={40}
                   tickFormatter={(v: number) => v.toFixed(1)} />
                 {/* ±2σ */}
-                <ReferenceLine y={activeFly.avg3m + 2 * activeFly.std3m} stroke="#ef4444" strokeDasharray="3 3" strokeOpacity={0.5}
-                  label={{ value: '+2σ', position: 'right', style: { fontSize: 9, fill: '#ef4444' } }} />
-                <ReferenceLine y={activeFly.avg3m - 2 * activeFly.std3m} stroke="#22c55e" strokeDasharray="3 3" strokeOpacity={0.5}
-                  label={{ value: '−2σ', position: 'right', style: { fontSize: 9, fill: '#22c55e' } }} />
+                <ReferenceLine y={activeFly.avg3m + 2 * activeFly.std3m} stroke="#d9705e" strokeDasharray="3 3" strokeOpacity={0.5}
+                  label={{ value: '+2σ', position: 'right', style: { fontSize: 9, fill: '#d9705e' } }} />
+                <ReferenceLine y={activeFly.avg3m - 2 * activeFly.std3m} stroke="#5fb592" strokeDasharray="3 3" strokeOpacity={0.5}
+                  label={{ value: '−2σ', position: 'right', style: { fontSize: 9, fill: '#5fb592' } }} />
                 {/* ±1σ */}
-                <ReferenceLine y={activeFly.avg3m + 1 * activeFly.std3m} stroke="#fca5a5" strokeDasharray="3 3" strokeOpacity={0.4}
-                  label={{ value: '+1σ', position: 'right', style: { fontSize: 9, fill: '#fca5a5' } }} />
-                <ReferenceLine y={activeFly.avg3m - 1 * activeFly.std3m} stroke="#86efac" strokeDasharray="3 3" strokeOpacity={0.4}
-                  label={{ value: '−1σ', position: 'right', style: { fontSize: 9, fill: '#86efac' } }} />
+                <ReferenceLine y={activeFly.avg3m + 1 * activeFly.std3m} stroke="#ecaa9c" strokeDasharray="3 3" strokeOpacity={0.4}
+                  label={{ value: '+1σ', position: 'right', style: { fontSize: 9, fill: '#ecaa9c' } }} />
+                <ReferenceLine y={activeFly.avg3m - 1 * activeFly.std3m} stroke="#9dd6bd" strokeDasharray="3 3" strokeOpacity={0.4}
+                  label={{ value: '−1σ', position: 'right', style: { fontSize: 9, fill: '#9dd6bd' } }} />
                 {/* 3m avg */}
-                <ReferenceLine y={activeFly.avg3m} stroke="#f59e0b" strokeDasharray="4 3" strokeOpacity={0.8}
-                  label={{ value: `avg ${activeFly.avg3m.toFixed(1)}bp`, position: 'right', style: { fontSize: 9, fill: '#f59e0b' } }} />
+                <ReferenceLine y={activeFly.avg3m} stroke="#d6ad66" strokeDasharray="4 3" strokeOpacity={0.8}
+                  label={{ value: `avg ${activeFly.avg3m.toFixed(1)}bp`, position: 'right', style: { fontSize: 9, fill: '#d6ad66' } }} />
                 <Tooltip content={<SimpleTooltip />} />
                 <Line type="monotone" dataKey="spread" stroke={cfg.color} strokeWidth={1.5} dot={false} name="Spread (bp)" />
               </LineChart>
             </ResponsiveContainer>
-            <div style={{ fontSize: 10, color: '#334155', marginTop: 8 }}>
+            <div style={{ fontSize: 10, color: '#77828f', marginTop: 8 }}>
               Spread = {activeFly.wLeft.toFixed(3)} × {cfg.bonds[activeFly.leftIdx].label}
               {' '}− 1 × {cfg.bonds[activeFly.bellyIdx].label}
               {' '}+ {activeFly.wRight.toFixed(3)} × {cfg.bonds[activeFly.rightIdx].label}

@@ -390,6 +390,17 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None) -> dict:
             for d, v in zip(window.index, window.values)
         ]
 
+    # 8. Full available history (up to as-of) for the detail view's lookback selector.
+    #    Shared date axis + one value array per label keeps the payload compact.
+    history_df = pd.DataFrame({label: series for label, _, series, _, _ in all_series}).round(2)
+    history = {
+        "dates": [d.strftime("%Y-%m-%d") for d in history_df.index],
+        "values": {
+            label: [None if pd.isna(v) else float(v) for v in history_df[label].values]
+            for label in history_df.columns
+        },
+    }
+
     return {
         "as_of": as_of,
         "min_date": min_date,
@@ -398,4 +409,5 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None) -> dict:
         "rv_monitor": rv_monitor,
         "beta_monitor": beta_monitor,
         "series": series_out,
+        "history": history,
     }

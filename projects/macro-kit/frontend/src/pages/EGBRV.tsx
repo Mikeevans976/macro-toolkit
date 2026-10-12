@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import PageTitle, { headerBar } from '../components/PageTitle'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import ExpressionDetail, { fmtBp, fmtSignedBp, type SeriesPoint, type StatGroupDef } from '../components/ExpressionDetail'
 import {
   ScatterChart,
   Scatter,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -83,11 +83,6 @@ interface BetaRow {
   residual_zscore: number
 }
 
-interface SeriesPoint {
-  date: string
-  value: number
-}
-
 interface GroupMeta {
   label: string
   color: string
@@ -114,35 +109,34 @@ interface EGBRVData {
   bond_map: Record<string, Record<string, BondInfo | null>>
   rv_monitor: RVRow[]
   beta_monitor: BetaRow[]
-  series: Record<string, SeriesPoint[]>
   groups: Record<string, GroupMeta>
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function zscoreStyle(z: number): { background: string; color: string } {
-  if (z > 1.5)  return { background: 'rgba(239,68,68,0.12)',  color: '#f87171' }
-  if (z > 0.75) return { background: 'rgba(245,158,11,0.12)', color: '#fbbf24' }
-  if (z < -1.5) return { background: 'rgba(16,185,129,0.12)', color: '#34d399' }
-  if (z < -0.75)return { background: 'rgba(16,185,129,0.07)', color: '#6ee7b7' }
-  return { background: 'transparent', color: '#94a3b8' }
+  if (z > 1.5)  return { background: 'rgba(217,112,94,0.12)',  color: '#e2826f' }
+  if (z > 0.75) return { background: 'rgba(214,173,102,0.12)', color: '#dfbb78' }
+  if (z < -1.5) return { background: 'rgba(88,173,142,0.12)', color: '#6fc2a2' }
+  if (z < -0.75)return { background: 'rgba(88,173,142,0.07)', color: '#8fd1b6' }
+  return { background: 'transparent', color: '#c6ced8' }
 }
 
 function pctileBarColor(p: number): string {
-  if (p > 75) return '#f87171'
-  if (p < 25) return '#34d399'
-  return '#fbbf24'
+  if (p > 75) return '#e2826f'
+  if (p < 25) return '#6fc2a2'
+  return '#dfbb78'
 }
 
 function r2Color(r2: number): string {
-  if (r2 >= 0.6) return '#34d399'
-  if (r2 >= 0.3) return '#fbbf24'
-  return '#f87171'
+  if (r2 >= 0.6) return '#6fc2a2'
+  if (r2 >= 0.3) return '#dfbb78'
+  return '#e2826f'
 }
 
 function changeCellStyle(v: number | null): { color: string } {
-  if (v === null) return { color: '#475569' }
-  return { color: v > 0 ? '#f87171' : v < 0 ? '#34d399' : '#94a3b8' }
+  if (v === null) return { color: '#8995a2' }
+  return { color: v > 0 ? '#e2826f' : v < 0 ? '#6fc2a2' : '#c6ced8' }
 }
 
 function fmtChange(v: number | null): string {
@@ -159,7 +153,7 @@ function fmtBeta(v: number): string {
 // ─── Group color lookup ───────────────────────────────────────────────────────
 
 function groupColor(group: string, groups: Record<string, GroupMeta>): string {
-  return groups[group]?.color ?? '#94a3b8'
+  return groups[group]?.color ?? '#c6ced8'
 }
 
 // ─── Carry/Vol Scatter Chart ─────────────────────────────────────────────────
@@ -199,12 +193,12 @@ function makeShape(
     return (
       <g opacity={isFocused ? 1 : 0.15} style={{ cursor: 'pointer' }} onClick={() => onBubbleClick(payload.label)}>
         <circle cx={cx} cy={cy} r={isSelected ? r + 2 : r}
-          fill={color} stroke={isSelected ? '#fff' : color}
+          fill={color} stroke={isSelected ? '#f4f7fa' : color}
           strokeWidth={isSelected ? 1.5 : 0} strokeOpacity={0.6}
           fillOpacity={isSelected ? 1 : 0.82} />
         <text x={cx + r + 4} y={cy} dominantBaseline="middle"
           fontSize={isSelected ? 10 : 9} fontWeight={isSelected ? 700 : 400}
-          fill={isSelected ? '#f1f5f9' : '#94a3b8'}
+          fill={isSelected ? '#eef2f6' : '#c6ced8'}
           style={{ pointerEvents: 'none', userSelect: 'none' }}>
           {payload.label}
         </text>
@@ -218,15 +212,15 @@ function CarryVolTooltip({ active, payload }: any) {
   const d: ChartDatum = payload[0].payload
   return (
     <div style={{
-      background: 'rgba(8,13,26,0.96)', border: '1px solid rgba(255,255,255,0.12)',
-      borderRadius: 8, padding: '10px 14px', fontSize: 12,
+      background: 'rgba(7,9,12,0.96)', border: '1px solid rgba(200,220,240,0.12)',
+      borderRadius: 6, padding: '10px 14px', fontSize: 12,
     }}>
-      <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 6, fontFamily: 'monospace' }}>{d.label}</div>
-      <div style={{ color: '#64748b' }}>Z-score (1y) <span style={{ color: '#f1f5f9' }}>{d.x.toFixed(2)}</span></div>
-      <div style={{ color: '#64748b' }}>C/V ratio    <span style={{ color: d.y > 0 ? '#34d399' : '#f87171' }}>{d.y.toFixed(2)}</span></div>
-      <div style={{ color: '#64748b' }}>Carry (1y)   <span style={{ color: '#cbd5e1' }}>{d.carry1y_bps.toFixed(1)} bp</span></div>
-      <div style={{ color: '#64748b' }}>3m RVol      <span style={{ color: '#cbd5e1' }}>{d.vol3m_bps.toFixed(1)} bp</span></div>
-      <div style={{ color: '#64748b' }}>Level        <span style={{ color: '#cbd5e1' }}>{d.value_bps.toFixed(1)} bp</span></div>
+      <div style={{ color: '#e4eaf1', fontWeight: 600, marginBottom: 6, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{d.label}</div>
+      <div style={{ color: '#9aa5b1' }}>Z-score (1y) <span style={{ color: '#eef2f6' }}>{d.x.toFixed(2)}</span></div>
+      <div style={{ color: '#9aa5b1' }}>C/V ratio    <span style={{ color: d.y > 0 ? '#6fc2a2' : '#e2826f' }}>{d.y.toFixed(2)}</span></div>
+      <div style={{ color: '#9aa5b1' }}>Carry (1y)   <span style={{ color: '#c3ccd6' }}>{d.carry1y_bps.toFixed(1)} bp</span></div>
+      <div style={{ color: '#9aa5b1' }}>3m RVol      <span style={{ color: '#c3ccd6' }}>{d.vol3m_bps.toFixed(1)} bp</span></div>
+      <div style={{ color: '#9aa5b1' }}>Level        <span style={{ color: '#c3ccd6' }}>{d.value_bps.toFixed(1)} bp</span></div>
     </div>
   )
 }
@@ -321,15 +315,15 @@ function CarryVolChart({
     <div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 8, justifyContent: 'flex-end' }}>
         <button onClick={() => setZoomMode(m => !m)}
-          style={{ fontSize: 11, padding: '3px 10px', borderRadius: 5, border: '1px solid rgba(255,255,255,0.15)',
-            background: zoomMode ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)',
-            color: zoomMode ? '#93c5fd' : '#64748b', cursor: 'pointer' }}>
+          style={{ fontSize: 11, padding: '3px 10px', borderRadius: 5, border: '1px solid rgba(200,220,240,0.15)',
+            background: zoomMode ? 'rgba(106,169,204,0.2)' : 'rgba(200,220,240,0.05)',
+            color: zoomMode ? '#a9d2e8' : '#9aa5b1', cursor: 'pointer' }}>
           {zoomMode ? 'Zoom ON' : 'Zoom'}
         </button>
         {zoomDomain && (
           <button onClick={() => setZoomDomain(null)}
-            style={{ fontSize: 11, padding: '3px 10px', borderRadius: 5, border: '1px solid rgba(255,255,255,0.15)',
-              background: 'rgba(255,255,255,0.05)', color: '#64748b', cursor: 'pointer' }}>
+            style={{ fontSize: 11, padding: '3px 10px', borderRadius: 5, border: '1px solid rgba(200,220,240,0.15)',
+              background: 'rgba(200,220,240,0.05)', color: '#9aa5b1', cursor: 'pointer' }}>
             Reset
           </button>
         )}
@@ -337,16 +331,16 @@ function CarryVolChart({
       <div style={{ position: 'relative' }}>
         <ResponsiveContainer width="100%" height={CHART_H}>
           <ScatterChart margin={CHART_MARGIN}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
             <XAxis dataKey="x" type="number" domain={[xLo, xHi]} name="Z-score"
-              label={{ value: 'Z-score (1y)', position: 'insideBottom', offset: -10, fill: '#64748b', fontSize: 12 }}
-              tick={{ fill: '#64748b', fontSize: 11 }} />
+              label={{ value: 'Z-score (1y)', position: 'insideBottom', offset: -10, fill: '#9aa5b1', fontSize: 12 }}
+              tick={{ fill: '#9aa5b1', fontSize: 11 }} />
             <YAxis dataKey="y" type="number" domain={[yLo, yHi]} name="C/V Ratio"
-              label={{ value: 'Carry / Vol', angle: -90, position: 'insideLeft', offset: 10, fill: '#64748b', fontSize: 12 }}
-              tick={{ fill: '#64748b', fontSize: 11 }} />
+              label={{ value: 'Carry / Vol', angle: -90, position: 'insideLeft', offset: 10, fill: '#9aa5b1', fontSize: 12 }}
+              tick={{ fill: '#9aa5b1', fontSize: 11 }} />
             <Tooltip content={<CarryVolTooltip />} />
-            <ReferenceLine x={0}  stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
-            <ReferenceLine y={0}  stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
+            <ReferenceLine x={0}  stroke="rgba(200,220,240,0.15)" strokeDasharray="4 4" />
+            <ReferenceLine y={0}  stroke="rgba(200,220,240,0.15)" strokeDasharray="4 4" />
             {Object.entries(groupedData).map(([grp, data]) => (
               <Scatter key={grp} data={data} fill={groupColor(grp, groups)}
                 shape={makeShape(groupColor(grp, groups), focusLabel, onBubbleClick)} />
@@ -361,8 +355,8 @@ function CarryVolChart({
             onMouseDown={handleMouseDown} onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
             {dragBox && (
-              <div style={{ position: 'absolute', border: '1px solid rgba(59,130,246,0.6)',
-                background: 'rgba(59,130,246,0.08)', ...dragBox, pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', border: '1px solid rgba(106,169,204,0.6)',
+                background: 'rgba(106,169,204,0.08)', ...dragBox, pointerEvents: 'none' }} />
             )}
           </div>
         )}
@@ -380,42 +374,132 @@ function CarryVolChart({
 }
 
 
-// ─── Detail chart (1y time series) ───────────────────────────────────────────
+// ─── Expression detail (overlay) ──────────────────────────────────────────────
 
-function DetailLineTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{ background: 'rgba(8,13,26,0.96)', border: '1px solid rgba(255,255,255,0.1)',
-      borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
-      <div style={{ color: '#64748b', marginBottom: 4 }}>{label}</div>
-      <div style={{ color: '#e2e8f0' }}>{payload[0].value?.toFixed(2)} bp</div>
-    </div>
-  )
+const CARRY_MODE_LABEL: Record<CarryMode, string> = {
+  total: 'Carry + Roll', income: 'Carry only', roll: 'Roll only',
 }
 
-function DetailChart({ series, label, color }: { series: SeriesPoint[]; label: string; color: string }) {
-  const values = series.map(d => d.value)
-  const mean   = values.reduce((a, b) => a + b, 0) / values.length
-  const yMin   = Math.min(...values)
-  const yMax   = Math.max(...values)
-  const pad    = (yMax - yMin) * 0.08 || 2
+function DetailModal({
+  label, row, betaRow, series, groups, siblings, onSwitch, onClose,
+  bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode,
+}: {
+  label: string
+  row: RVRow
+  betaRow?: BetaRow
+  series: SeriesPoint[] | null
+  groups: Record<string, GroupMeta>
+  siblings: string[]               // labels in the current view, for prev / next
+  onSwitch: (label: string) => void
+  onClose: () => void
+  bundSpreadBps: number
+  oatSpreadBps: number
+  btpSpreadBps: number
+  bonosSpreadBps: number
+  carryMode: CarryMode
+}) {
+  const [lookback, setLookback] = useState('1Y')
+  const idx  = siblings.indexOf(label)
+  const prev = idx > 0 ? siblings[idx - 1] : null
+  const next = idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : null
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+      else if ((e.key === 'ArrowLeft' || e.key === 'ArrowUp') && prev) { e.preventDefault(); onSwitch(prev) }
+      else if ((e.key === 'ArrowRight' || e.key === 'ArrowDown') && next) { e.preventDefault(); onSwitch(next) }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [prev, next, onClose, onSwitch])
+
+  const col  = groupColor(row.group, groups)
+  const adj  = repoAdj(row, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps)
+  const tot  = row.carry1y_bps + adj
+  const inc  = row.income_carry_bps + adj
+  const cv   = adjCarryVolRatio(row, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode)
+  const pnl  = (v: number) => v > 0 ? '#6fc2a2' : v < 0 ? '#e2826f' : '#c6ced8'
+  const sens = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)} bp`
+
+  const extraGroups: StatGroupDef[] = [
+    { title: `Carry /yr · ${CARRY_MODE_LABEL[carryMode]}`, items: [
+      { label: 'Carry + Roll', value: fmtSignedBp(tot), color: pnl(tot) },
+      { label: 'Income carry', value: fmtSignedBp(inc), color: pnl(inc) },
+      { label: 'Roll-down',    value: fmtSignedBp(row.roll_bps), color: pnl(row.roll_bps) },
+      { label: '3m RVol',      value: fmtBp(row.vol3m_bps), sub: 'ann.' },
+      { label: 'Carry / Vol',  value: cv === null ? '—' : cv.toFixed(2), color: pnl(cv ?? 0) },
+    ] },
+    { title: 'Repo sensitivity (per +1%)', items: [
+      { label: 'Bund repo',  value: sens(row.bund_repo_sens) },
+      { label: 'OAT repo',   value: sens(row.oat_repo_sens) },
+      { label: 'BTP repo',   value: sens(row.btp_repo_sens) },
+      { label: 'Bonos repo', value: sens(row.bonos_repo_sens) },
+    ] },
+    ...(betaRow ? [{ title: 'Betas (daily Δ)', items: [
+      { label: 'β Bund 10y',     value: fmtBeta(betaRow.beta_bund10y) },
+      { label: 'β OAT-Bund 10y', value: fmtBeta(betaRow.beta_spread10y) },
+      { label: 'β Bund 2s10s',   value: fmtBeta(betaRow.beta_slope) },
+      { label: 'β 1m10y vol',    value: fmtBeta(betaRow.beta_vol1m10y) },
+      { label: 'R²',             value: `${Math.round(betaRow.r2 * 100)}%`, color: r2Color(betaRow.r2) },
+      { label: 'Residual Z',     value: betaRow.residual_zscore.toFixed(2), color: zscoreStyle(betaRow.residual_zscore).color },
+    ] }] : []),
+  ]
+
+  const navBtn = (enabled: boolean): React.CSSProperties => ({
+    background: 'rgba(200,220,240,0.05)', border: '1px solid rgba(200,220,240,0.09)',
+    borderRadius: 6, padding: '4px 10px', fontSize: 12,
+    color: enabled ? '#c6ced8' : '#4d5661', cursor: enabled ? 'pointer' : 'default',
+  })
+
   return (
-    <div style={{ marginTop: 24 }}>
-      <div style={{ fontFamily: 'monospace', color: '#e2e8f0', fontSize: 14, marginBottom: 12 }}>
-        {label} — 1y history
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        background: 'rgba(3,5,8,0.72)', backdropFilter: 'blur(3px)',
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        padding: '48px 24px', overflowY: 'auto',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        role="dialog" aria-label={`${label} detail`}
+        style={{
+          width: '100%', maxWidth: 1280,
+          background: '#0b0f14', border: '1px solid rgba(150,178,205,0.17)',
+          borderRadius: 6, padding: 24,
+        }}
+      >
+        {series === null ? (
+          <div style={{ color: '#8995a2', fontSize: 13, padding: '80px 0', textAlign: 'center' }}>
+            <span className="animate-pulse">Loading {label}…</span>
+          </div>
+        ) : (
+          <ExpressionDetail
+            history={series}
+            lookback={lookback}
+            onLookbackChange={setLookback}
+            lineColor={col}
+            extraGroups={extraGroups}
+            footnote={<>
+              Level and positioning stats use the selected lookback; carry, 3m RVol and betas are the monitor's
+              fixed-window figures. Carry includes your repo assumptions. ←/→ to step through the list, Esc to close.
+            </>}
+            header={<>
+              <button style={navBtn(!!prev)} disabled={!prev} onClick={() => prev && onSwitch(prev)} title="Previous (←)">‹</button>
+              <button style={navBtn(!!next)} disabled={!next} onClick={() => next && onSwitch(next)} title="Next (→)">›</button>
+              <span style={{
+                fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, fontSize: 15, color: '#e4eaf1',
+                background: `${col}1f`, border: `1px solid ${col}55`, borderRadius: 6, padding: '3px 10px',
+              }}>{label}</span>
+              <span style={{ color: col, fontSize: 12 }}>{groups[row.group]?.label ?? row.group}</span>
+            </>}
+          />
+        )}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+          <button onClick={onClose} style={navBtn(true)}>Close · Esc</button>
+        </div>
       </div>
-      <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={series} margin={{ top: 8, right: 20, bottom: 20, left: 40 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-          <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }}
-            tickFormatter={d => d.slice(5)} interval="preserveStartEnd" />
-          <YAxis domain={[yMin - pad, yMax + pad]} tick={{ fill: '#64748b', fontSize: 11 }}
-            tickFormatter={v => `${v.toFixed(0)}`} />
-          <Tooltip content={<DetailLineTooltip />} />
-          <ReferenceLine y={mean} stroke="rgba(255,255,255,0.2)" strokeDasharray="4 4" />
-          <Line type="monotone" dataKey="value" stroke={color} dot={false} strokeWidth={1.5} />
-        </LineChart>
-      </ResponsiveContainer>
     </div>
   )
 }
@@ -437,14 +521,14 @@ function RVTable({
   carryMode: CarryMode
 }) {
   const th: React.CSSProperties = {
-    padding: '8px 10px', textAlign: 'right', fontSize: 11, color: '#475569',
-    fontWeight: 500, whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255,255,255,0.07)',
-    position: 'sticky', top: 0, background: '#0d1425', zIndex: 1,
+    padding: '8px 10px', textAlign: 'right', fontSize: 11, color: '#8995a2',
+    fontWeight: 500, whiteSpace: 'nowrap', borderBottom: '1px solid rgba(200,220,240,0.07)',
+    position: 'sticky', top: 0, background: '#0b0f14', zIndex: 1,
   }
   const thL: React.CSSProperties = { ...th, textAlign: 'left' }
   const td: React.CSSProperties = {
     padding: '6px 10px', textAlign: 'right', fontSize: 12,
-    fontFamily: 'monospace', borderBottom: '1px solid rgba(255,255,255,0.04)',
+    fontFamily: "'Geist Mono', ui-monospace, monospace", borderBottom: '1px solid rgba(200,220,240,0.04)',
     whiteSpace: 'nowrap',
   }
   const tdL: React.CSSProperties = { ...td, textAlign: 'left', fontFamily: 'inherit' }
@@ -476,27 +560,27 @@ function RVTable({
             return (
               <tr key={r.label}
                 onClick={() => onRowClick(r.label)}
-                style={{ cursor: 'pointer', background: isSel ? 'rgba(59,130,246,0.07)' : 'transparent' }}>
+                style={{ cursor: 'pointer', background: isSel ? 'rgba(106,169,204,0.07)' : 'transparent' }}>
                 <td style={{ ...tdL, color: col, fontWeight: isSel ? 600 : 400 }}>{r.label}</td>
-                <td style={{ ...td, color: '#e2e8f0' }}>{r.value_bps.toFixed(1)}</td>
+                <td style={{ ...td, color: '#e4eaf1' }}>{r.value_bps.toFixed(1)}</td>
                 <td style={{ ...td, ...changeCellStyle(r.d1d_bps) }}>{fmtChange(r.d1d_bps)}</td>
                 <td style={{ ...td, ...changeCellStyle(r.d1w_bps) }}>{fmtChange(r.d1w_bps)}</td>
                 <td style={{ ...td, ...changeCellStyle(r.d1m_bps) }}>{fmtChange(r.d1m_bps)}</td>
                 <td style={{ ...td, ...zs, borderRadius: 4 }}>{r.zscore_1y.toFixed(2)}</td>
                 <td style={td}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-                    <span style={{ color: '#94a3b8' }}>{r.pctile_1y.toFixed(0)}%</span>
-                    <div style={{ width: 40, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 2 }}>
+                    <span style={{ color: '#c6ced8' }}>{r.pctile_1y.toFixed(0)}%</span>
+                    <div style={{ width: 40, height: 4, background: 'rgba(200,220,240,0.08)', borderRadius: 2 }}>
                       <div style={{ width: `${r.pctile_1y}%`, height: '100%',
                         background: pctileBarColor(r.pctile_1y), borderRadius: 2 }} />
                     </div>
                   </div>
                 </td>
-                <td style={{ ...td, color: '#94a3b8' }}>{r.vol3m_bps.toFixed(1)}</td>
-                <td style={{ ...td, color: carry > 0 ? '#34d399' : '#f87171' }}>
+                <td style={{ ...td, color: '#c6ced8' }}>{r.vol3m_bps.toFixed(1)}</td>
+                <td style={{ ...td, color: carry > 0 ? '#6fc2a2' : '#e2826f' }}>
                   {carry > 0 ? '+' : ''}{carry.toFixed(1)}
                 </td>
-                <td style={{ ...td, color: cv !== null && cv > 0 ? '#34d399' : '#f87171' }}>
+                <td style={{ ...td, color: cv !== null && cv > 0 ? '#6fc2a2' : '#e2826f' }}>
                   {cv !== null ? (cv > 0 ? '+' : '') + cv.toFixed(2) : '—'}
                 </td>
               </tr>
@@ -511,21 +595,26 @@ function RVTable({
 
 // ─── Beta Monitor table ───────────────────────────────────────────────────────
 
-function BetaTable({ rows, groups }: { rows: BetaRow[]; groups: Record<string, GroupMeta> }) {
+function BetaTable({ rows, groups, focusLabel, onRowClick }: {
+  rows: BetaRow[]
+  groups: Record<string, GroupMeta>
+  focusLabel: string | null
+  onRowClick: (label: string) => void
+}) {
   const th: React.CSSProperties = {
-    padding: '8px 10px', textAlign: 'right', fontSize: 11, color: '#475569',
-    fontWeight: 500, whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255,255,255,0.07)',
-    position: 'sticky', top: 0, background: '#0d1425', zIndex: 1,
+    padding: '8px 10px', textAlign: 'right', fontSize: 11, color: '#8995a2',
+    fontWeight: 500, whiteSpace: 'nowrap', borderBottom: '1px solid rgba(200,220,240,0.07)',
+    position: 'sticky', top: 0, background: '#0b0f14', zIndex: 1,
   }
   const thL: React.CSSProperties = { ...th, textAlign: 'left' }
   const td: React.CSSProperties = {
     padding: '6px 10px', textAlign: 'right', fontSize: 12,
-    fontFamily: 'monospace', borderBottom: '1px solid rgba(255,255,255,0.04)', whiteSpace: 'nowrap',
+    fontFamily: "'Geist Mono', ui-monospace, monospace", borderBottom: '1px solid rgba(200,220,240,0.04)', whiteSpace: 'nowrap',
   }
   const tdL: React.CSSProperties = { ...td, textAlign: 'left', fontFamily: 'inherit' }
 
-  function betaColor(v: number) { return v > 0 ? '#93c5fd' : '#f9a8d4' }
-  function resZColor(z: number) { return Math.abs(z) > 1.5 ? '#fbbf24' : '#94a3b8' }
+  function betaColor(v: number) { return v > 0 ? '#a9d2e8' : '#e2bdd2' }
+  function resZColor(z: number) { return Math.abs(z) > 1.5 ? '#dfbb78' : '#c6ced8' }
 
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -543,7 +632,8 @@ function BetaTable({ rows, groups }: { rows: BetaRow[]; groups: Record<string, G
         </thead>
         <tbody>
           {rows.map(r => (
-            <tr key={r.label}>
+            <tr key={r.label} onClick={() => onRowClick(r.label)}
+              style={{ cursor: 'pointer', background: focusLabel === r.label ? 'rgba(106,169,204,0.07)' : 'transparent' }}>
               <td style={{ ...tdL, color: groupColor(r.group, groups) }}>{r.label}</td>
               <td style={{ ...td, color: betaColor(r.beta_bund10y) }}>{fmtBeta(r.beta_bund10y)}</td>
               <td style={{ ...td, color: betaColor(r.beta_spread10y) }}>{fmtBeta(r.beta_spread10y)}</td>
@@ -564,7 +654,9 @@ function BetaTable({ rows, groups }: { rows: BetaRow[]; groups: Record<string, G
 // ─── Carry Decomposition Table ────────────────────────────────────────────────
 // Shows carry ranked by C/V ratio — useful for identifying the best-carry trades
 
-function CarryRankTable({ rows, groups, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode }: {
+function CarryRankTable({ rows, groups, focusLabel, onRowClick, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode }: {
+  focusLabel: string | null
+  onRowClick: (label: string) => void
   rows: RVRow[]
   groups: Record<string, GroupMeta>
   bundSpreadBps: number
@@ -578,14 +670,14 @@ function CarryRankTable({ rows, groups, bundSpreadBps, oatSpreadBps, btpSpreadBp
     .sort((a, b) => (adjCarryVolRatio(b, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode) ?? 0) - (adjCarryVolRatio(a, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode) ?? 0))
 
   const th: React.CSSProperties = {
-    padding: '8px 10px', textAlign: 'right', fontSize: 11, color: '#475569',
-    fontWeight: 500, whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255,255,255,0.07)',
-    position: 'sticky', top: 0, background: '#0d1425', zIndex: 1,
+    padding: '8px 10px', textAlign: 'right', fontSize: 11, color: '#8995a2',
+    fontWeight: 500, whiteSpace: 'nowrap', borderBottom: '1px solid rgba(200,220,240,0.07)',
+    position: 'sticky', top: 0, background: '#0b0f14', zIndex: 1,
   }
   const thL: React.CSSProperties = { ...th, textAlign: 'left' }
   const td: React.CSSProperties = {
     padding: '6px 10px', textAlign: 'right', fontSize: 12,
-    fontFamily: 'monospace', borderBottom: '1px solid rgba(255,255,255,0.04)', whiteSpace: 'nowrap',
+    fontFamily: "'Geist Mono', ui-monospace, monospace", borderBottom: '1px solid rgba(200,220,240,0.04)', whiteSpace: 'nowrap',
   }
   const tdL: React.CSSProperties = { ...td, textAlign: 'left', fontFamily: 'inherit' }
 
@@ -610,17 +702,18 @@ function CarryRankTable({ rows, groups, bundSpreadBps, oatSpreadBps, btpSpreadBp
             const cv    = adjCarryVolRatio(r, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode) ?? 0
             const col   = groupColor(r.group, groups)
             return (
-              <tr key={r.label}>
-                <td style={{ ...td, textAlign: 'center', color: '#475569' }}>{i + 1}</td>
+              <tr key={r.label} onClick={() => onRowClick(r.label)}
+                style={{ cursor: 'pointer', background: focusLabel === r.label ? 'rgba(106,169,204,0.07)' : 'transparent' }}>
+                <td style={{ ...td, textAlign: 'center', color: '#8995a2' }}>{i + 1}</td>
                 <td style={{ ...tdL, color: col }}>{r.label}</td>
                 <td style={{ ...td, color: col, fontSize: 10 }}>{groups[r.group]?.label ?? r.group}</td>
-                <td style={{ ...td, color: '#e2e8f0' }}>{r.value_bps.toFixed(1)}</td>
+                <td style={{ ...td, color: '#e4eaf1' }}>{r.value_bps.toFixed(1)}</td>
                 <td style={{ ...td, ...zscoreStyle(r.zscore_1y) }}>{r.zscore_1y.toFixed(2)}</td>
-                <td style={{ ...td, color: carry > 0 ? '#34d399' : '#f87171' }}>
+                <td style={{ ...td, color: carry > 0 ? '#6fc2a2' : '#e2826f' }}>
                   {carry > 0 ? '+' : ''}{carry.toFixed(1)} bp
                 </td>
-                <td style={{ ...td, color: '#94a3b8' }}>{r.vol3m_bps.toFixed(1)}</td>
-                <td style={{ ...td, color: cv > 0 ? '#34d399' : '#f87171', fontWeight: 600 }}>
+                <td style={{ ...td, color: '#c6ced8' }}>{r.vol3m_bps.toFixed(1)}</td>
+                <td style={{ ...td, color: cv > 0 ? '#6fc2a2' : '#e2826f', fontWeight: 600 }}>
                   {cv > 0 ? '+' : ''}{cv.toFixed(2)}
                 </td>
               </tr>
@@ -642,9 +735,9 @@ const COUNTRY_SHORT: Record<string, string> = {
 }
 
 function deviationColor(dev: number): string {
-  if (dev < 0.25) return '#34d399'
-  if (dev < 0.75) return '#fbbf24'
-  return '#f87171'
+  if (dev < 0.25) return '#6fc2a2'
+  if (dev < 0.75) return '#dfbb78'
+  return '#e2826f'
 }
 
 function BondReferencePanel({ bondMap }: { bondMap: Record<string, Record<string, BondInfo | null>> }) {
@@ -659,22 +752,22 @@ function BondReferencePanel({ bondMap }: { bondMap: Record<string, Record<string
 
   return (
     <div style={{
-      background: 'rgba(99,102,241,0.05)',
-      border: '1px solid rgba(99,102,241,0.2)',
-      borderRadius: 12, padding: '14px 20px', marginBottom: 16,
+      background: 'rgba(139,143,216,0.05)',
+      border: '1px solid rgba(139,143,216,0.2)',
+      borderRadius: 6, padding: '14px 20px', marginBottom: 16,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ fontSize: 12, color: '#a5b4fc', fontWeight: 600 }}>
+        <span style={{ fontSize: 12, color: '#b9bdea', fontWeight: 600 }}>
           Bond Reference
         </span>
-        <span style={{ fontSize: 11, color: '#475569' }}>
+        <span style={{ fontSize: 11, color: '#8995a2' }}>
           Individual bonds selected by closest remaining maturity
         </span>
         <button
           onClick={() => setExpanded(v => !v)}
           style={{ marginLeft: 'auto', fontSize: 11, padding: '2px 10px', borderRadius: 5,
-            border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)',
-            color: '#64748b', cursor: 'pointer' }}>
+            border: '1px solid rgba(200,220,240,0.1)', background: 'rgba(200,220,240,0.03)',
+            color: '#9aa5b1', cursor: 'pointer' }}>
           {expanded ? 'Hide' : 'Show'}
         </button>
       </div>
@@ -684,13 +777,13 @@ function BondReferencePanel({ bondMap }: { bondMap: Record<string, Record<string
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
             <thead>
               <tr>
-                <th style={{ textAlign: 'left', padding: '6px 10px', color: '#475569',
-                  borderBottom: '1px solid rgba(255,255,255,0.07)', whiteSpace: 'nowrap' }}>
+                <th style={{ textAlign: 'left', padding: '6px 10px', color: '#8995a2',
+                  borderBottom: '1px solid rgba(200,220,240,0.07)', whiteSpace: 'nowrap' }}>
                   Country
                 </th>
                 {allTenors.map(t => (
-                  <th key={t} style={{ textAlign: 'center', padding: '6px 10px', color: '#475569',
-                    borderBottom: '1px solid rgba(255,255,255,0.07)', whiteSpace: 'nowrap' }}>
+                  <th key={t} style={{ textAlign: 'center', padding: '6px 10px', color: '#8995a2',
+                    borderBottom: '1px solid rgba(200,220,240,0.07)', whiteSpace: 'nowrap' }}>
                     {t}y
                   </th>
                 ))}
@@ -699,8 +792,8 @@ function BondReferencePanel({ bondMap }: { bondMap: Record<string, Record<string
             <tbody>
               {countries.map(country => (
                 <tr key={country}>
-                  <td style={{ padding: '6px 10px', color: '#94a3b8', fontWeight: 600,
-                    borderBottom: '1px solid rgba(255,255,255,0.04)', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '6px 10px', color: '#c6ced8', fontWeight: 600,
+                    borderBottom: '1px solid rgba(200,220,240,0.04)', whiteSpace: 'nowrap' }}>
                     {COUNTRY_SHORT[country]} ({country})
                   </td>
                   {allTenors.map(t => {
@@ -708,7 +801,7 @@ function BondReferencePanel({ bondMap }: { bondMap: Record<string, Record<string
                     if (!info) {
                       return (
                         <td key={t} style={{ padding: '6px 10px', textAlign: 'center',
-                          borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#334155' }}>
+                          borderBottom: '1px solid rgba(200,220,240,0.04)', color: '#77828f' }}>
                           —
                         </td>
                       )
@@ -718,15 +811,15 @@ function BondReferencePanel({ bondMap }: { bondMap: Record<string, Record<string
                     const shortLabel = parts.length >= 3 ? `${parts[0]} ${parts[parts.length - 2].slice(3)}` : info.ticker
                     return (
                       <td key={t} style={{ padding: '6px 10px', textAlign: 'center',
-                        borderBottom: '1px solid rgba(255,255,255,0.04)', whiteSpace: 'nowrap' }}
+                        borderBottom: '1px solid rgba(200,220,240,0.04)', whiteSpace: 'nowrap' }}
                         title={`${info.ticker}\nMaturity: ${info.maturity}\nActual: ${info.actual_years.toFixed(2)}y\nYield: ${info.yield_pct.toFixed(3)}%\nDuration: ${info.duration.toFixed(2)}\nOutstanding: ${(info.outstanding_mn / 1000).toFixed(0)} bn`}>
-                        <div style={{ color: '#e2e8f0', fontFamily: 'monospace', fontSize: 10 }}>
+                        <div style={{ color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 10 }}>
                           {shortLabel}
                         </div>
                         <div style={{ color: deviationColor(info.deviation_years), fontSize: 10, marginTop: 2 }}>
                           {info.actual_years.toFixed(2)}y
                           {info.deviation_years > 0.1 && (
-                            <span style={{ color: '#475569' }}> ({info.deviation_years > 0 ? '+' : ''}{info.deviation_years.toFixed(2)})</span>
+                            <span style={{ color: '#8995a2' }}> ({info.deviation_years > 0 ? '+' : ''}{info.deviation_years.toFixed(2)})</span>
                           )}
                         </div>
                       </td>
@@ -736,8 +829,8 @@ function BondReferencePanel({ bondMap }: { bondMap: Record<string, Record<string
               ))}
             </tbody>
           </table>
-          <div style={{ marginTop: 10, fontSize: 10, color: '#334155' }}>
-            Colour = deviation from target tenor: <span style={{ color: '#34d399' }}>green &lt;0.25y</span> · <span style={{ color: '#fbbf24' }}>amber &lt;0.75y</span> · <span style={{ color: '#f87171' }}>red ≥0.75y</span>.
+          <div style={{ marginTop: 10, fontSize: 10, color: '#77828f' }}>
+            Colour = deviation from target tenor: <span style={{ color: '#6fc2a2' }}>green &lt;0.25y</span> · <span style={{ color: '#dfbb78' }}>amber &lt;0.75y</span> · <span style={{ color: '#e2826f' }}>red ≥0.75y</span>.
             Hover a cell for full ticker, yield, duration, and outstanding.
           </div>
         </div>
@@ -749,14 +842,14 @@ function BondReferencePanel({ bondMap }: { bondMap: Record<string, Record<string
 // ─── Main page component ──────────────────────────────────────────────────────
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12,
+  background: 'rgba(200,220,240,0.03)',
+  border: '1px solid rgba(200,220,240,0.07)',
+  borderRadius: 6,
   padding: '24px 28px',
   marginBottom: 24,
 }
 
-const stickyBg = '#080d1a'
+const stickyBg = '#07090c'
 
 type TabId = 'rv' | 'carry' | 'beta' | 'scatter'
 
@@ -787,89 +880,133 @@ export default function EGBRV() {
     data ? (groupFilter === 'all' ? data.beta_monitor : data.beta_monitor.filter(r => r.group === groupFilter))
          : [], [data, groupFilter])
 
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [detailLabel, setDetailLabel] = useState<string | null>(null)
+  const [detailSeries, setDetailSeries] = useState<SeriesPoint[] | null>(null)
+  // Series are fetched per expression on demand; cleared whenever the monitor data reloads
+  const seriesCache = useRef<Record<string, SeriesPoint[]>>({})
+
+  function handleAuthError(err: unknown): boolean {
+    if (axios.isAxiosError(err) && err.response?.status === 401) {
+      localStorage.removeItem('access_token')
+      navigate('/login', { replace: true })
+      return true
+    }
+    return false
+  }
+
   useEffect(() => {
     const token = localStorage.getItem('access_token')
     if (!token) { navigate('/login', { replace: true }); return }
     setLoading(true)
+    seriesCache.current = {}
     axios.get('/api/tools/egb-rv', {
       headers: { Authorization: `Bearer ${token}` },
-      params: { use_individual_bonds: useIndividualBonds },
+      params: { use_individual_bonds: useIndividualBonds, refresh: refreshKey > 0 },
     })
       .then(res => { setData(res.data); setError(null) })
       .catch(err => {
-        if (axios.isAxiosError(err) && err.response?.status === 401) {
-          localStorage.removeItem('access_token')
-          navigate('/login', { replace: true })
-        } else {
-          setError(err.response?.data?.detail ?? err.message)
-        }
+        if (!handleAuthError(err)) setError(err.response?.data?.detail ?? err.message)
       })
       .finally(() => setLoading(false))
-  }, [useIndividualBonds])
+  }, [useIndividualBonds, refreshKey])
 
-  const focusSeries = useMemo(() => {
-    if (!focusLabel || !data?.series[focusLabel]) return null
-    return data.series[focusLabel]
-  }, [focusLabel, data])
+  useEffect(() => {
+    if (!detailLabel || !data) { setDetailSeries(null); return }
+    const cached = seriesCache.current[detailLabel]
+    if (cached) { setDetailSeries(cached); return }
+    const token = localStorage.getItem('access_token')
+    if (!token) return
+    let cancelled = false
+    setDetailSeries(null)
+    axios.get<SeriesPoint[]>('/api/tools/egb-rv/series', {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { label: detailLabel, use_individual_bonds: useIndividualBonds },
+    })
+      .then(res => {
+        seriesCache.current[detailLabel] = res.data
+        if (!cancelled) setDetailSeries(res.data)
+      })
+      .catch(err => { handleAuthError(err) })
+    return () => { cancelled = true }
+  }, [detailLabel, data])
 
-  const focusRow = useMemo(() =>
-    focusLabel && data ? data.rv_monitor.find(r => r.label === focusLabel) ?? null : null,
-    [focusLabel, data])
+  // Labels in the order the current tab shows them — drives prev / next in the detail overlay
+  const detailSiblings = useMemo(() => {
+    if (tab === 'beta') return filteredBeta.map(r => r.label)
+    if (tab === 'carry') {
+      const cvOf = (r: RVRow) => adjCarryVolRatio(r, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode) ?? 0
+      return filteredRV.filter(r => r.carry_vol_ratio !== null).sort((a, b) => cvOf(b) - cvOf(a)).map(r => r.label)
+    }
+    return filteredRV.map(r => r.label)
+  }, [tab, filteredRV, filteredBeta, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode])
+
+  const detailRow = detailLabel && data ? data.rv_monitor.find(r => r.label === detailLabel) ?? null : null
 
   function handleRowClick(label: string) {
-    setFocusLabel(prev => prev === label ? null : label)
+    setFocusLabel(label)
+    setDetailLabel(label)
   }
 
+  const closeDetail = useCallback(() => setDetailLabel(null), [])
+  const switchDetail = useCallback((label: string) => { setFocusLabel(label); setDetailLabel(label) }, [])
+
   const tabStyle = (id: TabId): React.CSSProperties => ({
-    padding: '6px 18px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+    padding: '6px 18px', borderRadius: 6, fontSize: 13, fontWeight: 500,
     border: '1px solid', cursor: 'pointer',
-    borderColor: tab === id ? 'rgba(59,130,246,0.5)' : 'rgba(255,255,255,0.1)',
-    background:  tab === id ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
-    color:       tab === id ? '#93c5fd' : '#64748b',
+    borderColor: tab === id ? 'rgba(106,169,204,0.5)' : 'rgba(200,220,240,0.1)',
+    background:  tab === id ? 'rgba(106,169,204,0.15)' : 'rgba(200,220,240,0.03)',
+    color:       tab === id ? '#a9d2e8' : '#9aa5b1',
   })
 
   const grpBtnStyle = (key: string): React.CSSProperties => ({
     padding: '4px 12px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
     border: '1px solid', fontWeight: 500,
-    borderColor: groupFilter === key ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.1)',
-    background:  groupFilter === key ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)',
-    color:       groupFilter === key ? '#e2e8f0' : '#64748b',
+    borderColor: groupFilter === key ? 'rgba(200,220,240,0.3)' : 'rgba(200,220,240,0.1)',
+    background:  groupFilter === key ? 'rgba(200,220,240,0.1)' : 'rgba(200,220,240,0.03)',
+    color:       groupFilter === key ? '#e4eaf1' : '#9aa5b1',
   })
 
   return (
-    <div style={{ minHeight: '100vh', background: stickyBg, color: '#e2e8f0', padding: '0 0 80px 0' }}>
+    <div style={{ minHeight: '100vh', background: stickyBg, color: '#e4eaf1', padding: '0 0 80px 0' }}>
 
       {/* Header */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: stickyBg,
-        borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '14px 32px',
+      <div style={{ ...headerBar, padding: '12px 32px',
         display: 'flex', alignItems: 'center', gap: 16 }}>
-        <button onClick={() => navigate('/')}
-          style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 20 }}>
-          ←
-        </button>
-        <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.5px' }}>EGB RV Monitor</span>
-        <span style={{ fontSize: 12, color: '#475569' }}>Bund · OAT · BTP · Bonos · BE · PGB · NL · AT · FI</span>
+        <PageTitle category="Futures / Swaps / Vol" categoryId="futures-swaps-vol" title="EGB RV Monitor" subtitle="Bund · OAT · BTP · Bonos · BE · PGB · NL · AT · FI" />
         {data && (
-          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#475569' }}>as of {data.as_of}</span>
+          <span className="hub-num" style={{ marginLeft: 'auto', fontSize: 11, color: '#9aa5b1' }}>As of {data.as_of}</span>
         )}
         {/* Individual bonds toggle */}
         <button
           onClick={() => setUseIndividualBonds(v => !v)}
           title={useIndividualBonds ? 'Using individual bonds (click to switch to generic)' : 'Using generic BBG tickers (click to switch to individual bonds)'}
           style={{
-            fontSize: 11, padding: '3px 10px', borderRadius: 20, cursor: 'pointer',
-            border: `1px solid ${useIndividualBonds ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.15)'}`,
-            background: useIndividualBonds ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.05)',
-            color: useIndividualBonds ? '#a5b4fc' : '#64748b',
+            fontSize: 11, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
+            border: `1px solid ${useIndividualBonds ? 'rgba(139,143,216,0.5)' : 'rgba(200,220,240,0.15)'}`,
+            background: useIndividualBonds ? 'rgba(139,143,216,0.15)' : 'rgba(200,220,240,0.05)',
+            color: useIndividualBonds ? '#b9bdea' : '#9aa5b1',
           }}>
           {useIndividualBonds ? 'Individual bonds' : 'Generic tickers'}
         </button>
+        <button
+          onClick={() => setRefreshKey(k => k + 1)}
+          disabled={loading}
+          title="Re-pull data (results are cached for 15 min)"
+          style={{
+            fontSize: 11, padding: '3px 10px', borderRadius: 6,
+            cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1,
+            border: '1px solid rgba(200,220,240,0.15)',
+            background: 'rgba(200,220,240,0.05)', color: '#9aa5b1',
+          }}>
+          ↻ Refresh
+        </button>
         {data && (
           <span style={{
-            fontSize: 11, padding: '3px 10px', borderRadius: 20,
-            background: data.data_source === 'bloomberg' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
-            color:      data.data_source === 'bloomberg' ? '#34d399' : '#fbbf24',
-            border: `1px solid ${data.data_source === 'bloomberg' ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`,
+            fontSize: 11, padding: '3px 10px', borderRadius: 6,
+            background: data.data_source === 'bloomberg' ? 'rgba(88,173,142,0.15)' : 'rgba(214,173,102,0.15)',
+            color:      data.data_source === 'bloomberg' ? '#6fc2a2' : '#dfbb78',
+            border: `1px solid ${data.data_source === 'bloomberg' ? 'rgba(88,173,142,0.3)' : 'rgba(214,173,102,0.3)'}`,
           }}>
             {data.data_source === 'bloomberg'
               ? (data.yield_mode === 'individual_bonds' ? 'Live · Individual bonds' : 'Live · Generic tickers')
@@ -881,11 +1018,11 @@ export default function EGBRV() {
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '32px 32px 0' }}>
 
         {loading && (
-          <div style={{ textAlign: 'center', padding: 80, color: '#475569' }}>Loading…</div>
+          <div style={{ textAlign: 'center', padding: 80, color: '#8995a2' }}>Loading…</div>
         )}
         {error && (
-          <div style={{ color: '#f87171', padding: 24, background: 'rgba(239,68,68,0.08)',
-            border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8 }}>Error: {error}</div>
+          <div style={{ color: '#e2826f', padding: 24, background: 'rgba(217,112,94,0.08)',
+            border: '1px solid rgba(217,112,94,0.2)', borderRadius: 6 }}>Error: {error}</div>
         )}
 
         {data && !loading && (
@@ -896,9 +1033,9 @@ export default function EGBRV() {
                 <button style={grpBtnStyle('all')} onClick={() => setGroupFilter('all')}>All</button>
                 {Object.entries(data.groups).map(([key, meta]) => (
                   <button key={key} style={{ ...grpBtnStyle(key),
-                    borderColor: groupFilter === key ? meta.color : 'rgba(255,255,255,0.1)',
-                    color:       groupFilter === key ? meta.color : '#64748b',
-                    background:  groupFilter === key ? `${meta.color}22` : 'rgba(255,255,255,0.03)',
+                    borderColor: groupFilter === key ? meta.color : 'rgba(200,220,240,0.1)',
+                    color:       groupFilter === key ? meta.color : '#9aa5b1',
+                    background:  groupFilter === key ? `${meta.color}22` : 'rgba(200,220,240,0.03)',
                   }} onClick={() => setGroupFilter(key)}>
                     {meta.label}
                   </button>
@@ -916,26 +1053,26 @@ export default function EGBRV() {
             {/* Repo Assumptions Panel */}
             <div style={{ ...cardStyle, marginBottom: 16, padding: '14px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>Carry view:</span>
+                <span style={{ fontSize: 12, color: '#9aa5b1', fontWeight: 500 }}>Carry view:</span>
                 {([['total', 'Carry + Roll'], ['income', 'Carry only'], ['roll', 'Roll only']] as [CarryMode, string][]).map(([mode, label]) => (
                   <button key={mode} onClick={() => setCarryMode(mode)}
                     style={{ fontSize: 11, padding: '3px 10px', borderRadius: 5, cursor: 'pointer',
                       border: '1px solid',
-                      borderColor: carryMode === mode ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)',
-                      background:  carryMode === mode ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)',
-                      color:       carryMode === mode ? '#a5b4fc' : '#64748b' }}>
+                      borderColor: carryMode === mode ? 'rgba(139,143,216,0.5)' : 'rgba(200,220,240,0.1)',
+                      background:  carryMode === mode ? 'rgba(139,143,216,0.15)' : 'rgba(200,220,240,0.03)',
+                      color:       carryMode === mode ? '#b9bdea' : '#9aa5b1' }}>
                     {label}
                   </button>
                 ))}
-                <span style={{ marginLeft: 8, fontSize: 12, color: '#64748b', fontWeight: 500 }}>Repo assumptions</span>
+                <span style={{ marginLeft: 8, fontSize: 12, color: '#9aa5b1', fontWeight: 500 }}>Repo assumptions</span>
                 <button onClick={() => setShowAssumptions(s => !s)}
-                  style={{ fontSize: 11, padding: '2px 10px', borderRadius: 5, border: '1px solid rgba(255,255,255,0.1)',
-                    background: showAssumptions ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)',
-                    color: '#64748b', cursor: 'pointer' }}>
+                  style={{ fontSize: 11, padding: '2px 10px', borderRadius: 5, border: '1px solid rgba(200,220,240,0.1)',
+                    background: showAssumptions ? 'rgba(200,220,240,0.08)' : 'rgba(200,220,240,0.03)',
+                    color: '#9aa5b1', cursor: 'pointer' }}>
                   {showAssumptions ? 'Hide' : 'Edit'}
                 </button>
                 {(bundSpreadBps !== 0 || oatSpreadBps !== 0 || btpSpreadBps !== 0 || bonosSpreadBps !== 0) && (
-                  <span style={{ fontSize: 11, color: '#fbbf24' }}>
+                  <span style={{ fontSize: 11, color: '#dfbb78' }}>
                     {[['Bund', bundSpreadBps], ['OAT', oatSpreadBps], ['BTP', btpSpreadBps], ['Bonos', bonosSpreadBps]]
                       .filter(([, v]) => (v as number) !== 0)
                       .map(([lbl, v]) => `${lbl}: ${(v as number) > 0 ? '+' : ''}${v} bp`)
@@ -945,8 +1082,8 @@ export default function EGBRV() {
                 )}
                 {(bundSpreadBps !== 0 || oatSpreadBps !== 0 || btpSpreadBps !== 0 || bonosSpreadBps !== 0) && (
                   <button onClick={() => { setBundSpreadBps(0); setOatSpreadBps(0); setBtpSpreadBps(0); setBonosSpreadBps(0) }}
-                    style={{ fontSize: 11, padding: '2px 8px', borderRadius: 5, border: '1px solid rgba(255,255,255,0.1)',
-                      background: 'transparent', color: '#475569', cursor: 'pointer' }}>
+                    style={{ fontSize: 11, padding: '2px 8px', borderRadius: 5, border: '1px solid rgba(200,220,240,0.1)',
+                      background: 'transparent', color: '#8995a2', cursor: 'pointer' }}>
                     Reset
                   </button>
                 )}
@@ -954,13 +1091,13 @@ export default function EGBRV() {
               {showAssumptions && (
                 <div style={{ marginTop: 14, display: 'flex', gap: 32, flexWrap: 'wrap' }}>
                   {([
-                    { label: 'Bund repo vs ESTR (bp)',  value: bundSpreadBps,  set: setBundSpreadBps,  color: '#3b82f6' },
-                    { label: 'OAT repo vs ESTR (bp)',   value: oatSpreadBps,   set: setOatSpreadBps,   color: '#8b5cf6' },
-                    { label: 'BTP repo vs ESTR (bp)',   value: btpSpreadBps,   set: setBtpSpreadBps,   color: '#10b981' },
-                    { label: 'Bonos repo vs ESTR (bp)', value: bonosSpreadBps, set: setBonosSpreadBps, color: '#f59e0b' },
+                    { label: 'Bund repo vs ESTR (bp)',  value: bundSpreadBps,  set: setBundSpreadBps,  color: '#6aa9cc' },
+                    { label: 'OAT repo vs ESTR (bp)',   value: oatSpreadBps,   set: setOatSpreadBps,   color: '#a08bd2' },
+                    { label: 'BTP repo vs ESTR (bp)',   value: btpSpreadBps,   set: setBtpSpreadBps,   color: '#58ad8e' },
+                    { label: 'Bonos repo vs ESTR (bp)', value: bonosSpreadBps, set: setBonosSpreadBps, color: '#d6ad66' },
                   ] as { label: string; value: number; set: (v: number) => void; color: string }[]).map(({ label, value, set, color }) => (
                     <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <span style={{ fontSize: 11, color: '#64748b' }}>{label}</span>
+                      <span style={{ fontSize: 11, color: '#9aa5b1' }}>{label}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <input type="range" min={-100} max={50} step={1} value={value}
                           onChange={e => set(Number(e.target.value))}
@@ -968,17 +1105,17 @@ export default function EGBRV() {
                         <input type="number" value={value} min={-100} max={50} step={1}
                           onChange={e => set(Number(e.target.value))}
                           style={{ width: 56, padding: '3px 6px', borderRadius: 5, fontSize: 12,
-                            border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)',
-                            color: value < 0 ? '#34d399' : value > 0 ? '#f87171' : '#94a3b8',
-                            textAlign: 'right', fontFamily: 'monospace' }} />
-                        <span style={{ fontSize: 11, color: '#475569' }}>bp</span>
+                            border: '1px solid rgba(200,220,240,0.15)', background: 'rgba(200,220,240,0.06)',
+                            color: value < 0 ? '#6fc2a2' : value > 0 ? '#e2826f' : '#c6ced8',
+                            textAlign: 'right', fontFamily: "'Geist Mono', ui-monospace, monospace" }} />
+                        <span style={{ fontSize: 11, color: '#8995a2' }}>bp</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', width: 140, fontSize: 10, color: '#334155' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', width: 140, fontSize: 10, color: '#77828f' }}>
                         <span>−100</span><span>0</span><span>+50</span>
                       </div>
                     </div>
                   ))}
-                  <div style={{ fontSize: 11, color: '#334155', alignSelf: 'flex-end', maxWidth: 280, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 11, color: '#77828f', alignSelf: 'flex-end', maxWidth: 280, lineHeight: 1.5 }}>
                     Negative = repo below ESTR (e.g. Bund special).
                     OAT bloc covers BE/NL/AT/FI. Bonos bloc covers Portugal.
                     Carry adjusts instantly — no refetch needed.
@@ -995,29 +1132,24 @@ export default function EGBRV() {
             {/* RV Monitor tab */}
             {tab === 'rv' && (
               <div style={cardStyle}>
-                <div style={{ fontSize: 14, color: '#94a3b8', marginBottom: 16 }}>
-                  Click a row to view its 1-year history below.
+                <div style={{ fontSize: 14, color: '#c6ced8', marginBottom: 16 }}>
+                  Click any row (here, in Carry Rank or Beta) or a scatter bubble for its history and summary stats.
                   Carry = coupon carry + roll-down per unit DV01, annualised (bps/yr).
                 </div>
                 <RVTable rows={filteredRV} focusLabel={focusLabel} onRowClick={handleRowClick}
                   groups={data.groups} bundSpreadBps={bundSpreadBps} oatSpreadBps={oatSpreadBps}
                   btpSpreadBps={btpSpreadBps} bonosSpreadBps={bonosSpreadBps} carryMode={carryMode} />
-                {focusSeries && focusRow && (
-                  <DetailChart
-                    series={focusSeries} label={focusLabel!}
-                    color={groupColor(focusRow.group, data.groups)} />
-                )}
               </div>
             )}
 
             {/* Carry Rank tab */}
             {tab === 'carry' && (
               <div style={cardStyle}>
-                <div style={{ fontSize: 14, color: '#94a3b8', marginBottom: 16 }}>
+                <div style={{ fontSize: 14, color: '#c6ced8', marginBottom: 16 }}>
                   Expressions ranked by carry-to-vol ratio (highest first).
                   C/V &gt; 0 = the carry works in your favour at current z-score.
                 </div>
-                <CarryRankTable rows={filteredRV} groups={data.groups}
+                <CarryRankTable rows={filteredRV} groups={data.groups} focusLabel={focusLabel} onRowClick={handleRowClick}
                   bundSpreadBps={bundSpreadBps} oatSpreadBps={oatSpreadBps}
                   btpSpreadBps={btpSpreadBps} bonosSpreadBps={bonosSpreadBps} carryMode={carryMode} />
               </div>
@@ -1027,23 +1159,23 @@ export default function EGBRV() {
             {tab === 'scatter' && (
               <div style={cardStyle}>
                 <div style={{ display: 'flex', gap: 16, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 13, color: '#94a3b8' }}>Bubble size = |β| for:</span>
+                  <span style={{ fontSize: 13, color: '#c6ced8' }}>Bubble size = |β| for:</span>
                   {BETA_VARS.map(bv => (
                     <button key={bv.key}
                       onClick={() => setBetaVar(bv.key)}
                       style={{ fontSize: 11, padding: '4px 12px', borderRadius: 6, cursor: 'pointer',
                         border: '1px solid', fontWeight: 500,
-                        borderColor: betaVar === bv.key ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)',
-                        background:  betaVar === bv.key ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)',
-                        color:       betaVar === bv.key ? '#a5b4fc' : '#64748b' }}>
+                        borderColor: betaVar === bv.key ? 'rgba(139,143,216,0.5)' : 'rgba(200,220,240,0.1)',
+                        background:  betaVar === bv.key ? 'rgba(139,143,216,0.15)' : 'rgba(200,220,240,0.03)',
+                        color:       betaVar === bv.key ? '#b9bdea' : '#9aa5b1' }}>
                       {bv.label}
                     </button>
                   ))}
                   {focusLabel && (
                     <button onClick={() => setFocusLabel(null)}
                       style={{ marginLeft: 'auto', fontSize: 11, padding: '4px 10px', borderRadius: 6,
-                        border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)',
-                        color: '#64748b', cursor: 'pointer' }}>
+                        border: '1px solid rgba(200,220,240,0.15)', background: 'rgba(200,220,240,0.05)',
+                        color: '#9aa5b1', cursor: 'pointer' }}>
                       Clear selection
                     </button>
                   )}
@@ -1052,27 +1184,38 @@ export default function EGBRV() {
                   rvMonitor={filteredRV} betaMonitor={filteredBeta}
                   focusLabel={focusLabel} onBubbleClick={handleRowClick}
                   betaVar={betaVar} groupFilter={groupFilter} groups={data.groups} />
-                {focusSeries && focusRow && (
-                  <DetailChart
-                    series={focusSeries} label={focusLabel!}
-                    color={groupColor(focusRow.group, data.groups)} />
-                )}
               </div>
             )}
 
             {/* Beta tab */}
             {tab === 'beta' && (
               <div style={cardStyle}>
-                <div style={{ fontSize: 14, color: '#94a3b8', marginBottom: 16 }}>
+                <div style={{ fontSize: 14, color: '#c6ced8', marginBottom: 16 }}>
                   OLS regression of daily changes on: Bund 10y, OAT−Bund 10y, Bund 2s10s, EUR 1m10y vol.
                   Resid Z = z-score of cumulative residual (signals mean reversion vs trend).
                 </div>
-                <BetaTable rows={filteredBeta} groups={data.groups} />
+                <BetaTable rows={filteredBeta} groups={data.groups} focusLabel={focusLabel} onRowClick={handleRowClick} />
               </div>
             )}
           </>
         )}
       </div>
+
+      {data && detailLabel && detailRow && (
+        <DetailModal
+          label={detailLabel}
+          row={detailRow}
+          betaRow={data.beta_monitor.find(b => b.label === detailLabel)}
+          series={detailSeries}
+          groups={data.groups}
+          siblings={detailSiblings}
+          onSwitch={switchDetail}
+          onClose={closeDetail}
+          bundSpreadBps={bundSpreadBps} oatSpreadBps={oatSpreadBps}
+          btpSpreadBps={btpSpreadBps} bonosSpreadBps={bonosSpreadBps}
+          carryMode={carryMode}
+        />
+      )}
     </div>
   )
 }

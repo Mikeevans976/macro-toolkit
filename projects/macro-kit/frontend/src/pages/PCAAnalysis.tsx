@@ -2,6 +2,7 @@ import { Component, useEffect, useMemo, useRef, useState } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import PageTitle, { headerBar } from '../components/PageTitle'
 import {
   LineChart, Line, BarChart, Bar, Cell, ComposedChart,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -23,13 +24,13 @@ class PCAErrorBoundary extends Component<{ children: ReactNode }, { error: Error
   render() {
     if (this.state.error) {
       return (
-        <div style={{ minHeight: '100vh', background: '#080d1a', color: '#f87171',
+        <div style={{ minHeight: '100vh', background: '#07090c', color: '#e2826f',
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-          <div style={{ maxWidth: 700, fontFamily: 'monospace' }}>
-            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>PCA Analysis — Render Error</div>
-            <pre style={{ fontSize: 12, whiteSpace: 'pre-wrap', color: '#fca5a5',
-              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-              borderRadius: 8, padding: 16 }}>
+          <div style={{ maxWidth: 700, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
+            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>PCA Analysis — Render Error</div>
+            <pre style={{ fontSize: 12, whiteSpace: 'pre-wrap', color: '#ecaa9c',
+              background: 'rgba(217,112,94,0.08)', border: '1px solid rgba(217,112,94,0.2)',
+              borderRadius: 6, padding: 16 }}>
               {this.state.error.message}{'\n\n'}{this.state.error.stack}
             </pre>
           </div>
@@ -123,12 +124,12 @@ interface SavedTrade {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BG = '#080d1a'
-const F1_COLOR = '#6366f1'
-const F2_COLOR = '#38bdf8'
-const F3_COLOR = '#22c55e'
-const RICH_COLOR = '#ef4444'
-const CHEAP_COLOR = '#22c55e'
+const BG = '#07090c'
+const F1_COLOR = '#8b8fd8'
+const F2_COLOR = '#7cc3dc'
+const F3_COLOR = '#5fb592'
+const RICH_COLOR = '#d9705e'
+const CHEAP_COLOR = '#5fb592'
 
 const CURVES = [
   { id: 'bund', label: 'Bund' },
@@ -143,9 +144,9 @@ const ALL_TENORS = [2, 5, 7, 10, 15, 20, 30]
 const DEFAULT_TENORS = [2, 5, 7, 10]
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 12,
+  background: '#0b0f14',
+  border: '1px solid rgba(150,178,205,0.09)',
+  borderRadius: 6,
   padding: '20px 24px',
   marginBottom: 20,
 }
@@ -156,15 +157,15 @@ type TabId = 'structure' | 'dynamics' | 'trade' | 'correlations' | 'hedge' | 'im
 
 function zscoreColor(z: number): string {
   if (Math.abs(z) >= 2) return RICH_COLOR
-  if (Math.abs(z) >= 1) return '#fbbf24'
+  if (Math.abs(z) >= 1) return '#dfbb78'
   return CHEAP_COLOR
 }
 
 function zscoreBadge(z: number): React.CSSProperties {
   const color = zscoreColor(z)
   return {
-    display: 'inline-block', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 700,
-    background: `${color}22`, color, border: `1px solid ${color}44`, fontFamily: 'monospace',
+    display: 'inline-block', padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+    background: `${color}22`, color, border: `1px solid ${color}44`, fontFamily: "'Geist Mono', ui-monospace, monospace",
   }
 }
 
@@ -174,7 +175,7 @@ function fmtZ(z: number): string {
 
 
 function factorColor(i: number): string {
-  return [F1_COLOR, F2_COLOR, F3_COLOR][i] ?? '#94a3b8'
+  return [F1_COLOR, F2_COLOR, F3_COLOR][i] ?? '#c6ced8'
 }
 
 // ─── OU fit (client-side) ─────────────────────────────────────────────────────
@@ -210,11 +211,11 @@ function fitOU(x: number[]): { mu: number; theta: number; sigma: number; halfLif
 function SimpleTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: 'rgba(8,13,26,0.96)', border: '1px solid rgba(255,255,255,0.12)',
-      borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-      <div style={{ color: '#64748b', marginBottom: 4 }}>{label}</div>
+    <div style={{ background: 'rgba(7,9,12,0.96)', border: '1px solid rgba(200,220,240,0.12)',
+      borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
+      <div style={{ color: '#9aa5b1', marginBottom: 4 }}>{label}</div>
       {payload.map((p: any) => (
-        <div key={p.name} style={{ color: p.color ?? '#e2e8f0' }}>
+        <div key={p.name} style={{ color: p.color ?? '#e4eaf1' }}>
           {p.name}: {typeof p.value === 'number' ? p.value.toFixed(2) : p.value}
         </div>
       ))}
@@ -235,7 +236,7 @@ function EigenvalueChart({ eigenvalues }: { eigenvalues: { values: number[]; cum
   }))
 
   const CustomLabel = ({ x, y, width, value }: any) => (
-    <text x={x + width / 2} y={y - 4} textAnchor="middle" fill="#94a3b8" fontSize={11}>
+    <text x={x + width / 2} y={y - 4} textAnchor="middle" fill="#c6ced8" fontSize={11}>
       {value}%
     </text>
   )
@@ -244,25 +245,25 @@ function EigenvalueChart({ eigenvalues }: { eigenvalues: { values: number[]; cum
     <div>
       <ResponsiveContainer width="100%" height={220}>
         <ComposedChart data={data} margin={{ top: 20, right: 30, bottom: 10, left: 30 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-          <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} />
-          <YAxis yAxisId="left" domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 11 }}
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+          <XAxis dataKey="name" tick={{ fill: '#9aa5b1', fontSize: 12 }} />
+          <YAxis yAxisId="left" domain={[0, 100]} tick={{ fill: '#9aa5b1', fontSize: 11 }}
             tickFormatter={v => `${v}%`} />
           <YAxis yAxisId="right" orientation="right" domain={[0, 100]}
-            tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={v => `${v}%`} />
+            tick={{ fill: '#9aa5b1', fontSize: 11 }} tickFormatter={v => `${v}%`} />
           <Tooltip content={<SimpleTooltip />} />
-          <Bar yAxisId="left" dataKey="pct" name="% Var" fill="#6366f1" fillOpacity={0.8}
+          <Bar yAxisId="left" dataKey="pct" name="% Var" fill="#8b8fd8" fillOpacity={0.8}
             label={<CustomLabel />} />
-          <Line yAxisId="right" dataKey="cum" name="Cumulative %" stroke="#fbbf24"
-            dot={{ r: 4, fill: '#fbbf24' }} strokeWidth={2} />
+          <Line yAxisId="right" dataKey="cum" name="Cumulative %" stroke="#dfbb78"
+            dot={{ r: 4, fill: '#dfbb78' }} strokeWidth={2} />
         </ComposedChart>
       </ResponsiveContainer>
       <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, fontSize: 12 }}>
         <thead>
           <tr>
             {['Factor', 'Label', '% Var', 'Cumulative'].map(h => (
-              <th key={h} style={{ padding: '6px 10px', color: '#475569', textAlign: 'right',
-                borderBottom: '1px solid rgba(255,255,255,0.07)', fontSize: 11,
+              <th key={h} style={{ padding: '6px 10px', color: '#8995a2', textAlign: 'right',
+                borderBottom: '1px solid rgba(200,220,240,0.07)', fontSize: 11,
                 ...(h === 'Factor' || h === 'Label' ? { textAlign: 'left' } : {}) }}>{h}</th>
             ))}
           </tr>
@@ -271,11 +272,11 @@ function EigenvalueChart({ eigenvalues }: { eigenvalues: { values: number[]; cum
           {data.map((d, i) => (
             <tr key={d.name}>
               <td style={{ padding: '5px 10px', color: factorColor(i), fontWeight: 600 }}>{d.name}</td>
-              <td style={{ padding: '5px 10px', color: '#94a3b8' }}>
+              <td style={{ padding: '5px 10px', color: '#c6ced8' }}>
                 {['Level', 'Slope', 'Curvature', 'F4', 'F5'][i] ?? `F${i + 1}`}
               </td>
-              <td style={{ padding: '5px 10px', textAlign: 'right', color: '#e2e8f0', fontFamily: 'monospace' }}>{d.pct}%</td>
-              <td style={{ padding: '5px 10px', textAlign: 'right', color: '#fbbf24', fontFamily: 'monospace' }}>{d.cum}%</td>
+              <td style={{ padding: '5px 10px', textAlign: 'right', color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{d.pct}%</td>
+              <td style={{ padding: '5px 10px', textAlign: 'right', color: '#dfbb78', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{d.cum}%</td>
             </tr>
           ))}
         </tbody>
@@ -299,13 +300,13 @@ function EigenvectorChart({ eigenvectors, tenors, pcaData }: { eigenvectors: Eig
   return (
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={data} margin={{ top: 10, right: 20, bottom: 20, left: 40 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-        <XAxis dataKey="tenor" tick={{ fill: '#64748b', fontSize: 11 }}
-          label={isCustom ? undefined : { value: 'Tenor (years)', position: 'insideBottom', offset: -10, fill: '#64748b', fontSize: 12 }} />
-        <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={v => v.toFixed(2)} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+        <XAxis dataKey="tenor" tick={{ fill: '#9aa5b1', fontSize: 11 }}
+          label={isCustom ? undefined : { value: 'Tenor (years)', position: 'insideBottom', offset: -10, fill: '#9aa5b1', fontSize: 12 }} />
+        <YAxis tick={{ fill: '#9aa5b1', fontSize: 11 }} tickFormatter={v => v.toFixed(2)} />
         <Tooltip content={<SimpleTooltip />} />
         <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-        <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="4 4" />
+        <ReferenceLine y={0} stroke="rgba(200,220,240,0.2)" strokeDasharray="4 4" />
         {safeEigenvectors.slice(0, 3).map((ev, i) => (
           <Line key={ev.factor} type="monotone" dataKey={`F${i + 1}`}
             name={`F${i + 1} ${ev.label}`} stroke={factorColor(i)}
@@ -322,25 +323,18 @@ function CorrelationHeatmap({ matrix, tenors, pcaData }: {
   pcaData?: PCAResponse | null
 }) {
   function cellColor(v: number): string {
-    // Positive → indigo/violet tones; negative → sky blue tones
-    const abs = Math.abs(v)
-    if (v >= 0) {
-      // white → indigo as v → 1
-      const r = Math.round(255 - abs * (255 - 99))
-      const g = Math.round(255 - abs * (255 - 102))
-      const b = Math.round(255 - abs * (255 - 241))
-      return `rgb(${r},${g},${b})`
-    } else {
-      // white → sky-blue as v → -1
-      const r = Math.round(255 - abs * (255 - 14))
-      const g = Math.round(255 - abs * (255 - 165))
-      const b = Math.round(255 - abs * (255 - 233))
-      return `rgb(${r},${g},${b})`
-    }
+    // Dark ground → periwinkle (positive) / glacier (negative)
+    const abs = Math.min(1, Math.abs(v))
+    const [r0, g0, b0] = [21, 27, 35]
+    const [r1, g1, b1] = v >= 0 ? [139, 143, 216] : [111, 180, 210]
+    const r = Math.round(r0 + abs * (r1 - r0))
+    const g = Math.round(g0 + abs * (g1 - g0))
+    const b = Math.round(b0 + abs * (b1 - b0))
+    return `rgb(${r},${g},${b})`
   }
 
   function textColor(v: number): string {
-    return Math.abs(v) > 0.55 ? '#080d1a' : '#e2e8f0'
+    return Math.abs(v) > 0.7 ? '#07090c' : '#e4eaf1'
   }
 
   const cellSize = Math.min(72, Math.floor(480 / tenors.length))
@@ -350,9 +344,9 @@ function CorrelationHeatmap({ matrix, tenors, pcaData }: {
       <table style={{ borderCollapse: 'collapse', fontSize: 12, margin: '0 auto' }}>
         <thead>
           <tr>
-            <th style={{ padding: '4px 8px', color: '#475569', fontSize: 11, fontWeight: 500 }}></th>
+            <th style={{ padding: '4px 8px', color: '#8995a2', fontSize: 11, fontWeight: 500 }}></th>
             {tenors.map(t => (
-              <th key={t} style={{ padding: '4px 6px', color: '#94a3b8', fontSize: 11,
+              <th key={t} style={{ padding: '4px 6px', color: '#c6ced8', fontSize: 11,
                 fontWeight: 500, textAlign: 'center', width: cellSize }}>
                 {tLabel(t, pcaData)}
               </th>
@@ -362,7 +356,7 @@ function CorrelationHeatmap({ matrix, tenors, pcaData }: {
         <tbody>
           {tenors.map(row => (
             <tr key={row}>
-              <td style={{ padding: '4px 8px', color: '#94a3b8', fontSize: 11,
+              <td style={{ padding: '4px 8px', color: '#c6ced8', fontSize: 11,
                 fontWeight: 500, whiteSpace: 'nowrap', textAlign: 'right' }}>
                 {tLabel(row, pcaData)}
               </td>
@@ -372,15 +366,15 @@ function CorrelationHeatmap({ matrix, tenors, pcaData }: {
                 return (
                   <td key={col} style={{
                     width: cellSize, height: cellSize,
-                    background: isDiag ? '#6366f1' : cellColor(v),
+                    background: isDiag ? '#8b8fd8' : cellColor(v),
                     textAlign: 'center', verticalAlign: 'middle',
                     padding: 0,
-                    border: '2px solid #080d1a',
+                    border: '2px solid #07090c',
                     borderRadius: 4,
-                    fontFamily: 'monospace',
+                    fontFamily: "'Geist Mono', ui-monospace, monospace",
                     fontSize: cellSize > 56 ? 11 : 10,
                     fontWeight: isDiag ? 700 : 400,
-                    color: isDiag ? '#fff' : textColor(v),
+                    color: isDiag ? '#f4f7fa' : textColor(v),
                   }}>
                     {isDiag ? '1.00' : v.toFixed(2)}
                   </td>
@@ -393,14 +387,14 @@ function CorrelationHeatmap({ matrix, tenors, pcaData }: {
 
       {/* Legend */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, justifyContent: 'center' }}>
-        <span style={{ fontSize: 10, color: '#475569' }}>−1</span>
+        <span style={{ fontSize: 10, color: '#8995a2' }}>−1</span>
         <div style={{
           width: 160, height: 10, borderRadius: 5,
-          background: 'linear-gradient(to right, rgb(14,165,233), rgb(255,255,255), rgb(99,102,241))',
+          background: 'linear-gradient(to right, rgb(111,180,210), rgb(21,27,35), rgb(139,143,216))',
         }} />
-        <span style={{ fontSize: 10, color: '#475569' }}>+1</span>
-        <div style={{ width: 14, height: 14, background: '#6366f1', borderRadius: 3, marginLeft: 12 }} />
-        <span style={{ fontSize: 10, color: '#475569' }}>diagonal (self)</span>
+        <span style={{ fontSize: 10, color: '#8995a2' }}>+1</span>
+        <div style={{ width: 14, height: 14, background: '#8b8fd8', borderRadius: 3, marginLeft: 12 }} />
+        <span style={{ fontSize: 10, color: '#8995a2' }}>diagonal (self)</span>
       </div>
     </div>
   )
@@ -513,9 +507,9 @@ function Dendrogram({ steps, tenorLabels, clusterLabels, colors }: {
     const ya = toSvgY(a < n ? 0 : steps[a - n]?.dist ?? 0)
     const yb = toSvgY(b < n ? 0 : steps[b - n]?.dist ?? 0)
     const ym = toSvgY(dist)
-    const ca = nodeColor.get(a) ?? '#64748b'
-    const cb = nodeColor.get(b) ?? '#64748b'
-    const cm = ca === cb ? ca : '#64748b'
+    const ca = nodeColor.get(a) ?? '#9aa5b1'
+    const cb = nodeColor.get(b) ?? '#9aa5b1'
+    const cm = ca === cb ? ca : '#9aa5b1'
     nodeColor.set(nodeId, cm)
     segs.push({ x1: xa, y1: ya, x2: xa, y2: ym, color: ca })
     segs.push({ x1: xb, y1: yb, x2: xb, y2: ym, color: cb })
@@ -532,9 +526,9 @@ function Dendrogram({ steps, tenorLabels, clusterLabels, colors }: {
       {leafOrder.map((id, i) => (
         <g key={id}>
           <circle cx={toSvgX(i)} cy={toSvgY(0)} r={5}
-            fill={colors[clusterLabels[id]]} stroke="#080d1a" strokeWidth={1.5} />
+            fill={colors[clusterLabels[id]]} stroke="#07090c" strokeWidth={1.5} />
           <text x={toSvgX(i)} y={toSvgY(0) + 18} textAnchor="middle"
-            fill="#94a3b8" fontSize={11} fontFamily="monospace">
+            fill="#c6ced8" fontSize={11} fontFamily="'Geist Mono', ui-monospace, monospace">
             {tenorLabels[id]}
           </text>
         </g>
@@ -545,14 +539,14 @@ function Dendrogram({ steps, tenorLabels, clusterLabels, colors }: {
         const y = toSvgY(dist)
         return (
           <g key={frac}>
-            <line x1={marginL - 4} y1={y} x2={marginL} y2={y} stroke="#334155" strokeWidth={1} />
-            <text x={marginL - 6} y={y + 4} textAnchor="end" fill="#475569" fontSize={9}>
+            <line x1={marginL - 4} y1={y} x2={marginL} y2={y} stroke="#2a333d" strokeWidth={1} />
+            <text x={marginL - 6} y={y + 4} textAnchor="end" fill="#8995a2" fontSize={9}>
               {dist.toFixed(2)}
             </text>
           </g>
         )
       })}
-      <text x={8} y={H / 2} textAnchor="middle" fill="#475569" fontSize={10}
+      <text x={8} y={H / 2} textAnchor="middle" fill="#8995a2" fontSize={10}
         transform={`rotate(-90, 8, ${H / 2})`}>Ward dist</text>
     </svg>
   )
@@ -600,7 +594,7 @@ function Scatter3D({ points, labels, clusters, colors }: {
   // Draw axes (unit vectors)
   const axisEnds: [number,number,number][] = [[1.2,0,0],[0,1.2,0],[0,0,1.2]]
   const axisLabels = ['PC1','PC2','PC3']
-  const axisColors = ['#6366f1','#38bdf8','#22c55e']
+  const axisColors = ['#8b8fd8','#7cc3dc','#5fb592']
 
   // Sort points by depth for painter's algorithm
   const projected = normPts.map((p, i) => ({ i, ...(() => { const [px,py,d] = project(p); return {px,py,d} })() }))
@@ -608,10 +602,10 @@ function Scatter3D({ points, labels, clusters, colors }: {
 
   return (
     <div>
-      <div style={{ fontSize: 11, color: '#475569', marginBottom: 8 }}>
+      <div style={{ fontSize: 11, color: '#8995a2', marginBottom: 8 }}>
         Drag to rotate · Points = yield tenors · Axes = PC1 / PC2 / PC3 loadings (normalised)
       </div>
-      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', cursor: dragState ? 'grabbing' : 'grab', borderRadius: 8 }}
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', cursor: dragState ? 'grabbing' : 'grab', borderRadius: 6 }}
         onMouseDown={e => setDragState({ x: e.clientX, y: e.clientY, az, el })}
         onMouseMove={e => {
           if (!dragState) return
@@ -622,7 +616,7 @@ function Scatter3D({ points, labels, clusters, colors }: {
         }}
         onMouseUp={() => setDragState(null)}
         onMouseLeave={() => setDragState(null)}>
-        <rect width={W} height={H} fill="rgba(255,255,255,0.01)" rx={8} />
+        <rect width={W} height={H} fill="rgba(200,220,240,0.01)" rx={8} />
         {/* Axis lines from origin */}
         {axisEnds.map((end, k) => {
           const [ox, oy] = project([0,0,0])
@@ -637,11 +631,11 @@ function Scatter3D({ points, labels, clusters, colors }: {
           )
         })}
         {/* Origin */}
-        {(() => { const [ox, oy] = project([0,0,0]); return <circle cx={ox} cy={oy} r={3} fill="#334155" /> })()}
+        {(() => { const [ox, oy] = project([0,0,0]); return <circle cx={ox} cy={oy} r={3} fill="#2a333d" /> })()}
         {/* Data points (painter's algorithm) */}
         {sorted.map(({ i, px, py }) => (
           <g key={i}>
-            <circle cx={px} cy={py} r={8} fill={colors[clusters[i]]} stroke="#080d1a" strokeWidth={1.5} opacity={0.9} />
+            <circle cx={px} cy={py} r={8} fill={colors[clusters[i]]} stroke="#07090c" strokeWidth={1.5} opacity={0.9} />
             <text x={px} y={py - 13} textAnchor="middle" fill={colors[clusters[i]]}
               fontSize={11} fontWeight={600} style={{ pointerEvents: 'none' }}>
               {labels[i]}
@@ -655,7 +649,7 @@ function Scatter3D({ points, labels, clusters, colors }: {
 
 // ─── Cluster Analysis section ─────────────────────────────────────────────────
 
-const CLUSTER_COLORS = ['#6366f1','#f59e0b','#10b981','#ef4444','#8b5cf6','#f97316']
+const CLUSTER_COLORS = ['#8b8fd8','#d6ad66','#58ad8e','#d9705e','#a08bd2','#d48853']
 
 function ClusterAnalysis({ data }: { data: PCAResponse }) {
   const [k, setK] = useState(3)
@@ -680,22 +674,22 @@ function ClusterAnalysis({ data }: { data: PCAResponse }) {
   if (tenors.length < 2) return null
 
   return (
-    <div style={cardStyle}>
+    <div className="hub-frame" style={cardStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>Cluster Analysis — PC Sensitivity</div>
-          <div style={{ fontSize: 12, color: '#475569', marginTop: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1' }}>Cluster Analysis — PC Sensitivity</div>
+          <div style={{ fontSize: 12, color: '#8995a2', marginTop: 4 }}>
             Ward hierarchical clustering on (PC1, PC2, PC3) loadings
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: '#64748b' }}>Clusters:</span>
+          <span style={{ fontSize: 12, color: '#9aa5b1' }}>Clusters:</span>
           {[2,3,4,5].map(n => (
             <button key={n} onClick={() => setK(n)} style={{
               padding: '3px 10px', borderRadius: 6, fontSize: 12, cursor: 'pointer',
-              border: `1px solid ${k === n ? 'rgba(99,102,241,0.6)' : 'rgba(255,255,255,0.1)'}`,
-              background: k === n ? 'rgba(99,102,241,0.15)' : 'transparent',
-              color: k === n ? '#a5b4fc' : '#64748b',
+              border: `1px solid ${k === n ? 'rgba(134,192,222,0.6)' : 'rgba(200,220,240,0.1)'}`,
+              background: k === n ? 'rgba(134,192,222,0.15)' : 'transparent',
+              color: k === n ? '#bfe0ef' : '#9aa5b1',
             }}>{n}</button>
           ))}
         </div>
@@ -708,7 +702,7 @@ function ClusterAnalysis({ data }: { data: PCAResponse }) {
           return (
             <div key={ci} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 12, height: 12, borderRadius: '50%', background: CLUSTER_COLORS[ci] }} />
-              <span style={{ fontSize: 12, color: '#94a3b8' }}>
+              <span style={{ fontSize: 12, color: '#c6ced8' }}>
                 Cluster {ci + 1}: <b style={{ color: CLUSTER_COLORS[ci] }}>{members.join(', ')}</b>
               </span>
             </div>
@@ -719,14 +713,14 @@ function ClusterAnalysis({ data }: { data: PCAResponse }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
         {/* 3D scatter */}
         <div>
-          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8, fontWeight: 600 }}>
+          <div style={{ fontSize: 12, color: '#9aa5b1', marginBottom: 8, fontWeight: 600 }}>
             3D Loading Space
           </div>
           <Scatter3D points={points} labels={labels} clusters={clusters} colors={CLUSTER_COLORS} />
         </div>
         {/* Dendrogram */}
         <div>
-          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8, fontWeight: 600 }}>
+          <div style={{ fontSize: 12, color: '#9aa5b1', marginBottom: 8, fontWeight: 600 }}>
             Dendrogram (Ward linkage)
           </div>
           <Dendrogram steps={steps} tenorLabels={labels} clusterLabels={clusters} colors={CLUSTER_COLORS} />
@@ -738,7 +732,7 @@ function ClusterAnalysis({ data }: { data: PCAResponse }) {
 
 // ─── Tab 5: Factor Correlations ───────────────────────────────────────────────
 
-const EXT_VAR_COLORS = ['#f59e0b', '#ef4444', '#10b981', '#8b5cf6', '#f97316', '#38bdf8']
+const EXT_VAR_COLORS = ['#d6ad66', '#d9705e', '#58ad8e', '#a08bd2', '#d48853', '#7cc3dc']
 
 const ROLL_WINDOWS = [
   { label: '13W', weeks: 13 },
@@ -1057,12 +1051,12 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
   }, [result])
 
   const thS: React.CSSProperties = {
-    padding: '7px 8px', fontSize: 11, color: '#475569',
-    fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.07)', textAlign: 'right',
+    padding: '7px 8px', fontSize: 11, color: '#8995a2',
+    fontWeight: 500, borderBottom: '1px solid rgba(200,220,240,0.07)', textAlign: 'right',
   }
   const tdS: React.CSSProperties = {
-    padding: '6px 8px', fontSize: 12, fontFamily: 'monospace',
-    borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'right',
+    padding: '6px 8px', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace",
+    borderBottom: '1px solid rgba(200,220,240,0.04)', textAlign: 'right',
   }
 
   const systemLabels: Record<string, string> = {
@@ -1074,27 +1068,27 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
   const dirBtn = (leg: HedgeLeg, dir: 1 | -1) => ({
     padding: '3px 8px', borderRadius: 5, fontSize: 11, cursor: 'pointer',
     border: `1px solid ${leg.direction === dir
-      ? (dir === 1 ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)')
-      : 'rgba(255,255,255,0.1)'}`,
+      ? (dir === 1 ? 'rgba(95,181,146,0.4)' : 'rgba(217,112,94,0.4)')
+      : 'rgba(200,220,240,0.1)'}`,
     background: leg.direction === dir
-      ? (dir === 1 ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.1)')
-      : 'rgba(255,255,255,0.03)',
+      ? (dir === 1 ? 'rgba(95,181,146,0.12)' : 'rgba(217,112,94,0.1)')
+      : 'rgba(200,220,240,0.03)',
     color: leg.direction === dir
       ? (dir === 1 ? CHEAP_COLOR : RICH_COLOR)
-      : '#475569',
+      : '#8995a2',
     fontWeight: leg.direction === dir ? 600 : 400,
   } as React.CSSProperties)
 
   return (
     <div>
       {/* Leg configurator */}
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>Trade Legs</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1' }}>Trade Legs</div>
           <button onClick={addLeg} disabled={legs.length >= tenors.length}
-            style={{ padding: '5px 14px', borderRadius: 7, border: '1px solid rgba(99,102,241,0.4)',
-              background: legs.length >= tenors.length ? 'rgba(255,255,255,0.03)' : 'rgba(99,102,241,0.12)',
-              color: legs.length >= tenors.length ? '#475569' : '#a5b4fc',
+            style={{ padding: '5px 14px', borderRadius: 7, border: '1px solid rgba(139,143,216,0.4)',
+              background: legs.length >= tenors.length ? 'rgba(200,220,240,0.03)' : 'rgba(139,143,216,0.12)',
+              color: legs.length >= tenors.length ? '#8995a2' : '#b9bdea',
               fontSize: 12, cursor: legs.length >= tenors.length ? 'not-allowed' : 'pointer' }}>
             + Add leg
           </button>
@@ -1124,17 +1118,17 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                   <tr key={leg.id}>
                     <td style={{ ...tdS, textAlign: 'left' }}>
                       <select value={leg.tenor} onChange={e => updateLeg(leg.id, { tenor: Number(e.target.value) })}
-                        style={{ padding: '4px 6px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)',
-                          background: '#0d1425', color: '#e2e8f0', fontSize: 12, cursor: 'pointer' }}>
+                        style={{ padding: '4px 6px', borderRadius: 6, border: '1px solid rgba(200,220,240,0.15)',
+                          background: '#0b0f14', color: '#e4eaf1', fontSize: 12, cursor: 'pointer' }}>
                         {tenors.map(t => <option key={t} value={t}>{tLabel(t, data)}</option>)}
                       </select>
                     </td>
                     <td style={{ ...tdS, textAlign: 'center' }}>
                       <input type="number" value={leg.bpv} step={0.001} min={0.0001}
                         onChange={e => updateLeg(leg.id, { bpv: Number(e.target.value) })}
-                        style={{ padding: '4px 6px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)',
-                          background: '#0d1425', color: '#e2e8f0', fontSize: 12, width: 80,
-                          fontFamily: 'monospace', textAlign: 'right' }} />
+                        style={{ padding: '4px 6px', borderRadius: 6, border: '1px solid rgba(200,220,240,0.15)',
+                          background: '#0b0f14', color: '#e4eaf1', fontSize: 12, width: 80,
+                          fontFamily: "'Geist Mono', ui-monospace, monospace", textAlign: 'right' }} />
                     </td>
                     {/* Factor sensitivities (read-only) */}
                     {[s1, s2, s3].map((s, fi) => (
@@ -1154,23 +1148,23 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                       {leg.isAnchor ? (
                         <input type="number" value={leg.anchorNotional} step={1} min={1}
                           onChange={e => updateLeg(leg.id, { anchorNotional: Number(e.target.value) })}
-                          style={{ padding: '4px 6px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)',
-                            background: '#0d1425', color: '#e2e8f0', fontSize: 12, width: 70,
-                            fontFamily: 'monospace', textAlign: 'right' }} />
+                          style={{ padding: '4px 6px', borderRadius: 6, border: '1px solid rgba(200,220,240,0.15)',
+                            background: '#0b0f14', color: '#e4eaf1', fontSize: 12, width: 70,
+                            fontFamily: "'Geist Mono', ui-monospace, monospace", textAlign: 'right' }} />
                       ) : (
-                        <span style={{ color: '#475569' }}>—</span>
+                        <span style={{ color: '#8995a2' }}>—</span>
                       )}
                     </td>
                     <td style={{ ...tdS, textAlign: 'center' }}>
                       <input type="radio" name="anchor" checked={leg.isAnchor}
                         onChange={() => setAnchor(leg.id)}
-                        style={{ accentColor: '#6366f1', cursor: 'pointer', width: 15, height: 15 }} />
+                        style={{ accentColor: '#8b8fd8', cursor: 'pointer', width: 15, height: 15 }} />
                     </td>
                     <td style={{ ...tdS, textAlign: 'center' }}>
                       <button onClick={() => removeLeg(leg.id)} disabled={legs.length <= 2}
-                        style={{ padding: '2px 8px', borderRadius: 5, border: '1px solid rgba(239,68,68,0.3)',
-                          background: 'rgba(239,68,68,0.08)',
-                          color: legs.length <= 2 ? '#475569' : '#f87171',
+                        style={{ padding: '2px 8px', borderRadius: 5, border: '1px solid rgba(217,112,94,0.3)',
+                          background: 'rgba(217,112,94,0.08)',
+                          color: legs.length <= 2 ? '#8995a2' : '#e2826f',
                           fontSize: 11, cursor: legs.length <= 2 ? 'not-allowed' : 'pointer' }}>
                         ✕
                       </button>
@@ -1184,20 +1178,20 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
 
         {/* k-factor selector */}
         <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, color: '#94a3b8' }}>Hedge against</span>
+          <span style={{ fontSize: 12, color: '#c6ced8' }}>Hedge against</span>
           <div style={{ display: 'flex', gap: 8 }}>
             {Array.from({ length: maxK }, (_, i) => i + 1).map(k => (
               <button key={k} onClick={() => setKFactors(k)}
                 style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, cursor: 'pointer',
-                  border: `1px solid ${effectiveK === k ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                  background: effectiveK === k ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.03)',
-                  color: effectiveK === k ? '#a5b4fc' : '#64748b',
+                  border: `1px solid ${effectiveK === k ? 'rgba(134,192,222,0.5)' : 'rgba(200,220,240,0.1)'}`,
+                  background: effectiveK === k ? 'rgba(134,192,222,0.18)' : 'rgba(200,220,240,0.03)',
+                  color: effectiveK === k ? '#bfe0ef' : '#9aa5b1',
                   fontWeight: effectiveK === k ? 600 : 400 }}>
                 {k === 1 ? 'PC1 (Level)' : k === 2 ? 'PC1+PC2' : 'PC1+PC2+PC3'}
               </button>
             ))}
           </div>
-          <span style={{ fontSize: 11, color: '#475569' }}>
+          <span style={{ fontSize: 11, color: '#8995a2' }}>
             {freeLegCount} free leg{freeLegCount !== 1 ? 's' : ''} · {effectiveK} constraint{effectiveK !== 1 ? 's' : ''}
             {freeLegCount === effectiveK ? ' → exact' : freeLegCount > effectiveK ? ' → min-norm' : ' → least-squares'}
           </span>
@@ -1208,10 +1202,10 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
         )}
 
         <button onClick={computeHedge} disabled={!!validationError}
-          style={{ marginTop: 16, padding: '8px 24px', borderRadius: 8, border: 'none',
+          style={{ marginTop: 16, padding: '8px 24px', borderRadius: 6, border: 'none',
             cursor: validationError ? 'not-allowed' : 'pointer',
-            background: validationError ? 'rgba(255,255,255,0.05)' : 'rgba(99,102,241,0.8)',
-            color: validationError ? '#475569' : '#fff', fontSize: 13, fontWeight: 600 }}>
+            background: validationError ? 'rgba(200,220,240,0.05)' : 'rgba(139,143,216,0.8)',
+            color: validationError ? '#8995a2' : '#f4f7fa', fontSize: 13, fontWeight: 600 }}>
           Compute PCA-Neutral Hedge
         </button>
       </div>
@@ -1226,13 +1220,13 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
         return (
           <>
             {/* Weights table */}
-            <div style={cardStyle}>
+            <div className="hub-frame" style={cardStyle}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>PCA-Neutral Weights</div>
-                <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 10,
-                  background: result.systemType === 'exact' ? 'rgba(34,197,94,0.1)' : 'rgba(251,191,36,0.1)',
-                  color: result.systemType === 'exact' ? CHEAP_COLOR : '#fbbf24',
-                  border: `1px solid ${result.systemType === 'exact' ? 'rgba(34,197,94,0.25)' : 'rgba(251,191,36,0.25)'}` }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1' }}>PCA-Neutral Weights</div>
+                <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 6,
+                  background: result.systemType === 'exact' ? 'rgba(95,181,146,0.1)' : 'rgba(223,187,120,0.1)',
+                  color: result.systemType === 'exact' ? CHEAP_COLOR : '#dfbb78',
+                  border: `1px solid ${result.systemType === 'exact' ? 'rgba(95,181,146,0.25)' : 'rgba(223,187,120,0.25)'}` }}>
                   {systemLabels[result.systemType]}
                 </span>
               </div>
@@ -1256,13 +1250,13 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                       const isLong = w >= 0
                       return (
                         <tr key={leg.id}>
-                          <td style={{ ...tdS, textAlign: 'left', color: '#94a3b8' }}>Leg {i + 1}</td>
-                          <td style={{ ...tdS, color: '#e2e8f0', fontWeight: 600 }}>{leg.tenor}y</td>
-                          <td style={{ ...tdS, color: '#64748b' }}>{leg.bpv}</td>
+                          <td style={{ ...tdS, textAlign: 'left', color: '#c6ced8' }}>Leg {i + 1}</td>
+                          <td style={{ ...tdS, color: '#e4eaf1', fontWeight: 600 }}>{leg.tenor}y</td>
+                          <td style={{ ...tdS, color: '#9aa5b1' }}>{leg.bpv}</td>
                           <td style={{ ...tdS }}>
                             {leg.isAnchor
                               ? <span style={{ color: F1_COLOR, fontWeight: 600 }}>Anchor</span>
-                              : <span style={{ color: '#94a3b8' }}>Free</span>}
+                              : <span style={{ color: '#c6ced8' }}>Free</span>}
                           </td>
                           <td style={{ ...tdS, textAlign: 'center' }}>
                             <span style={{ color: isLong ? CHEAP_COLOR : RICH_COLOR, fontWeight: 600 }}>
@@ -1281,8 +1275,8 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan={6} style={{ ...tdS, textAlign: 'right', color: '#475569', fontWeight: 500 }}>Total DV01</td>
-                      <td style={{ ...tdS, color: Math.abs(result.totalDv01 / anchor.anchorNotional) < 0.001 ? CHEAP_COLOR : '#fbbf24', fontWeight: 700 }}>
+                      <td colSpan={6} style={{ ...tdS, textAlign: 'right', color: '#8995a2', fontWeight: 500 }}>Total DV01</td>
+                      <td style={{ ...tdS, color: Math.abs(result.totalDv01 / anchor.anchorNotional) < 0.001 ? CHEAP_COLOR : '#dfbb78', fontWeight: 600 }}>
                         {result.totalDv01 >= 0 ? '+' : ''}{result.totalDv01.toFixed(4)}
                       </td>
                     </tr>
@@ -1292,11 +1286,11 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
             </div>
 
             {/* Factor exposure verification */}
-            <div style={cardStyle}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 14 }}>
+            <div className="hub-frame" style={cardStyle}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 14 }}>
                 Factor Exposure Check
               </div>
-              <div style={{ fontSize: 12, color: '#475569', marginBottom: 12 }}>
+              <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 12 }}>
                 Net exposure per PC after hedge weights, normalised per unit of anchor notional. Hedged factors should be ≈ 0.
               </div>
               <table style={{ borderCollapse: 'collapse', fontSize: 12 }}>
@@ -1314,11 +1308,11 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                     return (
                       <tr key={j}>
                         <td style={{ ...tdS, textAlign: 'left', color: factorColor(j), fontWeight: 600 }}>PC{j + 1}</td>
-                        <td style={{ ...tdS, textAlign: 'left', color: '#94a3b8' }}>
+                        <td style={{ ...tdS, textAlign: 'left', color: '#c6ced8' }}>
                           {['Level', 'Slope', 'Curvature'][j] ?? `F${j + 1}`}
                         </td>
                         <td style={{ ...tdS, textAlign: 'center',
-                          color: isNear0 ? CHEAP_COLOR : isHedged ? RICH_COLOR : '#94a3b8',
+                          color: isNear0 ? CHEAP_COLOR : isHedged ? RICH_COLOR : '#c6ced8',
                           fontWeight: 600 }}>
                           {exp >= 0 ? '+' : ''}{exp.toFixed(5)}
                         </td>
@@ -1327,7 +1321,7 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                             ? <span style={{ color: isNear0 ? CHEAP_COLOR : RICH_COLOR }}>
                                 {isNear0 ? '✓ Hedged' : '✗ Check BPVs'}
                               </span>
-                            : <span style={{ color: '#475569' }}>Not targeted</span>}
+                            : <span style={{ color: '#8995a2' }}>Not targeted</span>}
                         </td>
                       </tr>
                     )
@@ -1342,15 +1336,15 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                 (!historyStart || d.date >= historyStart) && (!historyEnd || d.date <= historyEnd)
               )
               const dateInputStyle: React.CSSProperties = {
-                padding: '3px 7px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.12)',
-                background: '#0d1425', color: '#e2e8f0', fontSize: 11, fontFamily: 'monospace',
+                padding: '3px 7px', borderRadius: 6, border: '1px solid rgba(200,220,240,0.12)',
+                background: '#0b0f14', color: '#e4eaf1', fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace",
               }
               return (
-              <div style={cardStyle}>
+              <div className="hub-frame" style={cardStyle}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>Trade history (bp, per unit anchor)</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1' }}>Trade history (bp, per unit anchor)</div>
                   {currentVal !== null && (
-                    <span style={{ fontSize: 16, fontWeight: 700, fontFamily: 'monospace',
+                    <span style={{ fontSize: 16, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace",
                       color: currentVal >= 0 ? CHEAP_COLOR : RICH_COLOR }}>
                       {currentVal > 0 ? '+' : ''}{currentVal.toFixed(1)} bp
                     </span>
@@ -1359,14 +1353,14 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                     <span style={zscoreBadge(tradeZ)}>{fmtZ(tradeZ)}</span>
                   )}
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span style={{ fontSize: 11, color: '#475569' }}>From</span>
+                    <span style={{ fontSize: 11, color: '#8995a2' }}>From</span>
                     <input type="date" value={historyStart} onChange={e => setHistoryStart(e.target.value)} style={dateInputStyle} />
-                    <span style={{ fontSize: 11, color: '#475569' }}>to</span>
+                    <span style={{ fontSize: 11, color: '#8995a2' }}>to</span>
                     <input type="date" value={historyEnd} onChange={e => setHistoryEnd(e.target.value)} style={dateInputStyle} />
                     {(historyStart || historyEnd) && (
                       <button onClick={() => { setHistoryStart(''); setHistoryEnd('') }}
                         style={{ padding: '2px 8px', borderRadius: 5, fontSize: 11, cursor: 'pointer',
-                          border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#64748b' }}>
+                          border: '1px solid rgba(200,220,240,0.1)', background: 'rgba(200,220,240,0.04)', color: '#9aa5b1' }}>
                         Clear
                       </button>
                     )}
@@ -1380,18 +1374,18 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                     <ResponsiveContainer width="100%" height={220}>
                       <ComposedChart data={histSlice}
                         margin={{ top: 8, right: 20, bottom: 20, left: 44 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
                         <XAxis
                           dataKey="date"
-                          tick={{ fill: '#64748b', fontSize: 9 }}
+                          tick={{ fill: '#9aa5b1', fontSize: 9 }}
                           interval={interval}
                           tickFormatter={(d: string) => d.slice(0, 7)}
                         />
-                        <YAxis tick={{ fill: '#64748b', fontSize: 10 }} tickFormatter={v => `${v.toFixed(0)}bp`} />
+                        <YAxis tick={{ fill: '#9aa5b1', fontSize: 10 }} tickFormatter={v => `${v.toFixed(0)}bp`} />
                         <Tooltip content={<SimpleTooltip />} />
                         {ouTrade && (
-                          <ReferenceLine y={ouTrade.mu} stroke="rgba(255,255,255,0.25)" strokeDasharray="4 4"
-                            label={{ value: 'μ', position: 'right', fill: '#64748b', fontSize: 10 }} />
+                          <ReferenceLine y={ouTrade.mu} stroke="rgba(200,220,240,0.25)" strokeDasharray="4 4"
+                            label={{ value: 'μ', position: 'right', fill: '#9aa5b1', fontSize: 10 }} />
                         )}
                         <Line type="monotone" dataKey="value" name="Trade (bp)" stroke={F1_COLOR}
                           dot={false} strokeWidth={1.5} connectNulls={false} />
@@ -1404,16 +1398,16 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                   <div style={{ display: 'flex', gap: 20, marginTop: 16, flexWrap: 'wrap' }}>
                     {[
                       { label: 'Current (bp)', value: currentVal.toFixed(1), color: currentVal >= 0 ? CHEAP_COLOR : RICH_COLOR },
-                      { label: 'OU Mean (bp)', value: ouTrade.mu.toFixed(1), color: '#e2e8f0' },
+                      { label: 'OU Mean (bp)', value: ouTrade.mu.toFixed(1), color: '#e4eaf1' },
                       { label: 'Expected P&L (bp)', value: (ouTrade.mu - currentVal > 0 ? '+' : '') + (ouTrade.mu - currentVal).toFixed(1),
                         color: ouTrade.mu > currentVal ? CHEAP_COLOR : RICH_COLOR },
-                      { label: 'Half-life', value: `${ouTrade.halfLifeWeeks.toFixed(1)}w`, color: '#e2e8f0' },
+                      { label: 'Half-life', value: `${ouTrade.halfLifeWeeks.toFixed(1)}w`, color: '#e4eaf1' },
                       ...(tradeZ !== null ? [{ label: 'Z-score', value: fmtZ(tradeZ), color: zscoreColor(tradeZ) }] : []),
                     ].map(({ label, value, color }) => (
-                      <div key={label} style={{ textAlign: 'center', background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 16px' }}>
-                        <div style={{ fontSize: 10, color: '#475569', marginBottom: 4 }}>{label}</div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color, fontFamily: 'monospace' }}>{value}</div>
+                      <div key={label} style={{ textAlign: 'center', background: 'rgba(200,220,240,0.03)',
+                        border: '1px solid rgba(200,220,240,0.07)', borderRadius: 6, padding: '10px 16px' }}>
+                        <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 4 }}>{label}</div>
+                        <div style={{ fontSize: 15, fontWeight: 600, color, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{value}</div>
                       </div>
                     ))}
                   </div>
@@ -1425,8 +1419,8 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
             {/* Factor Diagnostics */}
             {result.history.length > 0 && (() => {
               const diagDateInputStyle: React.CSSProperties = {
-                padding: '3px 7px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.12)',
-                background: '#0d1425', color: '#e2e8f0', fontSize: 11, fontFamily: 'monospace',
+                padding: '3px 7px', borderRadius: 6, border: '1px solid rgba(200,220,240,0.12)',
+                background: '#0b0f14', color: '#e4eaf1', fontSize: 11, fontFamily: "'Geist Mono', ui-monospace, monospace",
               }
 
               // BPV-neutral weights: 1 constraint (sum BPV = 0), min-norm over free legs
@@ -1468,26 +1462,26 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
               const fColors = [F1_COLOR, F2_COLOR, F3_COLOR]
 
               return (
-                <div style={cardStyle}>
+                <div className="hub-frame" style={cardStyle}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 6, flexWrap: 'wrap' }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1' }}>
                       Factor Diagnostics
                     </div>
                     <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <span style={{ fontSize: 11, color: '#475569' }}>From</span>
+                      <span style={{ fontSize: 11, color: '#8995a2' }}>From</span>
                       <input type="date" value={diagStart} onChange={e => setDiagStart(e.target.value)} style={diagDateInputStyle} />
-                      <span style={{ fontSize: 11, color: '#475569' }}>to</span>
+                      <span style={{ fontSize: 11, color: '#8995a2' }}>to</span>
                       <input type="date" value={diagEnd} onChange={e => setDiagEnd(e.target.value)} style={diagDateInputStyle} />
                       {(diagStart || diagEnd) && (
                         <button onClick={() => { setDiagStart(''); setDiagEnd('') }}
                           style={{ padding: '2px 8px', borderRadius: 5, fontSize: 11, cursor: 'pointer',
-                            border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#64748b' }}>
+                            border: '1px solid rgba(200,220,240,0.1)', background: 'rgba(200,220,240,0.04)', color: '#9aa5b1' }}>
                           Clear
                         </button>
                       )}
                     </div>
                   </div>
-                  <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
                     BPV-weighted trade value vs each factor — left: PCA-neutral, right: BPV-neutral. OLS line + R².
                     PCA-neutral neutralises Cov(∑ w·BPV·y, f_j) for hedged factors → R² ≈ 0 for PC1/PC2.
                   </div>
@@ -1528,24 +1522,24 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                         const latestDot  = dots.slice(-1)
                         return (
                         <div>
-                          <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4, fontWeight: 500 }}>{title}</div>
-                          <div style={{ fontSize: 10, color: '#475569', marginBottom: 2, fontFamily: 'monospace' }}>{eq}</div>
-                          <div style={{ fontSize: 10, color: '#475569', marginBottom: 6, fontFamily: 'monospace' }}>R² = {r2.toFixed(3)}</div>
+                          <div style={{ fontSize: 11, color: '#c6ced8', marginBottom: 4, fontWeight: 500 }}>{title}</div>
+                          <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 2, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{eq}</div>
+                          <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 6, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>R² = {r2.toFixed(3)}</div>
                           <ResponsiveContainer width="100%" height={180}>
                             <ScatterChart margin={{ top: 4, right: 8, bottom: 24, left: 36 }}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
                               <XAxis type="number" dataKey="x" domain={['auto', 'auto']}
-                                tick={{ fill: '#64748b', fontSize: 9 }}
+                                tick={{ fill: '#9aa5b1', fontSize: 9 }}
                                 tickFormatter={(v: number) => v.toFixed(2)}
-                                label={{ value: fLabels[fi], position: 'insideBottom', offset: -12, fill: '#64748b', fontSize: 9 }} />
+                                label={{ value: fLabels[fi], position: 'insideBottom', offset: -12, fill: '#9aa5b1', fontSize: 9 }} />
                               <YAxis type="number" dataKey="y" domain={['auto', 'auto']}
-                                tick={{ fill: '#64748b', fontSize: 9 }}
+                                tick={{ fill: '#9aa5b1', fontSize: 9 }}
                                 tickFormatter={(v: number) => `${v.toFixed(0)}bp`} />
                               <Scatter data={mainDots} fill={dotColor} opacity={0.55} r={3} />
                               <Scatter data={regLine} fill="none" r={0}
-                                line={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 3' }} />
+                                line={{ stroke: '#c6ced8', strokeWidth: 1.5, strokeDasharray: '4 3' }} />
                               {latestDot.length > 0 && (
-                                <Scatter data={latestDot} fill="#ffffff" opacity={1} r={5} />
+                                <Scatter data={latestDot} fill="#f4f7fa" opacity={1} r={5} />
                               )}
                             </ScatterChart>
                           </ResponsiveContainer>
@@ -1557,7 +1551,7 @@ function HedgeRatiosTab({ data }: { data: PCAResponse }) {
                         <ScatterPanel key={`${fk}-pca`} dots={pcaDots} regLine={pcaRegLine} eq={pcaEq} r2={pcaOLS.r2}
                           dotColor={fColors[fi]} title={`PCA-neutral vs ${fLabels[fi]}`} />,
                         <ScatterPanel key={`${fk}-bpv`} dots={bpvDots} regLine={bpvRegLine} eq={bpvEq} r2={bpvOLS.r2}
-                          dotColor="#64748b" title={`BPV-neutral vs ${fLabels[fi]}`} />,
+                          dotColor="#9aa5b1" title={`BPV-neutral vs ${fLabels[fi]}`} />,
                       ]
                     })}
                   </div>
@@ -1659,16 +1653,16 @@ function ImpactAnalysisTab({ data }: { data: PCAResponse }) {
     return { tenor: String(tenor) + 'y', current: cur, shocked: cur + imp }
   }), [tenors, currentYields, yieldImpact])
 
-  const thS: React.CSSProperties = { padding: '7px 10px', fontSize: 11, color: '#475569', fontWeight: 500,
-    borderBottom: '1px solid rgba(255,255,255,0.07)', textAlign: 'right' }
-  const tdS: React.CSSProperties = { padding: '6px 10px', fontSize: 12, fontFamily: 'monospace',
-    borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'right' }
+  const thS: React.CSSProperties = { padding: '7px 10px', fontSize: 11, color: '#8995a2', fontWeight: 500,
+    borderBottom: '1px solid rgba(200,220,240,0.07)', textAlign: 'right' }
+  const tdS: React.CSSProperties = { padding: '6px 10px', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace",
+    borderBottom: '1px solid rgba(200,220,240,0.04)', textAlign: 'right' }
 
   const selStyle: React.CSSProperties = { padding: '5px 10px', borderRadius: 7, fontSize: 12,
-    border: '1px solid rgba(255,255,255,0.15)', background: '#0d1425', color: '#e2e8f0', cursor: 'pointer' }
+    border: '1px solid rgba(200,220,240,0.15)', background: '#0b0f14', color: '#e4eaf1', cursor: 'pointer' }
 
   if (extVars.length === 0) return (
-    <div style={{ color: '#475569', fontSize: 13, padding: 24 }}>
+    <div style={{ color: '#8995a2', fontSize: 13, padding: 24 }}>
       No external variables available. Run PCA with a curve that has external variable data.
     </div>
   )
@@ -1676,30 +1670,30 @@ function ImpactAnalysisTab({ data }: { data: PCAResponse }) {
   return (
     <div>
       {/* ── Controls ── */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 14 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 14 }}>
           Impact Analysis
         </div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
           Estimates the yield curve impact of a shock to an external variable via OLS regression of each
           PC factor on the variable, then reconstructs the full curve from the implied factor changes.
         </div>
         <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, color: '#94a3b8' }}>Variable</span>
+            <span style={{ fontSize: 12, color: '#c6ced8' }}>Variable</span>
             <select value={selectedTicker} onChange={e => setSelectedTicker(e.target.value)} style={selStyle}>
               {extVars.map(v => <option key={v.ticker} value={v.ticker}>{v.label} ({v.ticker})</option>)}
             </select>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, color: '#94a3b8' }}>Shock magnitude</span>
+            <span style={{ fontSize: 12, color: '#c6ced8' }}>Shock magnitude</span>
             <input type="number" value={shockSigma} step={0.5}
               onChange={e => setShockSigma(Number(e.target.value))}
-              style={{ ...selStyle, width: 70, fontFamily: 'monospace', textAlign: 'right' }} />
-            <span style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 600 }}>σ</span>
-            <span style={{ fontSize: 11, color: '#475569', borderLeft: '1px solid rgba(255,255,255,0.08)', paddingLeft: 10 }}>
+              style={{ ...selStyle, width: 70, fontFamily: "'Geist Mono', ui-monospace, monospace", textAlign: 'right' }} />
+            <span style={{ fontSize: 12, color: '#e4eaf1', fontWeight: 600 }}>σ</span>
+            <span style={{ fontSize: 11, color: '#8995a2', borderLeft: '1px solid rgba(200,220,240,0.08)', paddingLeft: 10 }}>
               1σ({selectedVar?.label ?? '—'}) = {varStd.toFixed(2)} {useChanges ? 'Δ' : ''}pts
-              &ensp;→&ensp;this shock = <span style={{ color: '#e2e8f0', fontFamily: 'monospace' }}>
+              &ensp;→&ensp;this shock = <span style={{ color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                 {shock >= 0 ? '+' : ''}{shock.toFixed(2)} pts
               </span>
             </span>
@@ -1711,25 +1705,25 @@ function ImpactAnalysisTab({ data }: { data: PCAResponse }) {
             ].map(({ label, val }) => (
               <button key={label} onClick={() => setUseChanges(val)}
                 style={{ padding: '4px 12px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                  border: `1px solid ${useChanges === val ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                  background: useChanges === val ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.03)',
-                  color: useChanges === val ? '#a5b4fc' : '#64748b', fontWeight: useChanges === val ? 600 : 400 }}>
+                  border: `1px solid ${useChanges === val ? 'rgba(134,192,222,0.5)' : 'rgba(200,220,240,0.1)'}`,
+                  background: useChanges === val ? 'rgba(134,192,222,0.18)' : 'rgba(200,220,240,0.03)',
+                  color: useChanges === val ? '#bfe0ef' : '#9aa5b1', fontWeight: useChanges === val ? 600 : 400 }}>
                 {label}
               </button>
             ))}
           </div>
-          {aligned && <span style={{ fontSize: 11, color: '#475569' }}>n = {aligned.n} obs</span>}
+          {aligned && <span style={{ fontSize: 11, color: '#8995a2' }}>n = {aligned.n} obs</span>}
         </div>
       </div>
 
       {/* ── Factor regressions ── */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 6 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 6 }}>
           Factor Regressions
         </div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 14 }}>
-          Regressing each PC factor on <strong style={{ color: '#e2e8f0' }}>{selectedVar?.label}</strong> ({useChanges ? 'week-on-week changes' : 'levels'}).
-          A <strong style={{ color: '#e2e8f0' }}>{shockSigma}σ shock</strong> ({shock >= 0 ? '+' : ''}{shock.toFixed(2)} pts) implies
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 14 }}>
+          Regressing each PC factor on <strong style={{ color: '#e4eaf1' }}>{selectedVar?.label}</strong> ({useChanges ? 'week-on-week changes' : 'levels'}).
+          A <strong style={{ color: '#e4eaf1' }}>{shockSigma}σ shock</strong> ({shock >= 0 ? '+' : ''}{shock.toFixed(2)} pts) implies
           ΔFactor<sub>k</sub> = β<sub>k</sub> × {shock.toFixed(2)}, which is then projected back onto the yield curve via the eigenvectors.
         </div>
         <table style={{ borderCollapse: 'collapse', width: '100%' }}>
@@ -1743,16 +1737,16 @@ function ImpactAnalysisTab({ data }: { data: PCAResponse }) {
           <tbody>
             {regressions.map((reg, j) => {
               const deltaF = reg.ols.beta * shock
-              const sigColor = Math.abs(reg.ols.tStat) > 2 ? CHEAP_COLOR : Math.abs(reg.ols.tStat) > 1.5 ? '#fbbf24' : '#475569'
+              const sigColor = Math.abs(reg.ols.tStat) > 2 ? CHEAP_COLOR : Math.abs(reg.ols.tStat) > 1.5 ? '#dfbb78' : '#8995a2'
               return (
                 <tr key={j}>
-                  <td style={{ ...tdS, textAlign: 'left', color: reg.color, fontWeight: 700 }}>{reg.label}</td>
-                  <td style={{ ...tdS, textAlign: 'left', color: '#94a3b8' }}>{reg.desc}</td>
+                  <td style={{ ...tdS, textAlign: 'left', color: reg.color, fontWeight: 600 }}>{reg.label}</td>
+                  <td style={{ ...tdS, textAlign: 'left', color: '#c6ced8' }}>{reg.desc}</td>
                   <td style={{ ...tdS }}>{reg.ols.beta >= 0 ? '+' : ''}{reg.ols.beta.toFixed(4)}</td>
                   <td style={{ ...tdS }}>{reg.ols.alpha >= 0 ? '+' : ''}{reg.ols.alpha.toFixed(4)}</td>
                   <td style={{ ...tdS, color: sigColor, fontWeight: 600 }}>{reg.ols.tStat.toFixed(2)}</td>
                   <td style={{ ...tdS }}>{(reg.ols.r2 * 100).toFixed(1)}%</td>
-                  <td style={{ ...tdS, color: deltaF >= 0 ? CHEAP_COLOR : RICH_COLOR, fontWeight: 700 }}>
+                  <td style={{ ...tdS, color: deltaF >= 0 ? CHEAP_COLOR : RICH_COLOR, fontWeight: 600 }}>
                     {deltaF >= 0 ? '+' : ''}{deltaF.toFixed(4)}
                   </td>
                 </tr>
@@ -1763,11 +1757,11 @@ function ImpactAnalysisTab({ data }: { data: PCAResponse }) {
       </div>
 
       {/* ── Yield curve impact ── */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 6 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 6 }}>
           Reconstructed Yield Curve Impact (bp)
         </div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
           Δyield<sub>i</sub> = Σ<sub>j</sub> β<sub>j</sub> · shock · ev<sub>j</sub>(i).
           Stacked bars show PC1/PC2/PC3 contributions.
         </div>
@@ -1776,16 +1770,16 @@ function ImpactAnalysisTab({ data }: { data: PCAResponse }) {
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={yieldImpact} margin={{ top: 8, right: 20, bottom: 8, left: 44 }}
             barSize={28}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-            <XAxis dataKey="tenor" tick={{ fill: '#64748b', fontSize: 11 }} />
-            <YAxis tick={{ fill: '#64748b', fontSize: 10 }} tickFormatter={v => `${v.toFixed(1)}bp`} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+            <XAxis dataKey="tenor" tick={{ fill: '#9aa5b1', fontSize: 11 }} />
+            <YAxis tick={{ fill: '#9aa5b1', fontSize: 10 }} tickFormatter={v => `${v.toFixed(1)}bp`} />
             <Tooltip
-              contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-              labelStyle={{ color: '#94a3b8', fontSize: 12 }}
+              contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
+              labelStyle={{ color: '#c6ced8', fontSize: 12 }}
               formatter={(v: number, name: string) => [`${v >= 0 ? '+' : ''}${v.toFixed(2)}bp`, name]}
             />
             <Legend wrapperStyle={{ fontSize: 11 }} />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" />
+            <ReferenceLine y={0} stroke="rgba(200,220,240,0.2)" />
             <Bar dataKey="pc1" name="PC1 (Level)"     stackId="a" fill={F1_COLOR} opacity={0.85} />
             <Bar dataKey="pc2" name="PC2 (Slope)"     stackId="a" fill={F2_COLOR} opacity={0.85} />
             <Bar dataKey="pc3" name="PC3 (Curvature)" stackId="a" fill={F3_COLOR} opacity={0.85} />
@@ -1795,10 +1789,10 @@ function ImpactAnalysisTab({ data }: { data: PCAResponse }) {
         {/* Total impact summary row */}
         <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
           {yieldImpact.map(pt => (
-            <div key={pt.tenor} style={{ textAlign: 'center', background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8, padding: '8px 12px', minWidth: 64 }}>
-              <div style={{ fontSize: 10, color: '#475569', marginBottom: 3 }}>{pt.tenor}</div>
-              <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'monospace',
+            <div key={pt.tenor} style={{ textAlign: 'center', background: 'rgba(200,220,240,0.03)',
+              border: '1px solid rgba(200,220,240,0.07)', borderRadius: 6, padding: '8px 12px', minWidth: 64 }}>
+              <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 3 }}>{pt.tenor}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace",
                 color: pt.total >= 0 ? CHEAP_COLOR : RICH_COLOR }}>
                 {pt.total >= 0 ? '+' : ''}{pt.total.toFixed(2)}bp
               </div>
@@ -1808,27 +1802,27 @@ function ImpactAnalysisTab({ data }: { data: PCAResponse }) {
       </div>
 
       {/* ── Reconstructed yield curve ── */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 6 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 6 }}>
           Yield Curve: Current vs Shocked
         </div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 14 }}>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 14 }}>
           Shocked = current yields + reconstructed impact of {shock >= 0 ? '+' : ''}{shock} unit change in {selectedVar?.label ?? 'variable'}.
         </div>
         <ResponsiveContainer width="100%" height={260}>
           <ComposedChart data={curveData} margin={{ top: 8, right: 24, bottom: 8, left: 52 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-            <XAxis dataKey="tenor" tick={{ fill: '#64748b', fontSize: 11 }} />
-            <YAxis tick={{ fill: '#64748b', fontSize: 10 }}
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+            <XAxis dataKey="tenor" tick={{ fill: '#9aa5b1', fontSize: 11 }} />
+            <YAxis tick={{ fill: '#9aa5b1', fontSize: 10 }}
               tickFormatter={v => `${v.toFixed(0)}bp`}
               domain={['auto', 'auto']} />
             <Tooltip
-              contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-              labelStyle={{ color: '#94a3b8', fontSize: 12 }}
+              contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
+              labelStyle={{ color: '#c6ced8', fontSize: 12 }}
               formatter={(v: number, name: string) => [`${v.toFixed(1)}bp`, name]}
             />
             <Legend wrapperStyle={{ fontSize: 11 }} />
-            <Line type="monotone" dataKey="current" name="Current" stroke="#64748b"
+            <Line type="monotone" dataKey="current" name="Current" stroke="#9aa5b1"
               strokeWidth={2} dot={{ r: 3 }} />
             <Line type="monotone" dataKey="shocked" name={`Shocked (${shock >= 0 ? '+' : ''}${shock})`}
               stroke={F1_COLOR} strokeWidth={2} strokeDasharray="6 3" dot={{ r: 3 }} />
@@ -1900,8 +1894,8 @@ function FactorResidualsTab({ data }: { data: PCAResponse }) {
     return row
   }), [residHistory, tenors])
 
-  const TENOR_COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
-                        '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316']
+  const TENOR_COLORS = ['#8b8fd8', '#6aa9cc', '#58ad8e', '#d6ad66', '#d9705e',
+                        '#a08bd2', '#c98fb2', '#6fc0cb', '#a8c46e', '#d48853']
 
   const barData = tenors.map(t => ({
     tenor: tLabel(t, data),
@@ -1909,32 +1903,32 @@ function FactorResidualsTab({ data }: { data: PCAResponse }) {
     z: stats[String(t)]?.z ?? 0,
   }))
 
-  const thS: React.CSSProperties = { padding: '7px 10px', fontSize: 11, color: '#475569',
-    fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.07)', textAlign: 'right' }
-  const tdS: React.CSSProperties = { padding: '6px 10px', fontSize: 12, fontFamily: 'monospace',
-    borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'right' }
+  const thS: React.CSSProperties = { padding: '7px 10px', fontSize: 11, color: '#8995a2',
+    fontWeight: 500, borderBottom: '1px solid rgba(200,220,240,0.07)', textAlign: 'right' }
+  const tdS: React.CSSProperties = { padding: '6px 10px', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace",
+    borderBottom: '1px solid rgba(200,220,240,0.04)', textAlign: 'right' }
 
   return (
     <div>
       {/* Controls */}
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>Factor Residuals</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1' }}>Factor Residuals</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, color: '#94a3b8' }}>Factors used</span>
+            <span style={{ fontSize: 12, color: '#c6ced8' }}>Factors used</span>
             <div style={{ display: 'flex', gap: 6 }}>
               {Array.from({ length: nAvail }, (_, i) => i + 1).map(n => (
                 <button key={n} onClick={() => setNFactors(n)}
                   style={{ padding: '4px 14px', borderRadius: 7, fontSize: 12, cursor: 'pointer',
-                    border: `1px solid ${nFactors === n ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                    background: nFactors === n ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.03)',
-                    color: nFactors === n ? '#a5b4fc' : '#64748b', fontWeight: nFactors === n ? 600 : 400 }}>
+                    border: `1px solid ${nFactors === n ? 'rgba(134,192,222,0.5)' : 'rgba(200,220,240,0.1)'}`,
+                    background: nFactors === n ? 'rgba(134,192,222,0.18)' : 'rgba(200,220,240,0.03)',
+                    color: nFactors === n ? '#bfe0ef' : '#9aa5b1', fontWeight: nFactors === n ? 600 : 400 }}>
                   {n === 1 ? 'PC1' : n === 2 ? 'PC1+2' : 'PC1+2+3'}
                 </button>
               ))}
             </div>
           </div>
-          <div style={{ fontSize: 11, color: '#475569' }}>
+          <div style={{ fontSize: 11, color: '#8995a2' }}>
             {nFactors}-factor model · {residHistory.length} obs
           </div>
           {/* Tenor visibility toggles */}
@@ -1946,9 +1940,9 @@ function FactorResidualsTab({ data }: { data: PCAResponse }) {
                 return next
               })}
                 style={{ padding: '3px 9px', borderRadius: 5, fontSize: 11, cursor: 'pointer',
-                  border: `1px solid ${activeTenors.has(t) ? TENOR_COLORS[ti % TENOR_COLORS.length] + '80' : 'rgba(255,255,255,0.1)'}`,
-                  background: activeTenors.has(t) ? TENOR_COLORS[ti % TENOR_COLORS.length] + '18' : 'rgba(255,255,255,0.03)',
-                  color: activeTenors.has(t) ? TENOR_COLORS[ti % TENOR_COLORS.length] : '#475569' }}>
+                  border: `1px solid ${activeTenors.has(t) ? TENOR_COLORS[ti % TENOR_COLORS.length] + '80' : 'rgba(200,220,240,0.1)'}`,
+                  background: activeTenors.has(t) ? TENOR_COLORS[ti % TENOR_COLORS.length] + '18' : 'rgba(200,220,240,0.03)',
+                  color: activeTenors.has(t) ? TENOR_COLORS[ti % TENOR_COLORS.length] : '#8995a2' }}>
                 {t}y
               </button>
             ))}
@@ -1958,20 +1952,20 @@ function FactorResidualsTab({ data }: { data: PCAResponse }) {
 
       {/* Current snapshot: bar chart + z-score table */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 14 }}>
+        <div className="hub-frame" style={cardStyle}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 14 }}>
             Current Residuals (bp)
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={barData} margin={{ top: 20, right: 16, bottom: 8, left: 36 }} barSize={22}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="tenor" tick={{ fill: '#64748b', fontSize: 11 }} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 10 }} tickFormatter={v => `${v}bp`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+              <XAxis dataKey="tenor" tick={{ fill: '#9aa5b1', fontSize: 11 }} />
+              <YAxis tick={{ fill: '#9aa5b1', fontSize: 10 }} tickFormatter={v => `${v}bp`} />
               <Tooltip
-                contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
+                contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
                 formatter={(v: number) => [`${v >= 0 ? '+' : ''}${v.toFixed(2)}bp`]}
               />
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.2)" />
               <Bar dataKey="value" name="Residual (bp)" radius={[3, 3, 0, 0]}>
                 {barData.map((d, i) => (
                   <Cell key={i} fill={d.value >= 0 ? CHEAP_COLOR : RICH_COLOR} />
@@ -1981,8 +1975,8 @@ function FactorResidualsTab({ data }: { data: PCAResponse }) {
           </ResponsiveContainer>
         </div>
 
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 14 }}>
+        <div className="hub-frame" style={cardStyle}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 14 }}>
             Z-Scores vs History
           </div>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
@@ -2000,15 +1994,15 @@ function FactorResidualsTab({ data }: { data: PCAResponse }) {
                 const cur = currentResids[key] ?? 0
                 const z = s?.z ?? 0
                 const zColor = Math.abs(z) > 2 ? (z > 0 ? CHEAP_COLOR : RICH_COLOR)
-                             : Math.abs(z) > 1 ? '#fbbf24' : '#94a3b8'
+                             : Math.abs(z) > 1 ? '#dfbb78' : '#c6ced8'
                 return (
                   <tr key={t}>
-                    <td style={{ ...tdS, textAlign: 'left', color: '#e2e8f0', fontWeight: 600 }}>{t}y</td>
+                    <td style={{ ...tdS, textAlign: 'left', color: '#e4eaf1', fontWeight: 600 }}>{t}y</td>
                     <td style={{ ...tdS, color: cur >= 0 ? CHEAP_COLOR : RICH_COLOR }}>
                       {cur >= 0 ? '+' : ''}{cur.toFixed(2)}
                     </td>
-                    <td style={{ ...tdS, color: '#94a3b8' }}>{(s?.mean ?? 0).toFixed(2)}</td>
-                    <td style={{ ...tdS, color: '#94a3b8' }}>{(s?.std ?? 0).toFixed(2)}</td>
+                    <td style={{ ...tdS, color: '#c6ced8' }}>{(s?.mean ?? 0).toFixed(2)}</td>
+                    <td style={{ ...tdS, color: '#c6ced8' }}>{(s?.std ?? 0).toFixed(2)}</td>
                     <td style={{ ...tdS, color: zColor, fontWeight: 600 }}>
                       {z >= 0 ? '+' : ''}{z.toFixed(2)}σ
                     </td>
@@ -2026,27 +2020,27 @@ function FactorResidualsTab({ data }: { data: PCAResponse }) {
       </div>
 
       {/* History: multi-line chart */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 6 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 6 }}>
           Residual History (bp)
         </div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 14 }}>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 14 }}>
           {nFactors}-factor model residuals per tenor over time.
           Positive = cheap (yield above model), negative = rich.
         </div>
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={chartData} margin={{ top: 8, right: 20, bottom: 8, left: 44 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-            <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }}
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+            <XAxis dataKey="date" tick={{ fill: '#9aa5b1', fontSize: 9 }}
               interval={Math.max(1, Math.floor(chartData.length / 10))} />
-            <YAxis tick={{ fill: '#64748b', fontSize: 10 }} tickFormatter={v => `${v}bp`} />
+            <YAxis tick={{ fill: '#9aa5b1', fontSize: 10 }} tickFormatter={v => `${v}bp`} />
             <Tooltip
-              contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-              labelStyle={{ color: '#94a3b8', fontSize: 11 }}
+              contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
+              labelStyle={{ color: '#c6ced8', fontSize: 11 }}
               formatter={(v: number, name: string) => [`${v >= 0 ? '+' : ''}${v.toFixed(2)}bp`, name]}
             />
             <Legend wrapperStyle={{ fontSize: 10 }} />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" />
+            <ReferenceLine y={0} stroke="rgba(200,220,240,0.2)" />
             {tenors.map((t, ti) => activeTenors.has(t) && (
               <Line key={t} type="monotone" dataKey={String(t) + 'y'} name={tLabel(t, data)}
                 stroke={TENOR_COLORS[ti % TENOR_COLORS.length]} strokeWidth={1.5}
@@ -2098,22 +2092,22 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
     return mins
   }, [rollHistory])
 
-  const thS: React.CSSProperties = { padding: '7px 10px', fontSize: 11, color: '#475569',
-    fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.07)', textAlign: 'center' }
-  const tdS: React.CSSProperties = { padding: '8px 10px', fontSize: 12, fontFamily: 'monospace',
-    borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }
+  const thS: React.CSSProperties = { padding: '7px 10px', fontSize: 11, color: '#8995a2',
+    fontWeight: 500, borderBottom: '1px solid rgba(200,220,240,0.07)', textAlign: 'center' }
+  const tdS: React.CSSProperties = { padding: '8px 10px', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace",
+    borderBottom: '1px solid rgba(200,220,240,0.04)', textAlign: 'center' }
 
   const gramColor = (i: number, j: number, v: number) => {
     if (i === j) {
       const dev = Math.abs(v - 1)
-      return dev < 1e-6 ? CHEAP_COLOR : dev < 0.01 ? '#fbbf24' : RICH_COLOR
+      return dev < 1e-6 ? CHEAP_COLOR : dev < 0.01 ? '#dfbb78' : RICH_COLOR
     }
     const a = Math.abs(v)
-    return a < 1e-6 ? CHEAP_COLOR : a < 0.01 ? '#fbbf24' : RICH_COLOR
+    return a < 1e-6 ? CHEAP_COLOR : a < 0.01 ? '#dfbb78' : RICH_COLOR
   }
 
   const simColor = (v: number) =>
-    v > 0.99 ? CHEAP_COLOR : v > 0.95 ? '#fbbf24' : RICH_COLOR
+    v > 0.99 ? CHEAP_COLOR : v > 0.95 ? '#dfbb78' : RICH_COLOR
 
   const FACTOR_COLORS = [F1_COLOR, F2_COLOR, F3_COLOR]
   const FACTOR_LABELS = ['PC1 (Level)', 'PC2 (Slope)', 'PC3 (Curvature)']
@@ -2124,17 +2118,17 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
   return (
     <div>
       {/* ── Rolling window control ── */}
-      <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>Rolling window</span>
+      <div className="hub-frame" style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#e4eaf1' }}>Rolling window</span>
         <input
           type="number" min={5} max={260} step={1}
           value={rollWinDraft}
           onChange={e => setRollWinDraft(e.target.value)}
           placeholder={`auto (${stab?.roll_window_weeks ?? '?'}w)`}
-          style={{ width: 120, padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,0.15)',
-            background: '#0d1425', color: '#e2e8f0', fontSize: 13, fontFamily: 'monospace' }}
+          style={{ width: 120, padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(200,220,240,0.15)',
+            background: '#0b0f14', color: '#e4eaf1', fontSize: 13, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
         />
-        <span style={{ fontSize: 11, color: '#475569' }}>weeks</span>
+        <span style={{ fontSize: 11, color: '#8995a2' }}>weeks</span>
         <button
           onClick={() => {
             const v = parseInt(rollWinDraft, 10)
@@ -2142,18 +2136,18 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
             onRefetch()
           }}
           style={{ padding: '5px 18px', borderRadius: 7, border: 'none', cursor: 'pointer',
-            background: 'rgba(99,102,241,0.8)', color: '#fff', fontSize: 13, fontWeight: 600 }}>
+            background: 'rgba(139,143,216,0.8)', color: '#f4f7fa', fontSize: 13, fontWeight: 600 }}>
           Apply
         </button>
         {rollWindowWeeks !== null && (
           <button
             onClick={() => { setRollWinDraft(''); setRollWindowWeeks(null); onRefetch() }}
             style={{ padding: '5px 12px', borderRadius: 7, fontSize: 12, cursor: 'pointer',
-              border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#64748b' }}>
+              border: '1px solid rgba(200,220,240,0.1)', background: 'rgba(200,220,240,0.04)', color: '#9aa5b1' }}>
             Reset to auto
           </button>
         )}
-        <span style={{ fontSize: 11, color: '#475569', marginLeft: 4 }}>
+        <span style={{ fontSize: 11, color: '#8995a2', marginLeft: 4 }}>
           Active: {stab ? `${stab.roll_window_weeks}w` : '—'}
         </span>
       </div>
@@ -2167,14 +2161,14 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
             sub: 'λ_max / λ_min of covariance matrix',
             color: stab
               ? stab.condition_number < 100 ? CHEAP_COLOR
-              : stab.condition_number < 1000 ? '#fbbf24' : RICH_COLOR
-              : '#94a3b8',
+              : stab.condition_number < 1000 ? '#dfbb78' : RICH_COLOR
+              : '#c6ced8',
           },
           {
             label: 'Max Off-Diagonal |Eᵀ E|',
             value: maxOffDiag.toExponential(2),
             sub: 'Orthogonality error — should be ≈ 0',
-            color: maxOffDiag < 1e-6 ? CHEAP_COLOR : maxOffDiag < 0.01 ? '#fbbf24' : RICH_COLOR,
+            color: maxOffDiag < 1e-6 ? CHEAP_COLOR : maxOffDiag < 0.01 ? '#dfbb78' : RICH_COLOR,
           },
           {
             label: 'Min Rolling Cosine Sim',
@@ -2182,26 +2176,26 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
             sub: `Over ${stab?.roll_window_weeks ?? '—'}w rolling window`,
             color: stab
               ? Math.min(...minSim.slice(0, n)) > 0.99 ? CHEAP_COLOR
-              : Math.min(...minSim.slice(0, n)) > 0.95 ? '#fbbf24' : RICH_COLOR
-              : '#94a3b8',
+              : Math.min(...minSim.slice(0, n)) > 0.95 ? '#dfbb78' : RICH_COLOR
+              : '#c6ced8',
           },
         ].map(({ label, value, sub, color }) => (
           <div key={label} style={{ ...cardStyle, textAlign: 'center' }}>
-            <div style={{ fontSize: 11, color: '#475569', marginBottom: 8 }}>{label}</div>
-            <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'monospace', color, marginBottom: 6 }}>{value}</div>
-            <div style={{ fontSize: 10, color: '#475569' }}>{sub}</div>
+            <div style={{ fontSize: 11, color: '#8995a2', marginBottom: 8 }}>{label}</div>
+            <div style={{ fontSize: 22, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", color, marginBottom: 6 }}>{value}</div>
+            <div style={{ fontSize: 10, color: '#8995a2' }}>{sub}</div>
           </div>
         ))}
       </div>
 
       {/* ── Orthogonality: Gram matrix ── */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 6 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 6 }}>
           Orthogonality Check — Gram Matrix Eᵀ E
         </div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
           Diagonal should be 1.0 (unit norm), off-diagonal should be 0.0 (orthogonal).
-          Colour: <span style={{ color: CHEAP_COLOR }}>✓ within 1e-6</span> · <span style={{ color: '#fbbf24' }}>⚠ within 0.01</span> · <span style={{ color: RICH_COLOR }}>✗ larger</span>.
+          Colour: <span style={{ color: CHEAP_COLOR }}>✓ within 1e-6</span> · <span style={{ color: '#dfbb78' }}>⚠ within 0.01</span> · <span style={{ color: RICH_COLOR }}>✗ larger</span>.
         </div>
         <table style={{ borderCollapse: 'collapse' }}>
           <thead>
@@ -2231,11 +2225,11 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
 
       {/* ── Rolling stability ── */}
       {rollHistory.length > 0 && (
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 6 }}>
+        <div className="hub-frame" style={cardStyle}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 6 }}>
             Temporal Stability — Rolling Cosine Similarity
           </div>
-          <div style={{ fontSize: 12, color: '#475569', marginBottom: 4 }}>
+          <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 4 }}>
             At each date, PCA is re-estimated on the preceding {stab?.roll_window_weeks}w window.
             Cosine similarity measures alignment with the full-sample eigenvector.
             Value near 1 = stable; drops indicate the factor direction is rotating.
@@ -2245,7 +2239,7 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
               <div key={pk} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
                 <span style={{ width: 20, height: 2, background: FACTOR_COLORS[k], display: 'inline-block', borderRadius: 1 }} />
                 <span style={{ color: FACTOR_COLORS[k] }}>{FACTOR_LABELS[k]}</span>
-                <span style={{ color: simColor(minSim[k]), fontFamily: 'monospace' }}>
+                <span style={{ color: simColor(minSim[k]), fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                   min={minSim[k].toFixed(4)}
                 </span>
               </div>
@@ -2253,21 +2247,21 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
           </div>
           <ResponsiveContainer width="100%" height={260}>
             <ComposedChart data={rollHistory} margin={{ top: 8, right: 20, bottom: 8, left: 44 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }}
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+              <XAxis dataKey="date" tick={{ fill: '#9aa5b1', fontSize: 9 }}
                 interval={Math.max(1, Math.floor(rollHistory.length / 10))}
                 tickFormatter={(d: string) => d.slice(0, 7)} />
-              <YAxis domain={[0, 1]} tick={{ fill: '#64748b', fontSize: 10 }}
+              <YAxis domain={[0, 1]} tick={{ fill: '#9aa5b1', fontSize: 10 }}
                 tickFormatter={(v: number) => v.toFixed(2)} />
               <Tooltip
-                contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-                labelStyle={{ color: '#94a3b8', fontSize: 11 }}
+                contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
+                labelStyle={{ color: '#c6ced8', fontSize: 11 }}
                 formatter={(v: number, name: string) => [v.toFixed(4), name]}
               />
-              <ReferenceLine y={0.99} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 3"
-                label={{ value: '0.99', position: 'right', fill: '#475569', fontSize: 9 }} />
-              <ReferenceLine y={0.95} stroke="rgba(251,191,36,0.25)" strokeDasharray="4 3"
-                label={{ value: '0.95', position: 'right', fill: '#475569', fontSize: 9 }} />
+              <ReferenceLine y={0.99} stroke="rgba(200,220,240,0.15)" strokeDasharray="4 3"
+                label={{ value: '0.99', position: 'right', fill: '#8995a2', fontSize: 9 }} />
+              <ReferenceLine y={0.95} stroke="rgba(223,187,120,0.25)" strokeDasharray="4 3"
+                label={{ value: '0.95', position: 'right', fill: '#8995a2', fontSize: 9 }} />
               {pcKeys.slice(0, n).map((pk, k) => (
                 <Line key={pk} type="monotone" dataKey={pk} name={FACTOR_LABELS[k]}
                   stroke={FACTOR_COLORS[k]} strokeWidth={1.5} dot={false} connectNulls={false} />
@@ -2279,13 +2273,13 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
 
       {/* ── Rolling eigenvector loadings ── */}
       {rollHistory.length > 0 && (() => {
-        const TENOR_COLORS = ['#6366f1','#38bdf8','#22c55e','#f59e0b','#f43f5e','#a78bfa','#34d399','#fb923c']
+        const TENOR_COLORS = ['#8b8fd8','#7cc3dc','#5fb592','#d6ad66','#d9705e','#b49fdb','#6fc2a2','#dd9562']
         return (
-          <div style={cardStyle}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 6 }}>
+          <div className="hub-frame" style={cardStyle}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 6 }}>
               Rolling Eigenvector Loadings
             </div>
-            <div style={{ fontSize: 12, color: '#475569', marginBottom: 20 }}>
+            <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 20 }}>
               Per-tenor loading of each eigenvector re-estimated over the same {stab?.roll_window_weeks}w rolling window.
               The cosine similarity chart tells you <em>whether</em> a factor changed; this chart tells you <em>which tenors</em> drove it and by how much.
             </div>
@@ -2296,19 +2290,19 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
                 </div>
                 <ResponsiveContainer width="100%" height={220}>
                   <ComposedChart data={rollHistory} margin={{ top: 4, right: 20, bottom: 8, left: 44 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }}
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+                    <XAxis dataKey="date" tick={{ fill: '#9aa5b1', fontSize: 9 }}
                       interval={Math.max(1, Math.floor(rollHistory.length / 10))}
                       tickFormatter={(d: string) => d.slice(0, 7)} />
-                    <YAxis tick={{ fill: '#64748b', fontSize: 10 }}
+                    <YAxis tick={{ fill: '#9aa5b1', fontSize: 10 }}
                       tickFormatter={(v: number) => v.toFixed(2)} />
                     <Tooltip
-                      contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-                      labelStyle={{ color: '#94a3b8', fontSize: 11 }}
+                      contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
+                      labelStyle={{ color: '#c6ced8', fontSize: 11 }}
                       formatter={(v: number, name: string) => [v.toFixed(4), name]}
                     />
-                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="3 2" />
-                    <Legend iconType="line" wrapperStyle={{ fontSize: 11, paddingTop: 8, color: '#64748b' }} />
+                    <ReferenceLine y={0} stroke="rgba(200,220,240,0.2)" strokeDasharray="3 2" />
+                    <Legend iconType="line" wrapperStyle={{ fontSize: 11, paddingTop: 8, color: '#9aa5b1' }} />
                     {tenors.map((t, ti) => (
                       <Line key={t} type="monotone" dataKey={`pc${k + 1}_t${t}`} name={tLabel(t, data)}
                         stroke={TENOR_COLORS[ti % TENOR_COLORS.length]} strokeWidth={1.2} dot={false} connectNulls={false} />
@@ -2322,8 +2316,8 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
       })()}
 
       {/* ── Eigenvector loading profiles ── */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 14 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 14 }}>
           Eigenvector Loading Profiles
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${n}, 1fr)`, gap: 20 }}>
@@ -2339,14 +2333,14 @@ function StabilityTab({ data, rollWindowWeeks, setRollWindowWeeks, onRefetch }: 
                 </div>
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={loadData} margin={{ top: 4, right: 8, bottom: 8, left: 36 }} barSize={16}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="tenor" tick={{ fill: '#64748b', fontSize: 10 }} />
-                    <YAxis tick={{ fill: '#64748b', fontSize: 9 }} tickFormatter={(v: number) => v.toFixed(2)} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+                    <XAxis dataKey="tenor" tick={{ fill: '#9aa5b1', fontSize: 10 }} />
+                    <YAxis tick={{ fill: '#9aa5b1', fontSize: 9 }} tickFormatter={(v: number) => v.toFixed(2)} />
                     <Tooltip
-                      contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
+                      contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
                       formatter={(v: number) => [v.toFixed(5), 'Loading']}
                     />
-                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" />
+                    <ReferenceLine y={0} stroke="rgba(200,220,240,0.2)" />
                     <Bar dataKey="loading" name="Loading" radius={[2, 2, 0, 0]}>
                       {loadData.map((d, i) => (
                         <Cell key={i} fill={d.loading >= 0 ? FACTOR_COLORS[k] : RICH_COLOR} opacity={0.8} />
@@ -2476,25 +2470,25 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
   const factorLabels = (data.eigenvectors ?? []).slice(0, 3).map(ev => ev.label)
 
   if (extVars.length === 0) {
-    return <div style={{ padding: 60, color: '#475569', textAlign: 'center' }}>No external variable data available.</div>
+    return <div style={{ padding: 60, color: '#8995a2', textAlign: 'center' }}>No external variable data available.</div>
   }
 
   return (
     <div>
       {/* Controls */}
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         {/* Row 1: window + variable toggles */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap', marginBottom: 14 }}>
           {/* Window */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 12, color: '#64748b' }}>Rolling window:</span>
+            <span style={{ fontSize: 12, color: '#9aa5b1' }}>Rolling window:</span>
             {ROLL_WINDOWS.map(opt => (
               <button key={opt.weeks} onClick={() => setRollWin(opt.weeks)}
                 style={{
                   padding: '3px 10px', borderRadius: 6, fontSize: 12, cursor: 'pointer',
-                  border: `1px solid ${rollWin === opt.weeks ? 'rgba(99,102,241,0.6)' : 'rgba(255,255,255,0.1)'}`,
-                  background: rollWin === opt.weeks ? 'rgba(99,102,241,0.15)' : 'transparent',
-                  color: rollWin === opt.weeks ? '#a5b4fc' : '#64748b',
+                  border: `1px solid ${rollWin === opt.weeks ? 'rgba(134,192,222,0.6)' : 'rgba(200,220,240,0.1)'}`,
+                  background: rollWin === opt.weeks ? 'rgba(134,192,222,0.15)' : 'transparent',
+                  color: rollWin === opt.weeks ? '#bfe0ef' : '#9aa5b1',
                 }}>
                 {opt.label}
               </button>
@@ -2502,7 +2496,7 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
           </div>
           {/* Variable toggles */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 12, color: '#64748b' }}>Variables:</span>
+            <span style={{ fontSize: 12, color: '#9aa5b1' }}>Variables:</span>
             {extVars.map((ev, vi) => {
               const active = activeVars.has(ev.ticker)
               const c = EXT_VAR_COLORS[vi % EXT_VAR_COLORS.length]
@@ -2519,10 +2513,10 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
                     style={{
                       padding: '3px 8px', borderRadius: isCustom ? '6px 0 0 6px' : 6,
                       fontSize: 12, cursor: 'pointer',
-                      border: `1px solid ${active ? c + '88' : 'rgba(255,255,255,0.1)'}`,
+                      border: `1px solid ${active ? c + '88' : 'rgba(200,220,240,0.1)'}`,
                       borderRight: isCustom ? 'none' : undefined,
                       background: active ? c + '22' : 'transparent',
-                      color: active ? c : '#64748b',
+                      color: active ? c : '#9aa5b1',
                     }}>
                     {ev.label}
                   </button>
@@ -2536,10 +2530,10 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
                       style={{
                         padding: '3px 6px', borderRadius: '0 6px 6px 0', fontSize: 11,
                         cursor: 'pointer', lineHeight: 1,
-                        border: `1px solid ${active ? c + '88' : 'rgba(255,255,255,0.1)'}`,
-                        borderLeft: '1px solid rgba(255,255,255,0.08)',
+                        border: `1px solid ${active ? c + '88' : 'rgba(200,220,240,0.1)'}`,
+                        borderLeft: '1px solid rgba(200,220,240,0.08)',
                         background: active ? c + '22' : 'transparent',
-                        color: '#64748b',
+                        color: '#9aa5b1',
                       }}>
                       ×
                     </button>
@@ -2551,8 +2545,8 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
         </div>
 
         {/* Row 2: add custom ticker */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
-          <span style={{ fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>Add ticker:</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid rgba(200,220,240,0.06)', paddingTop: 12 }}>
+          <span style={{ fontSize: 12, color: '#9aa5b1', whiteSpace: 'nowrap' }}>Add ticker:</span>
           <input
             value={tickerInput}
             onChange={e => setTickerInput(e.target.value)}
@@ -2568,8 +2562,8 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
               }
             }}
             placeholder="e.g. GS1 Comdty"
-            style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)',
-              background: '#0d1425', color: '#e2e8f0', fontSize: 12, width: 150, fontFamily: 'monospace' }}
+            style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(200,220,240,0.15)',
+              background: '#0b0f14', color: '#e4eaf1', fontSize: 12, width: 150, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
           />
           <input
             value={labelInput}
@@ -2586,8 +2580,8 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
               }
             }}
             placeholder="Label (optional)"
-            style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)',
-              background: '#0d1425', color: '#e2e8f0', fontSize: 12, width: 130 }}
+            style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(200,220,240,0.15)',
+              background: '#0b0f14', color: '#e4eaf1', fontSize: 12, width: 130 }}
           />
           <button
             onClick={() => {
@@ -2602,22 +2596,22 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
             disabled={!tickerInput.trim()}
             style={{
               padding: '4px 14px', borderRadius: 6, fontSize: 12, cursor: tickerInput.trim() ? 'pointer' : 'not-allowed',
-              border: '1px solid rgba(99,102,241,0.4)',
-              background: tickerInput.trim() ? 'rgba(99,102,241,0.2)' : 'transparent',
-              color: tickerInput.trim() ? '#a5b4fc' : '#475569',
+              border: '1px solid rgba(139,143,216,0.4)',
+              background: tickerInput.trim() ? 'rgba(134,192,222,0.2)' : 'transparent',
+              color: tickerInput.trim() ? '#bfe0ef' : '#8995a2',
             }}>
             + Add
           </button>
-          <span style={{ fontSize: 11, color: '#334155' }}>
-            Then click <b style={{ color: '#64748b' }}>Run PCA</b> to fetch data
+          <span style={{ fontSize: 11, color: '#77828f' }}>
+            Then click <b style={{ color: '#9aa5b1' }}>Run PCA</b> to fetch data
           </span>
         </div>
       </div>
 
       {/* Full-sample correlation table */}
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, flexWrap: 'wrap', gap: 8 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1' }}>
             {tableWin === null ? 'Full-Sample' : 'Custom Window'} Correlations
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -2631,9 +2625,9 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
                   }}
                   style={{
                     padding: '2px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                    border: `1px solid ${active ? 'rgba(99,102,241,0.6)' : 'rgba(255,255,255,0.1)'}`,
-                    background: active ? 'rgba(99,102,241,0.15)' : 'transparent',
-                    color: active ? '#a5b4fc' : '#64748b',
+                    border: `1px solid ${active ? 'rgba(134,192,222,0.6)' : 'rgba(200,220,240,0.1)'}`,
+                    background: active ? 'rgba(134,192,222,0.15)' : 'transparent',
+                    color: active ? '#bfe0ef' : '#9aa5b1',
                     textTransform: 'capitalize',
                   }}>{mode}
                 </button>
@@ -2647,33 +2641,33 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
                     setTableWinDraft(next); setTableWin(next)
                   }}
                   style={{ padding: '2px 6px', borderRadius: 6, fontSize: 11,
-                    border: '1px solid rgba(255,255,255,0.15)', background: '#0d1425',
-                    color: '#e2e8f0', fontFamily: 'monospace' }} />
-                <span style={{ fontSize: 11, color: '#475569' }}>→</span>
+                    border: '1px solid rgba(200,220,240,0.15)', background: '#0b0f14',
+                    color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace" }} />
+                <span style={{ fontSize: 11, color: '#8995a2' }}>→</span>
                 <input type="date" value={tableWinDraft.end}
                   onChange={e => {
                     const next = { ...tableWinDraft, end: e.target.value }
                     setTableWinDraft(next); setTableWin(next)
                   }}
                   style={{ padding: '2px 6px', borderRadius: 6, fontSize: 11,
-                    border: '1px solid rgba(255,255,255,0.15)', background: '#0d1425',
-                    color: '#e2e8f0', fontFamily: 'monospace' }} />
+                    border: '1px solid rgba(200,220,240,0.15)', background: '#0b0f14',
+                    color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace" }} />
               </>
             )}
           </div>
         </div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
           Pearson correlation over{tableWin === null ? ' the full estimation window' : ` ${tableWin.start} → ${tableWin.end}`} · {fullCorrs[0]?.n ?? 0} obs
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr>
-              <th style={{ padding: '6px 14px', textAlign: 'left', color: '#475569', fontWeight: 500,
-                borderBottom: '1px solid rgba(255,255,255,0.07)', fontSize: 11 }}>Variable</th>
+              <th style={{ padding: '6px 14px', textAlign: 'left', color: '#8995a2', fontWeight: 500,
+                borderBottom: '1px solid rgba(200,220,240,0.07)', fontSize: 11 }}>Variable</th>
               {['F1', 'F2', 'F3'].map((fk, fi) => (
                 <th key={fk} style={{ padding: '6px 14px', textAlign: 'center',
                   color: factorColors[fi], fontWeight: 600,
-                  borderBottom: '1px solid rgba(255,255,255,0.07)', fontSize: 11 }}>
+                  borderBottom: '1px solid rgba(200,220,240,0.07)', fontSize: 11 }}>
                   {fk} — {factorLabels[fi] ?? fk}
                 </th>
               ))}
@@ -2682,21 +2676,21 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
           <tbody>
             {fullCorrs.filter(c => activeVars.has(c.ticker)).map(c => (
               <tr key={c.ticker}>
-                <td style={{ padding: '7px 14px', color: '#e2e8f0', fontWeight: 500,
-                  borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{c.label}</td>
+                <td style={{ padding: '7px 14px', color: '#e4eaf1', fontWeight: 500,
+                  borderBottom: '1px solid rgba(200,220,240,0.04)' }}>{c.label}</td>
                 {c.r.map((r, fi) => {
                   const abs = Math.abs(r)
                   // Positive → green; negative → red; near zero → transparent
                   const bg = r > 0
-                    ? `rgba(34,197,94,${Math.pow(abs, 0.7) * 0.8})`
-                    : `rgba(239,68,68,${Math.pow(abs, 0.7) * 0.8})`
-                  const textCol = abs > 0.35 ? '#f1f5f9' : '#64748b'
+                    ? `rgba(95,181,146,${Math.pow(abs, 0.7) * 0.8})`
+                    : `rgba(217,112,94,${Math.pow(abs, 0.7) * 0.8})`
+                  const textCol = abs > 0.35 ? '#eef2f6' : '#9aa5b1'
                   return (
                     <td key={fi} style={{
                       padding: '7px 14px', textAlign: 'center',
-                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      borderBottom: '1px solid rgba(200,220,240,0.04)',
                       background: abs < 0.08 ? 'transparent' : bg,
-                      fontFamily: 'monospace', fontSize: 12, fontWeight: 700,
+                      fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 12, fontWeight: 600,
                       color: textCol,
                       letterSpacing: '0.02em',
                     }}>
@@ -2710,17 +2704,17 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
         </table>
         {/* Legend */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, justifyContent: 'center' }}>
-          <span style={{ fontSize: 10, color: '#ef4444' }}>−1 negative</span>
+          <span style={{ fontSize: 10, color: '#d9705e' }}>−1 negative</span>
           <div style={{ width: 160, height: 10, borderRadius: 5,
-            background: 'linear-gradient(to right, rgba(239,68,68,0.8), rgba(239,68,68,0.05), rgba(34,197,94,0.05), rgba(34,197,94,0.8))' }} />
-          <span style={{ fontSize: 10, color: '#22c55e' }}>positive +1</span>
+            background: 'linear-gradient(to right, rgba(217,112,94,0.8), rgba(217,112,94,0.05), rgba(95,181,146,0.05), rgba(95,181,146,0.8))' }} />
+          <span style={{ fontSize: 10, color: '#5fb592' }}>positive +1</span>
         </div>
       </div>
 
       {/* Linear regression table */}
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, flexWrap: 'wrap', gap: 8 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1' }}>
             {regWin === null ? 'Full-Sample' : 'Custom Window'} Linear Regression — F<sub>k</sub> = α + β · X<sub>i</sub>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -2730,9 +2724,9 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
                 <button key={mode} onClick={() => mode === 'full' ? setRegWin(null) : setRegWin(regWinDraft)}
                   style={{
                     padding: '2px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                    border: `1px solid ${active ? 'rgba(99,102,241,0.6)' : 'rgba(255,255,255,0.1)'}`,
-                    background: active ? 'rgba(99,102,241,0.15)' : 'transparent',
-                    color: active ? '#a5b4fc' : '#64748b', textTransform: 'capitalize',
+                    border: `1px solid ${active ? 'rgba(134,192,222,0.6)' : 'rgba(200,220,240,0.1)'}`,
+                    background: active ? 'rgba(134,192,222,0.15)' : 'transparent',
+                    color: active ? '#bfe0ef' : '#9aa5b1', textTransform: 'capitalize',
                   }}>{mode}
                 </button>
               )
@@ -2742,31 +2736,31 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
                 <input type="date" value={regWinDraft.start}
                   onChange={e => { const n = { ...regWinDraft, start: e.target.value }; setRegWinDraft(n); setRegWin(n) }}
                   style={{ padding: '2px 6px', borderRadius: 6, fontSize: 11,
-                    border: '1px solid rgba(255,255,255,0.15)', background: '#0d1425',
-                    color: '#e2e8f0', fontFamily: 'monospace' }} />
-                <span style={{ fontSize: 11, color: '#475569' }}>→</span>
+                    border: '1px solid rgba(200,220,240,0.15)', background: '#0b0f14',
+                    color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace" }} />
+                <span style={{ fontSize: 11, color: '#8995a2' }}>→</span>
                 <input type="date" value={regWinDraft.end}
                   onChange={e => { const n = { ...regWinDraft, end: e.target.value }; setRegWinDraft(n); setRegWin(n) }}
                   style={{ padding: '2px 6px', borderRadius: 6, fontSize: 11,
-                    border: '1px solid rgba(255,255,255,0.15)', background: '#0d1425',
-                    color: '#e2e8f0', fontFamily: 'monospace' }} />
+                    border: '1px solid rgba(200,220,240,0.15)', background: '#0b0f14',
+                    color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace" }} />
               </>
             )}
           </div>
         </div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
           OLS slope (β) and t-statistic over{regWin === null ? ' the full estimation window' : ` ${regWin.start} → ${regWin.end}`} · {regressionResults[0]?.n ?? 0} obs
-          &ensp;·&ensp;<span style={{ color: '#fbbf24' }}>*</span> |t|&gt;1.96 &ensp;<span style={{ color: '#f59e0b' }}>**</span> |t|&gt;2.58 &ensp;<span style={{ color: '#ef4444' }}>***</span> |t|&gt;3.29
+          &ensp;·&ensp;<span style={{ color: '#dfbb78' }}>*</span> |t|&gt;1.96 &ensp;<span style={{ color: '#d6ad66' }}>**</span> |t|&gt;2.58 &ensp;<span style={{ color: '#d9705e' }}>***</span> |t|&gt;3.29
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr>
-              <th style={{ padding: '6px 14px', textAlign: 'left', color: '#475569', fontWeight: 500,
-                borderBottom: '1px solid rgba(255,255,255,0.07)', fontSize: 11 }}>Variable (X)</th>
+              <th style={{ padding: '6px 14px', textAlign: 'left', color: '#8995a2', fontWeight: 500,
+                borderBottom: '1px solid rgba(200,220,240,0.07)', fontSize: 11 }}>Variable (X)</th>
               {['F1', 'F2', 'F3'].map((fk, fi) => (
                 <th key={fk} style={{ padding: '6px 14px', textAlign: 'center',
                   color: factorColors[fi], fontWeight: 600,
-                  borderBottom: '1px solid rgba(255,255,255,0.07)', fontSize: 11 }}>
+                  borderBottom: '1px solid rgba(200,220,240,0.07)', fontSize: 11 }}>
                   {fk} — {factorLabels[fi] ?? fk}
                 </th>
               ))}
@@ -2775,22 +2769,22 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
           <tbody>
             {regressionResults.filter(c => activeVars.has(c.ticker)).map(c => (
               <tr key={c.ticker}>
-                <td style={{ padding: '7px 14px', color: '#e2e8f0', fontWeight: 500,
-                  borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{c.label}</td>
+                <td style={{ padding: '7px 14px', color: '#e4eaf1', fontWeight: 500,
+                  borderBottom: '1px solid rgba(200,220,240,0.04)' }}>{c.label}</td>
                 {c.ols.map(({ beta, tStat }, fi) => {
                   const sig = Math.abs(tStat) > 3.29 ? '***' : Math.abs(tStat) > 2.58 ? '**' : Math.abs(tStat) > 1.96 ? '*' : ''
-                  const sigColor = sig === '***' ? '#ef4444' : sig === '**' ? '#f59e0b' : sig === '*' ? '#fbbf24' : '#475569'
+                  const sigColor = sig === '***' ? '#d9705e' : sig === '**' ? '#d6ad66' : sig === '*' ? '#dfbb78' : '#8995a2'
                   return (
                     <td key={fi} style={{
                       padding: '7px 14px', textAlign: 'center',
-                      borderBottom: '1px solid rgba(255,255,255,0.04)',
-                      fontFamily: 'monospace',
+                      borderBottom: '1px solid rgba(200,220,240,0.04)',
+                      fontFamily: "'Geist Mono', ui-monospace, monospace",
                     }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: beta >= 0 ? '#e2e8f0' : '#94a3b8' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: beta >= 0 ? '#e4eaf1' : '#c6ced8' }}>
                         {beta >= 0 ? '+' : ''}{beta.toFixed(4)}
                         {sig && <span style={{ color: sigColor, marginLeft: 3, fontSize: 11 }}>{sig}</span>}
                       </div>
-                      <div style={{ fontSize: 10, color: Math.abs(tStat) >= 1.96 ? sigColor : '#475569', marginTop: 1 }}>
+                      <div style={{ fontSize: 10, color: Math.abs(tStat) >= 1.96 ? sigColor : '#8995a2', marginTop: 1 }}>
                         t = {tStat >= 0 ? '+' : ''}{tStat.toFixed(2)}
                       </div>
                     </td>
@@ -2812,17 +2806,17 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
         const xMin = Math.min(...a.vals), xMax = Math.max(...a.vals)
         return (
           <div key={a.ticker} style={cardStyle}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 4 }}>
               {a.label} — scatter vs factors
             </div>
-            <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+            <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
               {a.vals.length} obs · OLS line · same window as regression table
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
               {[0, 1, 2].map(fi => {
                 const { beta, alpha, r2, tStat } = regRes.ols[fi]
                 const sig = Math.abs(tStat) > 3.29 ? '***' : Math.abs(tStat) > 2.58 ? '**' : Math.abs(tStat) > 1.96 ? '*' : ''
-                const sigColor = sig === '***' ? '#ef4444' : sig === '**' ? '#f59e0b' : '#fbbf24'
+                const sigColor = sig === '***' ? '#d9705e' : sig === '**' ? '#d6ad66' : '#dfbb78'
                 const dots = a.vals.map((v, i) => ({ x: v, y: fArrays[fi][i] }))
                 const regLine = [
                   { x: xMin, y: beta * xMin + alpha },
@@ -2833,31 +2827,31 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
                     <div style={{ fontSize: 11, fontWeight: 600, color: factorColors[fi], marginBottom: 2 }}>
                       F{fi + 1} ({factorLabels[fi] ?? `F${fi + 1}`})
                     </div>
-                    <div style={{ fontSize: 10, color: '#475569', marginBottom: 6, fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 6, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                       β = {beta >= 0 ? '+' : ''}{beta.toFixed(4)}
                       {sig && <span style={{ color: sigColor, marginLeft: 3 }}>{sig}</span>}
                       {' '}· R² = {r2.toFixed(3)}
                     </div>
                     <ResponsiveContainer width="100%" height={180}>
                       <ScatterChart margin={{ top: 4, right: 8, bottom: 24, left: 36 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
                         <XAxis type="number" dataKey="x" domain={['auto', 'auto']}
-                          tick={{ fill: '#64748b', fontSize: 9 }}
+                          tick={{ fill: '#9aa5b1', fontSize: 9 }}
                           tickFormatter={(v: number) => v.toFixed(2)}
-                          label={{ value: a.label, position: 'insideBottom', offset: -12, fill: '#64748b', fontSize: 9 }} />
+                          label={{ value: a.label, position: 'insideBottom', offset: -12, fill: '#9aa5b1', fontSize: 9 }} />
                         <YAxis type="number" dataKey="y" domain={['auto', 'auto']}
-                          tick={{ fill: '#64748b', fontSize: 9 }}
+                          tick={{ fill: '#9aa5b1', fontSize: 9 }}
                           tickFormatter={(v: number) => v.toFixed(2)} />
                         <Tooltip
-                          contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
+                          contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
                           labelStyle={{ display: 'none' }}
                           formatter={(v: number, name: string) => [v.toFixed(4), name === 'x' ? a.label : `F${fi + 1}`]}
                         />
                         <Scatter data={dots.slice(0, -1)} fill={varColor} opacity={0.45} r={3} />
                         <Scatter data={regLine} fill="none" r={0}
-                          line={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 3' }} />
+                          line={{ stroke: '#c6ced8', strokeWidth: 1.5, strokeDasharray: '4 3' }} />
                         {dots.length > 0 && (
-                          <Scatter data={dots.slice(-1)} fill="#ffffff" opacity={1} r={5} />
+                          <Scatter data={dots.slice(-1)} fill="#f4f7fa" opacity={1} r={5} />
                         )}
                       </ScatterChart>
                     </ResponsiveContainer>
@@ -2890,10 +2884,10 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
 
         return (
           <div key={`ts-${a.ticker}`} style={cardStyle}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 4 }}>
               {a.label} — time series vs factors
             </div>
-            <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+            <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
               Both series z-scored to a common scale · {a.vals.length} obs ·
               <span style={{ color: varColor }}> ── {a.label}</span>
               {'  '}
@@ -2917,16 +2911,16 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
                     </div>
                     <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
                         <XAxis dataKey="date" tick={false} height={0} />
-                        <YAxis width={36} tick={{ fill: '#64748b', fontSize: 9 }}
+                        <YAxis width={36} tick={{ fill: '#9aa5b1', fontSize: 9 }}
                           tickFormatter={(v: number) => v.toFixed(1)} />
                         <Tooltip
-                          contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-                          labelStyle={{ color: '#94a3b8', fontSize: 10 }}
+                          contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
+                          labelStyle={{ color: '#c6ced8', fontSize: 10 }}
                           formatter={(v: number, name: string) => [v.toFixed(3), name === 'variable' ? a.label : `F${fi + 1}`]}
                         />
-                        <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeDasharray="3 3" />
+                        <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeDasharray="3 3" />
                         <Line type="monotone" dataKey="variable" name={a.label}
                           stroke={varColor} strokeWidth={1.5} dot={false} connectNulls={false} />
                         <Line type="monotone" dataKey={`f${fi + 1}`} name={`F${fi + 1}`}
@@ -2936,22 +2930,22 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
                     </ResponsiveContainer>
 
                     {/* Residual panel */}
-                    <div style={{ fontSize: 9, color: '#334155', marginTop: 2, marginBottom: 2, fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: 9, color: '#77828f', marginTop: 2, marginBottom: 2, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                       ε = F{fi + 1} − (α + β·X) &nbsp;·&nbsp; R² = {ols.r2.toFixed(3)}
                     </div>
                     <ResponsiveContainer width="100%" height={140}>
                       <ComposedChart data={residData} margin={{ top: 2, right: 8, bottom: 16, left: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                        <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 7 }} interval={interval}
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
+                        <XAxis dataKey="date" tick={{ fill: '#9aa5b1', fontSize: 7 }} interval={interval}
                           tickFormatter={(d: string) => d.slice(0, 7)} />
-                        <YAxis width={36} tick={{ fill: '#64748b', fontSize: 8 }}
+                        <YAxis width={36} tick={{ fill: '#9aa5b1', fontSize: 8 }}
                           tickFormatter={(v: number) => v.toFixed(1)} />
                         <Tooltip
-                          contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-                          labelStyle={{ color: '#94a3b8', fontSize: 10 }}
+                          contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
+                          labelStyle={{ color: '#c6ced8', fontSize: 10 }}
                           formatter={(v: number) => [v.toFixed(4), 'Residual']}
                         />
-                        <ReferenceLine y={0} stroke="rgba(255,255,255,0.25)" />
+                        <ReferenceLine y={0} stroke="rgba(200,220,240,0.25)" />
                         <Area type="monotone" dataKey="residual" stroke={factorColors[fi]}
                           fill={factorColors[fi]} fillOpacity={0.15} strokeWidth={1} dot={false} connectNulls={false} />
                       </ComposedChart>
@@ -2977,19 +2971,19 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
             <div style={{ fontSize: 14, fontWeight: 600, color: factorColors[fi], marginBottom: 4 }}>
               Rolling Correlations with F{fi + 1} ({factorLabels[fi] ?? `F${fi + 1}`})
             </div>
-            <div style={{ fontSize: 12, color: '#475569', marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 12 }}>
               {rollWin}-week rolling Pearson correlation
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={chartData} margin={{ top: 8, right: 20, bottom: 20, left: 44 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }} interval="preserveStartEnd" />
-                <YAxis domain={[-1, 1]} tick={{ fill: '#64748b', fontSize: 10 }}
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+                <XAxis dataKey="date" tick={{ fill: '#9aa5b1', fontSize: 9 }} interval="preserveStartEnd" />
+                <YAxis domain={[-1, 1]} tick={{ fill: '#9aa5b1', fontSize: 10 }}
                   tickFormatter={v => v.toFixed(1)} />
                 <Tooltip content={<SimpleTooltip />} />
-                <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="4 4" />
-                <ReferenceLine y={0.5}  stroke="rgba(255,255,255,0.07)" strokeDasharray="2 2" />
-                <ReferenceLine y={-0.5} stroke="rgba(255,255,255,0.07)" strokeDasharray="2 2" />
+                <ReferenceLine y={0} stroke="rgba(200,220,240,0.2)" strokeDasharray="4 4" />
+                <ReferenceLine y={0.5}  stroke="rgba(200,220,240,0.07)" strokeDasharray="2 2" />
+                <ReferenceLine y={-0.5} stroke="rgba(200,220,240,0.07)" strokeDasharray="2 2" />
                 <Legend
                   wrapperStyle={{ fontSize: 11, paddingTop: 8, cursor: 'pointer' }}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -3005,7 +2999,7 @@ function FactorCorrelationsTab({ data, extraTickers, onAddTicker, onRemoveTicker
                   }}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   formatter={(value: string, entry: any) => (
-                    <span style={{ color: activeVars.has(String(entry.dataKey ?? '')) ? '#e2e8f0' : '#334155' }}>
+                    <span style={{ color: activeVars.has(String(entry.dataKey ?? '')) ? '#e4eaf1' : '#2a333d' }}>
                       {value}
                     </span>
                   )}
@@ -3031,18 +3025,18 @@ function FactorStructureTab({ data }: { data: PCAResponse }) {
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 16 }}>Eigenvalues — Variance Explained</div>
+        <div className="hub-frame" style={cardStyle}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 16 }}>Eigenvalues — Variance Explained</div>
           <EigenvalueChart eigenvalues={data.eigenvalues} />
         </div>
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 16 }}>Eigenvectors (Factor Loadings)</div>
+        <div className="hub-frame" style={cardStyle}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 16 }}>Eigenvectors (Factor Loadings)</div>
           <EigenvectorChart eigenvectors={data.eigenvectors} tenors={data.tenors} pcaData={data} />
         </div>
       </div>
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>Yield Correlation Matrix</div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 4 }}>Yield Correlation Matrix</div>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
           Pairwise correlations of yield levels across tenors over the lookback window
         </div>
         <CorrelationHeatmap matrix={data.correlation_matrix ?? {}} tenors={data.tenors ?? []} pcaData={data} />
@@ -3069,7 +3063,7 @@ function FactorCard({ fk, label, color, history, ouParams }: {
   const z = ouParams.zscore
 
   return (
-    <div style={{ ...cardStyle, flex: 1, minWidth: 0 }}>
+    <div className="hub-frame" style={{ ...cardStyle, flex: 1, minWidth: 0 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color }}>
           {fk.toUpperCase()} — {label}
@@ -3078,13 +3072,13 @@ function FactorCard({ fk, label, color, history, ouParams }: {
       </div>
       <ResponsiveContainer width="100%" height={160}>
         <LineChart data={data} margin={{ top: 6, right: 12, bottom: 6, left: 36 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-          <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }} interval="preserveStartEnd" />
-          <YAxis domain={[yMin - pad, yMax + pad]} tick={{ fill: '#64748b', fontSize: 10 }}
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+          <XAxis dataKey="date" tick={{ fill: '#9aa5b1', fontSize: 9 }} interval="preserveStartEnd" />
+          <YAxis domain={[yMin - pad, yMax + pad]} tick={{ fill: '#9aa5b1', fontSize: 10 }}
             tickFormatter={v => v.toFixed(0)} />
           <Tooltip content={<SimpleTooltip />} />
-          <ReferenceLine y={ouParams.mu} stroke="rgba(255,255,255,0.25)" strokeDasharray="4 4"
-            label={{ value: 'μ', position: 'right', fill: '#64748b', fontSize: 10 }} />
+          <ReferenceLine y={ouParams.mu} stroke="rgba(200,220,240,0.25)" strokeDasharray="4 4"
+            label={{ value: 'μ', position: 'right', fill: '#9aa5b1', fontSize: 10 }} />
           <Line type="monotone" dataKey="value" name={label} stroke={color} dot={false} strokeWidth={1.5} />
         </LineChart>
       </ResponsiveContainer>
@@ -3134,7 +3128,7 @@ function OUForecastChart({ fk, label, color, history, ouParams, forecasts }: {
   const expectedProfit = ouParams.mu - ouParams.current
 
   return (
-    <div style={cardStyle}>
+    <div className="hub-frame" style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ fontSize: 14, fontWeight: 600, color }}>
           OU Forecast — {fk.toUpperCase()} ({label})
@@ -3142,14 +3136,14 @@ function OUForecastChart({ fk, label, color, history, ouParams, forecasts }: {
         <span style={zscoreBadge(ouParams.zscore)}>{fmtZ(ouParams.zscore)}</span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 20 }}>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 10, color: '#475569' }}>Expected profit</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: expectedProfit > 0 ? CHEAP_COLOR : RICH_COLOR, fontFamily: 'monospace' }}>
+            <div style={{ fontSize: 10, color: '#8995a2' }}>Expected profit</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: expectedProfit > 0 ? CHEAP_COLOR : RICH_COLOR, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
               {expectedProfit > 0 ? '+' : ''}{expectedProfit.toFixed(1)}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 10, color: '#475569' }}>Half-life</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#e2e8f0', fontFamily: 'monospace' }}>
+            <div style={{ fontSize: 10, color: '#8995a2' }}>Half-life</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
               {ouParams.half_life_weeks.toFixed(1)}w
             </div>
           </div>
@@ -3157,13 +3151,13 @@ function OUForecastChart({ fk, label, color, history, ouParams, forecasts }: {
       </div>
       <ResponsiveContainer width="100%" height={220}>
         <ComposedChart data={chartData} margin={{ top: 8, right: 20, bottom: 20, left: 44 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-          <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 9 }} interval={Math.floor(chartData.length / 8)} />
-          <YAxis domain={[yMin - pad, yMax + pad]} tick={{ fill: '#64748b', fontSize: 10 }}
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+          <XAxis dataKey="label" tick={{ fill: '#9aa5b1', fontSize: 9 }} interval={Math.floor(chartData.length / 8)} />
+          <YAxis domain={[yMin - pad, yMax + pad]} tick={{ fill: '#9aa5b1', fontSize: 10 }}
             tickFormatter={v => v.toFixed(0)} />
           <Tooltip content={<SimpleTooltip />} />
-          <ReferenceLine y={ouParams.mu} stroke="rgba(255,255,255,0.25)" strokeDasharray="4 4"
-            label={{ value: 'μ', position: 'right', fill: '#64748b', fontSize: 10 }} />
+          <ReferenceLine y={ouParams.mu} stroke="rgba(200,220,240,0.25)" strokeDasharray="4 4"
+            label={{ value: 'μ', position: 'right', fill: '#9aa5b1', fontSize: 10 }} />
           <Area type="monotone" dataKey="upper_2s" stroke="none"
             fill={color} fillOpacity={0.06} name="±2σ upper" legendType="none" />
           <Area type="monotone" dataKey="lower_2s" stroke="none"
@@ -3190,7 +3184,7 @@ function FactorDynamicsTab({ data }: { data: PCAResponse }) {
 
   if (!data.ou_params || !data.ou_forecasts || !data.factor_history) {
     return (
-      <div style={{ padding: 40, color: '#475569', textAlign: 'center' }}>
+      <div style={{ padding: 40, color: '#8995a2', textAlign: 'center' }}>
         OU parameters not available in this response.
       </div>
     )
@@ -3203,12 +3197,12 @@ function FactorDynamicsTab({ data }: { data: PCAResponse }) {
   const highlightIdx = fKeys.indexOf(highlightFk)
 
   const thStyle: React.CSSProperties = {
-    padding: '7px 10px', textAlign: 'right', fontSize: 11, color: '#475569',
-    fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.07)',
+    padding: '7px 10px', textAlign: 'right', fontSize: 11, color: '#8995a2',
+    fontWeight: 500, borderBottom: '1px solid rgba(200,220,240,0.07)',
   }
   const tdStyle: React.CSSProperties = {
-    padding: '6px 10px', textAlign: 'right', fontSize: 12, fontFamily: 'monospace',
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
+    padding: '6px 10px', textAlign: 'right', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace",
+    borderBottom: '1px solid rgba(200,220,240,0.04)',
   }
 
   return (
@@ -3222,8 +3216,8 @@ function FactorDynamicsTab({ data }: { data: PCAResponse }) {
       </div>
 
       {/* OU Parameters Table */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 14 }}>OU Parameters</div>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 14 }}>OU Parameters</div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
@@ -3239,12 +3233,12 @@ function FactorDynamicsTab({ data }: { data: PCAResponse }) {
                 return (
                   <tr key={fk}>
                     <td style={{ ...tdStyle, textAlign: 'left', color: colors[i], fontWeight: 600 }}>{fk.toUpperCase()}</td>
-                    <td style={{ ...tdStyle, textAlign: 'left', color: '#94a3b8' }}>{labels[i]}</td>
+                    <td style={{ ...tdStyle, textAlign: 'left', color: '#c6ced8' }}>{labels[i]}</td>
                     <td style={tdStyle}>{p.mu.toFixed(2)}</td>
                     <td style={tdStyle}>{p.theta.toFixed(4)}</td>
                     <td style={tdStyle}>{p.half_life_weeks.toFixed(1)}w</td>
                     <td style={tdStyle}>{p.current.toFixed(2)}</td>
-                    <td style={{ ...tdStyle, color: zscoreColor(p.zscore), fontWeight: 700 }}>{fmtZ(p.zscore)}</td>
+                    <td style={{ ...tdStyle, color: zscoreColor(p.zscore), fontWeight: 600 }}>{fmtZ(p.zscore)}</td>
                   </tr>
                 )
               })}
@@ -3255,24 +3249,24 @@ function FactorDynamicsTab({ data }: { data: PCAResponse }) {
 
       {/* OU Forecast — factor selectable, defaults to highest |z| */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 12px' }}>
-        <span style={{ fontSize: 12, color: '#64748b' }}>Model factor as OU:</span>
+        <span style={{ fontSize: 12, color: '#9aa5b1' }}>Model factor as OU:</span>
         {fKeys.map((fk, i) => {
           const active = fk === highlightFk
           return (
             <button key={fk} onClick={() => setSelectedFk(fk)}
               style={{
-                background: active ? `${colors[i]}33` : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${active ? colors[i] : 'rgba(255,255,255,0.1)'}`,
-                color: active ? colors[i] : '#94a3b8',
-                borderRadius: 8, padding: '5px 14px', fontSize: 12, fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'monospace',
+                background: active ? `${colors[i]}33` : 'rgba(200,220,240,0.04)',
+                border: `1px solid ${active ? colors[i] : 'rgba(200,220,240,0.1)'}`,
+                color: active ? colors[i] : '#c6ced8',
+                borderRadius: 6, padding: '5px 14px', fontSize: 12, fontWeight: 600,
+                cursor: 'pointer', fontFamily: "'Geist Mono', ui-monospace, monospace",
               }}>
               {fk.toUpperCase()} — {labels[i] ?? ''}
             </button>
           )
         })}
         {selectedFk === null && (
-          <span style={{ fontSize: 11, color: '#475569' }}>(auto: highest |z|)</span>
+          <span style={{ fontSize: 11, color: '#8995a2' }}>(auto: highest |z|)</span>
         )}
       </div>
       <OUForecastChart
@@ -3442,28 +3436,28 @@ function SaveTradeWidget({ curveLabel, factor, direction, magnitude, legs, legPa
 
   const inStyle: React.CSSProperties = {
     fontSize: 11, padding: '4px 8px', borderRadius: 6,
-    border: '1px solid rgba(255,255,255,0.12)', background: '#0a0f1e',
-    color: '#e2e8f0', fontFamily: 'monospace',
+    border: '1px solid rgba(200,220,240,0.12)', background: '#090c10',
+    color: '#e4eaf1', fontFamily: "'Geist Mono', ui-monospace, monospace",
   }
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 16,
-      paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
+      paddingTop: 14, borderTop: '1px solid rgba(200,220,240,0.06)', flexWrap: 'wrap' }}>
       <div>
-        <div style={{ fontSize: 10, color: '#475569', marginBottom: 3 }}>Trade name</div>
+        <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 3 }}>Trade name</div>
         <input value={name} onChange={e => setName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handle()}
           placeholder="e.g. Bund fly flattener"
           style={{ ...inStyle, width: 200 }} autoFocus={false} />
       </div>
       <div>
-        <div style={{ fontSize: 10, color: '#475569', marginBottom: 3 }}>Entry date</div>
+        <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 3 }}>Entry date</div>
         <input type="date" value={entryDate} onChange={e => setEntryDate(e.target.value)}
           style={inStyle} />
       </div>
       <button onClick={handle} disabled={!name.trim()}
-        style={{ fontSize: 11, fontWeight: 600, color: '#fff', marginBottom: 1,
-          background: name.trim() ? 'rgba(99,102,241,0.75)' : 'rgba(99,102,241,0.2)',
+        style={{ fontSize: 11, fontWeight: 600, color: '#f4f7fa', marginBottom: 1,
+          background: name.trim() ? 'rgba(134,192,222,0.75)' : 'rgba(139,143,216,0.2)',
           border: 'none', borderRadius: 6, padding: '6px 16px',
           cursor: name.trim() ? 'pointer' : 'not-allowed' }}>
         {saved ? '✓ Saved' : 'Save trade'}
@@ -3507,19 +3501,19 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
   const [hedgeLeg2, setHedgeLeg2] = useState<number>(tenors[Math.min(1, tenors.length - 1)] ?? 0)
 
   const pillStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: 10,
+    background: 'rgba(200,220,240,0.04)',
+    border: '1px solid rgba(200,220,240,0.08)',
+    borderRadius: 6,
     padding: '8px 16px',
   }
   const inputStyle: React.CSSProperties = {
-    background: '#0d1425',
-    border: '1px solid rgba(255,255,255,0.15)',
+    background: '#0b0f14',
+    border: '1px solid rgba(200,220,240,0.15)',
     borderRadius: 6,
-    color: '#e2e8f0',
+    color: '#e4eaf1',
     padding: '5px 8px',
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: "'Geist Mono', ui-monospace, monospace",
   }
 
   const FKEYS = ['f1', 'f2', 'f3'] as const
@@ -3809,9 +3803,9 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── Section 1: Factor View ──────────────────────────────────────────── */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>Factor View</div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 4 }}>Factor View</div>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
           Select factor, direction and expected move magnitude
         </div>
 
@@ -3819,14 +3813,14 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
         <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 20 }}>
           {/* Factor selector */}
           <div>
-            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>Factor</div>
+            <div style={{ fontSize: 11, color: '#9aa5b1', marginBottom: 6 }}>Factor</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {([0, 1, 2] as const).map(k => (
                 <button key={k} onClick={() => setTargetFactor(k)}
                   style={{
                     padding: '6px 14px', borderRadius: 6, border: `1px solid ${factorColors[k]}`,
                     cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                    color: targetFactor === k ? '#fff' : factorColors[k],
+                    color: targetFactor === k ? '#f4f7fa' : factorColors[k],
                     background: targetFactor === k ? `${factorColors[k]}2e` : 'transparent',
                   }}>
                   {factorLabels[k]}
@@ -3837,14 +3831,14 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
 
           {/* Direction toggle */}
           <div>
-            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>Direction</div>
+            <div style={{ fontSize: 11, color: '#9aa5b1', marginBottom: 6 }}>Direction</div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setDirection(1)}
                 style={{
                   padding: '6px 14px', borderRadius: 6, border: `1px solid ${CHEAP_COLOR}`,
                   cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                  color: direction === 1 ? '#fff' : CHEAP_COLOR,
-                  background: direction === 1 ? 'rgba(34,197,94,0.18)' : 'transparent',
+                  color: direction === 1 ? '#f4f7fa' : CHEAP_COLOR,
+                  background: direction === 1 ? 'rgba(95,181,146,0.18)' : 'transparent',
                 }}>
                 Long ▲
               </button>
@@ -3852,8 +3846,8 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
                 style={{
                   padding: '6px 14px', borderRadius: 6, border: `1px solid ${RICH_COLOR}`,
                   cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                  color: direction === -1 ? '#fff' : RICH_COLOR,
-                  background: direction === -1 ? 'rgba(239,68,68,0.18)' : 'transparent',
+                  color: direction === -1 ? '#f4f7fa' : RICH_COLOR,
+                  background: direction === -1 ? 'rgba(217,112,94,0.18)' : 'transparent',
                 }}>
                 Short ▼
               </button>
@@ -3862,7 +3856,7 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
 
           {/* Magnitude */}
           <div>
-            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>Expected move (z-score)</div>
+            <div style={{ fontSize: 11, color: '#9aa5b1', marginBottom: 6 }}>Expected move (z-score)</div>
             <input type="number" value={magnitude} step={0.5} min={0.1}
               onChange={e => setMagnitude(Number(e.target.value))}
               style={{ ...inputStyle, width: 80 }} />
@@ -3872,20 +3866,20 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
         {/* Stat pills */}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
           <div style={pillStyle}>
-            <div style={{ fontSize: 10, color: '#475569', marginBottom: 3 }}>Current z-score</div>
-            <div style={{ fontSize: 15, fontWeight: 700, fontFamily: 'monospace', color: zscoreColor(ouP.zscore) }}>
+            <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 3 }}>Current z-score</div>
+            <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", color: zscoreColor(ouP.zscore) }}>
               {fmtZ(ouP.zscore)}
             </div>
           </div>
           <div style={pillStyle}>
-            <div style={{ fontSize: 10, color: '#475569', marginBottom: 3 }}>OU half-life</div>
-            <div style={{ fontSize: 15, fontWeight: 700, fontFamily: 'monospace', color: '#e2e8f0' }}>
+            <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 3 }}>OU half-life</div>
+            <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }}>
               {ouP.half_life_weeks.toFixed(1)}w
             </div>
           </div>
           <div style={pillStyle}>
-            <div style={{ fontSize: 10, color: '#475569', marginBottom: 3 }}>OU mean</div>
-            <div style={{ fontSize: 15, fontWeight: 700, fontFamily: 'monospace', color: '#e2e8f0' }}>
+            <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 3 }}>OU mean</div>
+            <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1' }}>
               {ouP.mu.toFixed(2)}
             </div>
           </div>
@@ -3894,17 +3888,17 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
         {/* Macro context */}
         {macroContext.length > 0 && (
           <div>
-            <div style={{ fontSize: 11, color: '#475569', marginBottom: 8 }}>Macro context</div>
+            <div style={{ fontSize: 11, color: '#8995a2', marginBottom: 8 }}>Macro context</div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               {macroContext.map(mc => (
                 <div key={mc.label} style={{ ...pillStyle, display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, color: '#94a3b8' }}>{mc.label}</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, fontFamily: 'monospace',
+                  <span style={{ fontSize: 11, color: '#c6ced8' }}>{mc.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace",
                     color: mc.corr >= 0 ? CHEAP_COLOR : RICH_COLOR }}>
                     {mc.corr >= 0 ? '+' : ''}{mc.corr.toFixed(2)}
                   </span>
                   {mc.current != null && (
-                    <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>
+                    <span style={{ fontSize: 11, color: '#9aa5b1', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                       {mc.current.toFixed(2)}
                     </span>
                   )}
@@ -3916,20 +3910,20 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
       </div>
 
       {/* ── Section 2: Trade Structure ──────────────────────────────────────── */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>Trade Structure</div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 4 }}>Trade Structure</div>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
           Define the replicating portfolio. The best IS/OOS structure is pre-computed — override as needed.
         </div>
 
         {/* Suggestion banner */}
         {suggestion && !dismissedSuggestion && (
           <div style={{
-            background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.3)',
-            borderRadius: 8, padding: '10px 14px', marginBottom: 16,
+            background: 'rgba(139,143,216,0.08)', border: '1px solid rgba(139,143,216,0.3)',
+            borderRadius: 6, padding: '10px 14px', marginBottom: 16,
             display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
           }}>
-            <span style={{ fontSize: 12, color: '#e2e8f0', flex: 1 }}>
+            <span style={{ fontSize: 12, color: '#e4eaf1', flex: 1 }}>
               Suggested: {suggestion.tenorSubset.map(t => tLabel(t, data)).join(' · ')}
               {' '}· IS R² {suggestion.isR2.toFixed(3)}
               {' '}· OOS R² {suggestion.oosR2.toFixed(3)}
@@ -3938,24 +3932,24 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
               setSelectedLegs(suggestion.tenorSubset)
               setUsedSuggestion(true)
             }}
-              style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid rgba(99,102,241,0.5)',
-                background: 'rgba(99,102,241,0.2)', color: '#e2e8f0', fontSize: 11, cursor: 'pointer' }}>
+              style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid rgba(139,143,216,0.5)',
+                background: 'rgba(139,143,216,0.2)', color: '#e4eaf1', fontSize: 11, cursor: 'pointer' }}>
               Use this
             </button>
             <button onClick={() => setDismissedSuggestion(true)}
-              style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)',
-                background: 'transparent', color: '#64748b', fontSize: 11, cursor: 'pointer' }}>
+              style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(200,220,240,0.1)',
+                background: 'transparent', color: '#9aa5b1', fontSize: 11, cursor: 'pointer' }}>
               Dismiss
             </button>
           </div>
         )}
         {usedSuggestion && dismissedSuggestion === false && suggestion && (
-          <div style={{ fontSize: 10, color: '#64748b', marginBottom: 8 }}>Using suggested structure</div>
+          <div style={{ fontSize: 10, color: '#9aa5b1', marginBottom: 8 }}>Using suggested structure</div>
         )}
 
         {/* Tenor multi-select */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 8 }}>Select legs</div>
+          <div style={{ fontSize: 11, color: '#9aa5b1', marginBottom: 8 }}>Select legs</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {tenors.map(t => {
               const active = selectedLegs.includes(t)
@@ -3964,10 +3958,10 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
                   active ? prev.filter(x => x !== t) : [...prev, t]
                 )}
                   style={{
-                    padding: '5px 12px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)',
+                    padding: '5px 12px', borderRadius: 6, border: '1px solid rgba(200,220,240,0.15)',
                     cursor: 'pointer', fontSize: 12, fontWeight: active ? 600 : 400,
-                    color: active ? '#e2e8f0' : '#64748b',
-                    background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+                    color: active ? '#e4eaf1' : '#9aa5b1',
+                    background: active ? 'rgba(200,220,240,0.08)' : 'transparent',
                   }}>
                   {t}y
                 </button>
@@ -3983,8 +3977,8 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
               <thead>
                 <tr>
                   {['Tenor', 'Side', 'Notional (mn)', 'BPV'].map(h => (
-                    <th key={h} style={{ padding: '6px 10px', fontSize: 11, color: '#475569',
-                      fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.07)',
+                    <th key={h} style={{ padding: '6px 10px', fontSize: 11, color: '#8995a2',
+                      fontWeight: 500, borderBottom: '1px solid rgba(200,220,240,0.07)',
                       textAlign: h === 'Tenor' ? 'left' : 'right' }}>{h}</th>
                   ))}
                 </tr>
@@ -3994,11 +3988,11 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
                   const lp = legParams[t] ?? { notional: 100, bpv: data.default_bpvs[String(t)] ?? 500, side: 1 as const }
                   return (
                     <tr key={t}>
-                      <td style={{ padding: '5px 10px', fontSize: 12, fontFamily: 'monospace',
-                        borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={{ padding: '5px 10px', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace",
+                        borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
                         {t}y
                       </td>
-                      <td style={{ padding: '5px 10px', borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'right' }}>
+                      <td style={{ padding: '5px 10px', borderBottom: '1px solid rgba(200,220,240,0.04)', textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
                           {([1, -1] as const).map(s => (
                             <button key={s} onClick={() => setLegParams(prev => ({
@@ -4007,20 +4001,20 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
                               style={{
                                 padding: '3px 8px', borderRadius: 4, border: `1px solid ${s === 1 ? CHEAP_COLOR : RICH_COLOR}`,
                                 cursor: 'pointer', fontSize: 10, fontWeight: lp.side === s ? 600 : 400,
-                                color: lp.side === s ? '#fff' : (s === 1 ? CHEAP_COLOR : RICH_COLOR),
-                                background: lp.side === s ? (s === 1 ? 'rgba(34,197,94,0.18)' : 'rgba(239,68,68,0.18)') : 'transparent',
+                                color: lp.side === s ? '#f4f7fa' : (s === 1 ? CHEAP_COLOR : RICH_COLOR),
+                                background: lp.side === s ? (s === 1 ? 'rgba(95,181,146,0.18)' : 'rgba(217,112,94,0.18)') : 'transparent',
                               }}>
                               {s === 1 ? 'Buy' : 'Sell'}
                             </button>
                           ))}
                         </div>
                       </td>
-                      <td style={{ padding: '5px 10px', borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'right' }}>
+                      <td style={{ padding: '5px 10px', borderBottom: '1px solid rgba(200,220,240,0.04)', textAlign: 'right' }}>
                         <input type="number" value={lp.notional} step={10} min={1}
                           onChange={e => setLegParams(prev => ({ ...prev, [t]: { ...lp, notional: Number(e.target.value) } }))}
                           style={{ ...inputStyle, width: 70, textAlign: 'right' }} />
                       </td>
-                      <td style={{ padding: '5px 10px', borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'right' }}>
+                      <td style={{ padding: '5px 10px', borderBottom: '1px solid rgba(200,220,240,0.04)', textAlign: 'right' }}>
                         <input type="number" value={lp.bpv} step={10} min={1}
                           onChange={e => setLegParams(prev => ({ ...prev, [t]: { ...lp, bpv: Number(e.target.value) } }))}
                           style={{ ...inputStyle, width: 70, textAlign: 'right' }} />
@@ -4035,12 +4029,12 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
 
         {/* Factor exposure table */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, color: '#475569', marginBottom: 8 }}>Factor exposure (DV01 units)</div>
+          <div style={{ fontSize: 11, color: '#8995a2', marginBottom: 8 }}>Factor exposure (DV01 units)</div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {[0, 1, 2].map(k => (
               <div key={k} style={{ ...pillStyle, minWidth: 100 }}>
                 <div style={{ fontSize: 10, color: factorColors[k], marginBottom: 3 }}>{factorLabels[k]}</div>
-                <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'monospace',
+                <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace",
                   color: factorExposures[k] >= 0 ? CHEAP_COLOR : RICH_COLOR }}>
                   {factorExposures[k] >= 0 ? '+' : ''}{factorExposures[k].toFixed(1)}
                 </div>
@@ -4051,16 +4045,16 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
 
         {/* Neutralize unwanted exposures */}
         <div>
-          <div style={{ fontSize: 11, color: '#475569', marginBottom: 8 }}>
+          <div style={{ fontSize: 11, color: '#8995a2', marginBottom: 8 }}>
             Neutralize unwanted factor exposures
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
-            <span style={{ fontSize: 11, color: '#64748b' }}>Hedge tenor 1:</span>
+            <span style={{ fontSize: 11, color: '#9aa5b1' }}>Hedge tenor 1:</span>
             <select value={hedgeLeg1} onChange={e => setHedgeLeg1(Number(e.target.value))}
               style={{ ...inputStyle, padding: '5px 8px', cursor: 'pointer' }}>
               {tenors.map(t => <option key={t} value={t}>{tLabel(t, data)}</option>)}
             </select>
-            <span style={{ fontSize: 11, color: '#64748b' }}>Hedge tenor 2:</span>
+            <span style={{ fontSize: 11, color: '#9aa5b1' }}>Hedge tenor 2:</span>
             <select value={hedgeLeg2} onChange={e => setHedgeLeg2(Number(e.target.value))}
               style={{ ...inputStyle, padding: '5px 8px', cursor: 'pointer' }}>
               {tenors.map(t => <option key={t} value={t}>{tLabel(t, data)}</option>)}
@@ -4070,8 +4064,8 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               {[neutralizeHedge.leg1, neutralizeHedge.leg2].map((leg, idx) => (
                 <div key={idx} style={{ ...pillStyle }}>
-                  <span style={{ fontSize: 11, color: '#94a3b8' }}>{leg.tenor}y: </span>
-                  <span style={{ fontSize: 12, fontWeight: 600, fontFamily: 'monospace',
+                  <span style={{ fontSize: 11, color: '#c6ced8' }}>{leg.tenor}y: </span>
+                  <span style={{ fontSize: 12, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace",
                     color: leg.notional >= 0 ? CHEAP_COLOR : RICH_COLOR }}>
                     {leg.notional >= 0 ? '+' : ''}{leg.notional.toFixed(1)} mn
                   </span>
@@ -4082,63 +4076,63 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
         </div>
 
         {/* ── Entry / TP / SL / R:R ─────────────────────────────────────────── */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 16, marginTop: 4 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 12 }}>
+        <div style={{ borderTop: '1px solid rgba(200,220,240,0.07)', paddingTop: 16, marginTop: 4 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#c6ced8', marginBottom: 12 }}>
             Trade Levels (factor score)
           </div>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             {/* Entry level — auto from trade structure, overridable */}
             <div>
-              <div style={{ fontSize: 10, color: '#475569', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 Entry level
-                <span style={{ fontSize: 9, color: '#334155' }}>
+                <span style={{ fontSize: 9, color: '#77828f' }}>
                   (Σ side×notional×yield = {autoEntry.toFixed(4)})
                 </span>
                 {entryLevel !== '' && (
                   <button onClick={() => setEntryLevel('')}
-                    style={{ fontSize: 9, color: '#6366f1', background: 'none', border: 'none',
+                    style={{ fontSize: 9, color: '#8b8fd8', background: 'none', border: 'none',
                       cursor: 'pointer', padding: 0, lineHeight: 1 }}>↺ auto</button>
                 )}
               </div>
               <input value={entryLevel} onChange={e => setEntryLevel(e.target.value)}
                 placeholder={autoEntry.toFixed(4)}
-                style={{ ...inputStyle, width: 110, border: '1px solid rgba(255,255,255,0.15)' }} />
+                style={{ ...inputStyle, width: 110, border: '1px solid rgba(200,220,240,0.15)' }} />
             </div>
             {/* TP */}
             <div>
-              <div style={{ fontSize: 10, color: '#22c55e', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ fontSize: 10, color: '#5fb592', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 Take profit
                 {takeProfit !== '' && (
                   <button onClick={() => setTakeProfit('')}
-                    style={{ fontSize: 9, color: '#6366f1', background: 'none', border: 'none',
+                    style={{ fontSize: 9, color: '#8b8fd8', background: 'none', border: 'none',
                       cursor: 'pointer', padding: 0, lineHeight: 1 }}>↺ auto</button>
                 )}
               </div>
               <input value={takeProfit} onChange={e => setTakeProfit(e.target.value)}
                 placeholder={autoTP.toFixed(4)}
-                style={{ ...inputStyle, width: 110, border: '1px solid rgba(34,197,94,0.35)' }} />
+                style={{ ...inputStyle, width: 110, border: '1px solid rgba(95,181,146,0.35)' }} />
             </div>
             {/* SL */}
             <div>
-              <div style={{ fontSize: 10, color: '#ef4444', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ fontSize: 10, color: '#d9705e', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 Stop loss
                 {stopLoss !== '' && (
                   <button onClick={() => setStopLoss('')}
-                    style={{ fontSize: 9, color: '#6366f1', background: 'none', border: 'none',
+                    style={{ fontSize: 9, color: '#8b8fd8', background: 'none', border: 'none',
                       cursor: 'pointer', padding: 0, lineHeight: 1 }}>↺ auto</button>
                 )}
               </div>
               <input value={stopLoss} onChange={e => setStopLoss(e.target.value)}
                 placeholder={autoSL.toFixed(4)}
-                style={{ ...inputStyle, width: 110, border: '1px solid rgba(239,68,68,0.35)' }} />
+                style={{ ...inputStyle, width: 110, border: '1px solid rgba(217,112,94,0.35)' }} />
             </div>
             <div style={{ paddingBottom: 2 }}>
-              <div style={{ fontSize: 10, color: '#475569', marginBottom: 4 }}>Reward : Risk</div>
-              <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'monospace',
-                color: rrRatio >= 1.5 ? CHEAP_COLOR : rrRatio >= 1 ? '#fbbf24' : RICH_COLOR }}>
+              <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 4 }}>Reward : Risk</div>
+              <div style={{ fontSize: 18, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace",
+                color: rrRatio >= 1.5 ? CHEAP_COLOR : rrRatio >= 1 ? '#dfbb78' : RICH_COLOR }}>
                 {rrRatio.toFixed(2)}
               </div>
-              <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>
+              <div style={{ fontSize: 10, color: '#8995a2', marginTop: 2 }}>
                 TP {tpDist.toFixed(4)} / SL {slDist.toFixed(4)}
               </div>
             </div>
@@ -4147,8 +4141,8 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
       </div>
 
       {/* ── Section 3: Historical P&L ───────────────────────────────────────── */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 16 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 16 }}>
           Historical P&L — Factor Attribution
         </div>
 
@@ -4156,14 +4150,14 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
           <>
             <ResponsiveContainer width="100%" height={220}>
               <ComposedChart data={cumPnlData} margin={{ top: 8, right: 20, bottom: 24, left: 44 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }}
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+                <XAxis dataKey="date" tick={{ fill: '#9aa5b1', fontSize: 9 }}
                   interval={Math.max(1, Math.floor(cumPnlData.length / 8))} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 10 }}
+                <YAxis tick={{ fill: '#9aa5b1', fontSize: 10 }}
                   tickFormatter={(v: number) => `${v.toFixed(0)}bp`} />
                 <Tooltip
-                  contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-                  labelStyle={{ color: '#94a3b8', fontSize: 11 }}
+                  contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
+                  labelStyle={{ color: '#c6ced8', fontSize: 11 }}
                   formatter={(v: number, name: string) => [`${v.toFixed(2)}bp`, name]} />
                 <Area type="monotone" dataKey="cumPc1" name="PC1" stroke={F1_COLOR}
                   fill={F1_COLOR} fillOpacity={0.15} strokeWidth={1} stackId="attr" />
@@ -4171,7 +4165,7 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
                   fill={F2_COLOR} fillOpacity={0.15} strokeWidth={1} stackId="attr" />
                 <Area type="monotone" dataKey="cumPc3" name="PC3" stroke={F3_COLOR}
                   fill={F3_COLOR} fillOpacity={0.15} strokeWidth={1} stackId="attr" />
-                <Line type="monotone" dataKey="cumTotal" name="Total P&L" stroke="#e2e8f0"
+                <Line type="monotone" dataKey="cumTotal" name="Total P&L" stroke="#e4eaf1"
                   dot={false} strokeWidth={2} />
               </ComposedChart>
             </ResponsiveContainer>
@@ -4183,11 +4177,11 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
                   { label: 'Avg PC1', value: pnlStats.avgPc1, color: F1_COLOR },
                   { label: 'Avg PC2', value: pnlStats.avgPc2, color: F2_COLOR },
                   { label: 'Avg PC3', value: pnlStats.avgPc3, color: F3_COLOR },
-                  { label: 'Avg Residual', value: pnlStats.avgRes, color: '#64748b' },
+                  { label: 'Avg Residual', value: pnlStats.avgRes, color: '#9aa5b1' },
                 ].map(({ label, value, color }) => (
                   <div key={label} style={{ ...pillStyle, minWidth: 90 }}>
                     <div style={{ fontSize: 10, color, marginBottom: 3 }}>{label}</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, fontFamily: 'monospace',
+                    <div style={{ fontSize: 13, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace",
                       color: value >= 0 ? CHEAP_COLOR : RICH_COLOR }}>
                       {value >= 0 ? '+' : ''}{value.toFixed(2)}bp
                     </div>
@@ -4201,36 +4195,36 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 {[
                   { label: 'Sharpe (ann.)', value: pnlStats.sharpe.toFixed(2),
-                    color: pnlStats.sharpe > 0.5 ? CHEAP_COLOR : pnlStats.sharpe < 0 ? RICH_COLOR : '#fbbf24' },
+                    color: pnlStats.sharpe > 0.5 ? CHEAP_COLOR : pnlStats.sharpe < 0 ? RICH_COLOR : '#dfbb78' },
                   { label: 'Hit ratio', value: `${(pnlStats.hitRatio * 100).toFixed(0)}%`,
-                    color: pnlStats.hitRatio > 0.55 ? CHEAP_COLOR : pnlStats.hitRatio < 0.45 ? RICH_COLOR : '#fbbf24' },
+                    color: pnlStats.hitRatio > 0.55 ? CHEAP_COLOR : pnlStats.hitRatio < 0.45 ? RICH_COLOR : '#dfbb78' },
                   { label: 'Max drawdown', value: `${pnlStats.maxDD.toFixed(1)}bp`, color: RICH_COLOR },
                   { label: 'Total return', value: `${pnlStats.totalReturn >= 0 ? '+' : ''}${pnlStats.totalReturn.toFixed(1)}bp`,
                     color: pnlStats.totalReturn >= 0 ? CHEAP_COLOR : RICH_COLOR },
                 ].map(({ label, value, color }) => (
                   <div key={label} style={pillStyle}>
-                    <div style={{ fontSize: 10, color: '#475569', marginBottom: 3 }}>{label}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, fontFamily: 'monospace', color }}>{value}</div>
+                    <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 3 }}>{label}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", color }}>{value}</div>
                   </div>
                 ))}
               </div>
             )}
           </>
         ) : (
-          <div style={{ fontSize: 12, color: '#475569', padding: '20px 0' }}>
+          <div style={{ fontSize: 12, color: '#8995a2', padding: '20px 0' }}>
             Select legs above to simulate P&L history.
           </div>
         )}
       </div>
 
       {/* ── Section 3.5: Mean Reversion ─────────────────────────────────────── */}
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 4 }}>
               Mean Reversion — Trade Level
             </div>
-            <div style={{ fontSize: 12, color: '#475569' }}>
+            <div style={{ fontSize: 12, color: '#8995a2' }}>
               {mrModel === 'ou' ? 'Linear OU — closed-form Gaussian transition density'
                 : mrModel === 'poly' ? 'Polynomial drift dx=(a+bx+cx²+dx³)dt — Euler forecast'
                 : 'Inverse polynomial dx=(a/x+bx+cx²+dx³)dt — Euler forecast'}
@@ -4241,9 +4235,9 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
               <button key={k} onClick={() => setMrModel(k)}
                 style={{
                   padding: '4px 12px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                  border: `1px solid ${mrModel === k ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                  background: mrModel === k ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.03)',
-                  color: mrModel === k ? '#a5b4fc' : '#64748b', fontWeight: mrModel === k ? 600 : 400,
+                  border: `1px solid ${mrModel === k ? 'rgba(134,192,222,0.5)' : 'rgba(200,220,240,0.1)'}`,
+                  background: mrModel === k ? 'rgba(134,192,222,0.18)' : 'rgba(200,220,240,0.03)',
+                  color: mrModel === k ? '#bfe0ef' : '#9aa5b1', fontWeight: mrModel === k ? 600 : 400,
                 }}>{l}</button>
             ))}
           </div>
@@ -4254,47 +4248,47 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
             {/* Stats row */}
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
               {[
-                { label: 'Est. μ*', value: mrFit.mu.toFixed(3), color: '#e2e8f0' },
+                { label: 'Est. μ*', value: mrFit.mu.toFixed(3), color: '#e4eaf1' },
                 { label: 'Current',
                   value: tradeLevelSeries.length > 0 ? tradeLevelSeries[tradeLevelSeries.length - 1].value.toFixed(3) : '—',
-                  color: '#e2e8f0' },
+                  color: '#e4eaf1' },
                 { label: 'Z-score', value: fmtZ(mrFit.zscore), color: zscoreColor(mrFit.zscore) },
                 { label: 'Half-life',
                   value: isFinite(mrFit.halfLife) ? `${mrFit.halfLife.toFixed(1)}w` : '∞',
-                  color: '#e2e8f0' },
-                { label: 'σ (resid)', value: mrFit.sigma.toFixed(4), color: '#94a3b8' },
+                  color: '#e4eaf1' },
+                { label: 'σ (resid)', value: mrFit.sigma.toFixed(4), color: '#c6ced8' },
                 { label: 'Drift at current',
                   value: (mrFit.driftAtCurrent >= 0 ? '+' : '') + mrFit.driftAtCurrent.toFixed(4),
                   color: (mrFit.driftAtCurrent * direction > 0) ? CHEAP_COLOR : RICH_COLOR },
               ].map(({ label, value, color }) => (
                 <div key={label} style={pillStyle}>
-                  <div style={{ fontSize: 10, color: '#475569', marginBottom: 3 }}>{label}</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, fontFamily: 'monospace', color }}>{value}</div>
+                  <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 3 }}>{label}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", color }}>{value}</div>
                 </div>
               ))}
             </div>
 
             <ResponsiveContainer width="100%" height={230}>
               <ComposedChart data={mrChartData} margin={{ top: 8, right: 20, bottom: 20, left: 44 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 8 }}
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+                <XAxis dataKey="label" tick={{ fill: '#9aa5b1', fontSize: 8 }}
                   interval={Math.max(1, Math.floor(mrChartData.length / 10))} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} tickFormatter={v => v.toFixed(2)} />
+                <YAxis tick={{ fill: '#9aa5b1', fontSize: 10 }} tickFormatter={v => v.toFixed(2)} />
                 <Tooltip
-                  contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-                  labelStyle={{ color: '#94a3b8', fontSize: 10 }}
+                  contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
+                  labelStyle={{ color: '#c6ced8', fontSize: 10 }}
                   formatter={(v: number, name: string) => [v.toFixed(4), name]} />
-                <ReferenceLine y={mrFit.mu} stroke="rgba(255,255,255,0.25)" strokeDasharray="4 4"
-                  label={{ value: 'μ*', position: 'right', fill: '#64748b', fontSize: 10 }} />
+                <ReferenceLine y={mrFit.mu} stroke="rgba(200,220,240,0.25)" strokeDasharray="4 4"
+                  label={{ value: 'μ*', position: 'right', fill: '#9aa5b1', fontSize: 10 }} />
                 {/* ±2σ band */}
-                <Line type="monotone" dataKey="u2" name="+2σ" stroke="rgba(99,102,241,0.2)"
+                <Line type="monotone" dataKey="u2" name="+2σ" stroke="rgba(139,143,216,0.2)"
                   strokeWidth={1} dot={false} connectNulls strokeDasharray="2 3" legendType="none" />
-                <Line type="monotone" dataKey="l2" name="−2σ" stroke="rgba(99,102,241,0.2)"
+                <Line type="monotone" dataKey="l2" name="−2σ" stroke="rgba(139,143,216,0.2)"
                   strokeWidth={1} dot={false} connectNulls strokeDasharray="2 3" legendType="none" />
                 {/* ±1σ band */}
-                <Line type="monotone" dataKey="u1" name="+1σ" stroke="rgba(99,102,241,0.4)"
+                <Line type="monotone" dataKey="u1" name="+1σ" stroke="rgba(139,143,216,0.4)"
                   strokeWidth={1} dot={false} connectNulls strokeDasharray="3 2" legendType="none" />
-                <Line type="monotone" dataKey="l1" name="−1σ" stroke="rgba(99,102,241,0.4)"
+                <Line type="monotone" dataKey="l1" name="−1σ" stroke="rgba(139,143,216,0.4)"
                   strokeWidth={1} dot={false} connectNulls strokeDasharray="3 2" legendType="none" />
                 {/* History */}
                 <Line type="monotone" dataKey="hist" name="Trade level"
@@ -4307,16 +4301,16 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
             </ResponsiveContainer>
           </>
         ) : (
-          <div style={{ fontSize: 12, color: '#475569', padding: '16px 0' }}>
+          <div style={{ fontSize: 12, color: '#8995a2', padding: '16px 0' }}>
             Select legs above to compute mean reversion.
           </div>
         )}
       </div>
 
       {/* ── Section 4: Entry Checklist ──────────────────────────────────────── */}
-      <div style={cardStyle}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>Entry Checklist</div>
-        <div style={{ fontSize: 12, color: '#475569', marginBottom: 16 }}>
+      <div className="hub-frame" style={cardStyle}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 4 }}>Entry Checklist</div>
+        <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 16 }}>
           Synthesized signals across all analytics modules
         </div>
 
@@ -4324,8 +4318,8 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
           <thead>
             <tr>
               {['Signal', 'Value', 'Status'].map(h => (
-                <th key={h} style={{ padding: '6px 10px', fontSize: 11, color: '#475569',
-                  fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.07)',
+                <th key={h} style={{ padding: '6px 10px', fontSize: 11, color: '#8995a2',
+                  fontWeight: 500, borderBottom: '1px solid rgba(200,220,240,0.07)',
                   textAlign: h === 'Status' ? 'center' : 'left' }}>{h}</th>
               ))}
             </tr>
@@ -4335,18 +4329,18 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
               const z = ouP.zscore
               const absZ = Math.abs(z)
               const alignsDirection = direction * Math.sign(z) > 0
-              const zStatus = absZ >= 1.5 && alignsDirection ? CHEAP_COLOR : absZ >= 1 ? '#fbbf24' : RICH_COLOR
+              const zStatus = absZ >= 1.5 && alignsDirection ? CHEAP_COLOR : absZ >= 1 ? '#dfbb78' : RICH_COLOR
 
               const ouAligns = direction === 1 ? ouP.current < ouP.mu : ouP.current > ouP.mu
               const ouStatus = ouAligns ? CHEAP_COLOR : RICH_COLOR
 
               const oosR2Val = suggestion?.oosR2 ?? null
-              const oosStatus = oosR2Val == null ? '#64748b' : oosR2Val > 0.95 ? CHEAP_COLOR : oosR2Val > 0.8 ? '#fbbf24' : RICH_COLOR
+              const oosStatus = oosR2Val == null ? '#9aa5b1' : oosR2Val > 0.95 ? CHEAP_COLOR : oosR2Val > 0.8 ? '#dfbb78' : RICH_COLOR
 
               const stabVal = factorStability
-              const stabStatus = stabVal == null ? '#64748b' : stabVal > 0.95 ? CHEAP_COLOR : stabVal > 0.9 ? '#fbbf24' : RICH_COLOR
+              const stabStatus = stabVal == null ? '#9aa5b1' : stabVal > 0.95 ? CHEAP_COLOR : stabVal > 0.9 ? '#dfbb78' : RICH_COLOR
 
-              const macroStatus = topMacro == null ? '#64748b'
+              const macroStatus = topMacro == null ? '#9aa5b1'
                 : direction * Math.sign(topMacro.corr) > 0 ? CHEAP_COLOR : RICH_COLOR
 
               const rows = [
@@ -4381,12 +4375,12 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
 
               return rows.map(row => (
                 <tr key={row.name}>
-                  <td style={{ padding: '7px 10px', fontSize: 12, color: '#94a3b8',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{row.name}</td>
-                  <td style={{ padding: '7px 10px', fontSize: 12, fontFamily: 'monospace', color: '#e2e8f0',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{row.value}</td>
+                  <td style={{ padding: '7px 10px', fontSize: 12, color: '#c6ced8',
+                    borderBottom: '1px solid rgba(200,220,240,0.04)' }}>{row.name}</td>
+                  <td style={{ padding: '7px 10px', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace", color: '#e4eaf1',
+                    borderBottom: '1px solid rgba(200,220,240,0.04)' }}>{row.value}</td>
                   <td style={{ padding: '7px 10px', textAlign: 'center',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    borderBottom: '1px solid rgba(200,220,240,0.04)' }}>
                     <div style={{ width: 10, height: 10, borderRadius: '50%',
                       background: row.status, margin: '0 auto',
                       boxShadow: `0 0 6px ${row.status}` }} />
@@ -4398,8 +4392,8 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
         </table>
 
         {/* Trade Summary */}
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
-          borderRadius: 8, padding: '12px 16px', fontSize: 12, color: '#94a3b8', lineHeight: 1.7 }}>
+        <div style={{ background: 'rgba(200,220,240,0.03)', border: '1px solid rgba(200,220,240,0.07)',
+          borderRadius: 6, padding: '12px 16px', fontSize: 12, color: '#c6ced8', lineHeight: 1.7 }}>
           <span style={{ color: direction === 1 ? CHEAP_COLOR : RICH_COLOR, fontWeight: 600 }}>
             {direction === 1 ? 'Long' : 'Short'}
           </span>
@@ -4410,7 +4404,7 @@ function TradeBuilderTab({ data, initialTrade, onSaveTrade }: {
           . Expected move: {direction > 0 ? '+' : '-'}{magnitude}σ.
           Structure: {selectedLegs.length > 0 ? selectedLegs.map(t => tLabel(t, data)).join(' · ') : '(none)'}.
           {' '}Overall signal:{' '}
-          <span style={{ fontWeight: 700, color: overallSignal === 'Bullish' ? CHEAP_COLOR : overallSignal === 'Bearish' ? RICH_COLOR : '#fbbf24' }}>
+          <span style={{ fontWeight: 600, color: overallSignal === 'Bullish' ? CHEAP_COLOR : overallSignal === 'Bearish' ? RICH_COLOR : '#dfbb78' }}>
             {overallSignal}
           </span>.
         </div>
@@ -4579,15 +4573,15 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
   const splitDateLabel = testAligned.length > 0 ? testAligned[0].date.slice(0, 7) : null
 
   const r2Color = (r2: number) =>
-    r2 > 0.95 ? CHEAP_COLOR : r2 > 0.80 ? '#fbbf24' : RICH_COLOR
+    r2 > 0.95 ? CHEAP_COLOR : r2 > 0.80 ? '#dfbb78' : RICH_COLOR
 
   const thS: React.CSSProperties = {
-    padding: '6px 12px', fontSize: 11, color: '#475569', fontWeight: 500,
-    borderBottom: '1px solid rgba(255,255,255,0.07)', textAlign: 'left',
+    padding: '6px 12px', fontSize: 11, color: '#8995a2', fontWeight: 500,
+    borderBottom: '1px solid rgba(200,220,240,0.07)', textAlign: 'left',
   }
   const tdS: React.CSSProperties = {
-    padding: '6px 12px', fontSize: 12, fontFamily: 'monospace',
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
+    padding: '6px 12px', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace",
+    borderBottom: '1px solid rgba(200,220,240,0.04)',
   }
 
   const displayTenors = displayResult
@@ -4605,18 +4599,18 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
   return (
     <div>
       {/* ── Controls ── */}
-      <div style={cardStyle}>
+      <div className="hub-frame" style={cardStyle}>
         <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Target factor */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, color: '#64748b' }}>Replicate:</span>
+            <span style={{ fontSize: 12, color: '#9aa5b1' }}>Replicate:</span>
             {Array.from({ length: nFactors }, (_, k) => (
               <button key={k} onClick={() => { setTargetFactor(k); setSelectedIdx(null) }}
                 style={{
                   padding: '5px 14px', borderRadius: 7, fontSize: 12, cursor: 'pointer',
-                  border: `1px solid ${targetFactor === k ? FACTOR_COLORS[k] + '80' : 'rgba(255,255,255,0.1)'}`,
-                  background: targetFactor === k ? FACTOR_COLORS[k] + '22' : 'rgba(255,255,255,0.03)',
-                  color: targetFactor === k ? FACTOR_COLORS[k] : '#64748b',
+                  border: `1px solid ${targetFactor === k ? FACTOR_COLORS[k] + '80' : 'rgba(200,220,240,0.1)'}`,
+                  background: targetFactor === k ? FACTOR_COLORS[k] + '22' : 'rgba(200,220,240,0.03)',
+                  color: targetFactor === k ? FACTOR_COLORS[k] : '#9aa5b1',
                   fontWeight: targetFactor === k ? 600 : 400,
                 }}>
                 PC{k + 1} — {FACTOR_LABELS[k] ?? `F${k + 1}`}
@@ -4625,14 +4619,14 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
           </div>
           {/* Max subset size */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, color: '#64748b' }}>Max instruments:</span>
+            <span style={{ fontSize: 12, color: '#9aa5b1' }}>Max instruments:</span>
             {Array.from({ length: N }, (_, k) => k + 1).map(k => (
               <button key={k} onClick={() => { setMaxSubsetSize(k); setSelectedIdx(null) }}
                 style={{
                   padding: '5px 12px', borderRadius: 7, fontSize: 12, cursor: 'pointer',
-                  border: `1px solid ${maxSubsetSize === k ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                  background: maxSubsetSize === k ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.03)',
-                  color: maxSubsetSize === k ? '#a5b4fc' : '#64748b',
+                  border: `1px solid ${maxSubsetSize === k ? 'rgba(134,192,222,0.5)' : 'rgba(200,220,240,0.1)'}`,
+                  background: maxSubsetSize === k ? 'rgba(134,192,222,0.18)' : 'rgba(200,220,240,0.03)',
+                  color: maxSubsetSize === k ? '#bfe0ef' : '#9aa5b1',
                   fontWeight: maxSubsetSize === k ? 600 : 400,
                 }}>
                 {k}
@@ -4641,23 +4635,23 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
           </div>
           {/* Train / test split */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-            <span style={{ fontSize: 12, color: '#64748b' }}>Train up to:</span>
+            <span style={{ fontSize: 12, color: '#9aa5b1' }}>Train up to:</span>
             <input
               type="date"
               value={trainEndDate || effectiveTrainEnd}
               onChange={e => { setTrainEndDate(e.target.value); setSelectedIdx(null) }}
               style={{
-                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)',
-                borderRadius: 6, color: '#e2e8f0', fontSize: 12, padding: '4px 8px',
+                background: 'rgba(200,220,240,0.05)', border: '1px solid rgba(200,220,240,0.15)',
+                borderRadius: 6, color: '#e4eaf1', fontSize: 12, padding: '4px 8px',
               }}
             />
             {trainEndDate && (
               <button onClick={() => { setTrainEndDate(''); setSelectedIdx(null) }}
-                style={{ fontSize: 11, color: '#64748b', background: 'none', border: 'none', cursor: 'pointer' }}>
+                style={{ fontSize: 11, color: '#9aa5b1', background: 'none', border: 'none', cursor: 'pointer' }}>
                 reset
               </button>
             )}
-            <span style={{ fontSize: 11, color: '#334155' }}>
+            <span style={{ fontSize: 11, color: '#77828f' }}>
               {trainAligned.length} IS · {testAligned.length} OOS
             </span>
           </div>
@@ -4667,16 +4661,16 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
         {/* ── Left: ranked table ── */}
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>
+        <div className="hub-frame" style={cardStyle}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 4 }}>
             Best Replicating Portfolios
           </div>
-          <div style={{ fontSize: 12, color: '#475569', marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 14 }}>
             OLS: PC{targetFactor + 1} = α + Σ wᵢ·yᵢ · ranked by R² · click a row to inspect
           </div>
           <div style={{ maxHeight: 480, overflowY: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-              <thead style={{ position: 'sticky', top: 0, background: '#080d1a' }}>
+              <thead style={{ position: 'sticky', top: 0, background: '#07090c' }}>
                 <tr>
                   <th style={{ ...thS, textAlign: 'center', width: 36 }}>#</th>
                   <th style={thS}>Instruments</th>
@@ -4692,22 +4686,22 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
                     <tr key={ri} onClick={() => setSelectedIdx(ri)}
                       style={{
                         cursor: 'pointer',
-                        background: isSelected ? 'rgba(99,102,241,0.12)' : 'transparent',
+                        background: isSelected ? 'rgba(134,192,222,0.12)' : 'transparent',
                         borderLeft: isSelected ? `3px solid ${FACTOR_COLORS[targetFactor]}` : '3px solid transparent',
                       }}>
-                      <td style={{ ...tdS, textAlign: 'center', color: '#475569' }}>{ri + 1}</td>
-                      <td style={{ ...tdS, color: '#e2e8f0' }}>
+                      <td style={{ ...tdS, textAlign: 'center', color: '#8995a2' }}>{ri + 1}</td>
+                      <td style={{ ...tdS, color: '#e4eaf1' }}>
                         {res.indices.map(i => tLabel(tenors[i], data)).join(' · ')}
                       </td>
                       <td style={{ ...tdS, textAlign: 'right', color: r2Color(res.r2), fontWeight: 600 }}>
                         {res.r2.toFixed(4)}
                       </td>
                       <td style={{ ...tdS, textAlign: 'right',
-                        color: res.oosR2 != null ? r2Color(res.oosR2) : '#475569',
+                        color: res.oosR2 != null ? r2Color(res.oosR2) : '#8995a2',
                         fontWeight: res.oosR2 != null ? 600 : 400 }}>
                         {res.oosR2 != null ? res.oosR2.toFixed(4) : '—'}
                       </td>
-                      <td style={{ ...tdS, textAlign: 'right', color: '#475569' }}>
+                      <td style={{ ...tdS, textAlign: 'right', color: '#8995a2' }}>
                         {res.indices.length}
                       </td>
                     </tr>
@@ -4721,23 +4715,23 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
         {/* ── Right: weight charts ── */}
         <div>
           {/* OLS weights vs eigenvector */}
-          <div style={cardStyle}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>
+          <div className="hub-frame" style={cardStyle}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 4 }}>
               Portfolio Weights
             </div>
-            <div style={{ fontSize: 12, color: '#475569', marginBottom: 14 }}>
+            <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 14 }}>
               OLS weights (selected) vs eigenvector loadings (theoretical optimum)
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={allTenorWeights} margin={{ top: 4, right: 8, bottom: 8, left: 36 }} barGap={2}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="tenor" tick={{ fill: '#64748b', fontSize: 10 }} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 9 }} tickFormatter={v => v.toFixed(2)} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+                <XAxis dataKey="tenor" tick={{ fill: '#9aa5b1', fontSize: 10 }} />
+                <YAxis tick={{ fill: '#9aa5b1', fontSize: 9 }} tickFormatter={v => v.toFixed(2)} />
                 <Tooltip
-                  contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
+                  contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
                   formatter={(v: number, name: string) => [v.toFixed(5), name]}
                 />
-                <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" />
+                <ReferenceLine y={0} stroke="rgba(200,220,240,0.2)" />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Bar dataKey="weight" name="OLS weight" maxBarSize={20}>
                   {allTenorWeights.map((d, i) => (
@@ -4746,7 +4740,7 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
                 </Bar>
                 <Bar dataKey="ev" name="Eigenvector" maxBarSize={20}>
                   {allTenorWeights.map((d, i) => (
-                    <Cell key={i} fill={d.ev >= 0 ? '#94a3b8' : '#475569'} opacity={0.5} />
+                    <Cell key={i} fill={d.ev >= 0 ? '#c6ced8' : '#8995a2'} opacity={0.5} />
                   ))}
                 </Bar>
               </BarChart>
@@ -4760,14 +4754,14 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
                 { label: 'IS R²',    value: displayResult.r2.toFixed(4),
                   color: r2Color(displayResult.r2) },
                 { label: 'OOS R²',   value: displayResult.oosR2 != null ? displayResult.oosR2.toFixed(4) : '—',
-                  color: displayResult.oosR2 != null ? r2Color(displayResult.oosR2) : '#475569' },
+                  color: displayResult.oosR2 != null ? r2Color(displayResult.oosR2) : '#8995a2' },
                 { label: 'OOS RMSE (z)', value: oosStats ? oosStats.rmse.toFixed(4) : '—',
-                  color: oosStats ? (oosStats.rmse < 0.2 ? CHEAP_COLOR : oosStats.rmse < 0.5 ? '#fbbf24' : RICH_COLOR) : '#475569' },
-                { label: 'Instruments', value: String(displayResult.indices.length), color: '#a5b4fc' },
+                  color: oosStats ? (oosStats.rmse < 0.2 ? CHEAP_COLOR : oosStats.rmse < 0.5 ? '#dfbb78' : RICH_COLOR) : '#8995a2' },
+                { label: 'Instruments', value: String(displayResult.indices.length), color: '#b9bdea' },
               ].map(({ label, value, color }) => (
                 <div key={label} style={{ ...cardStyle, textAlign: 'center', marginBottom: 0 }}>
-                  <div style={{ fontSize: 10, color: '#475569', marginBottom: 6 }}>{label}</div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color, fontFamily: 'monospace' }}>{value}</div>
+                  <div style={{ fontSize: 10, color: '#8995a2', marginBottom: 6 }}>{label}</div>
+                  <div style={{ fontSize: 18, fontWeight: 600, color, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{value}</div>
                 </div>
               ))}
             </div>
@@ -4777,48 +4771,48 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
 
       {/* ── Tracking chart ── */}
       {trackingData.length > 0 && displayResult && (
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>
+        <div className="hub-frame" style={cardStyle}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e4eaf1', marginBottom: 4 }}>
             Tracking Quality — {displayResult.indices.map(i => tLabel(tenors[i], data)).join(' · ')}
           </div>
-          <div style={{ fontSize: 12, color: '#475569', marginBottom: 4 }}>
+          <div style={{ fontSize: 12, color: '#8995a2', marginBottom: 4 }}>
             Both z-scored (IS params) ·
             <span style={{ color: FACTOR_COLORS[targetFactor], marginLeft: 6 }}>── PC{targetFactor + 1} factor</span>
-            <span style={{ color: '#94a3b8', marginLeft: 12 }}>-- OLS portfolio</span>
+            <span style={{ color: '#c6ced8', marginLeft: 12 }}>-- OLS portfolio</span>
             {splitDateLabel && (
-              <span style={{ color: '#475569', marginLeft: 12 }}>· shaded = OOS from {splitDateLabel}</span>
+              <span style={{ color: '#8995a2', marginLeft: 12 }}>· shaded = OOS from {splitDateLabel}</span>
             )}
           </div>
 
           <ResponsiveContainer width="100%" height={200}>
             <ComposedChart data={trackingData} margin={{ top: 4, right: 20, bottom: 4, left: 36 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }} interval={interval}
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.05)" />
+              <XAxis dataKey="date" tick={{ fill: '#9aa5b1', fontSize: 9 }} interval={interval}
                 tickFormatter={(d: string) => d.slice(0, 7)} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 10 }} tickFormatter={v => v.toFixed(1)} />
+              <YAxis tick={{ fill: '#9aa5b1', fontSize: 10 }} tickFormatter={v => v.toFixed(1)} />
               <Tooltip
-                contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-                labelStyle={{ color: '#94a3b8', fontSize: 10 }}
+                contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
+                labelStyle={{ color: '#c6ced8', fontSize: 10 }}
                 formatter={(v: number, name: string) => [v.toFixed(4), name]}
               />
               {splitDateLabel && (
                 <ReferenceArea x1={splitDateLabel}
-                  fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)" strokeWidth={1} />
+                  fill="rgba(200,220,240,0.03)" stroke="rgba(200,220,240,0.15)" strokeWidth={1} />
               )}
               {splitDateLabel && (
-                <ReferenceLine x={splitDateLabel} stroke="rgba(255,255,255,0.3)" strokeDasharray="4 3"
-                  label={{ value: 'OOS', position: 'insideTopRight', fill: '#475569', fontSize: 9 }} />
+                <ReferenceLine x={splitDateLabel} stroke="rgba(200,220,240,0.3)" strokeDasharray="4 3"
+                  label={{ value: 'OOS', position: 'insideTopRight', fill: '#8995a2', fontSize: 9 }} />
               )}
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.1)" />
               <Line type="monotone" dataKey="factor" name={`PC${targetFactor + 1}`}
                 stroke={FACTOR_COLORS[targetFactor]} strokeWidth={1.5} dot={false} connectNulls={false} />
               <Line type="monotone" dataKey="portfolio" name="OLS portfolio"
-                stroke="#94a3b8" strokeWidth={1.5} dot={false} connectNulls={false} strokeDasharray="4 2" />
+                stroke="#c6ced8" strokeWidth={1.5} dot={false} connectNulls={false} strokeDasharray="4 2" />
             </ComposedChart>
           </ResponsiveContainer>
 
           {/* Residuals */}
-          <div style={{ fontSize: 10, color: '#334155', margin: '8px 0 4px', fontFamily: 'monospace' }}>
+          <div style={{ fontSize: 10, color: '#77828f', margin: '8px 0 4px', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
             Tracking error (factor − portfolio, z-scored) · IS RMSE: {
               (() => {
                 const isPts = trackingData.filter(d => !d.oos)
@@ -4829,22 +4823,22 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
           </div>
           <ResponsiveContainer width="100%" height={120}>
             <ComposedChart data={trackingData} margin={{ top: 2, right: 20, bottom: 16, left: 36 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 8 }} interval={interval}
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
+              <XAxis dataKey="date" tick={{ fill: '#9aa5b1', fontSize: 8 }} interval={interval}
                 tickFormatter={(d: string) => d.slice(0, 7)} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 9 }} tickFormatter={v => v.toFixed(1)} />
+              <YAxis tick={{ fill: '#9aa5b1', fontSize: 9 }} tickFormatter={v => v.toFixed(1)} />
               <Tooltip
-                contentStyle={{ background: '#0d1425', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
+                contentStyle={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6 }}
                 formatter={(v: number) => [v.toFixed(4), 'Tracking error']}
               />
               {splitDateLabel && (
                 <ReferenceArea x1={splitDateLabel}
-                  fill="rgba(255,255,255,0.03)" stroke="none" />
+                  fill="rgba(200,220,240,0.03)" stroke="none" />
               )}
               {splitDateLabel && (
-                <ReferenceLine x={splitDateLabel} stroke="rgba(255,255,255,0.3)" strokeDasharray="4 3" />
+                <ReferenceLine x={splitDateLabel} stroke="rgba(200,220,240,0.3)" strokeDasharray="4 3" />
               )}
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.25)" />
+              <ReferenceLine y={0} stroke="rgba(200,220,240,0.25)" />
               <Area type="monotone" dataKey="residual" name="Tracking error"
                 stroke={FACTOR_COLORS[targetFactor]} fill={FACTOR_COLORS[targetFactor]}
                 fillOpacity={0.15} strokeWidth={1} dot={false} connectNulls={false} />
@@ -4853,7 +4847,7 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
 
           {/* OLS weight table */}
           <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 8 }}>OLS Weights</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#c6ced8', marginBottom: 8 }}>OLS Weights</div>
             <table style={{ borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr>
@@ -4867,22 +4861,22 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
                   const ev = eigenvecs[targetFactor]?.loadings[String(tenor)] ?? 0
                   return (
                     <tr key={j}>
-                      <td style={{ ...tdS, color: '#e2e8f0', fontWeight: 600, paddingRight: 20 }}>{tenor}y</td>
+                      <td style={{ ...tdS, color: '#e4eaf1', fontWeight: 600, paddingRight: 20 }}>{tenor}y</td>
                       <td style={{ ...tdS, color: weight >= 0 ? CHEAP_COLOR : RICH_COLOR, textAlign: 'right', paddingRight: 20 }}>
                         {weight >= 0 ? '+' : ''}{weight.toFixed(5)}
                       </td>
-                      <td style={{ ...tdS, color: '#94a3b8', textAlign: 'right', paddingRight: 20 }}>
+                      <td style={{ ...tdS, color: '#c6ced8', textAlign: 'right', paddingRight: 20 }}>
                         {ev >= 0 ? '+' : ''}{ev.toFixed(5)}
                       </td>
-                      <td style={{ ...tdS, color: '#475569', textAlign: 'right', paddingRight: 20 }}>
+                      <td style={{ ...tdS, color: '#8995a2', textAlign: 'right', paddingRight: 20 }}>
                         {ev !== 0 ? (weight / ev).toFixed(3) : '—'}
                       </td>
                     </tr>
                   )
                 })}
                 <tr>
-                  <td style={{ ...tdS, color: '#475569', fontStyle: 'italic' }}>Intercept (α)</td>
-                  <td style={{ ...tdS, color: '#475569', textAlign: 'right', paddingRight: 20 }} colSpan={3}>
+                  <td style={{ ...tdS, color: '#8995a2', fontStyle: 'italic' }}>Intercept (α)</td>
+                  <td style={{ ...tdS, color: '#8995a2', textAlign: 'right', paddingRight: 20 }} colSpan={3}>
                     {displayResult.alpha >= 0 ? '+' : ''}{displayResult.alpha.toFixed(5)}
                   </td>
                 </tr>
@@ -4898,32 +4892,32 @@ function FactorReplicationTab({ data }: { data: PCAResponse }) {
 // ─── Step-by-step guide ──────────────────────────────────────────────────────
 
 function StepByStepGuide() {
-  const prose: React.CSSProperties = { fontSize: 14, lineHeight: 1.75, color: '#cbd5e1' }
-  const h1: React.CSSProperties = { fontSize: 22, fontWeight: 700, color: '#e2e8f0', marginBottom: 24, letterSpacing: '-0.3px' }
+  const prose: React.CSSProperties = { fontSize: 14, lineHeight: 1.75, color: '#c3ccd6' }
+  const h1: React.CSSProperties = { fontSize: 22, fontWeight: 600, color: '#e4eaf1', marginBottom: 24, letterSpacing: '-0.3px' }
   const stepCard: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)',
-    borderRadius: 12, padding: '20px 24px', marginBottom: 16,
+    background: 'rgba(200,220,240,0.025)', border: '1px solid rgba(200,220,240,0.07)',
+    borderRadius: 6, padding: '20px 24px', marginBottom: 16,
   }
   const stepNum: React.CSSProperties = {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    width: 28, height: 28, borderRadius: '50%', background: 'rgba(99,102,241,0.25)',
-    border: '1px solid rgba(99,102,241,0.4)', color: '#a5b4fc',
-    fontSize: 12, fontWeight: 700, marginRight: 12, flexShrink: 0,
+    width: 28, height: 28, borderRadius: '50%', background: 'rgba(139,143,216,0.25)',
+    border: '1px solid rgba(139,143,216,0.4)', color: '#b9bdea',
+    fontSize: 12, fontWeight: 600, marginRight: 12, flexShrink: 0,
   }
-  const stepTitle: React.CSSProperties = { fontSize: 15, fontWeight: 600, color: '#e2e8f0', display: 'flex', alignItems: 'center', marginBottom: 10 }
-  const bullet: React.CSSProperties = { color: '#6366f1', marginRight: 8, fontWeight: 700 }
+  const stepTitle: React.CSSProperties = { fontSize: 15, fontWeight: 600, color: '#e4eaf1', display: 'flex', alignItems: 'center', marginBottom: 10 }
+  const bullet: React.CSSProperties = { color: '#8b8fd8', marginRight: 8, fontWeight: 600 }
   const note: React.CSSProperties = {
-    background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)',
-    borderRadius: 8, padding: '10px 16px', marginTop: 12, fontSize: 13, color: '#94a3b8',
+    background: 'rgba(139,143,216,0.08)', border: '1px solid rgba(139,143,216,0.2)',
+    borderRadius: 6, padding: '10px 16px', marginTop: 12, fontSize: 13, color: '#c6ced8',
   }
   const math: React.CSSProperties = {
-    fontFamily: 'monospace', background: 'rgba(255,255,255,0.06)', borderRadius: 4,
-    padding: '2px 6px', fontSize: 13, color: '#a5b4fc',
+    fontFamily: "'Geist Mono', ui-monospace, monospace", background: 'rgba(200,220,240,0.06)', borderRadius: 4,
+    padding: '2px 6px', fontSize: 13, color: '#b9bdea',
   }
   const matrix: React.CSSProperties = {
-    fontFamily: 'monospace', background: 'rgba(255,255,255,0.04)', borderRadius: 8,
-    padding: '12px 20px', margin: '10px 0', fontSize: 13, color: '#c4b5fd',
-    border: '1px solid rgba(255,255,255,0.06)', display: 'inline-block',
+    fontFamily: "'Geist Mono', ui-monospace, monospace", background: 'rgba(200,220,240,0.04)', borderRadius: 6,
+    padding: '12px 20px', margin: '10px 0', fontSize: 13, color: '#cbbde8',
+    border: '1px solid rgba(200,220,240,0.06)', display: 'inline-block',
   }
 
   return (
@@ -4938,7 +4932,7 @@ function StepByStepGuide() {
           type and number of variables, change or level data. Usually, at least one year of data is advisable.
         </p>
         <p style={{ margin: '0 0 10px' }}>
-          In the worked example: weekly <strong style={{ color: '#e2e8f0' }}>level</strong> data for 2Y, 5Y, 7Y, and 10Y Bund yields from 4 Jan 2010 to 3 Oct 2011.
+          In the worked example: weekly <strong style={{ color: '#e4eaf1' }}>level</strong> data for 2Y, 5Y, 7Y, and 10Y Bund yields from 4 Jan 2010 to 3 Oct 2011.
           Constant-maturity time series from a fitted curve model are the preferred choice — they avoid roll-down
           effects and distortions from benchmark premia.
         </p>
@@ -4953,7 +4947,7 @@ function StepByStepGuide() {
         <div style={stepTitle}><span style={stepNum}>2</span>Run the PCA and Check Numerical Stability</div>
         <p style={{ margin: 0 }}>
           Verify that the calculated eigenvectors are genuine eigenvectors and mutually orthogonal.
-          The <strong style={{ color: '#e2e8f0' }}>Stability</strong> tab reports the condition number of the covariance matrix — a large
+          The <strong style={{ color: '#e4eaf1' }}>Stability</strong> tab reports the condition number of the covariance matrix — a large
           condition number signals near-singular input data and unreliable decomposition.
         </p>
       </div>
@@ -4962,7 +4956,7 @@ function StepByStepGuide() {
       <div style={stepCard}>
         <div style={stepTitle}><span style={stepNum}>3</span>Assess the Factor Structure</div>
         <p style={{ margin: '0 0 10px' }}>
-          Display the eigenvalues (<strong style={{ color: '#e2e8f0' }}>Factor Structure</strong> tab) and assess whether factorisation makes sense.
+          Display the eigenvalues (<strong style={{ color: '#e4eaf1' }}>Factor Structure</strong> tab) and assess whether factorisation makes sense.
           A strong decrease <span style={math}>|λ₁| ≫ |λ₂| ≫ … ≫ |λₙ|</span> together with high within-data correlation indicates a
           clear factor structure and allows meaningful dimensionality reduction.
         </p>
@@ -4976,7 +4970,7 @@ function StepByStepGuide() {
       <div style={stepCard}>
         <div style={stepTitle}><span style={stepNum}>4</span>Interpret the Eigenvectors</div>
         <p style={{ margin: 0 }}>
-          Display and interpret the eigenvectors (<strong style={{ color: '#e2e8f0' }}>Factor Structure</strong> tab, loading chart).
+          Display and interpret the eigenvectors (<strong style={{ color: '#e4eaf1' }}>Factor Structure</strong> tab, loading chart).
           For sovereign yield curves the canonical interpretation is: PC1 = <em>Level</em> (all loadings same sign),
           PC2 = <em>Slope</em> (short vs. long), PC3 = <em>Curvature</em> (belly vs. wings).
           Departures from this pattern in your specific curve are economically meaningful.
@@ -4987,7 +4981,7 @@ function StepByStepGuide() {
       <div style={stepCard}>
         <div style={stepTitle}><span style={stepNum}>5</span>Analyse the Factor Time Series</div>
         <p style={{ margin: '0 0 12px' }}>
-          Display the factor time series (<strong style={{ color: '#e2e8f0' }}>Factor Dynamics</strong> tab). This is the central output
+          Display the factor time series (<strong style={{ color: '#e4eaf1' }}>Factor Dynamics</strong> tab). This is the central output
           of the PCA and is the basis for most subsequent actions:
         </p>
         {[
@@ -4999,7 +4993,7 @@ function StepByStepGuide() {
         ].map(([title, body]) => (
           <div key={title as string} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
             <span style={bullet}>▪</span>
-            <span><strong style={{ color: '#e2e8f0' }}>{title}:</strong> {body}</span>
+            <span><strong style={{ color: '#e4eaf1' }}>{title}:</strong> {body}</span>
           </div>
         ))}
       </div>
@@ -5015,7 +5009,7 @@ function StepByStepGuide() {
           Factor 3 is significantly away from its mean with high mean-reversion speed → investigate butterfly trades hedged against factors 1 and 2.
         </div>
         <p style={{ margin: '10px 0 0' }}>
-          This decision is the input to the <strong style={{ color: '#e2e8f0' }}>Trade Builder → Factor View</strong> section.
+          This decision is the input to the <strong style={{ color: '#e4eaf1' }}>Trade Builder → Factor View</strong> section.
         </p>
       </div>
 
@@ -5023,14 +5017,14 @@ function StepByStepGuide() {
       <div style={stepCard}>
         <div style={stepTitle}><span style={stepNum}>7</span>Select Maturities Using Residual Analysis</div>
         <p style={{ margin: '0 0 10px' }}>
-          Display the relevant residual chart (<strong style={{ color: '#e2e8f0' }}>Factor Residuals</strong> tab).
+          Display the relevant residual chart (<strong style={{ color: '#e4eaf1' }}>Factor Residuals</strong> tab).
           The residual of each maturity shows how much of its yield move is <em>not</em> explained by the factors
           you are hedging — this is the idiosyncratic component you are taking on.
         </p>
         <div style={note}>
           <strong>Worked example:</strong> For a curvature trade, we compare 7Y vs 10Y residuals. 10Y has ~0.5 bp more negative residual than 7Y, but going
-          three years further out on the curve may not be worth it. Decision: <strong style={{ color: '#c4b5fd' }}>Sell 2Y, Buy 5Y, Sell 7Y</strong>.
-          The <strong style={{ color: '#e2e8f0' }}>Factor Replication</strong> tab automates this selection by exhaustive OLS subset search.
+          three years further out on the curve may not be worth it. Decision: <strong style={{ color: '#cbbde8' }}>Sell 2Y, Buy 5Y, Sell 7Y</strong>.
+          The <strong style={{ color: '#e4eaf1' }}>Factor Replication</strong> tab automates this selection by exhaustive OLS subset search.
         </div>
       </div>
 
@@ -5059,8 +5053,8 @@ function StepByStepGuide() {
           </div>
         </div>
         <p style={{ margin: '10px 0 0' }}>
-          Scaled to 100mn belly: <strong style={{ color: '#c4b5fd' }}>Sell 80mn 2Y, Buy 100mn 5Y, Sell 58mn 7Y</strong>.
-          This is exactly what the <strong style={{ color: '#e2e8f0' }}>Trade Builder → Trade Structure</strong> "Neutralize" button computes.
+          Scaled to 100mn belly: <strong style={{ color: '#cbbde8' }}>Sell 80mn 2Y, Buy 100mn 5Y, Sell 58mn 7Y</strong>.
+          This is exactly what the <strong style={{ color: '#e4eaf1' }}>Trade Builder → Trade Structure</strong> "Neutralize" button computes.
         </p>
       </div>
 
@@ -5068,7 +5062,7 @@ function StepByStepGuide() {
       <div style={stepCard}>
         <div style={stepTitle}><span style={stepNum}>9</span>Display the Butterfly Time Series and Validate Factor Exposure</div>
         <p style={{ margin: '0 0 10px' }}>
-          Using the hedge ratios, construct the historical time series of the butterfly (<strong style={{ color: '#e2e8f0' }}>Trade Builder → Historical P&L</strong>).
+          Using the hedge ratios, construct the historical time series of the butterfly (<strong style={{ color: '#e4eaf1' }}>Trade Builder → Historical P&L</strong>).
           Then regress that series on the factor time series to confirm:
         </p>
         {[
@@ -5089,7 +5083,7 @@ function StepByStepGuide() {
       <div style={stepCard}>
         <div style={stepTitle}><span style={stepNum}>10</span>Run the OU (or Polynomial) Model for Expected Performance</div>
         <p style={{ margin: '0 0 12px' }}>
-          Feed the butterfly time series into the mean-reversion model (<strong style={{ color: '#e2e8f0' }}>Trade Builder → Mean Reversion</strong>).
+          Feed the butterfly time series into the mean-reversion model (<strong style={{ color: '#e4eaf1' }}>Trade Builder → Mean Reversion</strong>).
           Calculate:
         </p>
         {[
@@ -5099,7 +5093,7 @@ function StepByStepGuide() {
         ].map(([title, body]) => (
           <div key={title as string} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
             <span style={bullet}>▪</span>
-            <span><strong style={{ color: '#e2e8f0' }}>{title}:</strong> {body}</span>
+            <span><strong style={{ color: '#e4eaf1' }}>{title}:</strong> {body}</span>
           </div>
         ))}
       </div>
@@ -5275,46 +5269,39 @@ function PCAAnalysis() {
   useEffect(() => { fetchData() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const tabStyle = (id: TabId): React.CSSProperties => ({
-    padding: '6px 18px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+    padding: '6px 18px', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer',
     border: '1px solid',
-    borderColor: activeTab === id ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)',
-    background:  activeTab === id ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)',
-    color:       activeTab === id ? '#a5b4fc' : '#64748b',
+    borderColor: activeTab === id ? 'rgba(134,192,222,0.5)' : 'rgba(200,220,240,0.1)',
+    background:  activeTab === id ? 'rgba(134,192,222,0.15)' : 'rgba(200,220,240,0.03)',
+    color:       activeTab === id ? '#bfe0ef' : '#9aa5b1',
   })
 
   const selStyle: React.CSSProperties = {
-    padding: '6px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)',
-    background: '#0d1425', color: '#e2e8f0', fontSize: 13, cursor: 'pointer',
+    padding: '6px 10px', borderRadius: 6, border: '1px solid rgba(200,220,240,0.15)',
+    background: '#0b0f14', color: '#e4eaf1', fontSize: 13, cursor: 'pointer',
   }
 
   const SIDEBAR_W = 200
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, color: '#e2e8f0', padding: '0 0 80px 0' }}>
+    <div style={{ minHeight: '100vh', background: BG, color: '#e4eaf1', padding: '0 0 80px 0' }}>
 
       {/* Sticky header */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: BG,
-        borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '12px 28px',
+      <div style={{ ...headerBar, padding: '12px 28px',
         display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
 
-        <button onClick={() => navigate('/')}
-          style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>
-          ←
-        </button>
-
-        <span style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-0.5px', whiteSpace: 'nowrap' }}>
-          PCA Analysis — Yield Curve
-        </span>
+        <PageTitle category="Market Structure & Analysis" categoryId="market-structure" title="PCA Analysis" subtitle="Yield curve" />
+        <span style={{ width: 1, alignSelf: 'stretch', background: 'rgba(150,178,205,0.09)', margin: '2px 4px' }} />
 
         {/* Curve dropdown */}
         {/* Mode toggle: preset curve vs custom tickers */}
-        <div style={{ display: 'flex', gap: 3, background: 'rgba(255,255,255,0.04)',
-          borderRadius: 8, padding: 3, border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'flex', gap: 3, background: 'rgba(200,220,240,0.04)',
+          borderRadius: 6, padding: 3, border: '1px solid rgba(200,220,240,0.08)' }}>
           {([false, true] as [boolean, boolean]).map(isCustom => (
             <button key={String(isCustom)} onClick={() => { setCustomMode(isCustom); setShowCustomEditor(isCustom) }}
               style={{ padding: '4px 12px', borderRadius: 6, fontSize: 11, cursor: 'pointer', border: 'none',
-                background: customMode === isCustom ? 'rgba(99,102,241,0.7)' : 'transparent',
-                color: customMode === isCustom ? '#fff' : '#64748b',
+                background: customMode === isCustom ? 'rgba(134,192,222,0.16)' : 'transparent',
+                color: customMode === isCustom ? '#f4f7fa' : '#9aa5b1',
                 fontWeight: customMode === isCustom ? 600 : 400 }}>
               {isCustom ? 'Custom tickers' : 'Preset curve'}
             </button>
@@ -5324,36 +5311,36 @@ function PCAAnalysis() {
         {customMode ? (
           /* ── Custom ticker editor ───────────────────────────────────────────── */
           showCustomEditor ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: 'rgba(99,102,241,0.06)',
-              border: '1px solid rgba(99,102,241,0.2)', borderRadius: 10, padding: '10px 14px' }}>
-              <div style={{ fontSize: 11, color: '#6366f1', fontWeight: 600, marginBottom: 2 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: 'rgba(139,143,216,0.06)',
+              border: '1px solid rgba(139,143,216,0.2)', borderRadius: 6, padding: '10px 14px' }}>
+              <div style={{ fontSize: 11, color: '#8b8fd8', fontWeight: 600, marginBottom: 2 }}>
                 Bloomberg tickers — minimum 2, format: Ticker · Label
               </div>
               {customTickers.map((ct, i) => (
                 <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <input value={ct.ticker} placeholder="e.g. GDBR10 Index"
                     onChange={e => updateCustomTicker(i, 'ticker', e.target.value)}
-                    style={{ ...selStyle, width: 160, fontFamily: 'monospace', fontSize: 11 }} />
+                    style={{ ...selStyle, width: 160, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11 }} />
                   <input value={ct.label} placeholder="Label"
                     onChange={e => updateCustomTicker(i, 'label', e.target.value)}
                     style={{ ...selStyle, width: 100, fontSize: 11 }} />
                   <button onClick={() => removeCustomTicker(i)}
-                    style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer',
+                    style={{ background: 'none', border: 'none', color: '#8995a2', cursor: 'pointer',
                       fontSize: 14, lineHeight: 1, padding: '0 4px' }}>×</button>
                 </div>
               ))}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                 <button onClick={addCustomTicker}
-                  style={{ fontSize: 11, color: '#6366f1', background: 'none',
-                    border: '1px dashed rgba(99,102,241,0.4)', borderRadius: 6, padding: '3px 10px', cursor: 'pointer' }}>
+                  style={{ fontSize: 11, color: '#8b8fd8', background: 'none',
+                    border: '1px dashed rgba(139,143,216,0.4)', borderRadius: 6, padding: '3px 10px', cursor: 'pointer' }}>
                   + Add ticker
                 </button>
                 <button
                   onClick={() => { setShowCustomEditor(false); fetchData() }}
                   disabled={customTickers.filter(t => t.ticker.trim() && t.label.trim()).length < 2}
-                  style={{ fontSize: 11, fontWeight: 700, color: '#fff',
+                  style={{ fontSize: 11, fontWeight: 600, color: '#f4f7fa',
                     background: customTickers.filter(t => t.ticker.trim() && t.label.trim()).length >= 2
-                      ? '#6366f1' : 'rgba(99,102,241,0.3)',
+                      ? '#8b8fd8' : 'rgba(139,143,216,0.3)',
                     border: 'none', borderRadius: 6, padding: '4px 14px', cursor:
                       customTickers.filter(t => t.ticker.trim() && t.label.trim()).length >= 2 ? 'pointer' : 'not-allowed' }}>
                   Run PCA
@@ -5363,12 +5350,12 @@ function PCAAnalysis() {
           ) : (
             /* collapsed: show summary pill + edit button */
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 11, color: '#94a3b8' }}>
+              <span style={{ fontSize: 11, color: '#c6ced8' }}>
                 {customTickers.filter(t => t.ticker.trim() && t.label.trim()).map(t => t.label).join(' · ')}
               </span>
               <button onClick={() => setShowCustomEditor(true)}
-                style={{ fontSize: 11, color: '#6366f1', background: 'none',
-                  border: '1px solid rgba(99,102,241,0.4)', borderRadius: 6, padding: '2px 10px', cursor: 'pointer' }}>
+                style={{ fontSize: 11, color: '#8b8fd8', background: 'none',
+                  border: '1px solid rgba(139,143,216,0.4)', borderRadius: 6, padding: '2px 10px', cursor: 'pointer' }}>
                 Edit
               </button>
             </div>
@@ -5377,19 +5364,19 @@ function PCAAnalysis() {
           /* ── Preset curve controls ──────────────────────────────────────────── */
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 11, color: '#475569' }}>Curve</span>
+              <span style={{ fontSize: 11, color: '#8995a2' }}>Curve</span>
               <select value={curve} onChange={e => setCurve(e.target.value)} style={selStyle}>
                 {CURVES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
               </select>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 11, color: '#475569' }}>Tenors</span>
+              <span style={{ fontSize: 11, color: '#8995a2' }}>Tenors</span>
               {ALL_TENORS.map(t => (
                 <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 3, cursor: 'pointer',
-                  fontSize: 12, color: selectedTenors.includes(t) ? '#e2e8f0' : '#475569' }}>
+                  fontSize: 12, color: selectedTenors.includes(t) ? '#e4eaf1' : '#8995a2' }}>
                   <input type="checkbox" checked={selectedTenors.includes(t)}
                     onChange={() => toggleTenor(t)}
-                    style={{ accentColor: '#6366f1', cursor: 'pointer' }} />
+                    style={{ accentColor: '#8b8fd8', cursor: 'pointer' }} />
                   {t}y
                 </label>
               ))}
@@ -5399,26 +5386,26 @@ function PCAAnalysis() {
 
         {/* Estimation window */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 11, color: '#475569' }}>From</span>
+          <span style={{ fontSize: 11, color: '#8995a2' }}>From</span>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
             max={endDate}
-            style={{ ...selStyle, fontFamily: 'monospace', fontSize: 12 }} />
+            style={{ ...selStyle, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 12 }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 11, color: '#475569' }}>To</span>
+          <span style={{ fontSize: 11, color: '#8995a2' }}>To</span>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
             min={startDate}
-            style={{ ...selStyle, fontFamily: 'monospace', fontSize: 12 }} />
+            style={{ ...selStyle, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 12 }} />
         </div>
 
         {/* Levels / Changes toggle */}
-        <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.04)',
-          borderRadius: 8, padding: 3, border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'flex', gap: 4, background: 'rgba(200,220,240,0.04)',
+          borderRadius: 6, padding: 3, border: '1px solid rgba(200,220,240,0.08)' }}>
           {([false, true] as const).map(val => (
             <button key={String(val)} onClick={() => setUseChanges(val)}
               style={{ padding: '4px 12px', borderRadius: 6, fontSize: 11, cursor: 'pointer', border: 'none',
-                background: useChanges === val ? 'rgba(99,102,241,0.7)' : 'transparent',
-                color: useChanges === val ? '#fff' : '#64748b',
+                background: useChanges === val ? 'rgba(134,192,222,0.16)' : 'transparent',
+                color: useChanges === val ? '#f4f7fa' : '#9aa5b1',
                 fontWeight: useChanges === val ? 600 : 400 }}>
               {val ? 'Changes' : 'Levels'}
             </button>
@@ -5427,32 +5414,32 @@ function PCAAnalysis() {
 
         {/* Run button */}
         <button onClick={fetchData} disabled={loading}
-          style={{ padding: '7px 20px', borderRadius: 8, border: 'none', cursor: loading ? 'wait' : 'pointer',
-            background: loading ? 'rgba(255,255,255,0.05)' : 'rgba(99,102,241,0.85)',
-            color: loading ? '#475569' : '#fff', fontSize: 13, fontWeight: 600 }}>
+          style={{ padding: '7px 20px', borderRadius: 6, border: 'none', cursor: loading ? 'wait' : 'pointer',
+            background: loading ? 'rgba(200,220,240,0.05)' : 'rgba(139,143,216,0.85)',
+            color: loading ? '#8995a2' : '#f4f7fa', fontSize: 13, fontWeight: 600 }}>
           {loading ? 'Running…' : 'Run PCA'}
         </button>
 
         {/* Meta info */}
         {data && !loading && (
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: '#475569', fontFamily: 'monospace' }}>
+            <span style={{ fontSize: 11, color: '#8995a2', fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
               {data.start_date} → {data.end_date}
             </span>
-            <span style={{ fontSize: 11, color: '#475569' }}>{data.n_obs} obs</span>
+            <span style={{ fontSize: 11, color: '#8995a2' }}>{data.n_obs} obs</span>
             <span style={{
-              fontSize: 11, padding: '2px 10px', borderRadius: 20,
-              background: data.data_source === 'bloomberg' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
-              color:      data.data_source === 'bloomberg' ? '#34d399' : '#fbbf24',
-              border: `1px solid ${data.data_source === 'bloomberg' ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`,
+              fontSize: 11, padding: '2px 10px', borderRadius: 6,
+              background: data.data_source === 'bloomberg' ? 'rgba(88,173,142,0.15)' : 'rgba(214,173,102,0.15)',
+              color:      data.data_source === 'bloomberg' ? '#6fc2a2' : '#dfbb78',
+              border: `1px solid ${data.data_source === 'bloomberg' ? 'rgba(88,173,142,0.3)' : 'rgba(214,173,102,0.3)'}`,
             }}>
               {data.data_source === 'bloomberg' ? 'Live' : 'Simulated'}
             </span>
             <span style={{
-              fontSize: 11, padding: '2px 10px', borderRadius: 20,
-              background: (data.input_mode ?? 'levels') === 'changes' ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.05)',
-              color:      (data.input_mode ?? 'levels') === 'changes' ? '#a5b4fc' : '#64748b',
-              border: `1px solid ${(data.input_mode ?? 'levels') === 'changes' ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.1)'}`,
+              fontSize: 11, padding: '2px 10px', borderRadius: 6,
+              background: (data.input_mode ?? 'levels') === 'changes' ? 'rgba(134,192,222,0.15)' : 'rgba(200,220,240,0.05)',
+              color:      (data.input_mode ?? 'levels') === 'changes' ? '#bfe0ef' : '#9aa5b1',
+              border: `1px solid ${(data.input_mode ?? 'levels') === 'changes' ? 'rgba(134,192,222,0.3)' : 'rgba(200,220,240,0.1)'}`,
             }}>
               {(data.input_mode ?? 'levels') === 'changes' ? 'Δ Changes' : 'Levels'}
             </span>
@@ -5467,18 +5454,18 @@ function PCAAnalysis() {
         <div style={{
           width: SIDEBAR_W, flexShrink: 0, position: 'sticky', top: 57,
           height: 'calc(100vh - 57px)', overflowY: 'auto',
-          borderRight: '1px solid rgba(255,255,255,0.1)',
-          background: '#0a0f1e',
+          borderRight: '1px solid rgba(200,220,240,0.1)',
+          background: '#090c10',
           padding: '16px 12px',
           display: 'flex', flexDirection: 'column', gap: 6,
         }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', letterSpacing: '0.1em',
+          <div style={{ fontSize: 10, fontWeight: 600, color: '#9aa5b1', letterSpacing: '0.1em',
             textTransform: 'uppercase', marginBottom: 8 }}>
             Saved Markets
           </div>
 
           {savedMarkets.length === 0 && (
-            <div style={{ fontSize: 11, color: '#475569', fontStyle: 'italic', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 11, color: '#8995a2', fontStyle: 'italic', lineHeight: 1.5 }}>
               No markets saved yet.
             </div>
           )}
@@ -5487,19 +5474,19 @@ function PCAAnalysis() {
             <div key={idx} style={{
               display: 'flex', alignItems: 'center', gap: 4,
               borderRadius: 6, padding: '5px 8px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              background: 'rgba(200,220,240,0.03)',
+              border: '1px solid rgba(200,220,240,0.06)',
               cursor: 'pointer',
             }}
               onClick={() => loadMarket(idx)}
             >
-              <span style={{ flex: 1, fontSize: 12, color: '#cbd5e1', overflow: 'hidden',
+              <span style={{ flex: 1, fontSize: 12, color: '#c3ccd6', overflow: 'hidden',
                 textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {m.name}
               </span>
               <button
                 onClick={e => { e.stopPropagation(); deleteMarket(idx) }}
-                style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer',
+                style={{ background: 'none', border: 'none', color: '#8995a2', cursor: 'pointer',
                   fontSize: 13, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
                 title="Delete"
               >×</button>
@@ -5507,7 +5494,7 @@ function PCAAnalysis() {
           ))}
 
           {/* Save current */}
-          <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid rgba(200,220,240,0.06)' }}>
             {customMode && !showCustomEditor && customTickers.filter(t => t.ticker.trim() && t.label.trim()).length >= 2 ? (
               showSaveInput ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -5517,31 +5504,31 @@ function PCAAnalysis() {
                     onKeyDown={e => { if (e.key === 'Enter') saveMarket(); if (e.key === 'Escape') setShowSaveInput(false) }}
                     placeholder="Market name…"
                     autoFocus
-                    style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(99,102,241,0.4)',
-                      background: '#0d1425', color: '#e2e8f0', width: '100%', boxSizing: 'border-box' }}
+                    style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(139,143,216,0.4)',
+                      background: '#0b0f14', color: '#e4eaf1', width: '100%', boxSizing: 'border-box' }}
                   />
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button onClick={saveMarket}
-                      style={{ flex: 1, fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(99,102,241,0.7)',
+                      style={{ flex: 1, fontSize: 11, fontWeight: 600, color: '#f4f7fa', background: 'rgba(139,143,216,0.7)',
                         border: 'none', borderRadius: 6, padding: '4px 0', cursor: 'pointer' }}>
                       Save
                     </button>
                     <button onClick={() => setShowSaveInput(false)}
-                      style={{ fontSize: 11, color: '#475569', background: 'none',
-                        border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}>
+                      style={{ fontSize: 11, color: '#8995a2', background: 'none',
+                        border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}>
                       ✕
                     </button>
                   </div>
                 </div>
               ) : (
                 <button onClick={() => setShowSaveInput(true)}
-                  style={{ width: '100%', fontSize: 11, color: '#6366f1', background: 'none',
-                    border: '1px dashed rgba(99,102,241,0.4)', borderRadius: 6, padding: '5px 0', cursor: 'pointer' }}>
+                  style={{ width: '100%', fontSize: 11, color: '#8b8fd8', background: 'none',
+                    border: '1px dashed rgba(139,143,216,0.4)', borderRadius: 6, padding: '5px 0', cursor: 'pointer' }}>
                   + Save current
                 </button>
               )
             ) : (
-              <div style={{ fontSize: 10, color: '#334155', textAlign: 'center', lineHeight: 1.4 }}>
+              <div style={{ fontSize: 10, color: '#77828f', textAlign: 'center', lineHeight: 1.4 }}>
                 Load a custom market first to save it
               </div>
             )}
@@ -5549,52 +5536,52 @@ function PCAAnalysis() {
 
           {/* ── Saved Trades ── */}
           {savedTrades.length > 0 && (
-            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', letterSpacing: '0.1em',
+            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(200,220,240,0.06)' }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#9aa5b1', letterSpacing: '0.1em',
                 textTransform: 'uppercase', marginBottom: 8 }}>
                 Saved Trades
               </div>
               {savedTrades.map((t, idx) => (
                 <div key={idx} style={{
                   marginBottom: 6, borderRadius: 7, padding: '7px 9px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.07)',
+                  background: 'rgba(200,220,240,0.03)',
+                  border: '1px solid rgba(200,220,240,0.07)',
                   cursor: 'pointer',
                 }}
                   onClick={() => loadTrade(idx)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <div style={{ flex: 1, fontSize: 12, color: '#cbd5e1', overflow: 'hidden',
+                    <div style={{ flex: 1, fontSize: 12, color: '#c3ccd6', overflow: 'hidden',
                       textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
                       {t.name}
                     </div>
                     <button
                       onClick={e => { e.stopPropagation(); deleteSavedTrade(idx) }}
-                      style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer',
+                      style={{ background: 'none', border: 'none', color: '#8995a2', cursor: 'pointer',
                         fontSize: 13, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
                       title="Delete"
                     >×</button>
                   </div>
                   {/* Trade details */}
-                  <div style={{ fontSize: 10, color: '#475569', marginTop: 5, lineHeight: 1.8, fontFamily: 'monospace' }}>
-                    <div style={{ color: '#64748b' }}>
+                  <div style={{ fontSize: 10, color: '#8995a2', marginTop: 5, lineHeight: 1.8, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
+                    <div style={{ color: '#9aa5b1' }}>
                       F{t.factor + 1} · {t.direction > 0 ? 'Long' : 'Short'} {t.magnitude}σ
                       {t.entryDate ? ` · ${t.entryDate}` : ''}
                     </div>
                     {t.entryLevel != null && (
                       <div>
-                        Entry <span style={{ color: '#94a3b8' }}>{t.entryLevel.toFixed(4)}</span>
+                        Entry <span style={{ color: '#c6ced8' }}>{t.entryLevel.toFixed(4)}</span>
                       </div>
                     )}
                     {t.takeProfit != null && t.stopLoss != null && (
                       <div>
-                        TP <span style={{ color: '#22c55e' }}>{t.takeProfit.toFixed(4)}</span>
-                        {' · '}SL <span style={{ color: '#ef4444' }}>{t.stopLoss.toFixed(4)}</span>
+                        TP <span style={{ color: '#5fb592' }}>{t.takeProfit.toFixed(4)}</span>
+                        {' · '}SL <span style={{ color: '#d9705e' }}>{t.stopLoss.toFixed(4)}</span>
                       </div>
                     )}
                     {t.rr != null && (
-                      <div>R:R <span style={{ color: t.rr >= 1.5 ? '#22c55e' : t.rr >= 1 ? '#fbbf24' : '#ef4444',
-                        fontWeight: 700 }}>{t.rr.toFixed(2)}</span></div>
+                      <div>R:R <span style={{ color: t.rr >= 1.5 ? '#5fb592' : t.rr >= 1 ? '#dfbb78' : '#d9705e',
+                        fontWeight: 600 }}>{t.rr.toFixed(2)}</span></div>
                     )}
                   </div>
                 </div>
@@ -5607,14 +5594,14 @@ function PCAAnalysis() {
         <div style={{ flex: 1, minWidth: 0, padding: '28px 28px 0' }}>
 
         {loading && (
-          <div style={{ textAlign: 'center', padding: 80, color: '#475569', fontSize: 16 }}>
+          <div style={{ textAlign: 'center', padding: 80, color: '#8995a2', fontSize: 16 }}>
             Running PCA…
           </div>
         )}
 
         {error && !loading && (
-          <div style={{ color: '#f87171', padding: 20, background: 'rgba(239,68,68,0.08)',
-            border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, marginBottom: 20 }}>
+          <div style={{ color: '#e2826f', padding: 20, background: 'rgba(217,112,94,0.08)',
+            border: '1px solid rgba(217,112,94,0.2)', borderRadius: 6, marginBottom: 20 }}>
             Error: {error}
           </div>
         )}
@@ -5641,7 +5628,7 @@ function PCAAnalysis() {
               ))}
 
               {/* Curve label */}
-              <div style={{ marginLeft: 'auto', fontSize: 13, color: '#475569', alignSelf: 'center' }}>
+              <div style={{ marginLeft: 'auto', fontSize: 13, color: '#8995a2', alignSelf: 'center' }}>
                 {data.curve_label} · {(data.tenors ?? []).map(t => tLabel(t, data)).join(', ')}
               </div>
             </div>

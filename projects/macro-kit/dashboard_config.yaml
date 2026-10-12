@@ -1,4 +1,42 @@
 categories:
+  - id: agents
+    name: Agents
+    color: "#6366F1"
+    tools:
+      - id: fixed-income-pod
+        name: Global Macro Pod
+        url: /tools/agents/fixed-income-pod
+      - id: deputy-pm
+        name: Deputy PM
+        url: /tools/agents/deputy-pm
+      - id: red-team
+        name: Red Team
+        url: /tools/agents/red-team
+      - id: head-of-macro-research
+        name: Head of Macro Research
+        url: /tools/agents/head-of-macro-research
+      - id: head-of-rates
+        name: Head of Rates
+        url: /tools/agents/head-of-rates
+      - id: stir-strategist
+        name: Front-End / STIR Strategist
+        url: /tools/agents/stir-strategist
+      - id: curve-strategist
+        name: Curve & Duration Strategist
+        url: /tools/agents/curve-strategist
+      - id: swaps-rv-analyst
+        name: Swaps & Spreads RV Analyst
+        url: /tools/agents/swaps-rv-analyst
+      - id: sovereign-spreads-analyst
+        name: Sovereign Spreads Analyst
+        url: /tools/agents/sovereign-spreads-analyst
+      - id: inflation-strategist
+        name: Inflation Strategist
+        url: /tools/agents/inflation-strategist
+      - id: positioning-flows-analyst
+        name: Positioning & Flows Analyst
+        url: /tools/agents/positioning-flows-analyst
+
   - id: supply
     name: Supply
     color: "#3B82F6"
@@ -21,6 +59,14 @@ categories:
         name: EGB RV Monitor
         icon: "🏛️"
         url: /tools/egb-rv
+      - id: macro-options-monitor
+        name: Macro Options Monitor
+        icon: "🌊"
+        url: /tools/macro-options-monitor
+      - id: euribor-positioning
+        name: Euribor Positioning
+        icon: "📡"
+        url: /tools/euribor-positioning
 
   - id: market-structure
     name: Market Structure & Analysis
