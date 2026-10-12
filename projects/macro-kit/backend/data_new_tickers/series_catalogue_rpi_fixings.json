@@ -1,0 +1,99 @@
+{
+  "tool": "Inflation Fixings Monitor — United Kingdom",
+  "description": "All tickers consumed by rpi_fixings.py. Single source of truth — the Python module reads tickers directly from this file.",
+  "historical_series": [
+    {
+      "id": "gbp_rpi",
+      "label": "RPI",
+      "frontend_key": "rpi",
+      "ticker_bloomberg": null,
+      "ticker_haver": "chaw@UK",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (Jan 1987=100)",
+      "base_for_reconstruction": true,
+      "description": "UK Retail Price Index — settlement index for GBP RPI inflation swaps"
+    },
+    {
+      "id": "gbp_cpi",
+      "label": "CPI",
+      "frontend_key": "cpi",
+      "ticker_bloomberg": "UKRPCHVJ Index",
+      "ticker_haver": "d7bt@UK",
+      "field": "PX_LAST",
+      "frequency": "monthly",
+      "fetch": "bdh",
+      "units": "index (2015=100)",
+      "description": "UK CPI All Items"
+    }
+  ],
+  "fixings": {
+    "history_base_id": "gbp_rpi",
+    "f_series": {
+      "ticker_template": "UKRPIF{n} Comdty",
+      "tenors": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": false,
+      "description": "GBP RPI F-series calendar-month fixings (synthetic convention — Bloomberg does not publish monthly RPI fixings in this format). In live mode, derive from BPSWIS{n} Curncy standard-tenor RPI swaps interpolated to calendar months."
+    },
+    "t_series": {
+      "ticker_template": "UKRPIT{n} Comdty",
+      "tenors": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": false,
+      "description": "GBP RPI T-series calendar-month fixings (synthetic convention). See F-series note."
+    },
+    "live_bloomberg_alternative": {
+      "ticker_template": "BPSWIS{n} Curncy",
+      "tenors": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        15,
+        20,
+        25,
+        30
+      ],
+      "field": "PX_LAST",
+      "fetch": "bdp",
+      "verified": true,
+      "description": "GBP RPI zero-coupon inflation swaps — standard tenors in years. Requires interpolation to convert to calendar-month YoY rates for level reconstruction."
+    }
+  }
+}

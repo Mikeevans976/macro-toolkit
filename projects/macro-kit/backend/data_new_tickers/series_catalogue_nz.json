@@ -1,0 +1,189 @@
+{
+  "_meta": {
+    "description": "New Zealand-specific series catalogue for the New Zealand Macro Heatmap. Single source of truth for New Zealand series identity, source, and ingestion metadata. 52 series covering Growth, Inflation, Employment, Wages, and Financial Conditions.",
+    "field_reference": {
+      "id": "Unique machine-readable slug. Used to cross-reference series across tools and config files.",
+      "name": "Human-readable short label.",
+      "description": "What the series measures and why it matters.",
+      "source": "Data vendor: bloomberg | haver | ecb | eurostat | derived.",
+      "ticker_bloomberg": "Bloomberg ticker string (e.g. 'PMITUKG Index'). null if not available on Bloomberg.",
+      "ticker_haver": "Haver mnemonic (e.g. 'PMIUKCO@EMERGE'). null if not available on Haver.",
+      "frequency": "Observation frequency: daily | monthly | quarterly.",
+      "units": "Unit/scale of the raw series as pulled from source.",
+      "typical_lag_days": "Calendar days from reference period end to typical publication date. null for daily market data (no publication lag).",
+      "asset_class": "Grouping: macro_survey | macro_activity | macro_inflation | macro_labour | government_bonds | rates_swaps | inflation_swaps | commodities | volatility.",
+      "geography": "Primary geographic scope of the series.",
+      "tools": "List of tool IDs in the hub that consume this series.",
+      "role": "How the series is used: factor_input (DFM macro block) | target (y-variable in regression model) | predictor (x-variable) | market_data (general market series).",
+      "dfm_factor": "For factor_input series: which DFM factor this series primarily identifies (Growth | Inflation | Employment | Wages). Housing series are assigned Growth.",
+      "dfm_sign": "For factor_input series: +1 if series moves in the same direction as the factor, -1 if inverse (e.g. unemployment rate is -1 for Employment factor).",
+      "dfm_col_index": "Zero-based column index in the DFM observation matrix Y_daily. Must be contiguous 0-47.",
+      "dfm_primary": "True for exactly one series per factor group — the sign-anchor series used for PCA orientation.",
+      "heatmap_group": "Display grouping label used in the New Zealand heatmap UI.",
+      "notes": "Free-text caveats, data quirks, or ingestion instructions."
+    }
+  },
+  "series": [
+    {
+      "id": "nz_gdp_yoy",
+      "name": "GDP (y/y)",
+      "description": "Stats NZ New Zealand GDP year-on-year % change.",
+      "source": "bloomberg",
+      "ticker_bloomberg": null,
+      "ticker_haver": "nzqngdt@ANZ",
+      "frequency": "quarterly",
+      "units": "yoy_pct",
+      "typical_lag_days": 85,
+      "asset_class": "macro_activity",
+      "geography": "new_zealand",
+      "tools": [
+        "new_zealand_heatmap"
+      ],
+      "role": "factor_input",
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_col_index": 1,
+      "dfm_primary": false,
+      "heatmap_group": "Real Activity",
+      "notes": null
+    },
+    {
+      "id": "nz_pmi_manufacturing",
+      "name": "BusinessNZ Manufacturing PMI",
+      "description": "BusinessNZ/BNZ New Zealand Manufacturing PMI. Above 50 = expansion. Primary Growth factor anchor.",
+      "source": "haver",
+      "ticker_bloomberg": null,
+      "ticker_haver": "nzspmi@ANZ",
+      "frequency": "monthly",
+      "units": "index_sa",
+      "typical_lag_days": 14,
+      "asset_class": "macro_survey",
+      "geography": "new_zealand",
+      "tools": [
+        "new_zealand_heatmap"
+      ],
+      "role": "factor_input",
+      "dfm_factor": "Growth",
+      "dfm_sign": 1,
+      "dfm_col_index": 7,
+      "dfm_primary": true,
+      "heatmap_group": "Business Activity",
+      "notes": "Primary Growth indicator for New Zealand DFM. ticker_haver could not be confirmed against the real Haver ANZ database in this pass - needs manual lookup via Haver metadata search before enabling ANALYTICS_DATA_SOURCE=haver for this series."
+    },
+    {
+      "id": "nz_unemployment_rate_hlfs",
+      "name": "Unemployment Rate (HLFS)",
+      "description": "Stats NZ Household Labour Force Survey unemployment rate, seasonally adjusted. Primary Employment factor anchor.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "NZLFUNEMP Index",
+      "ticker_haver": "nzselur@ANZ",
+      "frequency": "quarterly",
+      "units": "pct_sa",
+      "typical_lag_days": 45,
+      "asset_class": "macro_labour",
+      "geography": "new_zealand",
+      "tools": [
+        "new_zealand_heatmap"
+      ],
+      "role": "factor_input",
+      "dfm_factor": "Employment",
+      "dfm_sign": -1,
+      "dfm_col_index": 22,
+      "dfm_primary": true,
+      "heatmap_group": "Labour Market",
+      "notes": null
+    },
+    {
+      "id": "nz_cpi_yoy",
+      "name": "CPI (y/y)",
+      "description": "Stats NZ Consumer Price Index, year-on-year % change.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "NZCPIYOY Index",
+      "ticker_haver": null,
+      "frequency": "quarterly",
+      "units": "yoy_pct",
+      "typical_lag_days": 20,
+      "asset_class": "macro_inflation",
+      "geography": "new_zealand",
+      "tools": [
+        "new_zealand_heatmap"
+      ],
+      "role": "factor_input",
+      "dfm_factor": "Inflation",
+      "dfm_sign": 1,
+      "dfm_col_index": 35,
+      "dfm_primary": false,
+      "heatmap_group": "Inflation",
+      "notes": "ticker_haver could not be confirmed against the real Haver ANZ database in this pass - needs manual lookup via Haver metadata search before enabling ANALYTICS_DATA_SOURCE=haver for this series."
+    },
+    {
+      "id": "nz_rbnz_ocr",
+      "name": "RBNZ OCR",
+      "description": "Reserve Bank of New Zealand Official Cash Rate.",
+      "source": "bloomberg",
+      "ticker_bloomberg": null,
+      "ticker_haver": "nznrocr@ANZ",
+      "frequency": "daily",
+      "units": "pct",
+      "typical_lag_days": null,
+      "asset_class": "rates_swaps",
+      "geography": "new_zealand",
+      "tools": [
+        "new_zealand_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": null,
+      "heatmap_group": "Financial Conditions",
+      "notes": null
+    },
+    {
+      "id": "nz_nzdusd",
+      "name": "NZD/USD",
+      "description": "New Zealand Dollar/US Dollar exchange rate.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "NZDUSD Curncy",
+      "ticker_haver": null,
+      "frequency": "daily",
+      "units": "fx_rate",
+      "typical_lag_days": null,
+      "asset_class": "fx",
+      "geography": "new_zealand",
+      "tools": [
+        "new_zealand_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": null,
+      "heatmap_group": "Financial Conditions",
+      "notes": null
+    },
+    {
+      "id": "nz_nzx50",
+      "name": "NZX 50",
+      "description": "New Zealand Exchange NZX 50 portfolio index.",
+      "source": "bloomberg",
+      "ticker_bloomberg": "NZSE Index",
+      "ticker_haver": null,
+      "frequency": "daily",
+      "units": "index",
+      "typical_lag_days": null,
+      "asset_class": "equities",
+      "geography": "new_zealand",
+      "tools": [
+        "new_zealand_heatmap"
+      ],
+      "role": "market_data",
+      "dfm_factor": null,
+      "dfm_sign": null,
+      "dfm_col_index": null,
+      "dfm_primary": null,
+      "heatmap_group": "Financial Conditions",
+      "notes": null
+    }
+  ]
+}

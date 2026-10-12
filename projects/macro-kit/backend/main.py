@@ -119,7 +119,9 @@ def load_dashboard_config() -> dict:
             status_code=500,
             detail=f"Dashboard config not found at {CONFIG_PATH}",
         )
-    with open(CONFIG_PATH, "r") as f:
+    # encoding is explicit: the config holds non-ASCII characters and Windows
+    # would otherwise decode it as cp1252 and raise UnicodeDecodeError.
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

@@ -60,7 +60,13 @@ _TEMPLATE_F  = _fix["f_series"]["ticker_template"]
 _TEMPLATE_T  = _fix["t_series"]["ticker_template"]
 _TICKERS_F   = [_TEMPLATE_F.replace("{n}", str(n)) for n in _fix["f_series"]["tenors"]]
 _TICKERS_T   = [_TEMPLATE_T.replace("{n}", str(n)) for n in _fix["t_series"]["tenors"]]
-_TICKER_HIST = next(s["ticker_bloomberg"] for s in _CAT["historical_series"] if s.get("base_for_reconstruction"))
+# Default to None rather than raising: a catalogue whose historical_series has no
+# base_for_reconstruction entry must not take the whole app down at import time.
+# The live fetch below already falls back when this is missing.
+_TICKER_HIST = next(
+    (s["ticker_bloomberg"] for s in _CAT["historical_series"] if s.get("base_for_reconstruction")),
+    None,
+)
 
 # ─── Bloomberg fetch — YoY rates ──────────────────────────────────────────────
 
@@ -100,7 +106,10 @@ def _bloomberg_hicp_xt_history(n_months: int = 48) -> Optional[pd.Series]:
         df = blp.bdh(_TICKER_HIST, ["PX_LAST"], start, end, periodicity="MONTHLY")
         if df is None or df.empty:
             return None
-        s = df["PX_LAST"].copy()
+        # bdh returns MultiIndex columns (ticker, field) even for one ticker.
+        if isinstance(df.columns, pd.MultiIndex):
+            df = df.xs("PX_LAST", axis=1, level=1)
+        s = df.iloc[:, 0].copy()
         s.index = pd.to_datetime(s.index).to_period("M").to_timestamp()
         return s.sort_index().dropna()
     except Exception:

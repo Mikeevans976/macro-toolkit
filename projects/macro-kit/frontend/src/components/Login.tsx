@@ -16,9 +16,11 @@ export default function Login() {
 
     try {
       // FastAPI OAuth2 expects application/x-www-form-urlencoded
+      // Trim both: pasted credentials routinely carry a leading/trailing space,
+      // which the backend would otherwise reject as a bad password.
       const params = new URLSearchParams()
-      params.append('username', username)
-      params.append('password', password)
+      params.append('username', username.trim())
+      params.append('password', password.trim())
 
       const response = await axios.post('/api/auth/login', params, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

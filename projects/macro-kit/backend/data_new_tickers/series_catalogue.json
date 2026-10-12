@@ -1,0 +1,21 @@
+{
+  "_meta": {
+    "region": "euro_area",
+    "status": "PLACEHOLDER — structural metadata only, no vendor tickers",
+    "why": "The original backend/data/series_catalogue*.json files are absent from the repository: the .gitignore pattern `data/` matches backend/data/, so they were never committed. Every regional heatmap module reads its catalogue at import time, so the app could not boot without them.",
+    "generated_from": "Indicator names and units were taken from the GROUPS_META literal in the matching frontend page (frontend/src/pages/*Heatmap.tsx).",
+    "simulation_only": "ticker_bloomberg and ticker_haver are null everywhere. Simulation mode (ANALYTICS_DATA_SOURCE unset or =csv/simulation) never reads tickers. To run ANALYTICS_DATA_SOURCE=bloomberg|haver, fill in real tickers first.",
+    "inferred_fields": "frequency (from units), typical_lag_days (keyword heuristic), dfm_sign, dfm_primary and dfm_factor (from the frontend display group) are inferred, not authoritative. Review before relying on them.",
+    "m_macro": 60,
+    "dfm_series_count": 60,
+    "excluded_display_groups": [
+      "Financial Conditions",
+      "Front End Rates"
+    ],
+    "excluded_from_dfm_to_match_m_macro": [
+      "Euro area: EuroCOIN",
+      "Eurozone: CESI Surprise Index"
+    ]
+  },
+  "series": []
+}
