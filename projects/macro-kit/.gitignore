@@ -20,3 +20,4 @@ build/
 *.db
 *.db-shm
 *.db-wal
+!.env.example

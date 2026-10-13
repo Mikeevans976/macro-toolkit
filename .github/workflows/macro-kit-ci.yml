@@ -1,0 +1,68 @@
+name: macro-kit CI
+
+on:
+  pull_request:
+    paths:
+      - "projects/macro-kit/**"
+      - ".github/workflows/macro-kit-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "projects/macro-kit/**"
+      - ".github/workflows/macro-kit-ci.yml"
+
+concurrency:
+  group: macro-kit-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: projects/macro-kit
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            projects/macro-kit/backend/requirements.txt
+            projects/macro-kit/backend/requirements-dev.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements-dev.txt
+      - name: Ruff
+        run: ruff check .
+      - name: Backend tests
+        working-directory: projects/macro-kit/backend
+        env:
+          RUN_SLOW: "1"
+        run: pytest -q
+      - name: Euribor positioning tests
+        run: pytest -q euribor_positioning
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: projects/macro-kit/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: projects/macro-kit/frontend/package-lock.json
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Unit and smoke tests
+        run: npm test
+      - name: Type-check and build
+        run: npm run build
