@@ -20,6 +20,8 @@ def _connect() -> sqlite3.Connection:
 def init_db() -> None:
     """Create tables and run any pending migrations. Safe to call on every startup."""
     with _connect() as conn:
+        # WAL lets the SSE endpoint tail events while a worker thread writes them.
+        conn.execute("PRAGMA journal_mode=WAL")
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS runs (
                 run_id      TEXT PRIMARY KEY,
@@ -139,5 +141,16 @@ def get_events(run_id: str) -> list[dict]:
             "SELECT timestamp, agent_name, event_type, content FROM events "
             "WHERE run_id=? ORDER BY id ASC",
             (run_id,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_events_after(run_id: str, after_id: int = 0) -> list[dict]:
+    """Events with id > after_id, oldest first (id is the SSE event id)."""
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT id, timestamp, agent_name, event_type, content FROM events "
+            "WHERE run_id=? AND id>? ORDER BY id ASC",
+            (run_id, after_id),
         ).fetchall()
     return [dict(r) for r in rows]

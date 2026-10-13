@@ -77,7 +77,8 @@ def test_login_and_me_end_to_end(tmp_path, monkeypatch):
 
 
 def _protected_routes():
-    """(method, concrete path) for every API route except login/stream.
+    """(method, concrete path) for every API route except login and the SSE stream
+    (which authenticates with a stream ticket; see test_agents_api.py).
 
     Enumerated from the OpenAPI schema: newer FastAPI keeps included routers as
     nested entries in app.routes, so walking app.routes would miss them.
@@ -85,7 +86,8 @@ def _protected_routes():
     import re
     import main
     for path, ops in main.app.openapi()["paths"].items():
-        if not path.startswith(("/api/tools", "/api/positioning", "/api/agents")) or "stream" in path:
+        if not path.startswith(("/api/tools", "/api/positioning", "/api/agents", "/api/pod")) \
+                or path == "/api/agents/stream/{run_id}":
             continue
         for method in ops:
             yield method.upper(), re.sub(r"\{[^}]+\}", "x", path)
@@ -97,7 +99,24 @@ def test_every_api_route_requires_auth():
     import main
     client = TestClient(main.app)
     routes = list(_protected_routes())
-    assert len(routes) > 35
+    assert len(routes) >= 50
     unprotected = [(m, p) for m, p in routes
                    if client.request(m, p, json={}).status_code != 401]
     assert not unprotected, f"routes reachable without a token: {unprotected}"
+
+
+def test_stream_ticket_is_not_a_session_token():
+    ticket = auth.create_stream_ticket("alice", "run-1")
+    assert auth.verify_stream_ticket(ticket, "run-1") == "alice"
+    with pytest.raises(HTTPException):
+        auth.verify_token(ticket)                      # can't be used as a bearer token
+    with pytest.raises(HTTPException):
+        auth.verify_stream_ticket(ticket, "run-2")     # scoped to one run
+    with pytest.raises(HTTPException):
+        auth.verify_stream_ticket(auth.create_access_token({"sub": "alice"}), "run-1")
+
+
+def test_stream_ticket_expires(monkeypatch):
+    monkeypatch.setattr(auth, "STREAM_TICKET_SECONDS", -1)
+    with pytest.raises(HTTPException):
+        auth.verify_stream_ticket(auth.create_stream_ticket("alice", "run-1"), "run-1")

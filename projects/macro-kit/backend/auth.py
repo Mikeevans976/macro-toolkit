@@ -101,8 +101,32 @@ def verify_token(token: str) -> str:
     except jwt.PyJWTError:
         raise credentials_exception
     username = payload.get("sub")
-    if not isinstance(username, str):
+    # Scoped tokens (e.g. stream tickets) are not session tokens.
+    if not isinstance(username, str) or payload.get("scope") is not None:
         raise credentials_exception
+    return username
+
+
+# Short-lived, run-scoped ticket for the agent SSE stream. EventSource cannot
+# send an Authorization header, so the ticket goes in the query string instead
+# of the 8-hour session token (which would end up in access logs / history).
+STREAM_TICKET_SECONDS = 60
+
+
+def create_stream_ticket(username: str, run_id: str) -> str:
+    return create_access_token({"sub": username, "scope": "stream", "run": run_id},
+                               expires_delta=timedelta(seconds=STREAM_TICKET_SECONDS))
+
+
+def verify_stream_ticket(ticket: str, run_id: str) -> str:
+    """Username for a valid ticket issued for ``run_id``; 401 otherwise."""
+    try:
+        payload = jwt.decode(ticket, SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.PyJWTError:
+        payload = {}
+    username = payload.get("sub")
+    if payload.get("scope") != "stream" or payload.get("run") != run_id or not isinstance(username, str):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired stream ticket")
     return username
 
 

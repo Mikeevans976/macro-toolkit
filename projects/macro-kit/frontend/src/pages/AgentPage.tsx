@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
+import { openRunStream } from '../api/client'
 import Glyph, { toolGlyph } from '../components/Glyph'
 import PageTitle, { headerBar } from '../components/PageTitle'
 import { accent, fg, fontNum, ink, line, line2, neg, warn } from '../theme'
@@ -299,10 +300,15 @@ export default function AgentPage() {
       })
   }
 
-  function openStream(runId: string) {
+  async function openStream(runId: string) {
     esRef.current?.close()
-    const token = localStorage.getItem('access_token') ?? ''
-    const es = new EventSource(`/api/agents/stream/${runId}?token=${encodeURIComponent(token)}`)
+    let es: EventSource
+    try {
+      es = await openRunStream(runId)
+    } catch {
+      setStatus('error')
+      return
+    }
     esRef.current = es
 
     es.onmessage = (e: MessageEvent) => {

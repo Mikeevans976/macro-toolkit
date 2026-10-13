@@ -49,3 +49,15 @@ export function installAxiosAuth(client: AxiosInstance): void {
     return Promise.reject(error)
   })
 }
+
+/**
+ * Open the SSE stream for an agent run. EventSource can't send headers, so we
+ * first exchange the session token for a 60-second ticket scoped to this run
+ * and put only that in the URL.
+ */
+export async function openRunStream(runId: string): Promise<EventSource> {
+  const res = await authFetch(`/api/agents/stream/${encodeURIComponent(runId)}/ticket`, { method: 'POST' })
+  if (!res.ok) throw new Error(`Could not open the run stream (HTTP ${res.status})`)
+  const { ticket } = (await res.json()) as { ticket: string }
+  return new EventSource(`/api/agents/stream/${encodeURIComponent(runId)}?ticket=${encodeURIComponent(ticket)}`)
+}

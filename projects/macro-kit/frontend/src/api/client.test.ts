@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { authFetch, handleUnauthorized } from './client'
+import { authFetch, handleUnauthorized, openRunStream } from './client'
 
 describe('authFetch', () => {
   const assign = vi.fn()
@@ -41,5 +41,29 @@ describe('authFetch', () => {
     vi.stubGlobal('location', { ...window.location, pathname: '/login', assign })
     handleUnauthorized()
     expect(assign).not.toHaveBeenCalled()
+  })
+})
+
+describe('openRunStream', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('puts a run ticket in the stream URL, never the session token', async () => {
+    localStorage.setItem('access_token', 'session-tok')
+    const fetchMock = vi.fn(async () => new Response('{"ticket":"tick"}', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    const urls: string[] = []
+    vi.stubGlobal('EventSource', class { constructor(url: string) { urls.push(url) } close() {} })
+
+    await openRunStream('run-1')
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('/api/agents/stream/run-1/ticket')
+    expect(init.method).toBe('POST')
+    expect(urls).toEqual(['/api/agents/stream/run-1?ticket=tick'])
+    localStorage.setItem('access_token', 'test-token')
+  })
+
+  it('rejects when the ticket request fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 404 })))
+    await expect(openRunStream('nope')).rejects.toThrow('HTTP 404')
   })
 })
