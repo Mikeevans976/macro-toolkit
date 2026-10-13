@@ -78,3 +78,30 @@ def test_login_and_me_end_to_end(tmp_path, monkeypatch):
     me = client.get("/api/me", headers={"Authorization": f"Bearer {token}"})
     assert me.status_code == 200 and me.json()["username"] == "bob"
     assert client.get("/api/me").status_code == 401
+
+
+def _protected_routes():
+    """(method, concrete path) for every API route except login/stream.
+
+    Enumerated from the OpenAPI schema: newer FastAPI keeps included routers as
+    nested entries in app.routes, so walking app.routes would miss them.
+    """
+    import re
+    import main
+    for path, ops in main.app.openapi()["paths"].items():
+        if not path.startswith(("/api/tools", "/api/positioning", "/api/agents")) or "stream" in path:
+            continue
+        for method in ops:
+            yield method.upper(), re.sub(r"\{[^}]+\}", "x", path)
+    yield "GET", "/api/tools/uk-heatmap/factors"   # legacy alias, hidden from the schema
+
+
+def test_every_api_route_requires_auth():
+    from fastapi.testclient import TestClient
+    import main
+    client = TestClient(main.app)
+    routes = list(_protected_routes())
+    assert len(routes) > 35
+    unprotected = [(m, p) for m, p in routes
+                   if client.request(m, p, json={}).status_code != 401]
+    assert not unprotected, f"routes reachable without a token: {unprotected}"

@@ -42,33 +42,25 @@ from pod.engine import run_workflow_background, run_single_agent_background, get
 
 init_db()
 
-from swaps_rv import compute_rv
-from egb_rv import compute_egb_rv, get_egb_series
-from hicp_fixings import get_hicp_fixings
-from rpi_fixings import get_rpi_fixings
-from us_cpi_fixings import get_us_cpi_fixings
-from global_yields import get_global_yields_data
-from fair_value_models import get_fair_value_models_data
-from seasonality_backtester import (
-    fetch_bbg_expression,
-    get_seasonality_stats,
-    get_seasonality_heatmap,
-    run_seasonality_backtest,
-)
-from print_analysis import fetch_print_vs_consensus, fetch_market_reaction
-from momentum import compute_cta_signals
-from inflation_pca import get_inflation_pca_data
-from pca_analysis import get_pca_data
-from option_derived_cdf import get_option_cdf_params
-from correlation_regimes import run_scan as cr_run_scan, get_pair_detail as cr_pair_detail
-from fitted_bond_curves import (
-    compute_fitted_curve,
-    get_bond_detail as fbc_bond_detail,
-    predict_new_issue as fbc_new_issue,
-)
+from fair_value_models import get_fair_value_models_data  # startup warm-up
 from euribor_positioning_router import router as positioning_router
-from routers.heatmaps import router as heatmaps_router
-from routers.mean_reversion import router as mean_reversion_router
+from routers import (
+    correlation_regimes,
+    egb_rv,
+    fair_value_models,
+    fitted_bond_curves,
+    global_yields,
+    heatmaps,
+    inflation_fixings,
+    inflation_pca,
+    mean_reversion,
+    momentum,
+    option_cdf,
+    pca_analysis,
+    print_analysis,
+    seasonality,
+    swaps_rv,
+)
 
 # No-op if the host (e.g. a configured uvicorn/gunicorn) already set up logging.
 logging.basicConfig(
@@ -102,8 +94,24 @@ app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
 
 # Include routers
 app.include_router(positioning_router)
-app.include_router(heatmaps_router)
-app.include_router(mean_reversion_router)
+for _tool in (
+    correlation_regimes,
+    egb_rv,
+    fair_value_models,
+    fitted_bond_curves,
+    global_yields,
+    heatmaps,
+    inflation_fixings,
+    inflation_pca,
+    mean_reversion,
+    momentum,
+    option_cdf,
+    pca_analysis,
+    print_analysis,
+    seasonality,
+    swaps_rv,
+):
+    app.include_router(_tool.router)
 
 # CORS for local development
 app.add_middleware(
@@ -151,7 +159,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 # ---------------------------------------------------------------------------
-# Protected API routes
+# Protected API routes (tool routes live in routers/)
 # ---------------------------------------------------------------------------
 
 
@@ -168,352 +176,6 @@ def get_dashboard(current_user: dict = Depends(get_current_user)):
     config = load_dashboard_config()
     return config
 
-
-@app.get("/api/tools/global-yields")
-def global_yields(current_user: dict = Depends(get_current_user)):
-    """PCA factor model on global 10y yields: factors, residuals, fair-value table."""
-    return get_global_yields_data()
-
-
-@app.get("/api/tools/fair-value-models")
-def fair_value_models(current_user: dict = Depends(get_current_user)):
-    """Rolling Elastic Net fair value models for HICPxT inflation swaps."""
-    return get_fair_value_models_data()
-
-
-@app.get("/api/tools/seasonality/data")
-def seasonality_data(
-    expression: str,
-    start: str = "2010-01-01",
-    current_user: dict = Depends(get_current_user),
-):
-    """
-    Fetch and evaluate a Bloomberg expression, returning a daily time series.
-    expression examples:
-      'GDBR10 Index'
-      'GDBR10 Index - GDBR2 Index'
-      'GDBR30 Index - 2 * GDBR10 Index + GDBR2 Index'
-    """
-    return fetch_bbg_expression(expression, start=start)
-
-
-@app.post("/api/tools/seasonality/stats")
-def seasonality_stats(
-    payload: dict,
-    current_user: dict = Depends(get_current_user),
-):
-    """Seasonal statistics across all dimensions for a fetched time series."""
-    dates  = payload["dates"]
-    values = payload["values"]
-    return get_seasonality_stats(dates, values)
-
-
-@app.post("/api/tools/seasonality/heatmap")
-def seasonality_heatmap(
-    payload: dict,
-    current_user: dict = Depends(get_current_user),
-):
-    """Month × day-of-week mean return matrix."""
-    dates  = payload["dates"]
-    values = payload["values"]
-    return get_seasonality_heatmap(dates, values)
-
-
-@app.post("/api/tools/seasonality/backtest")
-def seasonality_backtest(
-    payload: dict,
-    current_user: dict = Depends(get_current_user),
-):
-    """Run a seasonality-driven backtest given a rule definition."""
-    dates  = payload["dates"]
-    values = payload["values"]
-    rule   = payload.get("rule", {"type": "dow", "bins": [0], "direction": 1})
-    return run_seasonality_backtest(dates, values, rule)
-
-
-@app.get("/api/tools/print-analysis/print-vs-consensus")
-def print_vs_consensus(
-    ticker: str,
-    start: str = "2010-01-01",
-    current_user: dict = Depends(get_current_user),
-):
-    """
-    Fetch historical economic prints + Bloomberg survey consensus for a ticker.
-    ticker: Bloomberg ticker with yellow key, e.g. "UKPRIC YOY Index"
-    """
-    return fetch_print_vs_consensus(ticker=ticker, start=start)
-
-
-@app.post("/api/tools/print-analysis/market-reaction")
-def market_reaction(
-    payload: dict,
-    current_user: dict = Depends(get_current_user),
-):
-    """
-    Compute day-of-release market moves for a given instrument.
-    payload: { market_ticker: str, releases: [{period, release_date, surprise}] }
-    """
-    return fetch_market_reaction(
-        market_ticker=payload["market_ticker"],
-        releases=payload.get("releases", []),
-    )
-
-
-@app.get("/api/tools/momentum/cta-signals")
-def cta_signals(
-    ticker: str,
-    start: str = "2010-01-01",
-    current_user: dict = Depends(get_current_user),
-):
-    return compute_cta_signals(ticker=ticker, start=start)
-
-
-@app.get("/api/tools/option-cdf/{ccy}/{tail}")
-def option_cdf_params(ccy: str, tail: str, current_user: dict = Depends(get_current_user)):
-    """Swaption market parameters for Option-Implied CDF tool."""
-    return get_option_cdf_params(ccy, tail)
-
-
-@app.get("/api/tools/inflation-pca/{curve_id}")
-def inflation_pca(curve_id: str, current_user: dict = Depends(get_current_user)):
-    """PCA-neutral butterfly analysis for EUR/GBP ILB curves."""
-    return get_inflation_pca_data(curve_id)
-
-
-@app.get("/api/tools/pca-analysis")
-def pca_analysis(
-    curve: str = "bund",
-    tenors: str = "2,5,7,10",
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    n_factors: int = 3,
-    extra_tickers: str = "",
-    use_changes: bool = False,
-    roll_window_weeks: Optional[int] = None,
-    custom_tickers: str = "",   # "TICKER:Label,TICKER:Label,..." — activates custom mode
-    current_user: dict = Depends(get_current_user),
-):
-    """PCA on yield curve — eigenvalues, eigenvectors, factor time series, residuals, OU model."""
-    def _parse_ticker_list(raw: str) -> list[dict]:
-        out: list[dict] = []
-        for part in raw.split(","):
-            part = part.strip()
-            if not part:
-                continue
-            if ":" in part:
-                ticker, label = part.split(":", 1)
-                out.append({"ticker": ticker.strip(), "label": label.strip()})
-            else:
-                out.append({"ticker": part, "label": part})
-        return out
-
-    extra_list = _parse_ticker_list(extra_tickers)
-    custom_list = _parse_ticker_list(custom_tickers)
-
-    if custom_list:
-        # Custom mode — ignore curve/tenors
-        return get_pca_data(
-            start_date=start_date,
-            end_date=end_date,
-            n_factors=n_factors,
-            extra_tickers=extra_list or None,
-            use_changes=use_changes,
-            roll_window_weeks=roll_window_weeks,
-            custom_tickers=custom_list,
-        )
-
-    tenor_list = [int(t.strip()) for t in tenors.split(",") if t.strip()]
-    return get_pca_data(
-        curve_id=curve,
-        tenors=tenor_list,
-        start_date=start_date,
-        end_date=end_date,
-        n_factors=n_factors,
-        extra_tickers=extra_list or None,
-        use_changes=use_changes,
-        roll_window_weeks=roll_window_weeks,
-    )
-
-
-@app.get("/api/tools/correlation-regimes/scan")
-def correlation_regimes_scan(
-    long_window: int = 126,
-    short_window: int = 21,
-    min_abs_corr: float = 0.6,
-    current_user: dict = Depends(get_current_user),
-):
-    """Cross-asset correlation-breakdown scan (dual-window Fisher-z)."""
-    return cr_run_scan(
-        long_window=long_window,
-        short_window=short_window,
-        min_abs_corr=min_abs_corr,
-    )
-
-
-@app.get("/api/tools/correlation-regimes/pair")
-def correlation_regimes_pair(
-    x: str,
-    y: str,
-    long_window: int = 126,
-    short_window: int = 21,
-    current_user: dict = Depends(get_current_user),
-):
-    """Pair drilldown — rolling correlation/beta timeline + regime-vs-recent scatter."""
-    return cr_pair_detail(x=x, y=y, long_window=long_window, short_window=short_window)
-
-
-@app.get("/api/tools/inflation-fixings/eur")
-def hicp_fixings(
-    date: str | None = None,
-    current_user: dict = Depends(get_current_user),
-):
-    """HICP monthly fixing prices — 24 contracts (EUSWIF1-12, EUSWIT1-12)."""
-    return get_hicp_fixings(as_of_date=date)
-
-
-@app.get("/api/tools/inflation-fixings/gbp")
-def inflation_fixings_gbp(
-    date: str | None = None,
-    current_user: dict = Depends(get_current_user),
-):
-    """UK RPI monthly fixing prices — 24 contracts (UKRPIF1-12, UKRPIT1-12)."""
-    return get_rpi_fixings(as_of_date=date)
-
-
-@app.get("/api/tools/inflation-fixings/usd")
-def inflation_fixings_usd(
-    date: str | None = None,
-    current_user: dict = Depends(get_current_user),
-):
-    """US CPI monthly fixing prices — 24 contracts (USCPIF1-12, USCPIT1-12)."""
-    return get_us_cpi_fixings(as_of_date=date)
-
-
-@app.get("/api/tools/egb-rv")
-def get_egb_rv(
-    date: str | None = None,
-    use_individual_bonds: bool = False,
-    refresh: bool = False,
-    current_user: dict = Depends(get_current_user),
-):
-    return compute_egb_rv(as_of_date=date, use_individual_bonds=use_individual_bonds, refresh=refresh)
-
-
-@app.get("/api/tools/egb-rv/series")
-def get_egb_rv_series(
-    label: str,
-    date: str | None = None,
-    use_individual_bonds: bool = False,
-    current_user: dict = Depends(get_current_user),
-):
-    """Full daily history for a single EGB expression (detail view)."""
-    try:
-        return get_egb_series(label, as_of_date=date, use_individual_bonds=use_individual_bonds)
-    except KeyError:
-        raise HTTPException(status_code=404, detail=f"Unknown expression: {label}")
-
-
-@app.get("/api/tools/swaps-rv")
-def get_swaps_rv(
-    date: str | None = None,
-    currency: str = "EUR",
-    current_user: dict = Depends(get_current_user),
-):
-    return compute_rv(currency=currency, as_of_date=date)
-
-
-# ---------------------------------------------------------------------------
-# Fitted Bond Curves (H&S Chapter 8)
-# ---------------------------------------------------------------------------
-
-@app.get("/api/tools/fitted-bond-curves")
-def fitted_bond_curves(
-    functional_form: str = "cubic_spline",
-    exponent: int = 2,
-    weighting: str = "none",
-    n_exp_splines: int = 7,
-    custom_bonds: str = "",
-    knots: str = "",
-    external_vars: str = "",
-    as_of: str = "",
-    current_user: dict = Depends(get_current_user),
-):
-    """Fitted discount curve + external regression: residuals, rich/cheap, benchmarks."""
-    return compute_fitted_curve(
-        functional_form=functional_form,
-        exponent=exponent,
-        weighting=weighting,
-        n_exp_splines=n_exp_splines,
-        custom_bonds=custom_bonds,
-        knots=knots,
-        external_vars=external_vars,
-        as_of=as_of,
-    )
-
-
-@app.get("/api/tools/fitted-bond-curves/new-issue")
-def fitted_bond_curves_new_issue(
-    maturity: str,
-    coupon: Optional[float] = None,
-    size_bn: float = 20.0,
-    extra_bp: float = 0.0,
-    functional_form: str = "cubic_spline",
-    exponent: int = 2,
-    weighting: str = "none",
-    n_exp_splines: int = 7,
-    custom_bonds: str = "",
-    knots: str = "",
-    external_vars: str = "",
-    as_of: str = "",
-    current_user: dict = Depends(get_current_user),
-):
-    """Predict pricing of a hypothetical new issue off the fitted curve (H&S p.180)."""
-    return fbc_new_issue(
-        maturity=maturity,
-        coupon=coupon,
-        size_bn=size_bn,
-        extra_bp=extra_bp,
-        functional_form=functional_form,
-        exponent=exponent,
-        weighting=weighting,
-        n_exp_splines=n_exp_splines,
-        custom_bonds=custom_bonds,
-        knots=knots,
-        external_vars=external_vars,
-        as_of=as_of,
-    )
-
-
-@app.get("/api/tools/fitted-bond-curves/bond/{bond_id}")
-def fitted_bond_curves_bond(
-    bond_id: str,
-    functional_form: str = "cubic_spline",
-    exponent: int = 2,
-    weighting: str = "none",
-    n_exp_splines: int = 7,
-    custom_bonds: str = "",
-    knots: str = "",
-    external_vars: str = "",
-    as_of: str = "",
-    current_user: dict = Depends(get_current_user),
-):
-    """Residual history, OU mean-reversion analysis and fan chart for one bond."""
-    return fbc_bond_detail(
-        bond_id,
-        functional_form=functional_form,
-        exponent=exponent,
-        weighting=weighting,
-        n_exp_splines=n_exp_splines,
-        custom_bonds=custom_bonds,
-        knots=knots,
-        external_vars=external_vars,
-        as_of=as_of,
-    )
-
-
-# ---------------------------------------------------------------------------
-# Mean Reversion
-# ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Agents — Global Macro Pod (backend/pod/; design in docs/GLOBAL_MACRO_POD_PROPOSAL.md)
