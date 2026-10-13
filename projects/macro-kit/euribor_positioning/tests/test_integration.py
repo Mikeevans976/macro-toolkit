@@ -2,34 +2,32 @@
 Stage 10 integration tests.
 Uses FastAPI TestClient to verify endpoints respond correctly.
 """
+import json
+
+import bcrypt
 import pytest
 from fastapi.testclient import TestClient
 
-# Add backend to path
-# test file: euribor_positioning/tests/test_integration.py
-# backend:   macro-kit/backend/  (2 levels up from euribor_positioning, then into backend)
+import auth
 from main import app
 
 client = TestClient(app)
 
 
-# Get a valid token for auth
-def get_token():
-    resp = client.post(
-        "/api/auth/login",
-        data={"username": "gerardo", "password": "gerardo123"},
-    )
-    if resp.status_code != 200:
-        pytest.skip(f"Auth failed ({resp.status_code}) — user 'gerardo' may not exist in this environment")
-    return resp.json().get("access_token", "")
-
-
 @pytest.fixture(scope="module")
-def auth_headers():
-    token = get_token()
-    if not token:
-        pytest.skip("Could not obtain auth token")
-    return {"Authorization": f"Bearer {token}"}
+def auth_headers(tmp_path_factory):
+    """Log in through the real endpoint as a throwaway user (no real credentials in the repo)."""
+    users = tmp_path_factory.mktemp("auth") / "users.json"
+    hashed = bcrypt.hashpw(b"integration-test", bcrypt.gensalt()).decode()
+    users.write_text(json.dumps({"it-user": {"username": "it-user", "full_name": "IT", "hashed_password": hashed}}))
+    saved = auth.USERS_FILE, auth._users_cache
+    auth.USERS_FILE, auth._users_cache = str(users), None
+    try:
+        resp = client.post("/api/auth/login", data={"username": "it-user", "password": "integration-test"})
+        assert resp.status_code == 200, resp.text
+        yield {"Authorization": f"Bearer {resp.json()['access_token']}"}
+    finally:
+        auth.USERS_FILE, auth._users_cache = saved
 
 
 def test_status_endpoint(auth_headers):
