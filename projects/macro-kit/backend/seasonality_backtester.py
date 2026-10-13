@@ -68,13 +68,7 @@ def fetch_bbg_expression(
         "n_obs": int,
     }
     """
-    try:
-        from bbg import blp
-    except ImportError as e:
-        raise RuntimeError(
-            "blpapi is required for Bloomberg data. "
-            "Install with: pip install blpapi  (Bloomberg Terminal must be running)."
-        ) from e
+    from bbg import blp   # bdh raises BloombergUnavailable when blpapi is missing
 
     tickers = _extract_tickers(expression)
     if not tickers:

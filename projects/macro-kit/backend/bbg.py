@@ -43,6 +43,12 @@ try:
 except ImportError:
     _AVAILABLE = False
 
+
+class BloombergUnavailable(ImportError):
+    """blpapi is not installed. Subclasses ImportError so existing
+    ``except ImportError`` fallbacks (to simulated data) keep working; the API
+    maps it to 503 instead of an opaque 500."""
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -88,7 +94,7 @@ def bdh(
     RuntimeError : Bloomberg session could not be started / service not opened.
     """
     if not _AVAILABLE:
-        raise ImportError(
+        raise BloombergUnavailable(
             "blpapi is not installed.\n"
             "Install the Bloomberg API Python SDK:\n"
             "  pip install blpapi\n"

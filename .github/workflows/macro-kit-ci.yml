@@ -32,19 +32,17 @@ jobs:
           cache-dependency-path: |
             projects/macro-kit/backend/requirements.txt
             projects/macro-kit/backend/requirements-dev.txt
+            projects/macro-kit/pyproject.toml
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements-dev.txt
       - name: Ruff
         run: ruff check .
-      - name: Backend tests
-        working-directory: projects/macro-kit/backend
+      - name: Tests (backend + Euribor positioning; config in pyproject.toml)
         env:
           RUN_SLOW: "1"
         run: pytest -q
-      - name: Euribor positioning tests
-        run: pytest -q euribor_positioning
 
   frontend:
     runs-on: ubuntu-latest

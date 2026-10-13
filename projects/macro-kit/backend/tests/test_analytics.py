@@ -6,7 +6,6 @@ Three layers:
   2. Self-consistency / repicing checks (must hold by construction)
   3. End-to-end sanity checks on the actual simulated data
 """
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -14,8 +13,6 @@ import pandas as pd
 import pytest
 
 # Make backend/ importable
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
 from swaps_rv import (
     _SWAP_TENORS,
     _build_discount_factors,
@@ -395,8 +392,6 @@ class TestEndToEnd:
         For the 1y1y carry: f(0,1) - f(1,1), computed from actual swap CSV.
         We re-derive it independently and compare to the backend value.
         """
-        from pathlib import Path
-        import pandas as pd
         from scipy.interpolate import CubicSpline
 
         data_path = Path(__file__).resolve().parents[2] / "data"

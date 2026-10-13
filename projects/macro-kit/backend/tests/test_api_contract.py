@@ -19,19 +19,16 @@ import hashlib
 import json
 import math
 import os
-import sys
 import warnings
 from pathlib import Path
 
 import pytest
 import time_machine
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from fastapi.testclient import TestClient
 
-from fastapi.testclient import TestClient  # noqa: E402
-
-import main  # noqa: E402
-from auth import get_current_user  # noqa: E402
+import main
+from auth import get_current_user
 
 SNAPSHOT = Path(__file__).parent / "snapshots" / "api_contract.json"
 UPDATE = os.environ.get("UPDATE_SNAPSHOTS") == "1"
@@ -293,3 +290,9 @@ def test_heatmap_rejects_unknown_region_or_view(client, url):
 ])
 def test_dict_payload_routes_reject_bad_input(client, url, body):
     assert client.post(url, json=body).status_code == 422
+
+
+def test_live_only_endpoint_without_bloomberg_is_503(client):
+    resp = client.get("/api/tools/seasonality/data", params={"expression": "GDBR10 Index"})
+    assert resp.status_code == 503
+    assert "Bloomberg" in resp.json()["detail"]

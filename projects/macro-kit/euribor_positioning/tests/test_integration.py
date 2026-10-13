@@ -4,14 +4,10 @@ Uses FastAPI TestClient to verify endpoints respond correctly.
 """
 import pytest
 from fastapi.testclient import TestClient
-import sys
-from pathlib import Path
 
 # Add backend to path
 # test file: euribor_positioning/tests/test_integration.py
 # backend:   macro-kit/backend/  (2 levels up from euribor_positioning, then into backend)
-_BACKEND = Path(__file__).parent.parent.parent / "backend"
-sys.path.insert(0, str(_BACKEND))
 from main import app
 
 client = TestClient(app)

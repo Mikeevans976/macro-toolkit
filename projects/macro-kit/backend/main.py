@@ -14,7 +14,7 @@ import yaml
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 
@@ -42,6 +42,7 @@ from pod.engine import run_workflow_background, run_single_agent_background, get
 
 init_db()
 
+from bbg import BloombergUnavailable
 from fair_value_models import get_fair_value_models_data  # startup warm-up
 from euribor_positioning_router import router as positioning_router
 from routers import (
@@ -91,6 +92,15 @@ app = FastAPI(title="Analytics Hub API", version="1.0.0", lifespan=lifespan)
 # Compress large JSON payloads (Fair Value Models ~12 MB -> ~1.4 MB). Starlette
 # skips text/event-stream, so agent SSE streams are not buffered.
 app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
+
+
+
+@app.exception_handler(BloombergUnavailable)
+def _bloomberg_unavailable(_request, exc: BloombergUnavailable):
+    # Live-only endpoints (e.g. seasonality data) when no Bloomberg connection exists.
+    return JSONResponse(status_code=503, content={
+        "detail": "Bloomberg data is not available on this server (blpapi not installed / Terminal not running)."})
+
 
 # Include routers
 app.include_router(positioning_router)

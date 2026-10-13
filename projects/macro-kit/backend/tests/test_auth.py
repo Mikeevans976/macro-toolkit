@@ -1,17 +1,13 @@
 """Auth: JWT round-trip/expiry/tamper handling and the users.json mtime cache."""
 import json
 import os
-import sys
 import time
 from datetime import timedelta
-from pathlib import Path
 
 import pytest
 from fastapi import HTTPException
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-import auth  # noqa: E402
+import auth
 
 
 def test_token_round_trip():

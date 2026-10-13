@@ -15,15 +15,14 @@ uvicorn backend.main:app --reload --port 8000
 # Install backend + dev/test dependencies
 pip install -r backend/requirements-dev.txt
 
-# Run backend tests (incl. API contract snapshots; RUN_SLOW=1 adds fair-value-models)
-cd backend && pytest -q
-# Run Euribor positioning tests (from projects/macro-kit/)
-pytest -q euribor_positioning
-# Lint Python (from projects/macro-kit/; config in ruff.toml)
+# Run all Python tests from projects/macro-kit/ (backend + Euribor positioning; config in pyproject.toml)
+# RUN_SLOW=1 adds the fair-value-models contract case
+pytest -q
+# Lint Python (config in pyproject.toml)
 ruff check .
 
 # After an intentional change to an endpoint's output, refresh the contract snapshots
-cd backend && UPDATE_SNAPSHOTS=1 pytest tests/test_api_contract.py
+UPDATE_SNAPSHOTS=1 pytest backend/tests/test_api_contract.py
 
 # Add a user
 python backend/create_user.py <username> <password> "<Full Name>"
