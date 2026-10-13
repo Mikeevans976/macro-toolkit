@@ -15,6 +15,7 @@ scikit-learn>=1.4.0
 
 # AI agents
 anthropic>=1.11.0          # pod runner (backend/pod) needs 1.x: fallbacks, adaptive thinking
+httpx>=0.27,<1               # pod model catalogue, runner, web tools (also used by fastapi.testclient)
 duckduckgo-search>=6.0      # pod web search (pod/tools/web_local.py)
 
 # Optional: data source connectors (install whichever you use)

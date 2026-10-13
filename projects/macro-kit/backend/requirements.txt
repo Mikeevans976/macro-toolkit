@@ -9,11 +9,16 @@ anthropic==1.11.0
 anyio==4.14.0
     # via
     #   anthropic
+    #   httpx
     #   httpx2
     #   starlette
     #   watchfiles
 bcrypt==5.0.0
     # via -r requirements.in
+certifi==2026.7.22
+    # via
+    #   httpcore
+    #   httpx
 click==8.5.0
     # via
     #   duckduckgo-search
@@ -28,12 +33,17 @@ fastapi==0.137.1
     # via -r requirements.in
 h11==0.16.0
     # via
+    #   httpcore
     #   httpcore2
     #   uvicorn
+httpcore==1.0.9
+    # via httpx
 httpcore2==2.13.1 ; sys_platform != 'emscripten'
     # via httpx2
 httptools==0.8.0
     # via uvicorn
+httpx==0.28.1
+    # via -r requirements.in
 httpx2==2.13.1
     # via anthropic
 httpx2-jsfetch==1.0 ; sys_platform == 'emscripten'
@@ -41,6 +51,7 @@ httpx2-jsfetch==1.0 ; sys_platform == 'emscripten'
 idna==3.18
     # via
     #   anyio
+    #   httpx
     #   httpx2
 jiter==0.14.0
     # via anthropic

@@ -301,3 +301,29 @@ If browser-side synthetic rendering must stay (e.g. for offline demos), move it 
 - **Phase 3 decision** (backend vs browser as the heatmap source of truth) before building a generic `RegionalHeatmapPage`.
 - **Waiting on the in-progress pod work:** the SSE stream ticket, the `var/` state dir, moving agent routes out of `main.py`, and the `macrokit` package rename (it rewrites imports inside `pod/`).
 - Lockfile (`uv`), ratcheting the ESLint warnings (98), widening the ruff rule set.
+
+### 2026-10-13 (cont.): pod work landed; agent routes, SSE, `var/`, lockfile
+
+**Done**
+- **Pod work committed** as its own commit (trade ledger, risk engine, roster/skills, ledger UI); all suites green on it.
+- **Agent/pod routes → `routers/agents.py`** with Pydantic bodies; sync handlers are `def`. `main.py` is now ~200 lines (app setup, auth, dashboard, router mounting, static). *(Phase 2.2 complete)*
+- **SSE stream tickets:** the client exchanges its session token for a 60 s, run-scoped ticket (`POST /api/agents/stream/{run_id}/ticket`, `openRunStream` in `api/client.ts`). Tickets are rejected as bearer tokens; the 8 h token no longer appears in URLs or access logs. *(F2)*
+- **SSE tails the `events` table** (SSE `id` = row id, `Last-Event-ID` resume, keep-alives, 30-minute stall timeout) instead of an in-memory queue. *(F16)*
+- **`var/` runtime state dir** (`backend/runtime_paths.py`, `$MACROKIT_STATE_DIR` override) for `users.json`, both SQLite DBs and the pod sandbox. Legacy locations keep working until moved; nothing is moved automatically. *(F23, F25)*
+- **Pinned dependencies:** `requirements.in` (ranges) → `requirements.txt` (full pins via `uv pip compile --universal`, seeded from the tested venv). *(F20)*
+
+**More bugs found and fixed**
+
+| # | Bug | Fix |
+|---|-----|-----|
+| F36 | Late or reconnecting SSE clients got every early event twice (stored replay **and** the live queue, which still held them) | Single DB-tailing loop |
+| F37 | Run queues were never removed from the in-process dict, so memory grew with every run | Queue removed |
+| F38 | Any logged-in user could read or stream any other user's run by id (the run list was filtered by user, the detail and stream were not) | Owner-only; 404 otherwise |
+| F39 | The auth-coverage test skipped all `/api/pod/*` routes and any path containing "stream" | Now covers both (50 routes) |
+| F40 | `httpx` was never declared, but the pod (`pod/models.py`, `runner.py`, `web_local.py`) and `TestClient` import it; it only arrived via `crewai`. Once CrewAI was removed, a fresh deploy failed at startup and CI failed at collection | Declared in `requirements.in`; verified by importing all 64 backend modules in a fresh venv built only from the pins |
+
+**Deliberately not done yet**
+- **`macrokit` package rename:** it rewrites almost every backend import, so it would conflict with the unmerged `merge/mm-bbg` live-Bloomberg work. Do it right after that merge, as one mechanical PR.
+- **Moving existing state into `var/`** on machines that already have `backend/users.json` / `backend/data/*.db` (stop the server first): `mkdir -p var && mv backend/users.json backend/data/agent_runs.db* backend/data/euribor_positioning.db* var/ && mv sandbox var/`.
+
+**Next:** the Phase 3 decision; the `macrokit` rename after the `mm-bbg` merge; ratchet the ESLint warnings (98) and widen ruff rules.
