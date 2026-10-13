@@ -12,8 +12,18 @@ source .venv/bin/activate
 # Run API server (dev, auto-reload)
 uvicorn backend.main:app --reload --port 8000
 
-# Run backend tests
-cd backend && pytest tests/test_analytics.py -v
+# Install backend + dev/test dependencies
+pip install -r backend/requirements-dev.txt
+
+# Run backend tests (incl. API contract snapshots; RUN_SLOW=1 adds fair-value-models)
+cd backend && pytest -q
+# Run Euribor positioning tests (from projects/macro-kit/)
+pytest -q euribor_positioning
+# Lint Python (from projects/macro-kit/; config in ruff.toml)
+ruff check .
+
+# After an intentional change to an endpoint's output, refresh the contract snapshots
+cd backend && UPDATE_SNAPSHOTS=1 pytest tests/test_api_contract.py
 
 # Add a user
 python backend/create_user.py <username> <password> "<Full Name>"
@@ -24,7 +34,8 @@ python backend/create_user.py <username> <password> "<Full Name>"
 cd frontend
 npm run dev        # Dev server at http://localhost:5173 (proxies /api → :8000)
 npm run build      # TypeScript compile + Vite build → frontend/dist/
-npm run lint       # ESLint (0 max-warnings)
+npm run lint       # ESLint 9 flat config (eslint.config.js); errors fail, warnings are being ratcheted down
+npm test           # Vitest: unit tests + smoke-render of every page (src/test/)
 ```
 
 **Always run `cd frontend && npm run build` after modifying any `.tsx` file** — TypeScript errors are only caught at build time.
@@ -63,13 +74,23 @@ cd frontend && npm run build && cd .. && python backend/main.py
 | `data/series_catalogue_*.json` | Single source of truth for indicator tickers/lags per region |
 
 ### Frontend pages
-Each page in `frontend/src/pages/` corresponds to a tool tile in the dashboard. Pages are self-contained; most use **deterministic synthetic data** (no live API calls) for rendering. Backend API calls are made only by a few pages (e.g. SwapsRV, SeasonalityBacktester).
+Each page in `frontend/src/pages/` corresponds to a tool tile in the dashboard. Most tool pages fetch from the backend (`/api/tools/...`); the ten regional heatmaps, MacroOptionsMonitor and parts of other pages still generate **deterministic synthetic data** in the browser (see docs/REFACTOR_PLAN.md, Phase 3).
 
 ### DFM (Dynamic Factor Model)
 `dfm.py` implements a mixed-frequency Kalman filter/smoother. Monthly macro series are observed on the last business day of each month (NaN otherwise); yield PCs are handled in a separate downstream pipeline to avoid circularity. The Euro Area model runs 5 factors × 60 series with block-PCA initialisation.
 
 ### Tests
-Backend tests live in `backend/tests/`. `test_analytics.py` covers swap RV analytics with three layers: unit tests with hand-computable answers, self-consistency checks, and end-to-end sanity checks on simulated data. Run with `pytest`.
+CI (`.github/workflows/macro-kit-ci.yml` at the repo root) runs ruff, both pytest suites, ESLint, Vitest and the frontend build on every PR touching `projects/macro-kit/`.
+
+- `backend/tests/test_analytics.py` — swap RV analytics: hand-computable unit tests, self-consistency checks, end-to-end sanity checks on simulated data.
+- `backend/tests/test_api_contract.py` — snapshot of every simulated-data endpoint (digest of keys/lengths/sums in `tests/snapshots/api_contract.json`), with the clock frozen. Any refactor must keep these passing; regenerate only for intentional output changes.
+- `backend/tests/test_auth.py`, `backend/tests/test_pod.py`, `euribor_positioning/tests/`.
+- `frontend/src/test/pages.smoke.test.tsx` — every page renders with network stubbed.
+
+Simulated data must be deterministic across processes: seed RNGs with `zlib.crc32(name.encode())`, never `hash()` (randomised per process). Format calendar dates with `toLocalISODate` (`frontend/src/lib/dates.ts`), never `toISOString().slice(0, 10)` on local-midnight Dates.
+
+### Routers
+New API routes go in `backend/routers/<tool>.py` as an `APIRouter` with Pydantic request models (see `routers/mean_reversion.py`), mounted in `main.py`. CPU-bound handlers are plain `def` (FastAPI runs them in a threadpool) — never `async def` without an `await`.
 
 ---
 
