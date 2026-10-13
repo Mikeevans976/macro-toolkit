@@ -1,42 +1,57 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import AppShell from './components/AppShell'
-import SwapsRV from './pages/SwapsRV'
-import EGBRV from './pages/EGBRV'
-import EuroAreaHeatmap from './pages/EuroAreaHeatmap'
-import GlobalYields from './pages/GlobalYields'
-import OptionDerivedCDF from './pages/OptionDerivedCDF'
-import FairValueModels from './pages/FairValueModels'
-import UKHeatmap from './pages/UKHeatmap'
-import USHeatmap from './pages/USHeatmap'
-import JapanHeatmap from './pages/JapanHeatmap'
-import SeasonalityBacktester from './pages/SeasonalityBacktester'
-import PrintAnalysis from './pages/PrintAnalysis'
-import Momentum from './pages/Momentum'
-import CanadaHeatmap from './pages/CanadaHeatmap'
-import SwedenHeatmap from './pages/SwedenHeatmap'
-import NorwayHeatmap from './pages/NorwayHeatmap'
-import SwitzerlandHeatmap from './pages/SwitzerlandHeatmap'
-import AustraliaHeatmap from './pages/AustraliaHeatmap'
-import NewZealandHeatmap from './pages/NewZealandHeatmap'
-import InflationPCA from './pages/InflationPCA'
-import InflationFixingsMonitor from './pages/InflationFixingsMonitor'
-import MeanReversion from './pages/MeanReversion'
-import PCAAnalysis from './pages/PCAAnalysis'
-import CorrelationRegimes from './pages/CorrelationRegimes'
-import FittedBondCurves from './pages/FittedBondCurves'
-import AgentsPod from './pages/AgentsPod'
-import AgentPage from './pages/AgentPage'
-import MacroOptionsMonitor from './pages/MacroOptionsMonitor'
-import PositioningTracker from './pages/PositioningTracker'
+
+// Pages are code-split: each tool loads (and builds its synthetic data) only when opened.
+const SwapsRV = lazy(() => import('./pages/SwapsRV'))
+const EGBRV = lazy(() => import('./pages/EGBRV'))
+const EuroAreaHeatmap = lazy(() => import('./pages/EuroAreaHeatmap'))
+const GlobalYields = lazy(() => import('./pages/GlobalYields'))
+const OptionDerivedCDF = lazy(() => import('./pages/OptionDerivedCDF'))
+const FairValueModels = lazy(() => import('./pages/FairValueModels'))
+const UKHeatmap = lazy(() => import('./pages/UKHeatmap'))
+const USHeatmap = lazy(() => import('./pages/USHeatmap'))
+const JapanHeatmap = lazy(() => import('./pages/JapanHeatmap'))
+const SeasonalityBacktester = lazy(() => import('./pages/SeasonalityBacktester'))
+const PrintAnalysis = lazy(() => import('./pages/PrintAnalysis'))
+const Momentum = lazy(() => import('./pages/Momentum'))
+const CanadaHeatmap = lazy(() => import('./pages/CanadaHeatmap'))
+const SwedenHeatmap = lazy(() => import('./pages/SwedenHeatmap'))
+const NorwayHeatmap = lazy(() => import('./pages/NorwayHeatmap'))
+const SwitzerlandHeatmap = lazy(() => import('./pages/SwitzerlandHeatmap'))
+const AustraliaHeatmap = lazy(() => import('./pages/AustraliaHeatmap'))
+const NewZealandHeatmap = lazy(() => import('./pages/NewZealandHeatmap'))
+const InflationPCA = lazy(() => import('./pages/InflationPCA'))
+const InflationFixingsMonitor = lazy(() => import('./pages/InflationFixingsMonitor'))
+const MeanReversion = lazy(() => import('./pages/MeanReversion'))
+const PCAAnalysis = lazy(() => import('./pages/PCAAnalysis'))
+const CorrelationRegimes = lazy(() => import('./pages/CorrelationRegimes'))
+const FittedBondCurves = lazy(() => import('./pages/FittedBondCurves'))
+const AgentsPod = lazy(() => import('./pages/AgentsPod'))
+const AgentPage = lazy(() => import('./pages/AgentPage'))
+const MacroOptionsMonitor = lazy(() => import('./pages/MacroOptionsMonitor'))
+const PositioningTracker = lazy(() => import('./pages/PositioningTracker'))
+
+function PageLoading() {
+  return (
+    <div role="status" aria-live="polite" className="hub-eyebrow" style={{ padding: 32 }}>
+      Loading…
+    </div>
+  )
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('access_token')
   if (!token) {
     return <Navigate to="/login" replace />
   }
-  return <AppShell>{children}</AppShell>
+  return (
+    <AppShell>
+      <Suspense fallback={<PageLoading />}>{children}</Suspense>
+    </AppShell>
+  )
 }
 
 export default function App() {
