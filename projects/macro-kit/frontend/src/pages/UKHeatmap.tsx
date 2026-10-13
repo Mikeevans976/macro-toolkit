@@ -4,6 +4,8 @@ import {
   LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer,
 } from 'recharts'
+import { ols, jacobiEigen, type OLSResult } from '../lib/math/linalg'
+import { cardStyle, stickyBg, zscoreToColors } from '../features/heatmap/styles'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -14,12 +16,6 @@ interface Indicator {
 interface Group { name: string; indicators: Indicator[] }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-
-const cardStyle: React.CSSProperties = {
-  background: 'rgba(200,220,240,0.03)',
-  border: '1px solid rgba(200,220,240,0.07)',
-  borderRadius: 6, padding: 24,
-}
 
 // ─── Date columns ─────────────────────────────────────────────────────────────
 
@@ -222,41 +218,6 @@ export const SYNTHETIC_YIELDS: Record<Tenor, number[]> = {
 
 // ─── Yield PCA (Jacobi) ───────────────────────────────────────────────────────
 
-function jacobiEigen(mat: number[][]): { values: number[]; vectors: number[][] } {
-  const n = mat.length
-  const a = mat.map(r => [...r])
-  const v: number[][] = Array.from({ length: n }, (_, i) =>
-    Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))
-  )
-  for (let iter = 0; iter < 500; iter++) {
-    let maxVal = 0, p = 0, q = 1
-    for (let i = 0; i < n - 1; i++)
-      for (let j = i + 1; j < n; j++)
-        if (Math.abs(a[i][j]) > maxVal) { maxVal = Math.abs(a[i][j]); p = i; q = j }
-    if (maxVal < 1e-12) break
-    const theta = (a[q][q] - a[p][p]) / (2 * a[p][q])
-    const t = (theta >= 0 ? 1 : -1) / (Math.abs(theta) + Math.sqrt(1 + theta * theta))
-    const c = 1 / Math.sqrt(1 + t * t), s = t * c
-    const app = a[p][p], aqq = a[q][q], apq = a[p][q]
-    a[p][p] = app - t * apq; a[q][q] = aqq + t * apq; a[p][q] = 0; a[q][p] = 0
-    for (let i = 0; i < n; i++) {
-      if (i !== p && i !== q) {
-        const aip = a[i][p], aiq = a[i][q]
-        a[i][p] = a[p][i] = c * aip - s * aiq
-        a[i][q] = a[q][i] = s * aip + c * aiq
-      }
-    }
-    for (let i = 0; i < n; i++) {
-      const vip = v[i][p], viq = v[i][q]
-      v[i][p] = c * vip - s * viq; v[i][q] = s * vip + c * viq
-    }
-  }
-  const pairs = Array.from({ length: n }, (_, k) => ({
-    val: a[k][k], vec: Array.from({ length: n }, (_, r) => v[r][k]),
-  })).sort((x, y) => y.val - x.val)
-  return { values: pairs.map(p => p.val), vectors: pairs.map(p => p.vec) }
-}
-
 export interface YieldPCAResult {
   scores: number[][]      // [N_MONTHS][3]
   loadings: number[][]    // [3][N_TENORS]
@@ -304,16 +265,6 @@ function formatCellValue(value: number, units: string): string {
   return value.toFixed(1)
 }
 
-function zscoreToColors(z: number): { bg: string; fg: string } {
-  if (z >= 2.0)  return { bg: '#a85a4b', fg: '#fbeee9' }
-  if (z >= 1.0)  return { bg: '#7a4a42', fg: '#f1ddd7' }
-  if (z >= 0.5)  return { bg: '#3f3034', fg: '#e4c9c2' }
-  if (z > -0.5)  return { bg: '#151b23', fg: '#c6ced8' }
-  if (z > -1.0)  return { bg: '#22303d', fg: '#bcd6e6' }
-  if (z > -2.0)  return { bg: '#2f5670', fg: '#e3f0f7' }
-  return           { bg: '#4a86a8', fg: '#f2f9fc' }
-}
-
 // ─── Legend ───────────────────────────────────────────────────────────────────
 
 function Legend() {
@@ -344,8 +295,6 @@ function Legend() {
 
 const CELL_W = 52, CELL_H = 28, INDICATOR_W_DEFAULT = 190
 const RIGHT_COL_W = 76, UNITS_COL_W = 88
-const stickyBg = '#07090c'
-
 function HeatmapTable() {
   const [indicatorW, setIndicatorW] = useState(INDICATOR_W_DEFAULT)
   const dragRef = useRef<{ startX: number; startW: number } | null>(null)
@@ -437,7 +386,6 @@ function HeatmapTable() {
     </div>
   )
 }
-
 
 // ─── DFM Factor Synthesis ─────────────────────────────────────────────────────
 // Group indices: 0=Real Activity, 1=Business Activity, 2=Housing, 3=Labour, 4=Wages, 5=Inflation, 6=Financial
@@ -562,45 +510,6 @@ function DFMSection() {
 }
 
 // ─── OLS helpers ─────────────────────────────────────────────────────────────
-
-function matTranspose(A: number[][]): number[][] { return A[0].map((_, j) => A.map(r => r[j])) }
-function matMul(A: number[][], B: number[][]): number[][] {
-  return Array.from({ length: A.length }, (_, i) =>
-    Array.from({ length: B[0].length }, (_, j) =>
-      Array.from({ length: B.length }, (_, k) => A[i][k] * B[k][j]).reduce((a, b) => a + b, 0)
-    )
-  )
-}
-function matVecMul(A: number[][], v: number[]): number[] { return A.map(row => row.reduce((s, a, j) => s + a * v[j], 0)) }
-function matInv(A: number[][]): number[][] {
-  const n = A.length
-  const aug = A.map((row, i) => [...row, ...Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))])
-  for (let col = 0; col < n; col++) {
-    let mx = col
-    for (let r = col + 1; r < n; r++) if (Math.abs(aug[r][col]) > Math.abs(aug[mx][col])) mx = r;
-    [aug[col], aug[mx]] = [aug[mx], aug[col]]
-    const pv = aug[col][col]
-    for (let j = 0; j < 2 * n; j++) aug[col][j] /= pv
-    for (let r = 0; r < n; r++) { if (r === col) continue; const f = aug[r][col]; for (let j = 0; j < 2 * n; j++) aug[r][j] -= f * aug[col][j] }
-  }
-  return aug.map(row => row.slice(n))
-}
-interface OLSResult { coefficients: number[]; tStats: number[]; rSquared: number; adjRSquared: number; fitted: number[]; residuals: number[] }
-function ols(y: number[], X: number[][]): OLSResult {
-  const N = y.length, K = X[0].length
-  const Xt = matTranspose(X), XtX = matMul(Xt, X), Xty = matVecMul(Xt, y)
-  const beta = matVecMul(matInv(XtX), Xty)
-  const fitted = X.map(row => row.reduce((s, x, j) => s + x * beta[j], 0))
-  const residuals = y.map((yi, i) => yi - fitted[i])
-  const yMean = y.reduce((s, v) => s + v, 0) / N
-  const TSS = y.reduce((s, v) => s + (v - yMean) ** 2, 0)
-  const RSS = residuals.reduce((s, r) => s + r ** 2, 0)
-  const rSquared = 1 - RSS / TSS
-  const adjRSquared = 1 - (RSS / (N - K)) / (TSS / (N - 1))
-  const sigma2 = RSS / (N - K)
-  const XtXinv = matInv(XtX)
-  return { coefficients: beta, tStats: beta.map((b, j) => b / Math.sqrt(sigma2 * XtXinv[j][j])), rSquared, adjRSquared, fitted, residuals }
-}
 
 // ─── PC Regressions ───────────────────────────────────────────────────────────
 
@@ -773,7 +682,6 @@ function PCRegressionSection() {
     </div>
   )
 }
-
 
 // ─── 10y Gilt Fair Value ──────────────────────────────────────────────────────
 
@@ -1057,7 +965,6 @@ function CurveDynamicsSection() {
     </div>
   )
 }
-
 
 // ─── BE Dynamics (10y Gilt breakeven) ────────────────────────────────────────
 // UK 10y breakeven = nominal 10y Gilt - 10y real yield (linker)

@@ -12,6 +12,8 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from 'recharts'
+import { matTranspose, matVecMul, matInv, jacobiEigen, type OLSResult } from '../lib/math/linalg'
+import { cardStyle, stickyBg, zscoreToColors } from '../features/heatmap/styles'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,13 +35,6 @@ interface Group {
 }
 
 // ─── Styles (matching SwapsRV exactly) ───────────────────────────────────────
-
-const cardStyle: React.CSSProperties = {
-  background: 'rgba(200,220,240,0.03)',
-  border: '1px solid rgba(200,220,240,0.07)',
-  borderRadius: 6,
-  padding: 24,
-}
 
 // ─── Date column generation ───────────────────────────────────────────────────
 
@@ -306,52 +301,6 @@ export const SYNTHETIC_YIELDS: Record<Tenor, number[]> = {
 // Iteratively zeros off-diagonal elements via Givens rotations.
 // Converges to machine precision in < 100 sweeps for an 8×8 matrix.
 
-function jacobiEigen(mat: number[][]): { values: number[]; vectors: number[][] } {
-  const n = mat.length
-  const a = mat.map(row => [...row])
-  // v[:,k] = k-th eigenvector; initialise as identity
-  const v: number[][] = Array.from({ length: n }, (_, i) =>
-    Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))
-  )
-  for (let iter = 0; iter < 500; iter++) {
-    // Find largest off-diagonal element
-    let maxVal = 0, p = 0, q = 1
-    for (let i = 0; i < n - 1; i++)
-      for (let j = i + 1; j < n; j++)
-        if (Math.abs(a[i][j]) > maxVal) { maxVal = Math.abs(a[i][j]); p = i; q = j }
-    if (maxVal < 1e-12) break
-    // Jacobi rotation angle
-    const theta = (a[q][q] - a[p][p]) / (2 * a[p][q])
-    const t = (theta >= 0 ? 1 : -1) / (Math.abs(theta) + Math.sqrt(1 + theta * theta))
-    const c = 1 / Math.sqrt(1 + t * t)
-    const s = t * c
-    // Update symmetric matrix
-    const app = a[p][p], aqq = a[q][q], apq = a[p][q]
-    a[p][p] = app - t * apq
-    a[q][q] = aqq + t * apq
-    a[p][q] = 0; a[q][p] = 0
-    for (let i = 0; i < n; i++) {
-      if (i !== p && i !== q) {
-        const aip = a[i][p], aiq = a[i][q]
-        a[i][p] = a[p][i] = c * aip - s * aiq
-        a[i][q] = a[q][i] = s * aip + c * aiq
-      }
-    }
-    // Accumulate eigenvectors
-    for (let i = 0; i < n; i++) {
-      const vip = v[i][p], viq = v[i][q]
-      v[i][p] = c * vip - s * viq
-      v[i][q] = s * vip + c * viq
-    }
-  }
-  // Collect eigenpairs and sort descending by eigenvalue
-  const pairs = Array.from({ length: n }, (_, k) => ({
-    val: a[k][k],
-    vec: Array.from({ length: n }, (_, r) => v[r][k]),
-  })).sort((x, y) => y.val - x.val)
-  return { values: pairs.map(p => p.val), vectors: pairs.map(p => p.vec) }
-}
-
 export interface YieldPCAResult {
   /** PC time series: [N_MONTHS][3] */
   scores: number[][]
@@ -431,16 +380,6 @@ function formatCellValue(value: number, units: string): string {
   return value.toFixed(1)
 }
 
-function zscoreToColors(z: number): { bg: string; fg: string } {
-  if (z >= 2.0)  return { bg: '#a85a4b', fg: '#fbeee9' }
-  if (z >= 1.0)  return { bg: '#7a4a42', fg: '#f1ddd7' }
-  if (z >= 0.5)  return { bg: '#3f3034', fg: '#e4c9c2' }
-  if (z > -0.5)  return { bg: '#151b23', fg: '#c6ced8' }
-  if (z > -1.0)  return { bg: '#22303d', fg: '#bcd6e6' }
-  if (z > -2.0)  return { bg: '#2f5670', fg: '#e3f0f7' }
-  return           { bg: '#4a86a8', fg: '#f2f9fc' }
-}
-
 // ─── Legend ───────────────────────────────────────────────────────────────────
 
 const LEGEND_STEPS: { bg: string; fg: string; label: string }[] = [
@@ -490,8 +429,6 @@ const CELL_H = 28
 const INDICATOR_W_DEFAULT = 190
 const RIGHT_COL_W = 76
 const UNITS_COL_W = 88
-
-const stickyBg = '#07090c'
 
 function HeatmapTable() {
   const [indicatorW, setIndicatorW] = useState(INDICATOR_W_DEFAULT)
@@ -1074,10 +1011,6 @@ function DFMSection() {
 
 // ─── OLS Regression ───────────────────────────────────────────────────────────
 
-function matTranspose(A: number[][]): number[][] {
-  return A[0].map((_, j) => A.map(row => row[j]))
-}
-
 function matMul(A: number[][], B: number[][]): number[][] {
   const rows = A.length, cols = B[0].length, inner = B.length
   return Array.from({ length: rows }, (_, i) =>
@@ -1087,45 +1020,6 @@ function matMul(A: number[][], B: number[][]): number[][] {
   )
 }
 
-function matVecMul(A: number[][], v: number[]): number[] {
-  return A.map(row => row.reduce((s, a, j) => s + a * v[j], 0))
-}
-
-/** Gauss-Jordan inversion for small square matrices */
-function matInv(A: number[][]): number[][] {
-  const n = A.length
-  const aug = A.map((row, i) => [
-    ...row,
-    ...Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)),
-  ])
-  for (let col = 0; col < n; col++) {
-    // Partial pivot
-    let maxRow = col
-    for (let r = col + 1; r < n; r++)
-      if (Math.abs(aug[r][col]) > Math.abs(aug[maxRow][col])) maxRow = r;
-    [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]]
-    const pivot = aug[col][col]
-    for (let j = 0; j < 2 * n; j++) aug[col][j] /= pivot
-    for (let r = 0; r < n; r++) {
-      if (r === col) continue
-      const factor = aug[r][col]
-      for (let j = 0; j < 2 * n; j++) aug[r][j] -= factor * aug[col][j]
-    }
-  }
-  return aug.map(row => row.slice(n))
-}
-
-interface OLSResult {
-  /** Coefficients [intercept, β1, β2, …] */
-  coefficients: number[]
-  tStats: number[]
-  rSquared: number
-  adjRSquared: number
-  fitted: number[]
-  residuals: number[]
-}
-
-/** OLS without intercept. X is [N × K]. */
 function ols(y: number[], X: number[][]): OLSResult {
   const N = y.length
   const K = X[0].length

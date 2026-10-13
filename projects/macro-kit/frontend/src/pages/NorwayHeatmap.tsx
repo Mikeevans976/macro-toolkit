@@ -4,16 +4,14 @@ import {
   LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer,
 } from 'recharts'
+import { matTranspose, matMul, matVecMul, matInv, jacobiEigen, type OLSResult } from '../lib/math/linalg'
+import { cardStyle, zscoreToColors } from '../features/heatmap/styles'
 
 interface Indicator {
   name: string; asOfLastMtg: string; latest: string; change: string
   lastUpd: string; units: string; mean: number; std: number; zscores: number[]
 }
 interface Group { name: string; indicators: Indicator[] }
-
-const cardStyle: React.CSSProperties = {
-  background: 'rgba(200,220,240,0.03)', border: '1px solid rgba(200,220,240,0.07)', borderRadius: 6, padding: 24,
-}
 
 function generateMonths(): string[] {
   const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -162,24 +160,6 @@ export const SYNTHETIC_YIELDS: Record<Tenor, number[]> = {
 
 // ─── Yield PCA (Jacobi) ───────────────────────────────────────────────────────
 
-function jacobiEigen(mat: number[][]): { values: number[]; vectors: number[][] } {
-  const n = mat.length, a = mat.map(r => [...r])
-  const v: number[][] = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)))
-  for (let iter = 0; iter < 500; iter++) {
-    let maxVal = 0, p = 0, q = 1
-    for (let i = 0; i < n - 1; i++) for (let j = i + 1; j < n; j++) if (Math.abs(a[i][j]) > maxVal) { maxVal = Math.abs(a[i][j]); p = i; q = j }
-    if (maxVal < 1e-12) break
-    const theta = (a[q][q] - a[p][p]) / (2 * a[p][q])
-    const t = (theta >= 0 ? 1 : -1) / (Math.abs(theta) + Math.sqrt(1 + theta * theta))
-    const c = 1 / Math.sqrt(1 + t * t), s = t * c
-    const app = a[p][p], aqq = a[q][q], apq = a[p][q]
-    a[p][p] = app - t * apq; a[q][q] = aqq + t * apq; a[p][q] = 0; a[q][p] = 0
-    for (let i = 0; i < n; i++) { if (i !== p && i !== q) { const aip = a[i][p], aiq = a[i][q]; a[i][p] = a[p][i] = c * aip - s * aiq; a[i][q] = a[q][i] = s * aip + c * aiq } }
-    for (let i = 0; i < n; i++) { const vip = v[i][p], viq = v[i][q]; v[i][p] = c * vip - s * viq; v[i][q] = s * vip + c * viq }
-  }
-  const pairs = Array.from({ length: n }, (_, k) => ({ val: a[k][k], vec: Array.from({ length: n }, (_, r) => v[r][k]) })).sort((x, y) => y.val - x.val)
-  return { values: pairs.map(p => p.val), vectors: pairs.map(p => p.vec) }
-}
 export interface YieldPCAResult { scores: number[][]; loadings: number[][]; explainedVar: number[]; means: number[] }
 function computeYieldPCA(): YieldPCAResult {
   const N = N_MONTHS, M = YIELD_TENORS.length
@@ -204,15 +184,6 @@ function formatCellValue(value: number, units: string): string {
   if (units === 'bps') return value.toFixed(0)
   if (Math.abs(value) >= 1000) return value.toFixed(0)
   return value.toFixed(1)
-}
-function zscoreToColors(z: number): { bg: string; fg: string } {
-  if (z >= 2.0)  return { bg: '#a85a4b', fg: '#fbeee9' }
-  if (z >= 1.0)  return { bg: '#7a4a42', fg: '#f1ddd7' }
-  if (z >= 0.5)  return { bg: '#3f3034', fg: '#e4c9c2' }
-  if (z > -0.5)  return { bg: '#151b23', fg: '#c6ced8' }
-  if (z > -1.0)  return { bg: '#22303d', fg: '#bcd6e6' }
-  if (z > -2.0)  return { bg: '#2f5670', fg: '#e3f0f7' }
-  return           { bg: '#4a86a8', fg: '#f2f9fc' }
 }
 function Legend() {
   const steps = [{ bg: '#a85a4b', fg: '#fbeee9', label: '≥ +2σ' }, { bg: '#7a4a42', fg: '#f1ddd7', label: '+1σ' }, { bg: '#3f3034', fg: '#e4c9c2', label: '+0.5σ' }, { bg: '#151b23', fg: '#c6ced8', label: '0' }, { bg: '#22303d', fg: '#bcd6e6', label: '−0.5σ' }, { bg: '#2f5670', fg: '#e3f0f7', label: '−1σ' }, { bg: '#4a86a8', fg: '#f2f9fc', label: '≤ −2σ' }]
@@ -340,15 +311,6 @@ function DFMSection() {
   )
 }
 
-function matTranspose(A: number[][]): number[][] { return A[0].map((_, j) => A.map(r => r[j])) }
-function matMul(A: number[][], B: number[][]): number[][] { return Array.from({ length: A.length }, (_, i) => Array.from({ length: B[0].length }, (_, j) => Array.from({ length: B.length }, (_, k) => A[i][k] * B[k][j]).reduce((a, b) => a + b, 0))) }
-function matVecMul(A: number[][], v: number[]): number[] { return A.map(row => row.reduce((s, a, j) => s + a * v[j], 0)) }
-function matInv(A: number[][]): number[][] {
-  const n = A.length, aug = A.map((row, i) => [...row, ...Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))])
-  for (let col = 0; col < n; col++) { let mx = col; for (let r = col + 1; r < n; r++) if (Math.abs(aug[r][col]) > Math.abs(aug[mx][col])) mx = r; [aug[col], aug[mx]] = [aug[mx], aug[col]]; const pv = aug[col][col]; for (let j = 0; j < 2 * n; j++) aug[col][j] /= pv; for (let r = 0; r < n; r++) { if (r === col) continue; const f = aug[r][col]; for (let j = 0; j < 2 * n; j++) aug[r][j] -= f * aug[col][j] } }
-  return aug.map(row => row.slice(n))
-}
-interface OLSResult { coefficients: number[]; tStats: number[]; rSquared: number; adjRSquared: number; fitted: number[]; residuals: number[] }
 function ols(y: number[], X: number[][]): OLSResult {
   const N = y.length, K = X[0].length, Xt = matTranspose(X), XtX = matMul(Xt, X), Xty = matVecMul(Xt, y), beta = matVecMul(matInv(XtX), Xty)
   const fitted = X.map(row => row.reduce((s, x, j) => s + x * beta[j], 0)), residuals = y.map((yi, i) => yi - fitted[i])

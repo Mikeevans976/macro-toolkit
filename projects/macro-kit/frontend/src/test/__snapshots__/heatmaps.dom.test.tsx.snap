@@ -1,0 +1,71 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`heatmap DOM > AustraliaHeatmap 1`] = `
+{
+  "fnv1a64": "e2d0b2f81908af22",
+  "length": 608574,
+}
+`;
+
+exports[`heatmap DOM > CanadaHeatmap 1`] = `
+{
+  "fnv1a64": "53d409db01728697",
+  "length": 683793,
+}
+`;
+
+exports[`heatmap DOM > EuroAreaHeatmap 1`] = `
+{
+  "fnv1a64": "8cdfa1ac229dd796",
+  "length": 1079388,
+}
+`;
+
+exports[`heatmap DOM > JapanHeatmap 1`] = `
+{
+  "fnv1a64": "52c29406082571d0",
+  "length": 738616,
+}
+`;
+
+exports[`heatmap DOM > NewZealandHeatmap 1`] = `
+{
+  "fnv1a64": "381aa6d831e31ce1",
+  "length": 607453,
+}
+`;
+
+exports[`heatmap DOM > NorwayHeatmap 1`] = `
+{
+  "fnv1a64": "fddf965a94d0f7ed",
+  "length": 640624,
+}
+`;
+
+exports[`heatmap DOM > SwedenHeatmap 1`] = `
+{
+  "fnv1a64": "ff792b1e0c0d4b72",
+  "length": 650133,
+}
+`;
+
+exports[`heatmap DOM > SwitzerlandHeatmap 1`] = `
+{
+  "fnv1a64": "c3fc02fa05c17f50",
+  "length": 608637,
+}
+`;
+
+exports[`heatmap DOM > UKHeatmap 1`] = `
+{
+  "fnv1a64": "f07ae3286ee51068",
+  "length": 1071072,
+}
+`;
+
+exports[`heatmap DOM > USHeatmap 1`] = `
+{
+  "fnv1a64": "8a10c1b52573e160",
+  "length": 860629,
+}
+`;
