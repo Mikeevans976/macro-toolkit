@@ -12,3 +12,6 @@ __pycache__/
 # Local reference material (books, screenshots)
 *.png
 Fixed Income Relative Value Analysis*
+
+# Personal / one-off files kept locally
+/scratch/
