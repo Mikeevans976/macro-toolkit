@@ -1,18 +1,26 @@
-import os
 import json
-from datetime import datetime, timedelta
+import logging
+import os
+import secrets
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import bcrypt
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
-import bcrypt
 
-# Secret key — set SECRET_KEY env var in production
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    "dev-secret-key-change-in-production-a1b2c3d4e5f6g7h8i9j0"
-)
+logger = logging.getLogger(__name__)
+
+# Secret key — set SECRET_KEY in any shared/deployed environment. Without it a
+# random per-process key is used: safe (nothing forgeable is baked into the
+# code) but every restart logs everyone out, and it must not be used with
+# multiple worker processes.
+SECRET_KEY = os.environ.get("SECRET_KEY") or ""
+if not SECRET_KEY:
+    SECRET_KEY = secrets.token_urlsafe(48)
+    logger.warning("SECRET_KEY is not set; using a random per-process key "
+                   "(tokens are invalidated on restart). Set SECRET_KEY in production.")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 8
 
@@ -39,11 +47,22 @@ def bootstrap_admin() -> None:
         json.dump({username: {"username": username, "full_name": full_name, "hashed_password": hashed}}, f)
 
 
+# users.json is re-read only when its mtime changes, so create_user.py edits
+# still take effect without a restart.
+_users_cache: tuple[float, dict] | None = None
+
+
 def load_users() -> dict:
-    if not os.path.exists(USERS_FILE):
+    global _users_cache
+    try:
+        mtime = os.path.getmtime(USERS_FILE)
+    except FileNotFoundError:
+        _users_cache = None
         return {}
-    with open(USERS_FILE, "r") as f:
-        return json.load(f)
+    if _users_cache is None or _users_cache[0] != mtime:
+        with open(USERS_FILE, "r") as f:
+            _users_cache = (mtime, json.load(f))
+    return _users_cache[1]
 
 
 def get_user(username: str) -> Optional[dict]:
@@ -66,13 +85,9 @@ def authenticate_user(username: str, password: str) -> Optional[dict]:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS))
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def verify_token(token: str) -> str:
@@ -83,12 +98,12 @@ def verify_token(token: str) -> str:
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        return username
-    except JWTError:
+    except jwt.PyJWTError:
         raise credentials_exception
+    username = payload.get("sub")
+    if not isinstance(username, str):
+        raise credentials_exception
+    return username
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
