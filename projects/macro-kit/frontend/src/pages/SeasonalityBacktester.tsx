@@ -7,6 +7,7 @@ import {
   AreaChart, Area, ScatterChart, Scatter, ZAxis,
 } from 'recharts'
 import { toLocalISODate } from '../lib/dates'
+import { authFetch } from '../api/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -2812,7 +2813,7 @@ export default function SeasonalityBacktester() {
 
     try {
       const params = new URLSearchParams({ expression, start })
-      const res = await fetch(`/api/tools/seasonality/data?${params}`, {
+      const res = await authFetch(`/api/tools/seasonality/data?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) {

@@ -5,6 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
 } from 'recharts'
+import { authFetch } from '../api/client'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -556,7 +557,7 @@ function EurFixings() {
     setLoading(true)
     setError(null)
     const token = localStorage.getItem('access_token')
-    fetch('/api/tools/inflation-fixings/eur', {
+    authFetch('/api/tools/inflation-fixings/eur', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => {
@@ -760,7 +761,7 @@ function GbpFixings() {
     setLoading(true)
     setError(null)
     const token = localStorage.getItem('access_token')
-    fetch('/api/tools/inflation-fixings/gbp', {
+    authFetch('/api/tools/inflation-fixings/gbp', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => {
@@ -1565,7 +1566,7 @@ function UsdFixings() {
     setLoading(true)
     setError(null)
     const token = localStorage.getItem('access_token')
-    fetch('/api/tools/inflation-fixings/usd', {
+    authFetch('/api/tools/inflation-fixings/usd', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => {

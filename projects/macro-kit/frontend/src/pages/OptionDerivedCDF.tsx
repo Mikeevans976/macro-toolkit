@@ -11,6 +11,7 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from 'recharts'
+import { authFetch } from '../api/client'
 
 // ─── Scenario config ──────────────────────────────────────────────────────────
 
@@ -416,7 +417,7 @@ export default function OptionDerivedCDF() {
     const token = localStorage.getItem('access_token')
     if (!token) return
     setApiLoading(true)
-    fetch(`/api/tools/option-cdf/${ccy}/${tail}`, {
+    authFetch(`/api/tools/option-cdf/${ccy}/${tail}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.ok ? r.json() : null)

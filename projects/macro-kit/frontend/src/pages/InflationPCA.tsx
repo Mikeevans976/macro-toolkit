@@ -5,6 +5,7 @@ import {
   Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts'
 import { toLocalISODate } from '../lib/dates'
+import { authFetch } from '../api/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -441,7 +442,7 @@ export default function InflationPCA() {
     if (!token) return
     setApiLoading(true)
     setApiData(null)
-    fetch(`/api/tools/inflation-pca/${curveId}`, {
+    authFetch(`/api/tools/inflation-pca/${curveId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.ok ? r.json() : null)

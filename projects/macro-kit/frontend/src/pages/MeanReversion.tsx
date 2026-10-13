@@ -5,6 +5,7 @@ import {
   ResponsiveContainer, ReferenceLine, ReferenceArea, ScatterChart,
   Scatter, ZAxis, ComposedChart, Area,
 } from 'recharts'
+import { authFetch } from '../api/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -655,7 +656,7 @@ function DiagnosticsTab({ result, token, expression, startDate, fitStart, fitEnd
     const isSim = !!withSim
     if (isSim) setSimLoading(true); else setBucketLoading(true)
     try {
-      const res = await fetch('/api/tools/mean-reversion/stanton', {
+      const res = await authFetch('/api/tools/mean-reversion/stanton', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -918,7 +919,7 @@ function ForwardDistTab({ result, token, expression, startDate, fitStart, fitEnd
     setSimLoading(true)
     setSimError(null)
     try {
-      const res = await fetch('/api/tools/mean-reversion/forward-dist', {
+      const res = await authFetch('/api/tools/mean-reversion/forward-dist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -957,7 +958,7 @@ function ForwardDistTab({ result, token, expression, startDate, fitStart, fitEnd
     setHistError(null)
     const sde = simSde ?? 'linear_ou'
     try {
-      const res = await fetch('/api/tools/mean-reversion/forward-hist', {
+      const res = await authFetch('/api/tools/mean-reversion/forward-hist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -1339,7 +1340,7 @@ function SharpeTab({ result, token, expression, startDate, fitStart, fitEnd }: {
     if (!token) return
     setMcLoading(true); setMcError(null)
     try {
-      const res = await fetch('/api/tools/mean-reversion/sharpe-mc', {
+      const res = await authFetch('/api/tools/mean-reversion/sharpe-mc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -2649,7 +2650,7 @@ export default function MeanReversion() {
     loadingSetter(true)
     setError(null)
     try {
-      const res = await fetch('/api/tools/mean-reversion/analyse', {
+      const res = await authFetch('/api/tools/mean-reversion/analyse', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

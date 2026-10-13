@@ -16,6 +16,7 @@ import {
   Cell,
   Area,
 } from 'recharts'
+import { authFetch } from '../api/client'
 
 // ─── Styling constants (matching dark theme) ─────────────────────────────────
 
@@ -196,13 +197,8 @@ interface DashboardData {
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
-function authHeaders(): Record<string, string> {
-  const token = localStorage.getItem('access_token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
 async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(path, { headers: authHeaders() })
+  const res = await authFetch(path)
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`HTTP ${res.status}: ${text}`)
@@ -211,7 +207,7 @@ async function apiFetch<T>(path: string): Promise<T> {
 }
 
 async function apiPost<T>(path: string): Promise<T> {
-  const res = await fetch(path, { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' } })
+  const res = await authFetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`HTTP ${res.status}: ${text}`)

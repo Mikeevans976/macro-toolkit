@@ -10,6 +10,7 @@ import {
   ReferenceDot, ReferenceLine, ResponsiveContainer, Scatter,
   Tooltip, XAxis, YAxis, Area,
 } from 'recharts'
+import { authFetch } from '../api/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -675,7 +676,7 @@ function NewIssueTab({ token, config }: {
         ...(config.external_vars ? { external_vars: config.external_vars } : {}),
         ...(config.as_of ? { as_of: config.as_of } : {}),
       })
-      const res = await fetch(`/api/tools/fitted-bond-curves/new-issue?${qs}`, {
+      const res = await authFetch(`/api/tools/fitted-bond-curves/new-issue?${qs}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) {
@@ -933,7 +934,7 @@ function BondDetailTab({ result, bondId, token, config, onSelectBond }: {
       ...(config.external_vars ? { external_vars: config.external_vars } : {}),
         ...(config.as_of ? { as_of: config.as_of } : {}),
     })
-    fetch(`/api/tools/fitted-bond-curves/bond/${bondId}?${qs}`, {
+    authFetch(`/api/tools/fitted-bond-curves/bond/${bondId}?${qs}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async res => {
@@ -1135,7 +1136,7 @@ export default function FittedBondCurves() {
         ...(ext ? { external_vars: ext } : {}),
         ...(date ? { as_of: date } : {}),
       })
-      const res = await fetch(`/api/tools/fitted-bond-curves?${qs}`, {
+      const res = await authFetch(`/api/tools/fitted-bond-curves?${qs}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) {
