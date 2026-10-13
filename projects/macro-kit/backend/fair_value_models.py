@@ -17,7 +17,6 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import CubicSpline
 from sklearn.linear_model import ElasticNet
-from sklearn.preprocessing import StandardScaler
 
 # ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -601,7 +600,14 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
     """Fit rolling ElasticNet and return chart-ready dict."""
 
     en = ElasticNet(alpha=0.01, l1_ratio=0.5, max_iter=2000, tol=1e-4, warm_start=True)
-    scaler = StandardScaler()
+
+    # ~5k daily refits per model: sklearn's per-call input validation and the
+    # StandardScaler wrapper cost more than the solver itself. Standardise with
+    # numpy (same population std and zero-variance guard as StandardScaler) and
+    # fit with check_input=False on C-contiguous float64 arrays (Fortran order
+    # for X, as the coordinate-descent solver expects). Results are unchanged.
+    X = np.asarray(X, dtype=np.float64)
+    y = np.ascontiguousarray(y, dtype=np.float64)
 
     n = len(y)
     fitted_full    = np.full(n, np.nan)   # OOS predictions (train on [t-500, t-1], predict t)
@@ -619,17 +625,20 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
         Xw = X[start : t]
         yw = y[start : t]
 
-        Xw_sc = scaler.fit_transform(Xw)
-        en.fit(Xw_sc, yw)
+        mu = Xw.mean(axis=0)
+        sd = Xw.std(axis=0)
+        sd[sd < 10 * np.finfo(np.float64).eps] = 1.0
+        Xw_sc = np.asfortranarray((Xw - mu) / sd)
+        en.fit(Xw_sc, yw, check_input=False)
 
         # OOS prediction at t
-        x_curr = scaler.transform(X[t : t + 1])
-        fitted_full[t]    = float(en.predict(x_curr)[0])
+        x_curr = (X[t] - mu) / sd
+        fitted_full[t]    = float(x_curr @ en.coef_ + en.intercept_)
         residuals_full[t] = y[t] - fitted_full[t]
         coef_full[t]      = en.coef_
 
         # In-sample R² on training window (not t)
-        y_pred_w = en.predict(Xw_sc)
+        y_pred_w = Xw_sc @ en.coef_ + en.intercept_
         ss_res = np.sum((yw - y_pred_w) ** 2)
         ss_tot = np.sum((yw - yw.mean()) ** 2)
         r2_is_full[t] = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
@@ -676,27 +685,30 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
     if step_idx and step_idx[-1] != n - 1:
         step_idx.append(n - 1)
 
-    def _val(s: pd.Series, i: int, guard: bool = True) -> float | None:
-        if guard and i < MIN_WINDOW:
-            return None
-        v = float(s.iloc[i])
-        return round(v, 4) if not (v != v) else None  # NaN check
+    def _vals(s: pd.Series) -> list[float | None]:
+        """Rounded values at step_idx; None before MIN_WINDOW or where NaN."""
+        arr = s.to_numpy(dtype=np.float64)   # one conversion, not ~5k .iloc lookups
+        out: list[float | None] = []
+        for i in step_idx:
+            v = float(arr[i])
+            out.append(None if i < MIN_WINDOW or v != v else round(v, 4))
+        return out
 
-    dates_out = [DATES[i].strftime("%Y-%m-%d") for i in step_idx]
+    dates_out = DATES[step_idx].strftime("%Y-%m-%d").tolist()
     actual_out = [round(float(y[i]), 4) for i in step_idx]
-    fitted_out = [_val(fitted_s, i) for i in step_idx]
-    resid_out  = [_val(resid_s, i) for i in step_idx]
-    s1hi = [_val(sigma1_hi, i) for i in step_idx]
-    s1lo = [_val(sigma1_lo, i) for i in step_idx]
-    s2hi = [_val(sigma2_hi, i) for i in step_idx]
-    s2lo = [_val(sigma2_lo, i) for i in step_idx]
-    r2_out      = [_val(r2_s,      i) for i in step_idx]
-    oos_r2_out  = [_val(oos_r2_s,  i) for i in step_idx]
-    bench_r2_out = [_val(bench_r2_s, i) for i in step_idx]
+    fitted_out = _vals(fitted_s)
+    resid_out  = _vals(resid_s)
+    s1hi = _vals(sigma1_hi)
+    s1lo = _vals(sigma1_lo)
+    s2hi = _vals(sigma2_hi)
+    s2lo = _vals(sigma2_lo)
+    r2_out       = _vals(r2_s)
+    oos_r2_out   = _vals(oos_r2_s)
+    bench_r2_out = _vals(bench_r2_s)
 
     coef_series: dict[str, list[float | None]] = {}
     for name in feature_names:
-        coef_series[name] = [_val(coef_df[name], i) for i in step_idx]
+        coef_series[name] = _vals(coef_df[name])
 
     last_valid_mask = ~np.isnan(coef_full[:, 0])
     last_valid = int(np.where(last_valid_mask)[0][-1]) if last_valid_mask.any() else -1
@@ -715,8 +727,9 @@ def _rolling_elastic_net(X: np.ndarray, y: np.ndarray, feature_names: list[str])
     sc_fwd10: list[float | None] = []
     sc_fwd20: list[float | None] = []
     sc_fwd100: list[float | None] = []
+    resid_arr = resid_s.to_numpy(dtype=np.float64)
     for i in scatter_idx:
-        r = resid_s.iloc[i]
+        r = resid_arr[i]
         if np.isnan(r):
             continue
         for fwd_list, horizon in [(sc_fwd5, 5), (sc_fwd10, 10), (sc_fwd20, 20), (sc_fwd100, 100)]:

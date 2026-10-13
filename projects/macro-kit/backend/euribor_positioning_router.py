@@ -35,7 +35,7 @@ from euribor_positioning.data.db import (
 from euribor_positioning.data.contract_calendar import generate_contracts
 from euribor_positioning.data.ingest_ice_eod import simulate_eod_data
 from euribor_positioning.data.ingest_ice_cot import simulate_cot_data
-from euribor_positioning.outputs.dashboard import build_dashboard, panel_contract_strip, panel_contract_history
+from euribor_positioning.outputs.dashboard import build_dashboard, panel_contract_history
 from euribor_positioning.outputs.diagnostics import (
     diagnostic_estimator_quality,
     diagnostic_price_impact,
@@ -129,13 +129,13 @@ def _db_status() -> dict:
 # ---------------------------------------------------------------------------
 
 @router.get("/status")
-async def get_status(current_user=Depends(get_current_user)):
+def get_status(current_user=Depends(get_current_user)):
     """DB health check."""
     return _db_status()
 
 
 @router.post("/init")
-async def initialise_db(current_user=Depends(get_current_user)):
+def initialise_db(current_user=Depends(get_current_user)):
     """
     Initialise DB, seed contracts (FEI 2010–2030), and simulate 2 years of data.
     Idempotent — safe to call repeatedly.
@@ -192,7 +192,7 @@ async def initialise_db(current_user=Depends(get_current_user)):
 
 
 @router.get("/dashboard")
-async def get_dashboard(
+def get_dashboard(
     as_of: Optional[str] = None,
     instrument: str = "euribor",
     current_user=Depends(get_current_user),
@@ -221,7 +221,7 @@ async def get_dashboard(
 
 
 @router.get("/diagnostics")
-async def get_diagnostics(
+def get_diagnostics(
     days: int = 252,
     current_user=Depends(get_current_user),
 ):
@@ -285,7 +285,7 @@ _PANEL_FNS = {
 
 
 @router.get("/panel/{panel_name}")
-async def get_panel(
+def get_panel(
     panel_name: str,
     as_of: Optional[str] = None,
     instrument: str = "euribor",
@@ -321,7 +321,7 @@ async def get_panel(
 
 
 @router.get("/contract/{contract_id}")
-async def get_contract_history(
+def get_contract_history(
     contract_id: str,
     instrument: str = "euribor",
     days: int = 252,

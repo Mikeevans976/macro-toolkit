@@ -1,8 +1,11 @@
 import asyncio
 import json
+import logging
 import os
+import threading
 import queue as _queue_module
 import uuid
+from contextlib import asynccontextmanager
 from datetime import timedelta
 from pathlib import Path
 from typing import Optional
@@ -10,6 +13,7 @@ from typing import Optional
 import yaml
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
@@ -116,7 +120,6 @@ from momentum import compute_cta_signals
 from inflation_pca import get_inflation_pca_data
 from pca_analysis import get_pca_data
 from option_derived_cdf import get_option_cdf_params
-from mean_reversion import analyse as mr_analyse
 from correlation_regimes import run_scan as cr_run_scan, get_pair_detail as cr_pair_detail
 from fitted_bond_curves import (
     compute_fitted_curve,
@@ -124,11 +127,41 @@ from fitted_bond_curves import (
     predict_new_issue as fbc_new_issue,
 )
 from euribor_positioning_router import router as positioning_router
+from routers.mean_reversion import router as mean_reversion_router
 
-app = FastAPI(title="Analytics Hub API", version="1.0.0")
+# No-op if the host (e.g. a configured uvicorn/gunicorn) already set up logging.
+logging.basicConfig(
+    level=os.environ.get("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger("analytics_hub")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Fair Value Models takes ~20 s to compute and is cached in-process; warm it
+    # in the background so the first visitor after a restart doesn't wait.
+    # Set PRECOMPUTE_ON_STARTUP=0 to skip (e.g. while iterating with --reload).
+    if os.environ.get("PRECOMPUTE_ON_STARTUP", "1") != "0":
+        def _warm() -> None:
+            try:
+                get_fair_value_models_data()
+                logger.info("Fair Value Models cache warmed")
+            except Exception:
+                logger.exception("Fair Value Models warm-up failed; will compute on first request")
+        threading.Thread(target=_warm, name="fvm-warmup", daemon=True).start()
+    yield
+
+
+app = FastAPI(title="Analytics Hub API", version="1.0.0", lifespan=lifespan)
+
+# Compress large JSON payloads (Fair Value Models ~12 MB -> ~1.4 MB). Starlette
+# skips text/event-stream, so agent SSE streams are not buffered.
+app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
 
 # Include routers
 app.include_router(positioning_router)
+app.include_router(mean_reversion_router)
 
 # CORS for local development
 app.add_middleware(
@@ -160,7 +193,7 @@ def load_dashboard_config() -> dict:
 
 
 @app.post("/api/auth/login")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -181,7 +214,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 @app.get("/api/me")
-async def read_me(current_user: dict = Depends(get_current_user)):
+def read_me(current_user: dict = Depends(get_current_user)):
     return {
         "username": current_user["username"],
         "full_name": current_user.get("full_name", ""),
@@ -189,211 +222,211 @@ async def read_me(current_user: dict = Depends(get_current_user)):
 
 
 @app.get("/api/dashboard")
-async def get_dashboard(current_user: dict = Depends(get_current_user)):
+def get_dashboard(current_user: dict = Depends(get_current_user)):
     config = load_dashboard_config()
     return config
 
 
 @app.get("/api/tools/euro-area-heatmap/factors")
-async def ea_daily_factors(current_user: dict = Depends(get_current_user)):
+def ea_daily_factors(current_user: dict = Depends(get_current_user)):
     """Daily macro factor estimates from the mixed-frequency DFM (Block 1)."""
     return get_daily_factors()
 
 
 @app.get("/api/tools/euro-area-heatmap/yield-pca")
-async def ea_yield_pca(current_user: dict = Depends(get_current_user)):
+def ea_yield_pca(current_user: dict = Depends(get_current_user)):
     """Daily Bund yield PC scores, loadings and explained variance (Block 2)."""
     return get_yield_pca()
 
 
 @app.get("/api/tools/euro-area-heatmap/pc-regressions")
-async def ea_pc_regressions(current_user: dict = Depends(get_current_user)):
+def ea_pc_regressions(current_user: dict = Depends(get_current_user)):
     """OLS regression of Bund yield PCs on macro factors (no intercept)."""
     return get_pc_regressions()
 
 
 @app.get("/api/tools/euro-area-heatmap/fair-value")
-async def ea_fair_value(current_user: dict = Depends(get_current_user)):
+def ea_fair_value(current_user: dict = Depends(get_current_user)):
     """Daily 10y Bund: actual, PCA reconstruction, macro fair value, rich/cheap."""
     return get_fair_value()
 
 
 @app.get("/api/tools/uk-heatmap/factors")
-async def uk_daily_factors(current_user: dict = Depends(get_current_user)):
+def uk_daily_factors(current_user: dict = Depends(get_current_user)):
     """Daily macro factor estimates from the UK mixed-frequency DFM (Block 1)."""
     return get_uk_daily_factors()
 
 
 @app.get("/api/tools/uk-heatmap/yield-pca")
-async def uk_yield_pca(current_user: dict = Depends(get_current_user)):
+def uk_yield_pca(current_user: dict = Depends(get_current_user)):
     """Daily Gilt yield PC scores, loadings and explained variance (Block 2)."""
     return get_uk_yield_pca()
 
 
 @app.get("/api/tools/uk-heatmap/pc-regressions")
-async def uk_pc_regressions(current_user: dict = Depends(get_current_user)):
+def uk_pc_regressions(current_user: dict = Depends(get_current_user)):
     """OLS regression of Gilt yield PCs on UK macro factors (no intercept)."""
     return get_uk_pc_regressions()
 
 
 @app.get("/api/tools/uk-heatmap/fair-value")
-async def uk_fair_value(current_user: dict = Depends(get_current_user)):
+def uk_fair_value(current_user: dict = Depends(get_current_user)):
     """Daily 10y Gilt: actual, PCA reconstruction, macro fair value, rich/cheap."""
     return get_uk_fair_value()
 
 
 @app.get("/api/tools/us-heatmap/factors")
-async def us_daily_factors(current_user: dict = Depends(get_current_user)):
+def us_daily_factors(current_user: dict = Depends(get_current_user)):
     """Daily macro factor estimates from the US mixed-frequency DFM (Block 1)."""
     return get_us_daily_factors()
 
 
 @app.get("/api/tools/us-heatmap/yield-pca")
-async def us_yield_pca(current_user: dict = Depends(get_current_user)):
+def us_yield_pca(current_user: dict = Depends(get_current_user)):
     """Daily UST yield PC scores, loadings and explained variance (Block 2)."""
     return get_us_yield_pca()
 
 
 @app.get("/api/tools/us-heatmap/pc-regressions")
-async def us_pc_regressions(current_user: dict = Depends(get_current_user)):
+def us_pc_regressions(current_user: dict = Depends(get_current_user)):
     """OLS regression of UST yield PCs on US macro factors (no intercept)."""
     return get_us_pc_regressions()
 
 
 @app.get("/api/tools/us-heatmap/fair-value")
-async def us_fair_value(current_user: dict = Depends(get_current_user)):
+def us_fair_value(current_user: dict = Depends(get_current_user)):
     """Daily 10y UST: actual, PCA reconstruction, macro fair value, rich/cheap."""
     return get_us_fair_value()
 
 
 @app.get("/api/tools/japan-heatmap/factors")
-async def jp_daily_factors(current_user: dict = Depends(get_current_user)):
+def jp_daily_factors(current_user: dict = Depends(get_current_user)):
     """Daily macro factor estimates from the Japan mixed-frequency DFM (Block 1)."""
     return get_jp_daily_factors()
 
 
 @app.get("/api/tools/japan-heatmap/yield-pca")
-async def jp_yield_pca(current_user: dict = Depends(get_current_user)):
+def jp_yield_pca(current_user: dict = Depends(get_current_user)):
     """Daily JGB yield PC scores, loadings and explained variance (Block 2)."""
     return get_jp_yield_pca()
 
 
 @app.get("/api/tools/japan-heatmap/pc-regressions")
-async def jp_pc_regressions(current_user: dict = Depends(get_current_user)):
+def jp_pc_regressions(current_user: dict = Depends(get_current_user)):
     """OLS regression of JGB yield PCs on Japan macro factors (no intercept)."""
     return get_jp_pc_regressions()
 
 
 @app.get("/api/tools/japan-heatmap/fair-value")
-async def jp_fair_value(current_user: dict = Depends(get_current_user)):
+def jp_fair_value(current_user: dict = Depends(get_current_user)):
     """Daily 10y JGB: actual, PCA reconstruction, macro fair value, rich/cheap."""
     return get_jp_fair_value()
 
 
 @app.get("/api/tools/canada-heatmap/factors")
-async def ca_daily_factors(current_user: dict = Depends(get_current_user)):
+def ca_daily_factors(current_user: dict = Depends(get_current_user)):
     return get_ca_daily_factors()
 
 @app.get("/api/tools/canada-heatmap/yield-pca")
-async def ca_yield_pca(current_user: dict = Depends(get_current_user)):
+def ca_yield_pca(current_user: dict = Depends(get_current_user)):
     return get_ca_yield_pca()
 
 @app.get("/api/tools/canada-heatmap/pc-regressions")
-async def ca_pc_regressions(current_user: dict = Depends(get_current_user)):
+def ca_pc_regressions(current_user: dict = Depends(get_current_user)):
     return get_ca_pc_regressions()
 
 @app.get("/api/tools/canada-heatmap/fair-value")
-async def ca_fair_value(current_user: dict = Depends(get_current_user)):
+def ca_fair_value(current_user: dict = Depends(get_current_user)):
     return get_ca_fair_value()
 
 
 @app.get("/api/tools/sweden-heatmap/factors")
-async def se_daily_factors(current_user: dict = Depends(get_current_user)):
+def se_daily_factors(current_user: dict = Depends(get_current_user)):
     return get_se_daily_factors()
 
 @app.get("/api/tools/sweden-heatmap/yield-pca")
-async def se_yield_pca(current_user: dict = Depends(get_current_user)):
+def se_yield_pca(current_user: dict = Depends(get_current_user)):
     return get_se_yield_pca()
 
 @app.get("/api/tools/sweden-heatmap/pc-regressions")
-async def se_pc_regressions(current_user: dict = Depends(get_current_user)):
+def se_pc_regressions(current_user: dict = Depends(get_current_user)):
     return get_se_pc_regressions()
 
 @app.get("/api/tools/sweden-heatmap/fair-value")
-async def se_fair_value(current_user: dict = Depends(get_current_user)):
+def se_fair_value(current_user: dict = Depends(get_current_user)):
     return get_se_fair_value()
 
 
 @app.get("/api/tools/norway-heatmap/factors")
-async def no_daily_factors(current_user: dict = Depends(get_current_user)):
+def no_daily_factors(current_user: dict = Depends(get_current_user)):
     return get_no_daily_factors()
 
 @app.get("/api/tools/norway-heatmap/yield-pca")
-async def no_yield_pca(current_user: dict = Depends(get_current_user)):
+def no_yield_pca(current_user: dict = Depends(get_current_user)):
     return get_no_yield_pca()
 
 @app.get("/api/tools/norway-heatmap/pc-regressions")
-async def no_pc_regressions(current_user: dict = Depends(get_current_user)):
+def no_pc_regressions(current_user: dict = Depends(get_current_user)):
     return get_no_pc_regressions()
 
 @app.get("/api/tools/norway-heatmap/fair-value")
-async def no_fair_value(current_user: dict = Depends(get_current_user)):
+def no_fair_value(current_user: dict = Depends(get_current_user)):
     return get_no_fair_value()
 
 
 @app.get("/api/tools/switzerland-heatmap/factors")
-async def ch_daily_factors(current_user: dict = Depends(get_current_user)):
+def ch_daily_factors(current_user: dict = Depends(get_current_user)):
     return get_ch_daily_factors()
 
 @app.get("/api/tools/switzerland-heatmap/yield-pca")
-async def ch_yield_pca(current_user: dict = Depends(get_current_user)):
+def ch_yield_pca(current_user: dict = Depends(get_current_user)):
     return get_ch_yield_pca()
 
 @app.get("/api/tools/switzerland-heatmap/pc-regressions")
-async def ch_pc_regressions(current_user: dict = Depends(get_current_user)):
+def ch_pc_regressions(current_user: dict = Depends(get_current_user)):
     return get_ch_pc_regressions()
 
 @app.get("/api/tools/switzerland-heatmap/fair-value")
-async def ch_fair_value(current_user: dict = Depends(get_current_user)):
+def ch_fair_value(current_user: dict = Depends(get_current_user)):
     return get_ch_fair_value()
 
 
 @app.get("/api/tools/australia-heatmap/factors")
-async def au_daily_factors(current_user: dict = Depends(get_current_user)):
+def au_daily_factors(current_user: dict = Depends(get_current_user)):
     return get_au_daily_factors()
 
 @app.get("/api/tools/australia-heatmap/yield-pca")
-async def au_yield_pca(current_user: dict = Depends(get_current_user)):
+def au_yield_pca(current_user: dict = Depends(get_current_user)):
     return get_au_yield_pca()
 
 @app.get("/api/tools/australia-heatmap/pc-regressions")
-async def au_pc_regressions(current_user: dict = Depends(get_current_user)):
+def au_pc_regressions(current_user: dict = Depends(get_current_user)):
     return get_au_pc_regressions()
 
 @app.get("/api/tools/australia-heatmap/fair-value")
-async def au_fair_value(current_user: dict = Depends(get_current_user)):
+def au_fair_value(current_user: dict = Depends(get_current_user)):
     return get_au_fair_value()
 
 
 @app.get("/api/tools/new-zealand-heatmap/factors")
-async def nz_daily_factors(current_user: dict = Depends(get_current_user)):
+def nz_daily_factors(current_user: dict = Depends(get_current_user)):
     return get_nz_daily_factors()
 
 @app.get("/api/tools/new-zealand-heatmap/yield-pca")
-async def nz_yield_pca(current_user: dict = Depends(get_current_user)):
+def nz_yield_pca(current_user: dict = Depends(get_current_user)):
     return get_nz_yield_pca()
 
 @app.get("/api/tools/new-zealand-heatmap/pc-regressions")
-async def nz_pc_regressions(current_user: dict = Depends(get_current_user)):
+def nz_pc_regressions(current_user: dict = Depends(get_current_user)):
     return get_nz_pc_regressions()
 
 @app.get("/api/tools/new-zealand-heatmap/fair-value")
-async def nz_fair_value(current_user: dict = Depends(get_current_user)):
+def nz_fair_value(current_user: dict = Depends(get_current_user)):
     return get_nz_fair_value()
 
 
 @app.get("/api/tools/global-yields")
-async def global_yields(current_user: dict = Depends(get_current_user)):
+def global_yields(current_user: dict = Depends(get_current_user)):
     """PCA factor model on global 10y yields: factors, residuals, fair-value table."""
     return get_global_yields_data()
 
@@ -405,7 +438,7 @@ def fair_value_models(current_user: dict = Depends(get_current_user)):
 
 
 @app.get("/api/tools/seasonality/data")
-async def seasonality_data(
+def seasonality_data(
     expression: str,
     start: str = "2010-01-01",
     current_user: dict = Depends(get_current_user),
@@ -421,7 +454,7 @@ async def seasonality_data(
 
 
 @app.post("/api/tools/seasonality/stats")
-async def seasonality_stats(
+def seasonality_stats(
     payload: dict,
     current_user: dict = Depends(get_current_user),
 ):
@@ -432,7 +465,7 @@ async def seasonality_stats(
 
 
 @app.post("/api/tools/seasonality/heatmap")
-async def seasonality_heatmap(
+def seasonality_heatmap(
     payload: dict,
     current_user: dict = Depends(get_current_user),
 ):
@@ -443,7 +476,7 @@ async def seasonality_heatmap(
 
 
 @app.post("/api/tools/seasonality/backtest")
-async def seasonality_backtest(
+def seasonality_backtest(
     payload: dict,
     current_user: dict = Depends(get_current_user),
 ):
@@ -455,7 +488,7 @@ async def seasonality_backtest(
 
 
 @app.get("/api/tools/print-analysis/print-vs-consensus")
-async def print_vs_consensus(
+def print_vs_consensus(
     ticker: str,
     start: str = "2010-01-01",
     current_user: dict = Depends(get_current_user),
@@ -468,7 +501,7 @@ async def print_vs_consensus(
 
 
 @app.post("/api/tools/print-analysis/market-reaction")
-async def market_reaction(
+def market_reaction(
     payload: dict,
     current_user: dict = Depends(get_current_user),
 ):
@@ -483,7 +516,7 @@ async def market_reaction(
 
 
 @app.get("/api/tools/momentum/cta-signals")
-async def cta_signals(
+def cta_signals(
     ticker: str,
     start: str = "2010-01-01",
     current_user: dict = Depends(get_current_user),
@@ -492,19 +525,19 @@ async def cta_signals(
 
 
 @app.get("/api/tools/option-cdf/{ccy}/{tail}")
-async def option_cdf_params(ccy: str, tail: str, current_user: dict = Depends(get_current_user)):
+def option_cdf_params(ccy: str, tail: str, current_user: dict = Depends(get_current_user)):
     """Swaption market parameters for Option-Implied CDF tool."""
     return get_option_cdf_params(ccy, tail)
 
 
 @app.get("/api/tools/inflation-pca/{curve_id}")
-async def inflation_pca(curve_id: str, current_user: dict = Depends(get_current_user)):
+def inflation_pca(curve_id: str, current_user: dict = Depends(get_current_user)):
     """PCA-neutral butterfly analysis for EUR/GBP ILB curves."""
     return get_inflation_pca_data(curve_id)
 
 
 @app.get("/api/tools/pca-analysis")
-async def pca_analysis(
+def pca_analysis(
     curve: str = "bund",
     tenors: str = "2,5,7,10",
     start_date: Optional[str] = None,
@@ -559,7 +592,7 @@ async def pca_analysis(
 
 
 @app.get("/api/tools/correlation-regimes/scan")
-async def correlation_regimes_scan(
+def correlation_regimes_scan(
     long_window: int = 126,
     short_window: int = 21,
     min_abs_corr: float = 0.6,
@@ -574,7 +607,7 @@ async def correlation_regimes_scan(
 
 
 @app.get("/api/tools/correlation-regimes/pair")
-async def correlation_regimes_pair(
+def correlation_regimes_pair(
     x: str,
     y: str,
     long_window: int = 126,
@@ -586,7 +619,7 @@ async def correlation_regimes_pair(
 
 
 @app.get("/api/tools/inflation-fixings/eur")
-async def hicp_fixings(
+def hicp_fixings(
     date: str | None = None,
     current_user: dict = Depends(get_current_user),
 ):
@@ -595,7 +628,7 @@ async def hicp_fixings(
 
 
 @app.get("/api/tools/inflation-fixings/gbp")
-async def inflation_fixings_gbp(
+def inflation_fixings_gbp(
     date: str | None = None,
     current_user: dict = Depends(get_current_user),
 ):
@@ -604,7 +637,7 @@ async def inflation_fixings_gbp(
 
 
 @app.get("/api/tools/inflation-fixings/usd")
-async def inflation_fixings_usd(
+def inflation_fixings_usd(
     date: str | None = None,
     current_user: dict = Depends(get_current_user),
 ):
@@ -637,7 +670,7 @@ def get_egb_rv_series(
 
 
 @app.get("/api/tools/swaps-rv")
-async def get_swaps_rv(
+def get_swaps_rv(
     date: str | None = None,
     currency: str = "EUR",
     current_user: dict = Depends(get_current_user),
@@ -650,7 +683,7 @@ async def get_swaps_rv(
 # ---------------------------------------------------------------------------
 
 @app.get("/api/tools/fitted-bond-curves")
-async def fitted_bond_curves(
+def fitted_bond_curves(
     functional_form: str = "cubic_spline",
     exponent: int = 2,
     weighting: str = "none",
@@ -675,7 +708,7 @@ async def fitted_bond_curves(
 
 
 @app.get("/api/tools/fitted-bond-curves/new-issue")
-async def fitted_bond_curves_new_issue(
+def fitted_bond_curves_new_issue(
     maturity: str,
     coupon: Optional[float] = None,
     size_bn: float = 20.0,
@@ -708,7 +741,7 @@ async def fitted_bond_curves_new_issue(
 
 
 @app.get("/api/tools/fitted-bond-curves/bond/{bond_id}")
-async def fitted_bond_curves_bond(
+def fitted_bond_curves_bond(
     bond_id: str,
     functional_form: str = "cubic_spline",
     exponent: int = 2,
@@ -737,150 +770,6 @@ async def fitted_bond_curves_bond(
 # ---------------------------------------------------------------------------
 # Mean Reversion
 # ---------------------------------------------------------------------------
-
-@app.post("/api/tools/mean-reversion/analyse")
-async def mean_reversion_analyse(
-    payload: dict,
-    current_user: dict = Depends(get_current_user),
-):
-    return mr_analyse(
-        expression=payload["expression"],
-        start_date=payload.get("start_date", "2018-01-01"),
-        end_date=payload.get("end_date"),
-        fit_start=payload.get("fit_start"),
-        fit_end=payload.get("fit_end"),
-        model_type=payload.get("model_type", "linear_ou"),
-        target=payload.get("target"),
-        stop=payload.get("stop"),
-        n_sims=int(payload.get("n_sims", 5000)),
-    )
-
-
-@app.post("/api/tools/mean-reversion/stanton")
-async def mean_reversion_stanton(
-    payload: dict,
-    current_user: dict = Depends(get_current_user),
-):
-    """Lightweight endpoint: re-computes only the Stanton diagnostic buckets."""
-    from mean_reversion import parse_expression, build_series, stanton_diagnostic
-    import pandas as pd
-
-    expression  = payload["expression"]
-    start_date  = payload.get("start_date", "2018-01-01")
-    end_date    = payload.get("end_date") or pd.Timestamp.today().strftime("%Y-%m-%d")
-    fit_start   = payload.get("fit_start")
-    fit_end     = payload.get("fit_end")
-    n_buckets   = int(payload.get("n_buckets", 20))
-
-    terms = parse_expression(expression)
-    series, _ = build_series(terms, start_date, end_date)
-    fit_series = series.loc[
-        (fit_start or series.index[0].strftime("%Y-%m-%d")):
-        (fit_end   or series.index[-1].strftime("%Y-%m-%d"))
-    ]
-    sim_sde = payload.get("sim_sde")  # 'linear_ou' | 'polynomial' | 'inverse_polynomial' | None
-    return stanton_diagnostic(fit_series, n_buckets=n_buckets, sim_sde=sim_sde)
-
-
-@app.post("/api/tools/mean-reversion/forward-dist")
-async def mean_reversion_forward_dist(
-    payload: dict,
-    current_user: dict = Depends(get_current_user),
-):
-    """MC forward distributions for a chosen SDE spec (user-triggered)."""
-    from mean_reversion import parse_expression, build_series, transition_densities_mc, _add_horizon_dates
-    import pandas as pd
-
-    expression = payload["expression"]
-    start_date = payload.get("start_date", "2018-01-01")
-    end_date   = payload.get("end_date") or pd.Timestamp.today().strftime("%Y-%m-%d")
-    fit_start  = payload.get("fit_start")
-    fit_end    = payload.get("fit_end")
-    sim_sde    = payload["sim_sde"]  # required
-    n_sims     = int(payload.get("n_sims", 10_000))
-
-    terms = parse_expression(expression)
-    series, _ = build_series(terms, start_date, end_date)
-    fit_series = series.loc[
-        (fit_start or series.index[0].strftime("%Y-%m-%d")):
-        (fit_end   or series.index[-1].strftime("%Y-%m-%d"))
-    ]
-    # Estimate on fit window but start simulation from current actual level
-    current_level = float(series.dropna().iloc[-1])
-    last_date = series.index[-1]
-
-    td = transition_densities_mc(
-        fit_series, sim_sde=sim_sde, n_sims=n_sims, x_now=current_level,
-    )
-    _add_horizon_dates(td, last_date)
-    return td
-
-
-@app.post("/api/tools/mean-reversion/sharpe-mc")
-async def mean_reversion_sharpe_mc(
-    payload: dict,
-    current_user: dict = Depends(get_current_user),
-):
-    """MC Sharpe profile for polynomial / inverse-polynomial SDEs."""
-    from mean_reversion import parse_expression, build_series, sharpe_profile_mc
-    import pandas as pd
-
-    expression = payload["expression"]
-    start_date = payload.get("start_date", "2018-01-01")
-    end_date   = payload.get("end_date") or pd.Timestamp.today().strftime("%Y-%m-%d")
-    fit_start  = payload.get("fit_start")
-    fit_end    = payload.get("fit_end")
-    sim_sde    = payload["sim_sde"]
-    n_sims     = int(payload.get("n_sims", 10_000))
-
-    terms = parse_expression(expression)
-    series, _ = build_series(terms, start_date, end_date)
-    fit_series = series.loc[
-        (fit_start or series.index[0].strftime("%Y-%m-%d")):
-        (fit_end   or series.index[-1].strftime("%Y-%m-%d"))
-    ]
-    current_level = float(series.dropna().iloc[-1])
-    return sharpe_profile_mc(fit_series, sim_sde, x_now=current_level, n_sims=n_sims)
-
-
-@app.post("/api/tools/mean-reversion/forward-hist")
-async def mean_reversion_forward_hist(
-    payload: dict,
-    current_user: dict = Depends(get_current_user),
-):
-    """Terminal distribution histogram + KDE at a user-specified future date."""
-    from mean_reversion import parse_expression, build_series, forward_histogram
-    import pandas as pd
-
-    expression  = payload["expression"]
-    start_date  = payload.get("start_date", "2018-01-01")
-    end_date    = payload.get("end_date") or pd.Timestamp.today().strftime("%Y-%m-%d")
-    fit_start   = payload.get("fit_start")
-    fit_end     = payload.get("fit_end")
-    sim_sde     = payload.get("sim_sde", "linear_ou")
-    n_sims      = int(payload.get("n_sims", 10_000))
-    target_date = payload["target_date"]   # ISO date string
-
-    terms = parse_expression(expression)
-    series, _ = build_series(terms, start_date, end_date)
-    fit_series = series.loc[
-        (fit_start or series.index[0].strftime("%Y-%m-%d")):
-        (fit_end   or series.index[-1].strftime("%Y-%m-%d"))
-    ]
-    current_level = float(series.dropna().iloc[-1])
-    last_date     = series.index[-1]
-
-    # Convert target calendar date → number of business days from last_date
-    target_ts    = pd.Timestamp(target_date)
-    horizon_days = max(1, len(pd.bdate_range(last_date, target_ts)) - 1)
-
-    result = forward_histogram(
-        fit_series, sim_sde, horizon_days,
-        n_sims=n_sims, x_now=current_level,
-    )
-    result["horizon_date"] = target_ts.strftime("%Y-%m-%d")
-    return result
-
 
 # ---------------------------------------------------------------------------
 # Agents — Global Macro Pod (backend/pod/; design in docs/GLOBAL_MACRO_POD_PROPOSAL.md)
