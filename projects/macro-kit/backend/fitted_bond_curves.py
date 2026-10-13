@@ -49,7 +49,10 @@ from mean_reversion import estimate_ou, transition_densities, _add_horizon_dates
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
-AS_OF = pd.Timestamp.today().normalize()
+def _today() -> pd.Timestamp:
+    """Default as-of date. Resolved per call so a long-running server rolls over at midnight."""
+    return pd.Timestamp.today().normalize()
+
 
 # Cubic-spline knots (years) — H&S p.174 example, trimmed to universe span
 CUBIC_KNOTS = [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0, 15.0, 20.0, 30.0, 33.0]
@@ -109,8 +112,9 @@ def _true_zero_curve(tau: np.ndarray | float) -> np.ndarray | float:
 
 
 def _cashflows(coupon: float, maturity: pd.Timestamp,
-               as_of: pd.Timestamp = AS_OF) -> tuple[np.ndarray, np.ndarray, float]:
+               as_of: pd.Timestamp | None = None) -> tuple[np.ndarray, np.ndarray, float]:
     """Annual coupon schedule (German convention). Returns (times, amounts, accrued)."""
+    as_of = _today() if as_of is None else as_of
     dates = []
     d = maturity
     while d > as_of:
@@ -126,7 +130,7 @@ def _cashflows(coupon: float, maturity: pd.Timestamp,
     return times, amounts, coupon * frac
 
 
-def build_universe(seed: int = 7, as_of: pd.Timestamp = AS_OF) -> list[Bond]:
+def build_universe(seed: int = 7, as_of: pd.Timestamp | None = None) -> list[Bond]:
     """
     Synthetic Bund/OBL/Schatz universe (~45 bonds, ttm 1y–33y).
 
@@ -136,6 +140,7 @@ def build_universe(seed: int = 7, as_of: pd.Timestamp = AS_OF) -> list[Bond]:
     - Only some bonds inside each futures window are flagged deliverable, so
       deliverability is not collinear with the local curve level.
     """
+    as_of = _today() if as_of is None else as_of
     rng = np.random.default_rng(seed)
     bonds: list[Bond] = []
 
@@ -222,13 +227,14 @@ def parse_bond_ticker(ticker: str) -> tuple[str, float, pd.Timestamp]:
 
 
 def build_universe_custom(tickers: list[str],
-                          as_of: pd.Timestamp = AS_OF) -> list[Bond]:
+                          as_of: pd.Timestamp | None = None) -> list[Bond]:
     """
     Build a universe from user-supplied Bloomberg tickers.  Coupon and maturity
     come from the ticker; reference data not encoded in the ticker (issue date,
     amount outstanding) is simulated deterministically per ticker until a live
     (Bloomberg) reference-data loader replaces this.
     """
+    as_of = _today() if as_of is None else as_of
     if len(tickers) < 5:
         raise ValueError(
             f'Need at least 5 bonds to fit a curve, got {len(tickers)}.'
@@ -596,7 +602,7 @@ def _parse_ext_vars(external_vars: str) -> list[str]:
 def _parse_as_of(as_of: str) -> pd.Timestamp:
     """Parse the as-of date; empty string → today."""
     if not as_of.strip():
-        return AS_OF
+        return _today()
     try:
         return pd.Timestamp(as_of).normalize()
     except ValueError:

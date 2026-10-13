@@ -1,5 +1,6 @@
 """Database connection and initialisation helpers."""
 
+import datetime
 import sqlite3
 from pathlib import Path
 import yaml
@@ -39,9 +40,8 @@ def init_db(db_path: Path | str | None = None) -> None:
     print(f"Database initialised at {db_path}")
 
 
-def next_business_day(date) -> "datetime.date":
+def next_business_day(date) -> datetime.date:
     """Return the next business day after date (Mon-Fri, no holiday calendar)."""
-    import datetime
     if isinstance(date, str):
         date = datetime.date.fromisoformat(date)
     next_day = date + datetime.timedelta(days=1)

@@ -9,6 +9,7 @@ import {
   ResponsiveContainer, ReferenceLine, ReferenceArea, Area,
   Scatter, ScatterChart,
 } from 'recharts'
+import { toLocalISODate } from '../lib/dates'
 
 // ─── Error boundary ───────────────────────────────────────────────────────────
 
@@ -1936,7 +1937,8 @@ function FactorResidualsTab({ data }: { data: PCAResponse }) {
             {tenors.map((t, ti) => (
               <button key={t} onClick={() => setActiveTenors(prev => {
                 const next = new Set(prev)
-                next.has(t) ? next.delete(t) : next.add(t)
+                if (next.has(t)) next.delete(t)
+                else next.add(t)
                 return next
               })}
                 style={{ padding: '3px 9px', borderRadius: 5, fontSize: 11, cursor: 'pointer',
@@ -5136,7 +5138,7 @@ function PCAAnalysis() {
   const today = new Date()
   const twoYearsAgo = new Date(today)
   twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
-  const fmt = (d: Date) => d.toISOString().slice(0, 10)
+  const fmt = toLocalISODate
 
   const [activeTab, setActiveTab] = useState<TabId>('structure')
   const [curve, setCurve]         = useState<string>('bund')

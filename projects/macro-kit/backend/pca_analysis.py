@@ -45,6 +45,7 @@ import json
 import math
 import os
 import warnings
+import zlib
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
@@ -229,7 +230,7 @@ def _simulate_yields(
     pd.DataFrame with columns = [str(t) for t in tenors],
     index = weekly dates (Fridays) ending today, length = n_weeks.
     """
-    rng = np.random.default_rng(seed + hash(curve_id) % (2**31))
+    rng = np.random.default_rng(seed + zlib.crc32(curve_id.encode()))
 
     # ── OU parameters per factor (dt = 1 week) ───────────────────────────────
     # F1: level — slow, trend-like
@@ -305,7 +306,7 @@ def _simulate_yields_daily(
     Used exclusively for the Hedge Ratios trade-history chart so that P&L is
     displayed at business-day granularity.
     """
-    rng = np.random.default_rng(seed + hash(curve_id) % (2**31))
+    rng = np.random.default_rng(seed + zlib.crc32(curve_id.encode()))
     dt = 1.0 / 5.0  # one business day in weekly units
 
     ou_params_list = [
@@ -397,7 +398,7 @@ def _simulate_external_vars(
     Works for any set of tickers: known ones use calibrated params, unknown
     ones fall back to a generic geometric random walk around 100.
     """
-    rng = np.random.default_rng(seed + hash(curve_id) % (2**31))
+    rng = np.random.default_rng(seed + zlib.crc32(curve_id.encode()))
     n = len(dates)
     results = []
     for meta in tickers_meta:

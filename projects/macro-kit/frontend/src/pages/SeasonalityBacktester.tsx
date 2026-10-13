@@ -6,6 +6,7 @@ import {
   ResponsiveContainer, ReferenceLine, ReferenceArea, LineChart, Line, Legend,
   AreaChart, Area, ScatterChart, Scatter, ZAxis,
 } from 'recharts'
+import { toLocalISODate } from '../lib/dates'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -133,7 +134,7 @@ function generateSyntheticSeries(id: string): SeriesData {
   const d = new Date(2010, 0, 4) // first Monday of 2010
   while (d.getFullYear() < 2025) {
     const dow = d.getDay()
-    if (dow !== 0 && dow !== 6) dates.push(d.toISOString().slice(0, 10))
+    if (dow !== 0 && dow !== 6) dates.push(toLocalISODate(d))
     d.setDate(d.getDate() + 1)
   }
   const n = dates.length

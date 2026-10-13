@@ -37,6 +37,12 @@ function mulberry32(seed: number) {
 
 // ─── Piecewise linear interpolation ──────────────────────────────────────────
 
+// 'YYYY-MM' for month t counted from Jan 2000. Built from calendar fields, not
+// toISOString(), which shifts local midnight into the previous month east of UTC.
+function monthLabel(t: number): string {
+  return `${2000 + Math.floor(t / 12)}-${String((t % 12) + 1).padStart(2, '0')}`
+}
+
 function interp(pts: [number, number][], t: number): number {
   if (t <= pts[0][0]) return pts[0][1]
   if (t >= pts[pts.length - 1][0]) return pts[pts.length - 1][1]
@@ -137,7 +143,7 @@ function generateHicpLevels(): HicpPoint[] {
     food      *= (1 + interp(FOOD_YOY,       t) / 1200 + (rngF()  - 0.5) * 0.0015)
 
     points.push({
-      date:      new Date(2000, t, 1).toISOString().slice(0, 7),
+      date:      monthLabel(t),
       headline:  +headline.toFixed(2),
       hicpXT:    +hicpXT.toFixed(2),
       core:      +core.toFixed(2),
@@ -1044,7 +1050,7 @@ function generateCpiLevels(): CpiPoint[] {
     energy   *= (1 + interp(UK_ENERGY_YOY,   t) / 1200 + (rngE()  - 0.5) * 0.0030)
     food     *= (1 + interp(UK_FOOD_YOY,     t) / 1200 + (rngF()  - 0.5) * 0.0015)
     points.push({
-      date:     new Date(2000, t, 1).toISOString().slice(0, 7),
+      date:     monthLabel(t),
       rpi:      +rpi.toFixed(2),
       cpi:      +cpi.toFixed(2),
       cpiCore:  +cpiCore.toFixed(2),
@@ -1304,23 +1310,15 @@ const USD_SERIES: UsdSeriesDef[] = [
 
 function generateUsdCpiLevels(): UsdCpiPoint[] {
   const rngN  = mulberry32(0xf59e0b00)
-  const rngC  = mulberry32(0x38bdf800)
-  const rngCG = mulberry32(0x7dd3fc00)
-  const rngCS = mulberry32(0xa5b4fc00)
 
-  // Starting levels Jan 2000 (1982-84 = 100 base)
-  let cpiNsa       = 168.0
-  let cpiCore      = 162.0
-  let coreGoods    = 152.0   // near-deflation goods historically
-  let coreServices = 166.0   // higher inflation services
+  // Starting level Jan 2000 (1982-84 = 100 base). Only the NSA path is needed
+  // here (as STL input); core series are generated in the final pass below.
+  let cpiNsa = 168.0
 
   const nsaLevels: number[] = []
 
   for (let t = 0; t < 306; t++) {
-    cpiNsa       *= (1 + interp(US_CPI_NSA_YOY,      t) / 1200 + (rngN()  - 0.5) * 0.0010)
-    cpiCore      *= (1 + interp(US_CORE_YOY,          t) / 1200 + (rngC()  - 0.5) * 0.0005)
-    coreGoods    *= (1 + interp(US_CORE_GOODS_YOY,    t) / 1200 + (rngCG() - 0.5) * 0.0006)
-    coreServices *= (1 + interp(US_CORE_SERVICES_YOY, t) / 1200 + (rngCS() - 0.5) * 0.0004)
+    cpiNsa *= (1 + interp(US_CPI_NSA_YOY, t) / 1200 + (rngN() - 0.5) * 0.0010)
     nsaLevels.push(cpiNsa)
   }
 
@@ -1344,7 +1342,7 @@ function generateUsdCpiLevels(): UsdCpiPoint[] {
     coreGoods2    *= (1 + interp(US_CORE_GOODS_YOY,    t) / 1200 + (rngCG2() - 0.5) * 0.0006)
     coreServices2 *= (1 + interp(US_CORE_SERVICES_YOY, t) / 1200 + (rngCS2() - 0.5) * 0.0004)
     points.push({
-      date:         new Date(2000, t, 1).toISOString().slice(0, 7),
+      date:         monthLabel(t),
       cpiNsa:       +cpiNsa2.toFixed(2),
       cpiSa:        +saLevels[t].toFixed(2),
       cpiCore:      +cpiCore2.toFixed(2),

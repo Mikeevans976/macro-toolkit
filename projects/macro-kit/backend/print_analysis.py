@@ -21,6 +21,7 @@ Missing survey fields are returned as null and excluded from derived stats.
 from __future__ import annotations
 
 import warnings
+import zlib
 from typing import Any
 
 import numpy as np
@@ -60,7 +61,7 @@ def _simulate_releases(ticker: str, start: str) -> dict:
     Generate realistic synthetic monthly release data for UI testing.
     Seeded by ticker so different tickers produce different series.
     """
-    rng = np.random.default_rng(abs(hash(ticker)) % (2**31))
+    rng = np.random.default_rng(zlib.crc32(ticker.encode()))
 
     # Simulate a mean-reverting level series (e.g. CPI YoY, PMI, etc.)
     start_ts = pd.Timestamp(start)
@@ -245,7 +246,7 @@ def fetch_print_vs_consensus(
 
 def _simulate_market_reaction(ticker: str, valid: list[tuple]) -> dict:
     """Generate synthetic market moves correlated with surprises (for UI testing)."""
-    rng = np.random.default_rng(abs(hash(ticker)) % (2**31))
+    rng = np.random.default_rng(zlib.crc32(ticker.encode()))
     surprises = np.array([r[2] for r in valid])
     n = len(surprises)
 

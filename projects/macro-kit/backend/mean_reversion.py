@@ -449,6 +449,7 @@ def stanton_diagnostic(
         dt    = 1 / 252
         n_sim = max(200_000, len(x) * 200)
         rng   = np.random.default_rng(0)
+        sig   = sigma   # diffusion used by the sparse-bucket fallback; poly models override below
 
         if sim_sde == 'linear_ou':
             # Exact AR(1) discretisation via lfilter
@@ -873,12 +874,17 @@ def first_passage_times(
             for i in range(len(hist)) if hist[i] > 0
         ]
 
-        # KDE on a daily grid 1..max_days (Scott's rule)
-        kde_est  = gaussian_kde(hit_days)
-        x_grid   = np.arange(1, max_days + 1, dtype=float)
-        kde_vals = kde_est(x_grid)
-        kde_data = [{'days': int(d), 'density': round(float(v), 8)}
-                    for d, v in zip(x_grid, kde_vals)]
+        # KDE on a daily grid 1..max_days (Scott's rule). A KDE needs spread:
+        # when every path hits on the same day (e.g. the level is already at or
+        # through the target) the covariance is singular, so return no curve.
+        if len(hit_days) >= 2 and np.ptp(hit_days) > 0:
+            kde_est  = gaussian_kde(hit_days)
+            x_grid   = np.arange(1, max_days + 1, dtype=float)
+            kde_vals = kde_est(x_grid)
+            kde_data = [{'days': int(d), 'density': round(float(v), 8)}
+                        for d, v in zip(x_grid, kde_vals)]
+        else:
+            kde_data = []
 
         return {
             'histogram':    histogram,

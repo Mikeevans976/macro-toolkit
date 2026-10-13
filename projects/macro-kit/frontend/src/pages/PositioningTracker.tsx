@@ -1035,7 +1035,7 @@ export default function PositioningTracker() {
         `/api/positioning/contract/${encodeURIComponent(contractId)}?instrument=${instrument}`
       )
       setContractHistory(hist)
-    } catch (e: unknown) {
+    } catch {
       setContractHistory(null)
     } finally {
       setHistoryLoading(false)

@@ -4,6 +4,7 @@ import {
   LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts'
+import { toLocalISODate } from '../lib/dates'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -162,7 +163,7 @@ function generateBdates(n: number): string[] {
   while (dates.length < n) {
     d.setDate(d.getDate() - 1)
     const dow = d.getDay()
-    if (dow !== 0 && dow !== 6) dates.unshift(d.toISOString().slice(0, 10))
+    if (dow !== 0 && dow !== 6) dates.unshift(toLocalISODate(d))
   }
   return dates
 }
