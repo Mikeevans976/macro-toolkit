@@ -12,8 +12,11 @@ source .venv/bin/activate
 # Run API server (dev, auto-reload)
 uvicorn backend.main:app --reload --port 8000
 
-# Install backend + dev/test dependencies
+# Install backend + dev/test dependencies (requirements.txt is fully pinned)
 pip install -r backend/requirements-dev.txt
+
+# Change dependencies: edit backend/requirements.in, then regenerate the pins
+uv pip compile --universal --python-version 3.13 backend/requirements.in -o backend/requirements.txt
 
 # Run all Python tests from projects/macro-kit/ (backend + Euribor positioning; config in pyproject.toml)
 # RUN_SLOW=1 adds the fair-value-models contract case

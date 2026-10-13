@@ -65,7 +65,8 @@ backend/
   routers/                 # One APIRouter per tool (+ agents.py for the Global Macro Pod)
   auth.py                  # JWT + bcrypt auth
   runtime_paths.py         # Where runtime state lives (var/ or $MACROKIT_STATE_DIR)
-  requirements.txt
+  requirements.in          # Direct dependencies (edit this)
+  requirements.txt         # Pinned lock generated from requirements.in (install this)
   create_user.py           # Script to add/update users
 var/                       # Runtime state, gitignored: users.json, SQLite DBs, pod sandbox
 frontend/
