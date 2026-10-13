@@ -302,7 +302,7 @@ def research_search(query: str, limit: int = 5) -> object:
     hits.sort(key=lambda h: h["score"], reverse=True)
     if not hits:
         return (f"No documents in sandbox/research mention {query!r}. Drop sell-side PDFs or notes into "
-                "projects/macro-kit/sandbox/research/ to make them searchable.")
+                f"{RESEARCH_DIR} to make them searchable.")
     return hits[:limit]
 
 

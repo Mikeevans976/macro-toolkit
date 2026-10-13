@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create or update a user in users.json.
+Create or update a user in users.json (var/users.json; see runtime_paths.py).
 
 Usage:
     python create_user.py <username> <password> [full_name]
@@ -16,7 +16,9 @@ import sys
 
 import bcrypt
 
-USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
+from runtime_paths import BACKEND_DIR, state_path
+
+USERS_FILE = str(state_path("users.json", legacy=BACKEND_DIR / "users.json"))
 
 
 def main():

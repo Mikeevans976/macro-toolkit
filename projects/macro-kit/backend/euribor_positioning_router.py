@@ -22,6 +22,7 @@ import yaml
 from fastapi import APIRouter, Depends, HTTPException
 
 from auth import get_current_user
+from runtime_paths import state_path
 
 # ---------------------------------------------------------------------------
 # Package imports
@@ -42,17 +43,14 @@ from euribor_positioning.outputs.diagnostics import (
 )
 
 # ---------------------------------------------------------------------------
-# DB path override — always write to backend/data/euribor_positioning.db
+# DB path override — the app's DB lives in the runtime state dir (var/)
 # ---------------------------------------------------------------------------
 
-_DB_PATH = Path(__file__).parent / "data" / "euribor_positioning.db"
-
-# Ensure data/ directory exists
-_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+_DB_PATH = state_path("euribor_positioning.db", legacy=Path(__file__).parent / "data" / "euribor_positioning.db")
 
 
 def _get_params() -> dict:
-    """Load params and override the database path to the backend/data/ location."""
+    """Load params and override the database path to the runtime state dir."""
     params = _load_params()
     params["database"]["path"] = str(_DB_PATH)
     return params

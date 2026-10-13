@@ -52,18 +52,19 @@ cd frontend && npm run build && cd .. && python backend/main.py
 ### Stack
 - **Backend**: FastAPI + Python, Uvicorn. Runs on port 8000.
 - **Frontend**: React + Vite + TypeScript + Tailwind CSS. Dev server on port 5173; proxies `/api` to backend.
-- **Auth**: JWT (8h expiry) + bcrypt. `users.json` is gitignored — create with `create_user.py`.
+- **Auth**: JWT (8h expiry) + bcrypt. Users live in `var/users.json` — create with `create_user.py`.
+- **Runtime state**: `var/` (gitignored; `$MACROKIT_STATE_DIR` overrides) holds `users.json`, the SQLite DBs and the pod sandbox. Resolve paths with `runtime_paths.state_path()`, never next to source.
 - **Nav config**: `dashboard_config.yaml` — read on every request, no restart needed.
 
 ### Backend modules
 | File | Role |
 |------|------|
-| `main.py` | FastAPI app, all API routes, static file serving |
+| `main.py` | FastAPI app: middleware, auth routes, router mounting, static file serving |
 | `auth.py` | JWT + bcrypt auth |
 | `dfm.py` | Mixed-frequency Dynamic Factor Model (Kalman filter/smoother) |
 | `regional_heatmap.py` | Shared heatmap engine: DFM, yield PCA, fair value |
 | `heatmap_regions.py` | One `HeatmapConfig` per region, keyed by URL slug |
-| `routers/` | Per-tool `APIRouter`s (`heatmaps.py`, `mean_reversion.py`) |
+| `routers/` | One `APIRouter` per tool; `agents.py` holds the pod's `/api/agents` and `/api/pod` routes |
 | `fair_value_models.py` | Fair value model logic |
 | `macro_data_loader.py` | Loads macro series (Bloomberg/Haver) |
 | `data_fetcher.py` | Data fetching utilities |
@@ -84,13 +85,15 @@ CI (`.github/workflows/macro-kit-ci.yml` at the repo root) runs ruff, both pytes
 
 - `backend/tests/test_analytics.py` — swap RV analytics: hand-computable unit tests, self-consistency checks, end-to-end sanity checks on simulated data.
 - `backend/tests/test_api_contract.py` — snapshot of every simulated-data endpoint (digest of keys/lengths/sums in `tests/snapshots/api_contract.json`), with the clock frozen. Any refactor must keep these passing; regenerate only for intentional output changes.
-- `backend/tests/test_auth.py`, `backend/tests/test_pod.py`, `euribor_positioning/tests/`.
+- `backend/tests/test_auth.py` (incl. every API route rejects anonymous requests), `test_agents_api.py` (run ownership, stream tickets, SSE tailing), `test_pod.py`, `euribor_positioning/tests/`.
 - `frontend/src/test/pages.smoke.test.tsx` — every page renders with network stubbed.
 
 Simulated data must be deterministic across processes: seed RNGs with `zlib.crc32(name.encode())`, never `hash()` (randomised per process). Format calendar dates with `toLocalISODate` (`frontend/src/lib/dates.ts`), never `toISOString().slice(0, 10)` on local-midnight Dates.
 
 ### Routers
 New API routes go in `backend/routers/<tool>.py` as an `APIRouter` with Pydantic request models (see `routers/mean_reversion.py`), mounted in `main.py`. CPU-bound handlers are plain `def` (FastAPI runs them in a threadpool) — never `async def` without an `await`.
+
+Agent run streams (`GET /api/agents/stream/{run_id}`) authenticate with a 60 s run-scoped ticket (`POST .../ticket`, see `openRunStream` in `frontend/src/api/client.ts`), never the session token, and tail the `events` table rather than an in-memory queue.
 
 ---
 

@@ -10,6 +10,8 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
+from runtime_paths import BACKEND_DIR, state_path
+
 logger = logging.getLogger(__name__)
 
 # Secret key — set SECRET_KEY in any shared/deployed environment. Without it a
@@ -24,7 +26,7 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 8
 
-USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
+USERS_FILE = str(state_path("users.json", legacy=BACKEND_DIR / "users.json"))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 

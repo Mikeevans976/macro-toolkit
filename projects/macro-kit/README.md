@@ -61,11 +61,13 @@ ANALYTICS_DATA_SOURCE=haver python backend/main.py
 ```
 dashboard_config.yaml      # Edit to add/remove/reorder tool tiles (no restart needed)
 backend/
-  main.py                  # FastAPI app + all API routes
+  main.py                  # FastAPI app: middleware, auth routes, router mounting, static files
+  routers/                 # One APIRouter per tool (+ agents.py for the Global Macro Pod)
   auth.py                  # JWT + bcrypt auth
+  runtime_paths.py         # Where runtime state lives (var/ or $MACROKIT_STATE_DIR)
   requirements.txt
   create_user.py           # Script to add/update users
-  users.json               # User store (gitignored — create with create_user.py)
+var/                       # Runtime state, gitignored: users.json, SQLite DBs, pod sandbox
 frontend/
   src/
     App.tsx
@@ -82,7 +84,7 @@ source .venv/bin/activate
 python backend/create_user.py <username> <password> "<Full Name>"
 ```
 
-Tokens expire after 8 hours. `users.json` is gitignored — never commit it.
+Tokens expire after 8 hours. Users are stored in `var/users.json` (gitignored — never commit it). An older install's `backend/users.json` keeps working until you move it into `var/`.
 
 ---
 

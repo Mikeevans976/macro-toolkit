@@ -1,14 +1,15 @@
 """
 SQLite persistence for agent runs and streamed events.
 
-DB lives at  backend/data/agent_runs.db  (created automatically on first use).
+DB lives at  var/agent_runs.db  (see runtime_paths; created automatically on first use).
 """
 import sqlite3
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Optional
 
-_DB_PATH = Path(__file__).parent.parent / "data" / "agent_runs.db"
+from runtime_paths import BACKEND_DIR, state_path
+
+_DB_PATH = state_path("agent_runs.db", legacy=BACKEND_DIR / "data" / "agent_runs.db")
 
 
 def _connect() -> sqlite3.Connection:

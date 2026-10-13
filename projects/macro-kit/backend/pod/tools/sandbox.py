@@ -1,6 +1,7 @@
 """
 Sandbox tools: files, SQLite and local Python, all confined to
-projects/macro-kit/sandbox/. Ported from agents/general_tools.py without the
+the runtime sandbox dir
+(var/sandbox/, see runtime_paths). Ported from agents/general_tools.py without the
 CrewAI wrappers. Paths that resolve outside the sandbox raise, which the
 runner returns to the agent as an error result.
 """
@@ -12,9 +13,9 @@ import tempfile
 from pathlib import Path
 
 from pod.tools import Tool, register, schema
+from runtime_paths import BACKEND_DIR, PROJECT_ROOT, state_path
 
-_BACKEND_DIR = Path(__file__).resolve().parents[2]
-SANDBOX_ROOT = (_BACKEND_DIR.parent / "sandbox").resolve()
+SANDBOX_ROOT = state_path("sandbox", legacy=PROJECT_ROOT / "sandbox").resolve()
 _READ_LIMIT = 8000
 
 
@@ -85,7 +86,7 @@ def python_sandbox(code: str) -> str:
     try:
         result = subprocess.run([sys.executable, str(script)], cwd=SANDBOX_ROOT,
                                 capture_output=True, text=True, timeout=60,
-                                env={**os.environ, "PYTHONPATH": str(_BACKEND_DIR)})
+                                env={**os.environ, "PYTHONPATH": str(BACKEND_DIR)})
     except subprocess.TimeoutExpired:
         raise TimeoutError("Python execution timed out after 60 seconds.")
     finally:
