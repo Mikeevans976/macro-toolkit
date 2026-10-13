@@ -12,7 +12,9 @@ venv/
 dist/
 build/
 .DS_Store
-/data/
+/data/*
+# Simulated market data used in simulation mode and by tests (small, deterministic)
+!/data/*.csv
 !backend/data/
 .claude/
 
