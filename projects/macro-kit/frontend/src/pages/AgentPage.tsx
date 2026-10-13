@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 import Glyph, { toolGlyph } from '../components/Glyph'
 import PageTitle, { headerBar } from '../components/PageTitle'
-import { accent, fg, fontNum, ink, line, line2, neg } from '../theme'
+import { accent, fg, fontNum, ink, line, line2, neg, warn } from '../theme'
 import {
   AGENTS_MARK, AgentInfo, Chip, EventLine, KEYFRAMES, MODEL_LABEL, Markdown, ModelCatalogue, ModelPicker,
   PodView, RunSummary, SectionLabel, Spinner, StreamEvent, ViewsTable, authHeaders, formatDate, modelLabel,
@@ -65,6 +65,134 @@ const TEMPLATES: Record<string, string[]> = {
     'Is EUR HICP pricing re-acceleration or disinflation over the next six fixings?',
     'Where do the inflation fair value models disagree most with market pricing?',
     'Compare EUR, GBP and USD implied fixings: which market looks most mispriced?',
+  ],
+  'pod-coordinator': [
+    'Who should I ask about the next ECB meeting, and what do they think?',
+    "Get me the pod's view on UK gilts from the right people.",
+  ],
+  'us-economist': [
+    'Preview the next US payrolls and CPI releases: what matters for the Fed?',
+    "Where does the Fed's likely path differ from market pricing?",
+  ],
+  'ea-economist': [
+    'What is the ECB likely to do at its next two meetings, and why?',
+    'Which euro-area country divergence matters most for spreads right now?',
+  ],
+  'uk-economist': [
+    'Is UK services inflation falling fast enough for the BoE?',
+    'Preview the next UK CPI and labour market releases.',
+  ],
+  'japan-economist': [
+    'How far will the BoJ go with normalisation this year?',
+    'What would trigger MoF intervention in the yen?',
+  ],
+  'dollar-bloc-economist': [
+    'Rank CA, AU, NZ, SE, NO and CH by where their central bank is in the cycle.',
+    'Which smaller G10 economy offers the best rates relative-value trade?',
+  ],
+  'china-em-economist': [
+    "What is China's credit impulse saying about the next two quarters?",
+    'Which EM economies are most vulnerable to a stronger dollar?',
+  ],
+  'cb-comms-analyst': [
+    'Diff the latest ECB statement against the previous one and score it.',
+    'Which Fed speakers have shifted most in the last month?',
+  ],
+  'geopolitics-analyst': [
+    'Build a scenario tree for the next major election that matters for our markets.',
+    'How are tariff risks priced in rates and FX options?',
+  ],
+  'supply-funding-analyst': [
+    'What does government bond supply look like over the next month in EGBs?',
+    'Are reserves becoming scarce? What does repo say?',
+  ],
+  'head-of-fx-cross-asset': [
+    'What do FX, commodities and credit say about the rates view?',
+    'Which cross-asset trade would you back today?',
+  ],
+  'g10-fx-strategist': [
+    'Which G10 pair has moved furthest from its rate differential?',
+    'Where does carry-to-vol look best in G10 FX?',
+  ],
+  'em-fx-rates-strategist': [
+    'Which EM carry trades are worth the risk right now?',
+    'Run the EM risk checklist on the three highest-yielding currencies.',
+  ],
+  'commodities-strategist': [
+    'What does the oil curve imply for headline inflation over the next three months?',
+    "Is China's demand showing up in metals?",
+  ],
+  'equity-credit-strategist': [
+    'Is the equity-bond correlation positive or negative now, and what does that mean for duration?',
+    'What are credit spreads saying about growth?',
+  ],
+  'vol-options-strategist': [
+    'Is rates vol cheap or rich versus the event risk ahead?',
+    'Suggest an option structure for a view that the ECB cuts less than priced.',
+  ],
+  'head-of-quant': [
+    'Which pod ideas are crowded or fighting the regime?',
+    'What does the quantitative evidence say about timing our main rates idea?',
+  ],
+  'technicals-analyst': [
+    'Give me trend state and key levels for Bund and UST 10y yields.',
+    'Suggest entry, stop and target levels for a 2s10s steepener.',
+  ],
+  'regime-correlation-analyst': [
+    'What regime are we in, and how confident are you?',
+    'Which historical relationships have broken down recently?',
+  ],
+  'signal-research-analyst': [
+    'Test the claim that EUR 2s10s steepens into quarter-end.',
+    'Is the mean reversion in BTP-Bund robust or fragile?',
+  ],
+  'head-of-trading': [
+    'Review the ledger: what is approved, live and at risk?',
+    'What lessons do the last closed trades teach us?',
+  ],
+  'execution-strategist': [
+    'How should we execute the latest approved trade, and what will it cost?',
+    'Futures or swaps for a 10y duration trade this week?',
+  ],
+  'trade-monitor': [
+    'Check every live trade against its thesis and kill criteria.',
+    'Which approved trades have catalysts in the next two weeks?',
+  ],
+  'performance-analyst': [
+    'Write a post-mortem of the most recently closed or rejected trades.',
+    'What patterns do you see in trades the Red Team challenged?',
+  ],
+  'cro': [
+    'Give me the risk view on the book and any trades awaiting your decision.',
+    'Which scenario hurts the book most, and is it within limits?',
+  ],
+  'market-risk-analyst': [
+    'Run the book through all scenarios and show limit usage.',
+    'Where is the book most concentrated?',
+  ],
+  'sizing-analyst': [
+    'Size the trades waiting for sizing on the ledger.',
+    'How would you size a conviction-3 idea with a 20bp stop?',
+  ],
+  'news-scanner': [
+    'What news since yesterday matters for the pod?',
+    'Any headlines touching our live trades?',
+  ],
+  'calendar-analyst': [
+    "Give me next week's data and event calendar with previews.",
+    'Which release this week has the most market sensitivity?',
+  ],
+  'research-librarian': [
+    "What does our research folder say about the ECB's terminal rate?",
+    'Find past pod work on BTP-Bund spreads.',
+  ],
+  'data-quality-sentinel': [
+    'Check the data feeding the pod and flag problems.',
+    'Which tools are running on simulated or stale data?',
+  ],
+  'publisher': [
+    "Write today's morning note from the latest house view and ledger.",
+    "Draft a weekly review of the pod's ideas.",
   ],
   'positioning-flows-analyst': [
     'Which rates trades look most crowded right now?',
@@ -299,6 +427,18 @@ export default function AgentPage() {
               {team.map(a => a.enabled
                 ? <Link key={a.id} to={`/tools/agents/${a.id}`} style={linkStyle}><Glyph name={toolGlyph(a.id)} size={13} />{a.name}</Link>
                 : <span key={a.id} style={{ ...linkStyle, color: fg[4] }}><Glyph name={toolGlyph(a.id)} size={13} />{a.name} · planned</span>)}
+            </div>
+          )}
+
+          {!planned && agent.missing_tools.length > 0 && (
+            <div style={sideBlock}>
+              <SectionLabel>Missing tools · {agent.missing_tools.length}</SectionLabel>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {agent.missing_tools.map(t => <Chip key={t} mono color={warn}>{t}</Chip>)}
+              </div>
+              <p style={{ fontSize: 11, color: fg[3], margin: '6px 0 0', lineHeight: 1.5 }}>
+                Not built yet. The agent uses primary web sources instead and says so.
+              </p>
             </div>
           )}
 

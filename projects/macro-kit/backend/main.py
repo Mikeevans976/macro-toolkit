@@ -37,6 +37,7 @@ from pod.storage import (get_views as pod_get_views, get_usage as pod_get_usage,
                          get_model_overrides as pod_get_model_overrides,
                          set_model_override as pod_set_model_override)
 from pod import models as pod_models
+from pod import book as pod_book
 from pod.config import anthropic_configured, openrouter_configured
 from pod.engine import run_workflow_background, run_single_agent_background, get_queue
 
@@ -236,6 +237,45 @@ async def agents_models(refresh: bool = False, current_user: dict = Depends(get_
         "openrouter_configured": openrouter_configured(),
         "openrouter_error": openrouter_error,
     }
+
+
+@app.get("/api/pod/trades")
+async def pod_trades(status: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    statuses = [x for x in (status or "").split(",") if x] or None
+    return {"trades": pod_book.list_trades(statuses=statuses, limit=200)}
+
+
+@app.get("/api/pod/trades/{trade_id}")
+async def pod_trade(trade_id: int, current_user: dict = Depends(get_current_user)):
+    try:
+        return {"trade": pod_book.get(trade_id)}
+    except pod_book.LedgerError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.post("/api/pod/trades/{trade_id}/decision")
+async def pod_trade_decision(trade_id: int, body: dict, current_user: dict = Depends(get_current_user)):
+    """The human PM's ledger actions: pm_approve, pm_reject, mark_live, close."""
+    action = body.get("action")
+    if action not in ("pm_approve", "pm_reject", "mark_live", "close"):
+        raise HTTPException(status_code=400, detail="action must be pm_approve, pm_reject, mark_live or close")
+    note = (body.get("note") or "").strip()
+    try:
+        trade = pod_book.advance(trade_id, action, "pm", f"{current_user.get('username', 'pm')}: {note}".strip(": "))
+    except pod_book.LedgerError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {"trade": trade}
+
+
+@app.get("/api/pod/alerts")
+async def pod_alerts(include_acknowledged: bool = False, current_user: dict = Depends(get_current_user)):
+    return {"alerts": pod_book.list_alerts(include_acknowledged)}
+
+
+@app.post("/api/pod/alerts/{alert_id}/ack")
+async def pod_alert_ack(alert_id: int, current_user: dict = Depends(get_current_user)):
+    pod_book.acknowledge_alert(alert_id)
+    return {"ok": True}
 
 
 @app.put("/api/agents/{agent_id}/model")

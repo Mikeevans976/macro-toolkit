@@ -37,28 +37,26 @@ def _source(data: dict) -> str:
 # Regional heatmaps (DFM factors, fair value, PC regressions, yield PCA)
 # ---------------------------------------------------------------------------
 
-# region code → (module, function-name prefix). Euro Area functions have no prefix.
+# region code → slug in heatmap_regions.REGIONS (the shared regional heatmap engine)
 _REGIONS = {
-    "EA": ("euro_area_heatmap", ""),
-    "UK": ("uk_heatmap", "uk_"),
-    "US": ("us_heatmap", "us_"),
-    "JP": ("japan_heatmap", "jp_"),
-    "CA": ("canada_heatmap", "ca_"),
-    "SE": ("sweden_heatmap", "se_"),
-    "NO": ("norway_heatmap", "no_"),
-    "CH": ("switzerland_heatmap", "ch_"),
-    "AU": ("australia_heatmap", "au_"),
-    "NZ": ("new_zealand_heatmap", "nz_"),
+    "EA": "euro-area", "UK": "uk", "US": "us", "JP": "japan", "CA": "canada",
+    "SE": "sweden", "NO": "norway", "CH": "switzerland", "AU": "australia", "NZ": "new-zealand",
 }
 _REGION_ENUM = list(_REGIONS)
+_ENGINES: dict = {}
+_ENGINES_LOCK = threading.Lock()
 
 
 def _region_fn(region: str, kind: str):
-    import importlib
+    """Bound method `get_<kind>` of the region's RegionalHeatmap engine (built once, then cached)."""
     if region not in _REGIONS:
         raise ValueError(f"Unknown region {region!r}. Use one of {_REGION_ENUM}")
-    module, prefix = _REGIONS[region]
-    return getattr(importlib.import_module(module), f"get_{prefix}{kind}")
+    with _ENGINES_LOCK:
+        if region not in _ENGINES:
+            from heatmap_regions import REGIONS
+            from regional_heatmap import RegionalHeatmap
+            _ENGINES[region] = RegionalHeatmap(REGIONS[_REGIONS[region]])
+    return getattr(_ENGINES[region], f"get_{kind}")
 
 
 def macro_factors(regions: list[str] | None = None) -> dict:

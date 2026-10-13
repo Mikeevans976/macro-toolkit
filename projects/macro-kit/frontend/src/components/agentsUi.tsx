@@ -20,6 +20,7 @@ export interface AgentInfo {
   is_manager: boolean
   enabled: boolean
   blocked_on: string[]
+  missing_tools: string[]
   model_override?: string | null
   model_label?: string
 }
@@ -96,9 +97,7 @@ export const MODEL_LABEL: Record<string, string> = {
   haiku: 'Haiku 5.5',
 }
 
-export function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token') ?? ''}` }
-}
+export { authHeaders } from '../api/client'
 
 export function formatDate(iso: string): string {
   try {

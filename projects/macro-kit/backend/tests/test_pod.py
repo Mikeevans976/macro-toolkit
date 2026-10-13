@@ -124,11 +124,33 @@ def test_disabled_agents_name_their_blockers():
 
 
 def test_hierarchy():
+    assert len(AGENTS) == 42 and len(ENABLED) == 42
     assert ENABLED["deputy-pm"].reports_to == "pm"
+    assert ENABLED["cro"].reports_to == "pm"            # independent risk line
+    assert ENABLED["red-team"].reports_to == "deputy-pm"
     assert {a.id for a in team_of("head-of-rates")} == {
         "stir-strategist", "curve-strategist", "swaps-rv-analyst",
-        "sovereign-spreads-analyst", "inflation-strategist"}
-    assert "supply-funding-analyst" not in {a.id for a in team_of("head-of-rates")}  # disabled
+        "sovereign-spreads-analyst", "inflation-strategist", "supply-funding-analyst"}
+    assert len(team_of("head-of-macro-research")) == 8
+    assert len(team_of("head-of-fx-cross-asset")) == 5
+    assert {a.id for a in team_of("cro")} == {"market-risk-analyst", "sizing-analyst"}
+    assert len(team_of("pod-coordinator")) == 5
+
+
+def test_routing_map_ids_exist():
+    from pod.roster import _read_skill
+    import re as _re
+    rows = [l for l in _read_skill("routing-map").splitlines() if l.startswith("|") and "---" not in l][1:]
+    ids = {i.strip() for row in rows for i in row.strip("|").split("|")[-1].split(",")}
+    unknown = {i for i in ids if i not in AGENTS}
+    assert not unknown, unknown
+
+
+def test_missing_tools_reach_the_prompt():
+    p = ENABLED["g10-fx-strategist"].system_prompt
+    assert "Data limits:" in p and "fx_valuation" in p
+    assert "Agents you can consult" in ENABLED["pod-coordinator"].system_prompt
+    assert "Agents you can consult" not in ENABLED["swaps-rv-analyst"].system_prompt
 
 
 def test_system_prompt_includes_skills_and_reporting_line():
@@ -239,15 +261,26 @@ def test_desk_briefing_gives_head_every_report():
     assert len(client.calls) == len(team_of("head-of-rates")) + 1
 
 
+def _calls_for(client, name):
+    return [c for c in client.calls if c["system"].startswith(f"You are the {name} in")]
+
+
 def test_morning_briefing_order():
     client = FakeClient(_echo_script)
     r = asyncio.run(workflows.morning_briefing(make_runner(client), "Morning view?"))
     assert r.name == "Deputy PM"
-    red_team_task = client.calls[-2]["messages"][0]["content"]
-    deputy_task = client.calls[-1]["messages"][0]["content"]
+    order = [c["system"].split(" in a global macro", 1)[0].removeprefix("You are the ") for c in client.calls]
+    assert order[:2] == ["News & Narrative Scanner", "Calendar & Data-Release Analyst"]
+    assert order[-4:] == ["Chief Risk Officer", "Deputy PM", "Publisher"][-3:] or order[-3:] == ["Chief Risk Officer", "Deputy PM", "Publisher"]
+    assert order.index("Red Team") > max(order.index(h) for h in
+                                         ["Head of Rates", "Head of Macro Research", "Head of FX & Cross-Asset", "Head of Quant & Positioning"])
+    red_team_task = _calls_for(client, "Red Team")[0]["messages"][0]["content"]
+    deputy_task = _calls_for(client, "Deputy PM")[0]["messages"][0]["content"]
     assert '<report from="Head of Rates">' in red_team_task
-    assert '<report from="Red Team">' in deputy_task
+    assert '<report from="Red Team">' in deputy_task and '<report from="Chief Risk Officer">' in deputy_task
     assert '<report from="Swaps & Spreads RV Analyst">' not in deputy_task   # heads summarise their teams
+    # shared services context reaches the desks
+    assert "News & Narrative Scanner" in _calls_for(client, "US Economist")[0]["messages"][0]["content"]
 
 
 # ── model selection / OpenRouter ────────────────────────────────────────────
@@ -346,3 +379,132 @@ def test_run_override_applies_to_whole_workflow():
     asyncio.run(workflows.desk_briefing(runner, "head-of-rates", "q"))
     assert len(fake.bodies) == len(team_of("head-of-rates")) + 1
     assert {b["model"] for b in fake.bodies} == {"qwen/qwen3.7-plus"}
+
+
+# ── ledger, risk, consult, trade review ─────────────────────────────────────
+
+from pod import book, risk  # noqa: E402
+
+IDEA = dict(title="Pay EUR 2y", thesis="ECB done cutting.", instrument="EUR 2y swap, pay fixed",
+            direction="short duration", risk_factor="EUR 2y swap rate", bucket="2y", conviction=3,
+            horizon="3m", invalidation="2y below 1.80%", stop="1.80%")
+
+
+def test_ledger_enforces_order_and_roles():
+    tid = book.propose("run-1", "swaps-rv-analyst", IDEA)
+    with pytest.raises(book.LedgerError, match="may not"):
+        book.advance(tid, "sponsor", "swaps-rv-analyst")
+    with pytest.raises(book.LedgerError, match="is proposed"):
+        book.advance(tid, "size", "sizing-analyst", pnl_per_bp_k=10, max_loss_k=200)
+    book.advance(tid, "sponsor", "head-of-rates")
+    with pytest.raises(book.LedgerError, match="kill_criteria"):
+        book.advance(tid, "challenge", "red-team", verdict="proceed")
+    book.advance(tid, "challenge", "red-team", verdict="proceed-smaller", kill_criteria="2y < 1.80%")
+    book.advance(tid, "size", "sizing-analyst", pnl_per_bp_k=12.5, max_loss_k=250)
+    book.advance(tid, "risk_approve", "cro")
+    with pytest.raises(book.LedgerError, match="may not"):
+        book.advance(tid, "pm_approve", "deputy-pm")       # only the human PM
+    t = book.advance(tid, "pm_approve", "pm")
+    assert t["status"] == "pm_approved"
+    assert [e["action"] for e in t["events"]] == ["propose", "sponsor", "challenge", "size", "risk_approve", "pm_approve"]
+
+
+def test_red_team_reject_kills_trade():
+    tid = book.propose("run-1", "head-of-rates", IDEA)
+    book.advance(tid, "sponsor", "head-of-rates")
+    assert book.advance(tid, "challenge", "red-team", verdict="reject", kill_criteria="n/a")["status"] == "rejected"
+
+
+def test_risk_engine_scenarios_and_breaches():
+    tid = book.propose("run-1", "head-of-rates", IDEA)
+    for action, actor, kw in [("sponsor", "head-of-rates", {}),
+                              ("challenge", "red-team", {"verdict": "proceed", "kill_criteria": "x"}),
+                              ("size", "sizing-analyst", {"pnl_per_bp_k": 80, "max_loss_k": 900})]:
+        book.advance(tid, action, actor, **kw)
+    r = risk.book_risk(extra_trade_ids=[tid])
+    assert r["pnl_per_bp_k_by_bucket"]["2y"] == 80
+    assert r["scenario_pnl_k"]["parallel_up_100"] == 8000
+    assert r["worst_scenario"]["name"] in ("parallel_down_100", "bull_steepener", "front_end_repricing_dovish",
+                                          "parallel_down_50")
+    assert any("2y" in b for b in r["limit_breaches"]) and any("max loss" in b for b in r["limit_breaches"])
+    assert r["limits_are_placeholders"] is True
+
+
+def test_sizing_math():
+    assert risk.size_from_stop(300, 20, -1) == {"pnl_per_bp_k": -15.0, "max_loss_k": 300.0,
+                                                "method": "loss at stop = |P&L per bp| x stop distance"}
+    assert risk.size_from_vol(50, 5, 1)["pnl_per_bp_k"] == 10.0
+
+
+def test_consult_agent_runs_target_once_and_blocks_nesting():
+    def script(params):
+        name = params["system"].split(" in a global macro", 1)[0].removeprefix("You are the ")
+        msgs = params["messages"]
+        if name == "Pod Coordinator" and len(msgs) == 1:
+            return message([tool_use("consult_agent", {"agent_id": "stir-strategist", "question": "ECB pricing?"})], "tool_use")
+        if name == "Front-End / STIR Strategist" and len(msgs) == 1:
+            # tries to consult further: must be refused (it doesn't hold the tool anyway)
+            return message([tool_use("consult_agent", {"agent_id": "us-economist", "question": "x"})], "tool_use")
+        return message([text(f"{name} answer")], "end_turn")
+    client = FakeClient(script)
+    r = asyncio.run(workflows.ask_pod(make_runner(client), "What is priced for the ECB?"))
+    assert r.text == "Pod Coordinator answer"
+    coord_result = _calls_for(client, "Pod Coordinator")[1]["messages"][-1]["content"][0]
+    assert coord_result["content"] == "Front-End / STIR Strategist answer"
+    stir_second = _calls_for(client, "Front-End / STIR Strategist")[1]["messages"][-1]["content"][0]
+    assert stir_second["is_error"] is True
+
+
+def test_consult_depth_blocks_heads_consulting_from_inside_a_consult():
+    def script(params):
+        name = params["system"].split(" in a global macro", 1)[0].removeprefix("You are the ")
+        if len(params["messages"]) == 1 and name in ("Deputy PM", "Head of Rates"):
+            target = "head-of-rates" if name == "Deputy PM" else "stir-strategist"
+            return message([tool_use("consult_agent", {"agent_id": target, "question": "q"})], "tool_use")
+        return message([text(f"{name} answer")], "end_turn")
+    client = FakeClient(script)
+    asyncio.run(make_runner(client).run(ENABLED["deputy-pm"], "task"))
+    head_followup = _calls_for(client, "Head of Rates")[1]["messages"][-1]["content"][0]
+    assert head_followup["is_error"] is True and "cannot consult further" in head_followup["content"]
+    assert not _calls_for(client, "Front-End / STIR Strategist")
+
+
+def test_trade_review_walks_the_gates():
+    def script(params):
+        name = params["system"].split(" in a global macro", 1)[0].removeprefix("You are the ")
+        first = len(params["messages"]) == 1
+        task = params["messages"][0]["content"]
+        tid = None
+        import re as _re
+        m = _re.search(r"trade #(\d+)", task)
+        if m:
+            tid = int(m.group(1))
+        if name == "Pod Coordinator":
+            return message([text("head-of-rates")], "end_turn")
+        if name == "Head of Rates" and first:
+            return message([tool_use("propose_trade", IDEA, "p")], "tool_use")
+        if name == "Head of Rates" and len(params["messages"]) == 3:
+            t = book.list_trades(run_id="run-1")[0]
+            return message([tool_use("advance_trade", {"trade_id": t["id"], "action": "sponsor", "note": "backing it"}, "s")], "tool_use")
+        if name == "Red Team" and first:
+            return message([tool_use("advance_trade", {"trade_id": tid, "action": "challenge", "note": "crowded",
+                                                       "verdict": "proceed-smaller", "kill_criteria": "2y < 1.8%"})], "tool_use")
+        if name == "Portfolio Construction & Sizing Analyst" and first:
+            return message([tool_use("advance_trade", {"trade_id": tid, "action": "size", "note": "half size",
+                                                       "pnl_per_bp_k": 10, "max_loss_k": 200})], "tool_use")
+        if name == "Chief Risk Officer" and first:
+            return message([tool_use("advance_trade", {"trade_id": tid, "action": "risk_approve", "note": "within limits"})], "tool_use")
+        return message([text(f"{name} done")], "end_turn")
+    client = FakeClient(script)
+    r = asyncio.run(workflows.trade_review(make_runner(client), "Pay EUR 2y"))
+    t = book.list_trades(run_id="run-1")[0]
+    assert t["status"] == "risk_approved" and t["red_team_verdict"] == "proceed-smaller" and t["pnl_per_bp_k"] == 10
+    assert r.name == "Deputy PM" and "awaits the PM" in _calls_for(client, "Deputy PM")[0]["messages"][0]["content"]
+
+
+def test_workflow_info_ids_resolve():
+    for w in workflows.workflow_info():
+        assert w["id"] in workflows.WORKFLOWS
+        for stage in w["stages"]:
+            for aid in stage:
+                assert aid in AGENTS or aid.startswith("("), (w["id"], aid)

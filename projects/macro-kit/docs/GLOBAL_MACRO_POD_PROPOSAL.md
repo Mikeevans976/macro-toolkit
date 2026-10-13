@@ -514,6 +514,22 @@ The FX & Cross-Asset desk, the Risk line and Execution have **no tools yet**. Th
 | **2 — Research depth** | Regional economists, CB Communications Analyst, Calendar & Data-Release Analyst, Quant desk | |
 | **3 — Multi-asset** | FX & Cross-Asset desk, rest of Risk, Execution | Needs new data and tools |
 
+### Build status (2026-10-13)
+
+**All 42 agents are built and runnable** (`backend/pod/roster.yaml`), with all 35 skills (`backend/pod/skills/`). The phases above now apply to the **tools**, not the agents.
+
+- **Built tools:** the 20 analytics wrappers, sandbox and web tools, views, and:
+  - the trade ledger with role-checked gates (`pod/book.py`)
+  - the risk engine with parametric scenarios and placeholder limits (`pod/risk.py`, `pod/limits.yaml`)
+  - the sizing engine and alerts
+  - `consult_agent`, `data_health`, `research_search` and `publish_report`
+- **Workflows:** ask-pod, trade-review, morning-briefing, one briefing per research desk, book-review, risk-review (`pod/workflows.py`).
+- **Not built yet:** each agent lists its gaps as `missing_tools`. It is told about them, uses primary web sources instead, and shows as "limited" in the UI (36 of 42). The main gaps:
+  - `bloomberg-mcp` and its dependants: `econ_calendar`, `cb_pricing`, FX, commodity and vol analytics, `execution_cost`
+  - `news-mcp`, `oms-pms-mcp` and `pnl_attribution`
+  - EM/China data and the CB communications corpus
+- **Risk limits in `pod/limits.yaml` are placeholders** until the PM sets them.
+
 ---
 
 ## 10. Open questions

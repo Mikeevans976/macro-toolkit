@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import Glyph, { toolGlyph } from '../components/Glyph'
 import PageTitle, { headerBar } from '../components/PageTitle'
-import { accent, fg, fontNum, ink, line, line2, neg, pos } from '../theme'
+import { accent, fg, fontNum, ink, line, line2, neg, pos, warn } from '../theme'
 import {
   AGENTS_MARK, AgentInfo, Chip, EventLine, KEYFRAMES, MODEL_LABEL, Markdown, ModelCatalogue, ModelPicker,
   PodView, RunSummary, SectionLabel, Spinner, StatusChip, StreamEvent, UsageRow, UsageSummary, ViewsTable,
   authHeaders, formatDate, modelLabel,
 } from '../components/agentsUi'
+import { AlertsPanel, LedgerPanel } from '../components/podLedger'
 
 // Global Macro Pod — org chart, workflow runner, live activity, synthesis and recorded views.
 // Backend: backend/pod/ (roster.yaml, workflows.py); design in docs/GLOBAL_MACRO_POD_PROPOSAL.md.
@@ -19,6 +20,7 @@ interface WorkflowInfo {
   description: string
   stages: string[][]
   final_agent: string
+  placeholder?: string
 }
 
 type RunStatus = 'idle' | 'running' | 'done' | 'error'
@@ -47,11 +49,14 @@ function AgentNode({
   modelText: string
 }) {
   const planned = !agent.enabled
+  const limited = (agent.missing_tools?.length ?? 0) > 0
   const border = state === 'active' ? accent : state === 'done' ? `${pos}88` : line2
   return (
     <button
       onClick={() => !planned && onOpen(agent)}
-      title={planned ? `Planned · needs ${agent.blocked_on.join(', ')}` : `${agent.role}\nOpen ${agent.name}`}
+      title={planned
+        ? `Planned · needs ${agent.blocked_on.join(', ')}`
+        : `${agent.name} · ${modelText}\n${agent.role}${limited ? `\nLimited: missing ${agent.missing_tools.join(', ')}` : ''}`}
       style={{
         display: 'grid', gap: compact ? 2 : 4, textAlign: 'left', width: '100%',
         background: planned ? 'transparent' : ink[2],
@@ -77,9 +82,12 @@ function AgentNode({
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: accent, animation: 'agents-pulse 1.2s ease-in-out infinite' }} />
           )}
           {state === 'done' && <span style={{ fontFamily: fontNum, fontSize: 9.5, color: pos, letterSpacing: '0.08em' }}>DONE</span>}
+          {limited && !planned && (
+            <span style={{ width: 5, height: 5, borderRadius: 1, background: warn, flexShrink: 0 }} />
+          )}
           {planned
             ? <Chip mono>PLANNED</Chip>
-            : <span style={{ fontFamily: fontNum, fontSize: 10, color: modelText.startsWith('OR ') ? AGENTS_MARK : fg[3], maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{modelText}</span>}
+            : (compact && !modelText.startsWith('OR ')) ? null : <span style={{ fontFamily: fontNum, fontSize: 10, color: modelText.startsWith('OR ') ? AGENTS_MARK : fg[3], maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{modelText}</span>}
         </span>
       </div>
       {!compact && (
@@ -104,21 +112,27 @@ function OrgChart({
   const reportsTo = (id: string) => roster.filter(a => a.reports_to === id)
   const deputy = byId['deputy-pm']
   const redTeam = byId['red-team']
-  const pmDirect = reportsTo('pm').filter(a => a.id !== 'deputy-pm')       // CRO line
-  const deputyDirect = reportsTo('deputy-pm').filter(a => a.id !== 'red-team')
-  const units = deputyDirect.filter(a => a.is_manager)
-  const singles = deputyDirect.filter(a => !a.is_manager && a.desk !== 'leadership')
-  const staff = deputyDirect.filter(a => !a.is_manager && a.desk === 'leadership')
+  const riskHeads = reportsTo('pm').filter(a => a.id !== 'deputy-pm')          // CRO: independent line
+  const units = reportsTo('deputy-pm').filter(a => a.is_manager)               // desks + coordinator
+  const singles = reportsTo('deputy-pm').filter(a => !a.is_manager && a.id !== 'red-team')
   const node = (a: AgentInfo, compact?: boolean) => (
     <AgentNode key={a.id} agent={a} compact={compact} inWorkflow={participants.has(a.id)} state={stateOf(a)} onOpen={onOpen} modelText={modelTextOf(a)} />
   )
-  const columnStyle: React.CSSProperties = { display: 'grid', gap: 6, alignContent: 'start', minWidth: 0 }
+  const column = (head: AgentInfo, label: string) => (
+    <div key={head.id} style={{ display: 'grid', gap: 6, alignContent: 'start', minWidth: 0 }}>
+      <span className="hub-eyebrow" style={{ fontSize: 9.5 }}>{label}</span>
+      {node(head)}
+      <div style={{ display: 'grid', gap: 5, paddingLeft: 10, borderLeft: `1px solid ${line}` }}>
+        {reportsTo(head.id).map(a => node(a, true))}
+      </div>
+    </div>
+  )
   const connector = <div style={{ width: 1, height: 14, background: line2, margin: '0 auto' }} />
 
   return (
     <div style={{ display: 'grid', gap: 0 }}>
-      {/* PM + independent risk line */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+      {/* PM */}
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
         <div style={{
           border: `1px solid ${line2}`, borderRadius: 6, padding: '6px 14px', fontSize: 12, color: fg[1],
           display: 'flex', alignItems: 'center', gap: 8,
@@ -127,50 +141,51 @@ function OrgChart({
           Portfolio Manager
           <span style={{ fontFamily: fontNum, fontSize: 10, color: fg[3] }}>HUMAN · FINAL SAY</span>
         </div>
-        {pmDirect.map(a => (
-          <div key={a.id} style={{ width: 270, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ flex: 1, borderTop: `1px dashed ${line2}` }} />
-            <div style={{ width: 240 }}>{node(a, true)}</div>
-          </div>
-        ))}
       </div>
       {connector}
 
-      {/* Deputy PM with Red Team and staff alongside */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(240px, 300px) 1fr', gap: 12, alignItems: 'center' }}>
-        <div style={{ display: 'grid', gap: 6, justifyItems: 'end' }}>
-          {staff.map(a => <div key={a.id} style={{ width: 200 }}>{node(a, true)}</div>)}
-        </div>
-        {deputy && node(deputy)}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {/* Deputy PM + Red Team | independent risk line */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(260px, 300px) minmax(0, 1fr)', gap: 14, alignItems: 'start' }}>
+        <div />
+        <div style={{ display: 'grid', gap: 6 }}>
+          {deputy && node(deputy)}
           {redTeam && (
-            <>
-              <span style={{ width: 18, borderTop: `1px solid ${line2}` }} />
-              <div style={{ width: 220 }}>{node(redTeam)}</div>
-            </>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 14, borderTop: `1px solid ${line2}` }} />
+              <div style={{ flex: 1, minWidth: 0 }}>{node(redTeam, true)}</div>
+            </div>
           )}
+        </div>
+        <div style={{ display: 'grid', gap: 6, alignContent: 'start', borderLeft: `1px dashed ${line2}`, paddingLeft: 14 }}>
+          <span className="hub-eyebrow" style={{ fontSize: 9.5 }}>Risk · reports to the PM</span>
+          {riskHeads.map(h => (
+            <div key={h.id} style={{ display: 'grid', gap: 5 }}>
+              {node(h)}
+              <div style={{ display: 'grid', gap: 5, paddingLeft: 10, borderLeft: `1px solid ${line}` }}>
+                {reportsTo(h.id).map(a => node(a, true))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
       {connector}
 
       {/* Desks */}
-      <div style={{ borderTop: `1px solid ${line2}`, paddingTop: 14, display: 'grid', gap: 14,
-        gridTemplateColumns: `repeat(${Math.max(units.length + (singles.length ? 1 : 0), 1)}, minmax(0, 1fr))` }}>
-        {units.map(head => (
-          <div key={head.id} style={columnStyle}>
-            <span className="hub-eyebrow" style={{ fontSize: 9.5 }}>{head.desk_name}</span>
-            {node(head)}
-            <div style={{ display: 'grid', gap: 5, paddingLeft: 12, borderLeft: `1px solid ${line}` }}>
-              {reportsTo(head.id).map(a => node(a, true))}
-            </div>
-          </div>
-        ))}
+      <div style={{
+        borderTop: `1px solid ${line2}`, paddingTop: 14, display: 'grid', gap: 14,
+        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+      }}>
+        {units.map(h => column(h, h.id === 'pod-coordinator' ? 'Shared Services' : h.desk_name))}
         {singles.length > 0 && (
-          <div style={columnStyle}>
+          <div style={{ display: 'grid', gap: 6, alignContent: 'start' }}>
             <span className="hub-eyebrow" style={{ fontSize: 9.5 }}>Reporting directly</span>
-            {singles.map(a => node(a, !a.enabled))}
+            {singles.map(a => node(a, true))}
           </div>
         )}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, fontSize: 10.5, color: fg[4] }}>
+        <span style={{ width: 5, height: 5, borderRadius: 1, background: warn }} />
+        Limited: some planned tools or data sources are not built yet (hover an agent for details).
       </div>
     </div>
   )
@@ -202,6 +217,7 @@ export default function AgentsPod() {
   const [doneNames, setDoneNames] = useState<Set<string>>(new Set())
   const [error, setError] = useState('')
   const [catalogue, setCatalogue] = useState<ModelCatalogue | null>(null)
+  const [bookRefresh, setBookRefresh] = useState(0)
   const [runModel, setRunModel] = useState<string | null>(() => {
     try { return localStorage.getItem(RUN_MODEL_KEY) || null } catch { return null }
   })
@@ -307,6 +323,7 @@ export default function AgentsPod() {
         es.close()
         loadHistory()
         loadRunExtras(runId)
+        setBookRefresh(k => k + 1)
         return
       }
       if (ev.type === 'error') {
@@ -359,6 +376,7 @@ export default function AgentsPod() {
 
   const enabledCount = roster.filter(a => a.enabled).length
   const plannedCount = roster.length - enabledCount
+  const limitedCount = roster.filter(a => a.enabled && (a.missing_tools?.length ?? 0) > 0).length
   const podHistory = history.filter(r => workflowIds.has(r.agent_id))
   const visibleEvents = showReasoning ? events : events.filter(e => e.type !== 'thinking')
   const workflowLabel = (id: string) => workflows.find(w => w.id === id)?.label ?? (id === 'fixed-income-pod' ? 'Fixed Income Pod (legacy)' : id)
@@ -375,7 +393,7 @@ export default function AgentsPod() {
           category="Agents"
           categoryId="agents"
           title="Global Macro Pod"
-          subtitle={`${enabledCount} agents active · ${plannedCount} planned · advisory only, the PM decides`}
+          subtitle={`${enabledCount} agents${plannedCount ? ` · ${plannedCount} planned` : ''} · ${limitedCount} limited by missing tools · advisory only, the PM decides`}
         />
         {runStatus === 'running' && (
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -387,7 +405,7 @@ export default function AgentsPod() {
         )}
       </div>
 
-      <div style={{ maxWidth: 1240, margin: '0 auto', padding: '24px 32px' }}>
+      <div style={{ maxWidth: 1440, margin: '0 auto', padding: '24px 32px' }}>
 
         {/* Organisation */}
         <div className="hub-frame" style={panel}>
@@ -398,6 +416,8 @@ export default function AgentsPod() {
             ? <OrgChart roster={roster} participants={participants} stateOf={stateOf} modelTextOf={modelTextOf} onOpen={a => navigate(`/tools/agents/${a.id}`)} />
             : <p style={{ color: fg[3], fontSize: 12, margin: 0 }}>Loading roster…</p>}
         </div>
+
+        <AlertsPanel refreshKey={bookRefresh} names={names} />
 
         {/* Briefing */}
         <div className="hub-frame" style={panel}>
@@ -457,7 +477,7 @@ export default function AgentsPod() {
               value={question}
               onChange={e => setQuestion(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) run() }}
-              placeholder="Ask the pod, e.g. 'Where is the best risk/reward in EUR rates over the next month?'"
+              placeholder={workflow?.placeholder ?? 'Ask the pod'}
               rows={3}
               disabled={runStatus === 'running'}
               style={{
@@ -528,6 +548,8 @@ export default function AgentsPod() {
             </p>
           </div>
         )}
+
+        <LedgerPanel refreshKey={bookRefresh} names={names} />
 
         {/* History */}
         <div className="hub-frame" style={panel}>

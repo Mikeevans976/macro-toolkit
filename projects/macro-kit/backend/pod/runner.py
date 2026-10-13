@@ -22,6 +22,7 @@ Anthropic request shape per turn:
 - server-side refusal fallback on Opus/Sonnet 5.5
 """
 import asyncio
+import contextvars
 import json
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
@@ -43,6 +44,9 @@ Emit = Callable[[str, str, str], None]
 _USAGE_FIELDS = ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
 _CAP_NOTICE = ("You have reached the tool-call limit for this task. "
                "Give your final answer now using what you have.")
+# How deep consult_agent calls are nested in the current task (consulted agents may not consult)
+_CONSULT_DEPTH: contextvars.ContextVar[int] = contextvars.ContextVar("consult_depth", default=0)
+
 # OpenRouter's normalised reasoning effort accepts low | medium | high
 _OPENROUTER_EFFORT = {"low": "low", "medium": "medium", "high": "high", "xhigh": "high", "max": "high"}
 
@@ -291,6 +295,27 @@ class Runner:
 
     # ── shared ───────────────────────────────────────────────────────────────
 
+    async def _consult(self, caller: AgentDef, args: dict) -> str:
+        from pod.roster import ENABLED
+        target = ENABLED.get(str(args.get("agent_id", "")))
+        if target is None:
+            raise ValueError(f"No active agent {args.get('agent_id')!r}. Active ids: {', '.join(ENABLED)}")
+        if target.id == caller.id:
+            raise ValueError("An agent cannot consult itself.")
+        if _CONSULT_DEPTH.get() >= 1:
+            raise PermissionError("Consulted agents cannot consult further; answer with what you have.")
+        question = str(args.get("question", "")).strip()
+        if not question:
+            raise ValueError("question is required")
+        self.emit("status", caller.name, f"{caller.name} consulted {target.name}")
+        token = _CONSULT_DEPTH.set(_CONSULT_DEPTH.get() + 1)
+        try:
+            res = await self.run(target, (
+                f"{caller.name} asks you (answer directly and concisely; you cannot consult others):\n\n{question}"))
+        finally:
+            _CONSULT_DEPTH.reset(token)
+        return res.text if res.ok else f"{target.name} could not answer: {res.error}"
+
     @staticmethod
     def _tools_for(agent: AgentDef, provider: str) -> list[Tool]:
         tools = agent.all_tools()
@@ -307,6 +332,8 @@ class Runner:
             tool = allowed.get(name)
             if tool is None:
                 raise PermissionError(f"Tool {name!r} is not available to {agent.name}.")
+            if name == "consult_agent":
+                return await self._consult(agent, args), False
             return await asyncio.to_thread(tool.call, args, ctx), False
         except Exception as exc:
             self.emit("step", agent.name, f"{name} failed: {type(exc).__name__}: {exc}")

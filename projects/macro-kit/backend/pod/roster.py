@@ -18,7 +18,7 @@ _HERE = Path(__file__).parent
 SKILLS_DIR = _HERE / "skills"
 
 BASELINE_TOOLS = [
-    "submit_view", "read_desk_views", "get_house_view", "search_pod_memory",
+    "submit_view", "read_desk_views", "get_house_view", "search_pod_memory", "list_trades",
     "sandbox_read", "sandbox_write", "sandbox_edit", "sandbox_list", "sqlite_sandbox",
     "python_sandbox", "web_search", "web_fetch",
 ]
@@ -40,6 +40,7 @@ class AgentDef:
     is_manager: bool = False
     enabled: bool = True
     blocked_on: tuple[str, ...] = ()
+    missing_tools: tuple[str, ...] = ()
     system_prompt: str = field(default="", compare=False, repr=False)
 
     @property
@@ -55,6 +56,12 @@ def _read_skill(name: str) -> str:
     path = SKILLS_DIR / name / "SKILL.md"
     text = path.read_text(encoding="utf-8")
     return re.sub(r"\A---\n.*?\n---\n", "", text, flags=re.DOTALL).strip()   # drop frontmatter
+
+
+def _directory(by_id: dict, exclude: str) -> str:
+    rows = [f"- {x['id']}: {x['name']} ({x['role']})" for x in by_id.values()
+            if x.get("enabled", True) and x["id"] != exclude]
+    return "Agents you can consult with consult_agent (id: name, role):\n" + "\n".join(rows)
 
 
 def _system_prompt(a: dict, desks: dict, by_id: dict) -> str:
@@ -73,6 +80,15 @@ def _system_prompt(a: dict, desks: dict, by_id: dict) -> str:
         "- When you have views, record them with submit_view, then give your written answer.\n"
         "- Your output is advisory. Nothing you say places or changes a trade.",
     ]
+    if a.get("missing_tools"):
+        parts.append(
+            "Data limits: these planned tools or data sources are not built yet: "
+            + ", ".join(a["missing_tools"])
+            + ". Where your work needs them, use primary sources via web_search / web_fetch, say "
+            "that you did, and lower conviction accordingly."
+        )
+    if "consult_agent" in a.get("tools", []):
+        parts.append(_directory(by_id, a["id"]))
     for s in skills:
         parts.append(f'<skill name="{s}">\n{_read_skill(s)}\n</skill>')
     return "\n\n".join(parts)
@@ -117,6 +133,7 @@ def _load() -> tuple[dict[str, AgentDef], dict[str, str]]:
             tools=tuple(a.get("tools", [])), skills=tuple(a.get("skills", [])),
             is_manager=a.get("is_manager", False), enabled=enabled,
             blocked_on=tuple(a.get("blocked_on", [])),
+            missing_tools=tuple(a.get("missing_tools", [])),
             system_prompt=_system_prompt(a, desks, by_id) if enabled else "",
         )
     return agents, desks
@@ -148,4 +165,5 @@ def roster_entry(a: AgentDef) -> dict:
         "is_manager": a.is_manager,
         "enabled": a.enabled,
         "blocked_on": list(a.blocked_on),
+        "missing_tools": list(a.missing_tools),
     }

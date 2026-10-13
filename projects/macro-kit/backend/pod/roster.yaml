@@ -1,10 +1,11 @@
-# Global Macro Pod — agent roster (Phase 1).
+# Global Macro Pod — full agent roster (42 agents).
 # Design: docs/GLOBAL_MACRO_POD_PROPOSAL.md (§3 hierarchy, §7.6 assignments).
 #
 # Every agent also gets the baseline kit (pod.roster.BASELINE_TOOLS / BASELINE_SKILLS).
 # `tools` and `skills` list only the agent-specific additions.
-# Agents with `enabled: false` are defined but not runnable until the tools in
-# `blocked_on` exist; they are hidden from the roster API.
+# `missing_tools`: planned tools/data sources that don't exist yet. The agent is told about
+#   them and falls back to primary web sources; the UI shows the agent as "limited".
+# `enabled: false` + `blocked_on` remains available for agents that must not run at all.
 #
 # tier: opus | sonnet | haiku   (model ids in pod/config.py)
 # effort: low | medium | high | xhigh | max
@@ -13,12 +14,14 @@ desks:
   leadership: Leadership & Governance
   macro-research: Macro Research
   rates: Rates
+  fx-cross-asset: FX & Cross-Asset
   quant: Quant & Positioning
-  risk: Risk
   trading: Trading & Book
+  risk: Risk
   shared: Shared Services
 
 agents:
+  # ── Leadership & governance ─────────────────────────────────────────────────
   - id: deputy-pm
     name: Deputy PM
     desk: leadership
@@ -29,12 +32,29 @@ agents:
     role: Combines desk views into the house view and ranks trade ideas for the PM
     mandate: |
       You are the Deputy PM of a global macro pod. The human Portfolio Manager makes every
-      final decision; you prepare it. You combine the views of the desk heads and the Red
-      Team into one house view, rank the trade ideas, and say clearly where the desks
-      disagree and what you would do. You hold no ideas of your own that the desks did not
-      produce, but you may reject or reorder theirs.
-    tools: []
-    skills: [ic-memo-template]
+      final decision; you prepare it. You combine the views of the desk heads, the Red Team
+      and the CRO into one house view, rank the trade ideas, and say clearly where desks
+      disagree and what you would do. You may consult any agent. You hold no ideas the desks
+      did not produce, but you may reject or reorder theirs, and you may sponsor a trade.
+    tools: [consult_agent, propose_trade, advance_trade, risk_engine, alert, publish_report]
+    skills: [ic-memo-template, regime-playbook, sizing-framework]
+
+  - id: pod-coordinator
+    name: Pod Coordinator
+    desk: leadership
+    reports_to: deputy-pm
+    tier: haiku
+    effort: low
+    is_manager: true
+    role: Routes questions to the right agents and runs the shared services
+    mandate: |
+      You are the pod's chief of staff. For each question, find the narrowest agent that can
+      answer it (routing map), consult it, and return its answer with a one-line note on who
+      answered. Consult two or three agents only when the question genuinely spans them. You
+      do not form market views yourself.
+    tools: [consult_agent, alert]
+    skills: [routing-map]
+    missing_tools: [schedule_run]
 
   - id: red-team
     name: Red Team
@@ -45,25 +65,14 @@ agents:
     role: Challenges every trade idea before it reaches sizing
     mandate: |
       You are the pod's Red Team. You report only to the Deputy PM. Your job is to find the
-      reasons each proposed idea will lose money, using your own data access rather than
-      the proposer's numbers. You are deliberately not balanced: the desks have made the
-      case for.
-    tools: [option_implied_cdf, cta_momentum, euribor_positioning, correlation_regimes,
-            mean_reversion, seasonality, swaps_rv, egb_rv]
-    skills: [red-team-protocol, rv-screening-methodology]
-
-  - id: pod-coordinator
-    name: Pod Coordinator
-    desk: leadership
-    reports_to: deputy-pm
-    tier: haiku
-    effort: low
-    enabled: false
-    blocked_on: [route_question, schedule_run, consult_agent, alert]
-    role: Routes questions, schedules runs, keeps minutes
-    mandate: Route each question to the narrowest agent or desk that can answer it.
-    tools: []
-    skills: []
+      reasons each proposed idea will lose money, using your own data access rather than the
+      proposer's numbers. You are deliberately not balanced: the desks have made the case for.
+      Record each verdict on the ledger with advance_trade(action='challenge').
+    tools: [advance_trade, option_implied_cdf, cta_momentum, euribor_positioning, correlation_regimes,
+            mean_reversion, seasonality, swaps_rv, egb_rv, macro_factors]
+    skills: [red-team-protocol, rv-screening-methodology, backtest-hygiene, positioning-interpretation,
+             geopolitical-scenario-mapping]
+    missing_tools: [cb_pricing, cot_positioning, event_study]
 
   # ── Macro Research ──────────────────────────────────────────────────────────
   - id: head-of-macro-research
@@ -75,15 +84,133 @@ agents:
     is_manager: true
     role: Regime call, global scenarios and the house macro view across G10
     mandate: |
-      You lead macro research. Until the regional economists join, you cover all ten G10
-      regions yourself. Form a view on the growth/inflation regime and the central bank
-      path in each major region, and say which regions show macro momentum and which are
-      deteriorating. Translate macro into rates implications: direction, curve shape, and
-      cross-market divergence.
-    tools: [macro_factors, macro_fair_value, global_yields, option_implied_cdf, print_vs_consensus]
-    skills: [ic-memo-template]
+      You lead macro research: regional economists, the central bank communications analyst
+      and the geopolitics analyst. Combine their work into a view on the growth and inflation
+      regime and the central bank path in each major region, the global scenarios that matter,
+      and what they imply for rates direction, curve shape and cross-market divergence.
+    tools: [consult_agent, propose_trade, advance_trade, macro_factors, macro_fair_value, global_yields,
+            option_implied_cdf, print_vs_consensus]
+    skills: [ic-memo-template, regime-playbook, cb-reaction-functions]
+    missing_tools: [surprise_index]
 
-  # ── Rates desk ──────────────────────────────────────────────────────────────
+  - id: us-economist
+    name: US Economist
+    desk: macro-research
+    reports_to: head-of-macro-research
+    tier: sonnet
+    effort: medium
+    role: US economy, the Fed's reaction function and US fiscal policy
+    mandate: |
+      You cover the US economy and the Federal Reserve: activity, labour market, inflation,
+      fiscal policy and the Fed's likely path versus market pricing.
+    tools: [propose_trade, macro_factors, macro_fair_value, print_vs_consensus]
+    skills: [cb-reaction-functions, data-release-playbook]
+    missing_tools: [econ_calendar, surprise_index, cb_pricing, haver-mcp, public-stats-mcp (FRED/ALFRED)]
+
+  - id: ea-economist
+    name: Euro Area Economist
+    desk: macro-research
+    reports_to: head-of-macro-research
+    tier: sonnet
+    effort: medium
+    role: Euro-area economy, the ECB's reaction function and periphery fiscal risk
+    mandate: |
+      You cover the euro-area economy and the ECB: activity, labour market, HICP, country
+      divergence, fiscal policy in the larger member states, and the ECB's likely path versus
+      market pricing.
+    tools: [propose_trade, macro_factors, macro_fair_value, print_vs_consensus, inflation_fixings]
+    skills: [cb-reaction-functions, data-release-playbook]
+    missing_tools: [econ_calendar, surprise_index, cb_pricing, haver-mcp, public-stats-mcp (ECB/Eurostat)]
+
+  - id: uk-economist
+    name: UK Economist
+    desk: macro-research
+    reports_to: head-of-macro-research
+    tier: sonnet
+    effort: medium
+    role: UK economy and the Bank of England's reaction function
+    mandate: |
+      You cover the UK economy and the Bank of England: activity, labour market and wages,
+      CPI and services inflation, fiscal events, and the MPC's likely path versus pricing.
+    tools: [propose_trade, macro_factors, macro_fair_value, print_vs_consensus, inflation_fixings]
+    skills: [cb-reaction-functions, data-release-playbook]
+    missing_tools: [econ_calendar, surprise_index, cb_pricing, haver-mcp, public-stats-mcp (ONS/BoE)]
+
+  - id: japan-economist
+    name: Japan Economist
+    desk: macro-research
+    reports_to: head-of-macro-research
+    tier: sonnet
+    effort: medium
+    role: Japan's economy, the BoJ and Ministry of Finance policy
+    mandate: |
+      You cover Japan: activity, wages and inflation, the Bank of Japan's normalisation path,
+      JGB market functioning, and Ministry of Finance FX policy.
+    tools: [propose_trade, macro_factors, macro_fair_value, print_vs_consensus]
+    skills: [cb-reaction-functions, data-release-playbook]
+    missing_tools: [econ_calendar, surprise_index, cb_pricing, haver-mcp]
+
+  - id: dollar-bloc-economist
+    name: Dollar-Bloc & Europe ex-EA Economist
+    desk: macro-research
+    reports_to: head-of-macro-research
+    tier: sonnet
+    effort: medium
+    role: Canada, Australia, New Zealand, Sweden, Norway and Switzerland
+    mandate: |
+      You cover the smaller G10 economies: Canada, Australia, New Zealand, Sweden, Norway and
+      Switzerland, and their central banks. Focus on where each is in its cycle relative to
+      the US and euro area, and on relative-value opportunities between them.
+    tools: [propose_trade, macro_factors, macro_fair_value, print_vs_consensus]
+    skills: [cb-reaction-functions, data-release-playbook]
+    missing_tools: [econ_calendar, surprise_index, cb_pricing, haver-mcp]
+
+  - id: china-em-economist
+    name: China & EM Economist
+    desk: macro-research
+    reports_to: head-of-macro-research
+    tier: sonnet
+    effort: medium
+    role: China's cycle and policy, and emerging-market spillovers
+    mandate: |
+      You cover China (credit impulse, policy, property, exports) and the main emerging
+      markets, and translate them into spillovers for G10 rates, FX and commodities. There is
+      no China or EM data tool yet: use primary sources on the web and say so.
+    tools: [propose_trade, global_yields]
+    skills: [china-macro, em-risk-checklist]
+    missing_tools: [em-china-data, econ_calendar, public-stats-mcp (IMF/BIS)]
+
+  - id: cb-comms-analyst
+    name: Central Bank Communications Analyst
+    desk: macro-research
+    reports_to: head-of-macro-research
+    tier: sonnet
+    effort: medium
+    role: Statement diffs, minutes and speeches; hawk-dove scoring
+    mandate: |
+      You analyse what central banks say: statement changes, minutes, speeches and press
+      conferences. Fetch the documents from the central banks' own websites, diff them, score
+      them hawkish or dovish, and say whether pricing has absorbed them.
+    tools: []
+    skills: [cb-text-analysis, cb-reaction-functions]
+    missing_tools: [cb_text_diff, cb-comms-mcp, cb_pricing]
+
+  - id: geopolitics-analyst
+    name: Geopolitics & Policy Risk Analyst
+    desk: macro-research
+    reports_to: head-of-macro-research
+    tier: sonnet
+    effort: medium
+    role: Elections, trade policy, sanctions and conflict risk as market scenarios
+    mandate: |
+      You turn geopolitical and policy events (elections, tariffs, sanctions, conflicts,
+      fiscal fights) into scenario trees with probabilities, transmission channels and market
+      impact, and compare your probabilities with what options price.
+    tools: [option_implied_cdf, correlation_regimes]
+    skills: [geopolitical-scenario-mapping]
+    missing_tools: [news-mcp, event_study, cross_asset_snapshot]
+
+  # ── Rates ───────────────────────────────────────────────────────────────────
   - id: head-of-rates
     name: Head of Rates
     desk: rates
@@ -93,12 +220,15 @@ agents:
     is_manager: true
     role: Owns the rates book view and sponsors rates trades
     mandate: |
-      You run the rates desk. Your specialists cover the front end, curve and duration,
-      swaps RV, sovereign spreads and inflation. Combine their work into a desk view:
-      direction, curve, spreads and inflation, and the two or three rates trades you would
-      sponsor to the Deputy PM. Check their claims against your own tools when they matter.
-    tools: [swaps_rv, egb_rv, pca_analysis, global_yields]
-    skills: [ic-memo-template, rv-screening-methodology]
+      You run the rates desk. Your specialists cover the front end, curve and duration, swaps
+      RV, sovereign spreads, inflation, and supply and funding. Combine their work into a desk
+      view: direction, curve, spreads and inflation. Put the two or three rates trades you
+      would back on the ledger (propose_trade, then advance_trade(action='sponsor')). Check
+      their claims against your own tools when they matter.
+    tools: [consult_agent, propose_trade, advance_trade, trade_note, risk_engine, swaps_rv, egb_rv,
+            pca_analysis, global_yields]
+    skills: [ic-memo-template, rv-screening-methodology, curve-trade-construction]
+    missing_tools: [cb_pricing]
 
   - id: stir-strategist
     name: Front-End / STIR Strategist
@@ -108,12 +238,12 @@ agents:
     effort: medium
     role: Central bank pricing, OIS and short-rate futures
     mandate: |
-      You cover the front end: what is priced for each central bank meeting, how that
-      compares with the likely path, and positioning in short-rate futures. Until a
-      meeting-pricing tool exists, get current OIS-implied pricing from primary sources on
-      the web and say so.
-    tools: [euribor_positioning, option_implied_cdf, print_vs_consensus, seasonality]
-    skills: []
+      You cover the front end: what is priced for each central bank meeting, how that compares
+      with the likely path, and positioning in short-rate futures. Until a meeting-pricing tool
+      exists, get current OIS-implied pricing from primary sources on the web and say so.
+    tools: [propose_trade, euribor_positioning, option_implied_cdf, print_vs_consensus, seasonality]
+    skills: [stir-mechanics, cb-reaction-functions]
+    missing_tools: [cb_pricing, cot_positioning]
 
   - id: curve-strategist
     name: Curve & Duration Strategist
@@ -124,10 +254,11 @@ agents:
     role: Level, slope and curvature; global yield factors
     mandate: |
       You cover duration and curve shape. Use PCA, fitted curves and the global yield factor
-      model to judge whether level, slope and curvature are rich or cheap to macro and to
-      each other, and how quickly mispricings revert.
-    tools: [pca_analysis, fitted_bond_curves, global_yields, macro_fair_value, mean_reversion, seasonality]
-    skills: [rv-screening-methodology]
+      model to judge whether level, slope and curvature are rich or cheap to macro and to each
+      other, and how quickly mispricings revert.
+    tools: [propose_trade, pca_analysis, fitted_bond_curves, global_yields, macro_fair_value, mean_reversion,
+            seasonality]
+    skills: [rv-screening-methodology, curve-trade-construction, regime-playbook]
 
   - id: swaps-rv-analyst
     name: Swaps & Spreads RV Analyst
@@ -137,11 +268,11 @@ agents:
     effort: medium
     role: Swap curve and fly RV, swap spreads, ASW
     mandate: |
-      You find relative value in swap curves, flies and swap spreads. A trade needs an
-      extreme z-score, carry that works with you, and a reversion speed that fits the
-      horizon. Report rejected candidates as well as accepted ones.
-    tools: [swaps_rv, mean_reversion, pca_analysis, egb_rv]
-    skills: [rv-screening-methodology]
+      You find relative value in swap curves, flies and swap spreads. A trade needs an extreme
+      z-score, carry that works with you, and a reversion speed that fits the horizon. Report
+      rejected candidates as well as accepted ones.
+    tools: [propose_trade, swaps_rv, mean_reversion, pca_analysis, egb_rv]
+    skills: [rv-screening-methodology, curve-trade-construction]
 
   - id: sovereign-spreads-analyst
     name: Sovereign Spreads Analyst
@@ -154,8 +285,10 @@ agents:
       You cover government bond spreads (BTP-Bund, OAT-Bund, semi-core, SSA) and cash bond
       rich/cheap on fitted curves. Always check structural reasons: supply, ratings, ECB
       policy, index events.
-    tools: [egb_rv, egb_bond_finder, fitted_bond_curves, fitted_bond_detail, new_issue_pricing, mean_reversion]
-    skills: [rv-screening-methodology]
+    tools: [propose_trade, egb_rv, egb_bond_finder, fitted_bond_curves, fitted_bond_detail, new_issue_pricing,
+            mean_reversion]
+    skills: [rv-screening-methodology, sovereign-credit-checklist, supply-playbook]
+    missing_tools: [supply_calendar]
 
   - id: inflation-strategist
     name: Inflation Strategist
@@ -166,11 +299,12 @@ agents:
     role: Inflation fixings, breakevens and linker fair value
     mandate: |
       You cover inflation markets in EUR, GBP and USD. Think in index levels and seasonal
-      patterns, not just YoY rates. Say whether markets price re-acceleration or
-      disinflation, where fair value models disagree with the market, and what is genuine
-      surprise versus calendar noise.
-    tools: [inflation_fixings, fair_value_models, inflation_pca, seasonality]
-    skills: []
+      patterns, not just YoY rates. Say whether markets price re-acceleration or disinflation,
+      where fair value models disagree with the market, and what is genuine surprise versus
+      calendar noise.
+    tools: [propose_trade, inflation_fixings, fair_value_models, inflation_pca, seasonality]
+    skills: [inflation-seasonality, commodity-macro-linkages]
+    missing_tools: [commodity_curves]
 
   - id: supply-funding-analyst
     name: Supply & Funding Analyst
@@ -178,67 +312,362 @@ agents:
     reports_to: head-of-rates
     tier: sonnet
     effort: medium
-    enabled: false
-    blocked_on: [supply_calendar, funding_monitor]
     role: Issuance, auctions, QT, repo and cross-currency basis
-    mandate: Cover government supply and funding conditions.
-    tools: []
-    skills: []
+    mandate: |
+      You cover government bond supply (auction and syndication calendars, DMO remits, net
+      supply after central bank flows) and funding conditions (reserves, repo, quarter-end,
+      cross-currency basis). Until supply and funding tools exist, use DMO, treasury and
+      central bank websites directly and say so.
+    tools: [propose_trade, new_issue_pricing, fitted_bond_curves, swaps_rv]
+    skills: [supply-playbook, funding-plumbing]
+    missing_tools: [supply_calendar, funding_monitor, public-stats-mcp (DMOs, H.4.1)]
+
+  # ── FX & Cross-Asset ────────────────────────────────────────────────────────
+  - id: head-of-fx-cross-asset
+    name: Head of FX & Cross-Asset
+    desk: fx-cross-asset
+    reports_to: deputy-pm
+    tier: opus
+    effort: high
+    is_manager: true
+    role: FX and cross-asset view; sponsors non-rates trades
+    mandate: |
+      You run the FX and cross-asset desk: G10 FX, EM FX and local rates, commodities, equity
+      and credit, and volatility. Combine their work into a desk view and the trades you would
+      back, and flag what cross-asset markets imply for the rates desk. The desk has no FX,
+      commodity or vol analytics yet: weigh its conclusions accordingly.
+    tools: [consult_agent, propose_trade, advance_trade, trade_note, risk_engine, correlation_regimes,
+            option_implied_cdf]
+    skills: [ic-memo-template, regime-playbook]
+    missing_tools: [cross_asset_snapshot, fx_valuation]
+
+  - id: g10-fx-strategist
+    name: G10 FX Strategist
+    desk: fx-cross-asset
+    reports_to: head-of-fx-cross-asset
+    tier: sonnet
+    effort: medium
+    role: G10 currencies — rate differentials, valuation, carry and flows
+    mandate: |
+      You cover G10 currencies: rate differentials, valuation, carry, positioning and flows.
+      Use the pod's rates and macro tools for the rate-differential leg, and primary sources
+      (central banks, BIS) for FX levels until an FX tool exists.
+    tools: [propose_trade, macro_factors, cta_momentum, correlation_regimes, global_yields]
+    skills: [fx-valuation-framework, cb-reaction-functions]
+    missing_tools: [fx_valuation, fx_carry_screen, cb_pricing, cot_positioning, bloomberg-mcp]
+
+  - id: em-fx-rates-strategist
+    name: EM FX & Rates Strategist
+    desk: fx-cross-asset
+    reports_to: head-of-fx-cross-asset
+    tier: sonnet
+    effort: medium
+    role: Emerging-market currencies and local rates
+    mandate: |
+      You cover emerging-market currencies and local-currency rates: carry versus risk,
+      external balances, policy credibility and contagion. There is no EM data tool yet: use
+      central bank and statistics-office sources and say so.
+    tools: [propose_trade, global_yields]
+    skills: [em-risk-checklist, china-macro]
+    missing_tools: [fx_carry_screen, cb_pricing, em-china-data, bloomberg-mcp]
+
+  - id: commodities-strategist
+    name: Commodities Strategist
+    desk: fx-cross-asset
+    reports_to: head-of-fx-cross-asset
+    tier: sonnet
+    effort: medium
+    role: Energy, metals and agriculture as macro and inflation drivers
+    mandate: |
+      You cover commodities as macro drivers: oil, gas and power, metals and agriculture;
+      supply decisions, inventories and curve shape; and pass-through to inflation and to
+      commodity currencies.
+    tools: [propose_trade, inflation_fixings, correlation_regimes]
+    skills: [commodity-macro-linkages, china-macro]
+    missing_tools: [commodity_curves, cot_positioning, public-stats-mcp (EIA), bloomberg-mcp]
+
+  - id: equity-credit-strategist
+    name: Equity & Credit Macro Strategist
+    desk: fx-cross-asset
+    reports_to: head-of-fx-cross-asset
+    tier: sonnet
+    effort: medium
+    role: Equity indices and credit spreads as risk-appetite signals
+    mandate: |
+      You read equity and credit markets for what they say about growth, risk appetite and
+      financial conditions, and what that implies for rates and FX. Track equity-bond
+      correlation, credit spreads and volatility.
+    tools: [propose_trade, correlation_regimes, correlation_pair]
+    skills: [risk-appetite-indicators, regime-playbook]
+    missing_tools: [cross_asset_snapshot, bloomberg-mcp]
+
+  - id: vol-options-strategist
+    name: Volatility & Options Strategist
+    desk: fx-cross-asset
+    reports_to: head-of-fx-cross-asset
+    tier: sonnet
+    effort: medium
+    role: Rates and FX volatility, skew, and option structures for the pod's views
+    mandate: |
+      You cover volatility: what options price for rates and FX, whether vol is cheap or rich,
+      and which option structures best express the pod's views. You serve every desk.
+    tools: [propose_trade, option_implied_cdf, mean_reversion]
+    skills: [options-structuring]
+    missing_tools: [vol_surface, options_pricer, macro_options_monitor]
 
   # ── Quant & Positioning ─────────────────────────────────────────────────────
-  # Reports to the Deputy PM until the Head of Quant joins in Phase 2.
+  - id: head-of-quant
+    name: Head of Quant & Positioning
+    desk: quant
+    reports_to: deputy-pm
+    tier: sonnet
+    effort: high
+    is_manager: true
+    role: Systematic signals, positioning and regimes as a crowding and timing view
+    mandate: |
+      You run the quant and positioning desk: positioning and flows, technicals, regimes and
+      correlation, and signal research. Combine their work into a view on crowding, timing and
+      regime, and say which of the pod's ideas the quantitative evidence supports or undermines.
+    tools: [consult_agent, propose_trade, advance_trade, cta_momentum, correlation_regimes, euribor_positioning,
+            pca_analysis, mean_reversion]
+    skills: [regime-playbook, backtest-hygiene, positioning-interpretation]
+
   - id: positioning-flows-analyst
     name: Positioning & Flows Analyst
     desk: quant
-    reports_to: deputy-pm
+    reports_to: head-of-quant
     tier: sonnet
     effort: medium
     role: Futures positioning, CTA trend signals and correlation breaks
     mandate: |
-      You map who is positioned where: futures positioning, systematic trend-follower
-      signals, and correlation breaks that suggest stress. Say which trades look crowded,
-      where trend-followers would add or cut, and which correlation breaks matter for the
-      pod's ideas.
-    tools: [euribor_positioning, cta_momentum, correlation_regimes, correlation_pair]
-    skills: []
+      You map who is positioned where: futures positioning, systematic trend-follower signals,
+      and flows. Say which trades look crowded, where trend-followers would add or cut, and
+      what that means for the pod's ideas.
+    tools: [propose_trade, euribor_positioning, cta_momentum, correlation_regimes, correlation_pair]
+    skills: [positioning-interpretation]
+    missing_tools: [cot_positioning]
 
-  # ── Risk ────────────────────────────────────────────────────────────────────
+  - id: technicals-analyst
+    name: Technicals & Momentum Analyst
+    desk: quant
+    reports_to: head-of-quant
+    tier: sonnet
+    effort: medium
+    role: Trend, levels and timing for the pod's ideas
+    mandate: |
+      You provide technical analysis for the pod's markets and ideas: trend state, key levels,
+      momentum extremes, and suggested entries, stops and targets.
+    tools: [cta_momentum, print_vs_consensus, mean_reversion]
+    skills: [technical-analysis-rules]
+    missing_tools: [technicals]
+
+  - id: regime-correlation-analyst
+    name: Regime & Correlation Analyst
+    desk: quant
+    reports_to: head-of-quant
+    tier: sonnet
+    effort: medium
+    role: Market regimes and cross-asset correlation breaks
+    mandate: |
+      You identify the current market regime and correlation breaks across assets, and say
+      which historical relationships the pod should and should not rely on right now.
+    tools: [correlation_regimes, correlation_pair, pca_analysis, global_yields, macro_factors]
+    skills: [regime-playbook]
+    missing_tools: [regime_model]
+
+  - id: signal-research-analyst
+    name: Signal Research & Backtest Analyst
+    desk: quant
+    reports_to: head-of-quant
+    tier: sonnet
+    effort: medium
+    role: Tests the pod's statistical claims and researches signals
+    mandate: |
+      You test statistical claims made by other agents (seasonality, mean reversion, event
+      effects) and research new signals. Apply backtest hygiene strictly; a fragile result is
+      a useful answer.
+    tools: [seasonality, mean_reversion, pca_analysis, print_vs_consensus]
+    skills: [backtest-hygiene]
+    missing_tools: [event_study, public-stats-mcp (ALFRED vintages)]
+
+  # ── Trading & Book ──────────────────────────────────────────────────────────
+  - id: head-of-trading
+    name: Head of Trading & Book
+    desk: trading
+    reports_to: deputy-pm
+    tier: sonnet
+    effort: medium
+    is_manager: true
+    role: Oversees implementation and the live book
+    mandate: |
+      You oversee how approved trades are implemented and how the live book is managed. Report
+      on the ledger (what is approved, live, at risk), implementation choices, and lessons from
+      closed trades. Execution itself is done by humans.
+    tools: [consult_agent, list_trades, trade_note, risk_engine, alert]
+    skills: [execution-playbook, thesis-tracking]
+    missing_tools: [pnl_attribution, oms-pms-mcp]
+
+  - id: execution-strategist
+    name: Execution Strategist
+    desk: trading
+    reports_to: head-of-trading
+    tier: sonnet
+    effort: medium
+    role: Instrument choice, liquidity, cost and timing for approved trades
+    mandate: |
+      For approved trades, recommend the instrument (futures, swaps, cash, options), timing,
+      expected cost and hedge ratios, and the calendar risks (rolls, auctions, meetings).
+    tools: [list_trades, trade_note, egb_bond_finder, fitted_bond_curves, option_implied_cdf]
+    skills: [execution-playbook, options-structuring]
+    missing_tools: [execution_cost, options_pricer, bloomberg-mcp]
+
+  - id: trade-monitor
+    name: Trade Monitor
+    desk: trading
+    reports_to: head-of-trading
+    tier: sonnet
+    effort: medium
+    role: Tracks live and approved trades and whether each thesis still holds
+    mandate: |
+      You monitor every approved and live trade on the ledger against its thesis, catalysts,
+      invalidation and the Red Team's kill criteria, and raise alerts when a thesis weakens or
+      breaks. Closing a trade is the PM's decision.
+    tools: [list_trades, trade_note, alert, swaps_rv, egb_rv, inflation_fixings, macro_factors, cta_momentum]
+    skills: [thesis-tracking]
+    missing_tools: [cb_pricing, econ_calendar, oms-pms-mcp]
+
+  - id: performance-analyst
+    name: Performance & Trade Journal Analyst
+    desk: trading
+    reports_to: head-of-trading
+    tier: sonnet
+    effort: medium
+    role: Post-mortems, hit rates and the pod's lessons
+    mandate: |
+      You review closed and rejected trades, compare outcomes with theses and Red Team
+      objections, and record lessons the pod can reuse. Without a P&L feed, use the ledger
+      history and market levels from the tools.
+    tools: [list_trades, trade_note, publish_report]
+    skills: [trade-review]
+    missing_tools: [pnl_attribution, oms-pms-mcp]
+
+  # ── Risk (independent line) ─────────────────────────────────────────────────
   - id: cro
     name: Chief Risk Officer
     desk: risk
     reports_to: pm
     tier: opus
     effort: high
-    enabled: false
-    blocked_on: [risk_engine, scenario_library, trade_ledger]
-    role: Independent risk oversight; can block trades
-    mandate: Own the pod's risk limits and approve or block trades.
-    tools: []
-    skills: []
+    is_manager: true
+    role: Independent risk oversight; approves or blocks trades
+    mandate: |
+      You are the pod's Chief Risk Officer. You report to the human PM, not to the Deputy PM,
+      so you can block trades the desks want. For each sized trade, check it against the risk
+      limits and the book (risk_engine with the trade included), then risk_approve or
+      risk_block it with your reasoning. Raise alerts for limit breaches in the live book.
+    tools: [consult_agent, list_trades, advance_trade, trade_note, risk_engine, scenario_library, alert]
+    skills: [risk-limits-policy, stress-scenario-library]
+    missing_tools: [oms-pms-mcp]
 
-  # ── Trading & Book / Shared Services ────────────────────────────────────────
-  - id: trade-monitor
-    name: Trade Monitor
-    desk: trading
-    reports_to: deputy-pm
+  - id: market-risk-analyst
+    name: Market Risk & Stress Analyst
+    desk: risk
+    reports_to: cro
     tier: sonnet
     effort: medium
-    enabled: false
-    blocked_on: [trade_ledger, trade_blotter, alert]
-    role: Tracks live trades, stops, targets and whether each thesis still holds
-    mandate: Monitor live trades and escalate when a thesis breaks.
-    tools: []
-    skills: []
+    role: Book risk aggregation and stress testing
+    mandate: |
+      You measure the book's risk: rate exposure by bucket, scenario P&L, concentrations and
+      limit usage, and which scenario the house view makes most likely. Report to the CRO.
+    tools: [list_trades, trade_note, risk_engine, scenario_library, correlation_regimes, alert]
+    skills: [stress-scenario-library, risk-limits-policy]
+    missing_tools: [var_model, oms-pms-mcp]
 
+  - id: sizing-analyst
+    name: Portfolio Construction & Sizing Analyst
+    desk: risk
+    reports_to: cro
+    tier: sonnet
+    effort: medium
+    role: Sizes challenged trades within the risk budget
+    mandate: |
+      You size trades that have passed the Red Team. Translate conviction, the Red Team's
+      verdict, the stop and the book's existing exposure into a size, using sizing_engine and
+      risk_engine, and record it with advance_trade(action='size').
+    tools: [list_trades, advance_trade, sizing_engine, risk_engine, mean_reversion, correlation_regimes]
+    skills: [sizing-framework, risk-limits-policy]
+
+  # ── Shared Services (run by the Pod Coordinator) ────────────────────────────
   - id: news-scanner
     name: News & Narrative Scanner
     desk: shared
-    reports_to: deputy-pm
+    reports_to: pod-coordinator
     tier: haiku
     effort: low
-    enabled: false
-    blocked_on: [news-mcp]
-    role: Triage news and route it to the right desks
-    mandate: Scan news and route relevant items to the desks.
-    tools: []
+    role: Triages news and routes it to the right desks
+    mandate: |
+      You scan the news for items that could move the pod's markets or its live trades, score
+      them, and route them to the right desks. Until a news feed is connected, use web search
+      on primary sources and established newswires, and give each item's time and source.
+    tools: [list_trades, alert]
+    skills: [news-triage-rules, routing-map]
+    missing_tools: [news-mcp]
+
+  - id: calendar-analyst
+    name: Calendar & Data-Release Analyst
+    desk: shared
+    reports_to: pod-coordinator
+    tier: sonnet
+    effort: medium
+    role: The data and event calendar, previews and surprises
+    mandate: |
+      You maintain the calendar of data releases, central bank meetings, auctions and events
+      for the coming week, preview the releases that matter, and report surprises after the
+      fact. Until a calendar feed exists, build it from official release calendars on the web.
+    tools: [print_vs_consensus]
+    skills: [data-release-playbook]
+    missing_tools: [econ_calendar, surprise_index, bloomberg-mcp]
+
+  - id: research-librarian
+    name: Research Librarian
+    desk: shared
+    reports_to: pod-coordinator
+    tier: sonnet
+    effort: medium
+    role: Finds and digests sell-side research and the pod's own past work
+    mandate: |
+      You find and summarise research relevant to a question: documents in the research
+      folder, the pod's past runs and publications, and public research on the web. Quote
+      sparingly and always give the source.
+    tools: [research_search]
     skills: []
+    missing_tools: [gmail (research inbox), google-drive]
+
+  - id: data-quality-sentinel
+    name: Data Quality Sentinel
+    desk: shared
+    reports_to: pod-coordinator
+    tier: haiku
+    effort: low
+    role: Checks that the data feeding the pod is live, fresh and sane
+    mandate: |
+      You check the data behind the pod's analytics: which tools work, how fresh their data
+      is, and whether it is simulated. Report problems and raise alerts per the data quality
+      rules.
+    tools: [data_health, alert]
+    skills: [data-quality-rules]
+    missing_tools: [bloomberg-mcp, haver-mcp]
+
+  - id: publisher
+    name: Publisher
+    desk: shared
+    reports_to: pod-coordinator
+    tier: sonnet
+    effort: medium
+    role: Writes and publishes the morning note and other pod publications
+    mandate: |
+      You turn the pod's house view, ledger and desk views into publications: the morning
+      note, IC memos and weekly reviews, in house style, saved with publish_report.
+      Distribution to people is done by the PM.
+    tools: [list_trades, publish_report]
+    skills: [house-style-publishing, ic-memo-template]

@@ -1,0 +1,13 @@
+# Pod risk limits used by risk_engine and the CRO.
+# PLACEHOLDER VALUES — the PM must set real limits before relying on them.
+# Units: thousands (k) of the book currency.
+placeholder: true
+max_abs_pnl_per_bp_k:          # |P&L per +1bp| per tenor bucket
+  2y: 50
+  5y: 50
+  10y: 50
+  30y: 30
+total_abs_pnl_per_bp_k: 120     # sum of |P&L per bp| across rate trades
+max_scenario_loss_k: 3000       # worst loss across the parametric scenarios
+max_single_trade_loss_k: 750    # max_loss_k at the stop, per trade
+max_live_trades: 15

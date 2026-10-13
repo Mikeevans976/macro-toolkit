@@ -15,6 +15,8 @@ from agents.storage import _connect, init_db as _init_runs_db
 
 def init_db() -> None:
     _init_runs_db()
+    from pod import book
+    book.init_db()
     with _connect() as conn:
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS views (
