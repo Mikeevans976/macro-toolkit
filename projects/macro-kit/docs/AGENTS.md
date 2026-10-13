@@ -1,3 +1,5 @@
+> **Superseded.** The CrewAI implementation described here (`backend/agents/{agents,crew,tasks,tools,general_tools}.py`) was removed in October 2026. Only `backend/agents/storage.py` (run/event storage) remains, used by the Global Macro Pod in `backend/pod/` — see `GLOBAL_MACRO_POD_PROPOSAL.md`. Kept for historical context.
+
 # Fixed Income Pod — AI Agents Documentation
 
 **Last updated:** October 2026  
