@@ -49,66 +49,6 @@ from rpi_fixings import get_rpi_fixings
 from us_cpi_fixings import get_us_cpi_fixings
 from global_yields import get_global_yields_data
 from fair_value_models import get_fair_value_models_data
-from euro_area_heatmap import (
-    get_daily_factors,
-    get_fair_value,
-    get_yield_pca,
-    get_pc_regressions,
-)
-from uk_heatmap import (
-    get_uk_daily_factors,
-    get_uk_fair_value,
-    get_uk_yield_pca,
-    get_uk_pc_regressions,
-)
-from us_heatmap import (
-    get_us_daily_factors,
-    get_us_fair_value,
-    get_us_yield_pca,
-    get_us_pc_regressions,
-)
-from japan_heatmap import (
-    get_jp_daily_factors,
-    get_jp_fair_value,
-    get_jp_yield_pca,
-    get_jp_pc_regressions,
-)
-from canada_heatmap import (
-    get_ca_daily_factors,
-    get_ca_fair_value,
-    get_ca_yield_pca,
-    get_ca_pc_regressions,
-)
-from sweden_heatmap import (
-    get_se_daily_factors,
-    get_se_fair_value,
-    get_se_yield_pca,
-    get_se_pc_regressions,
-)
-from norway_heatmap import (
-    get_no_daily_factors,
-    get_no_fair_value,
-    get_no_yield_pca,
-    get_no_pc_regressions,
-)
-from switzerland_heatmap import (
-    get_ch_daily_factors,
-    get_ch_fair_value,
-    get_ch_yield_pca,
-    get_ch_pc_regressions,
-)
-from australia_heatmap import (
-    get_au_daily_factors,
-    get_au_fair_value,
-    get_au_yield_pca,
-    get_au_pc_regressions,
-)
-from new_zealand_heatmap import (
-    get_nz_daily_factors,
-    get_nz_fair_value,
-    get_nz_yield_pca,
-    get_nz_pc_regressions,
-)
 from seasonality_backtester import (
     fetch_bbg_expression,
     get_seasonality_stats,
@@ -127,6 +67,7 @@ from fitted_bond_curves import (
     predict_new_issue as fbc_new_issue,
 )
 from euribor_positioning_router import router as positioning_router
+from routers.heatmaps import router as heatmaps_router
 from routers.mean_reversion import router as mean_reversion_router
 
 # No-op if the host (e.g. a configured uvicorn/gunicorn) already set up logging.
@@ -161,6 +102,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
 
 # Include routers
 app.include_router(positioning_router)
+app.include_router(heatmaps_router)
 app.include_router(mean_reversion_router)
 
 # CORS for local development
@@ -225,204 +167,6 @@ def read_me(current_user: dict = Depends(get_current_user)):
 def get_dashboard(current_user: dict = Depends(get_current_user)):
     config = load_dashboard_config()
     return config
-
-
-@app.get("/api/tools/euro-area-heatmap/factors")
-def ea_daily_factors(current_user: dict = Depends(get_current_user)):
-    """Daily macro factor estimates from the mixed-frequency DFM (Block 1)."""
-    return get_daily_factors()
-
-
-@app.get("/api/tools/euro-area-heatmap/yield-pca")
-def ea_yield_pca(current_user: dict = Depends(get_current_user)):
-    """Daily Bund yield PC scores, loadings and explained variance (Block 2)."""
-    return get_yield_pca()
-
-
-@app.get("/api/tools/euro-area-heatmap/pc-regressions")
-def ea_pc_regressions(current_user: dict = Depends(get_current_user)):
-    """OLS regression of Bund yield PCs on macro factors (no intercept)."""
-    return get_pc_regressions()
-
-
-@app.get("/api/tools/euro-area-heatmap/fair-value")
-def ea_fair_value(current_user: dict = Depends(get_current_user)):
-    """Daily 10y Bund: actual, PCA reconstruction, macro fair value, rich/cheap."""
-    return get_fair_value()
-
-
-@app.get("/api/tools/uk-heatmap/factors")
-def uk_daily_factors(current_user: dict = Depends(get_current_user)):
-    """Daily macro factor estimates from the UK mixed-frequency DFM (Block 1)."""
-    return get_uk_daily_factors()
-
-
-@app.get("/api/tools/uk-heatmap/yield-pca")
-def uk_yield_pca(current_user: dict = Depends(get_current_user)):
-    """Daily Gilt yield PC scores, loadings and explained variance (Block 2)."""
-    return get_uk_yield_pca()
-
-
-@app.get("/api/tools/uk-heatmap/pc-regressions")
-def uk_pc_regressions(current_user: dict = Depends(get_current_user)):
-    """OLS regression of Gilt yield PCs on UK macro factors (no intercept)."""
-    return get_uk_pc_regressions()
-
-
-@app.get("/api/tools/uk-heatmap/fair-value")
-def uk_fair_value(current_user: dict = Depends(get_current_user)):
-    """Daily 10y Gilt: actual, PCA reconstruction, macro fair value, rich/cheap."""
-    return get_uk_fair_value()
-
-
-@app.get("/api/tools/us-heatmap/factors")
-def us_daily_factors(current_user: dict = Depends(get_current_user)):
-    """Daily macro factor estimates from the US mixed-frequency DFM (Block 1)."""
-    return get_us_daily_factors()
-
-
-@app.get("/api/tools/us-heatmap/yield-pca")
-def us_yield_pca(current_user: dict = Depends(get_current_user)):
-    """Daily UST yield PC scores, loadings and explained variance (Block 2)."""
-    return get_us_yield_pca()
-
-
-@app.get("/api/tools/us-heatmap/pc-regressions")
-def us_pc_regressions(current_user: dict = Depends(get_current_user)):
-    """OLS regression of UST yield PCs on US macro factors (no intercept)."""
-    return get_us_pc_regressions()
-
-
-@app.get("/api/tools/us-heatmap/fair-value")
-def us_fair_value(current_user: dict = Depends(get_current_user)):
-    """Daily 10y UST: actual, PCA reconstruction, macro fair value, rich/cheap."""
-    return get_us_fair_value()
-
-
-@app.get("/api/tools/japan-heatmap/factors")
-def jp_daily_factors(current_user: dict = Depends(get_current_user)):
-    """Daily macro factor estimates from the Japan mixed-frequency DFM (Block 1)."""
-    return get_jp_daily_factors()
-
-
-@app.get("/api/tools/japan-heatmap/yield-pca")
-def jp_yield_pca(current_user: dict = Depends(get_current_user)):
-    """Daily JGB yield PC scores, loadings and explained variance (Block 2)."""
-    return get_jp_yield_pca()
-
-
-@app.get("/api/tools/japan-heatmap/pc-regressions")
-def jp_pc_regressions(current_user: dict = Depends(get_current_user)):
-    """OLS regression of JGB yield PCs on Japan macro factors (no intercept)."""
-    return get_jp_pc_regressions()
-
-
-@app.get("/api/tools/japan-heatmap/fair-value")
-def jp_fair_value(current_user: dict = Depends(get_current_user)):
-    """Daily 10y JGB: actual, PCA reconstruction, macro fair value, rich/cheap."""
-    return get_jp_fair_value()
-
-
-@app.get("/api/tools/canada-heatmap/factors")
-def ca_daily_factors(current_user: dict = Depends(get_current_user)):
-    return get_ca_daily_factors()
-
-@app.get("/api/tools/canada-heatmap/yield-pca")
-def ca_yield_pca(current_user: dict = Depends(get_current_user)):
-    return get_ca_yield_pca()
-
-@app.get("/api/tools/canada-heatmap/pc-regressions")
-def ca_pc_regressions(current_user: dict = Depends(get_current_user)):
-    return get_ca_pc_regressions()
-
-@app.get("/api/tools/canada-heatmap/fair-value")
-def ca_fair_value(current_user: dict = Depends(get_current_user)):
-    return get_ca_fair_value()
-
-
-@app.get("/api/tools/sweden-heatmap/factors")
-def se_daily_factors(current_user: dict = Depends(get_current_user)):
-    return get_se_daily_factors()
-
-@app.get("/api/tools/sweden-heatmap/yield-pca")
-def se_yield_pca(current_user: dict = Depends(get_current_user)):
-    return get_se_yield_pca()
-
-@app.get("/api/tools/sweden-heatmap/pc-regressions")
-def se_pc_regressions(current_user: dict = Depends(get_current_user)):
-    return get_se_pc_regressions()
-
-@app.get("/api/tools/sweden-heatmap/fair-value")
-def se_fair_value(current_user: dict = Depends(get_current_user)):
-    return get_se_fair_value()
-
-
-@app.get("/api/tools/norway-heatmap/factors")
-def no_daily_factors(current_user: dict = Depends(get_current_user)):
-    return get_no_daily_factors()
-
-@app.get("/api/tools/norway-heatmap/yield-pca")
-def no_yield_pca(current_user: dict = Depends(get_current_user)):
-    return get_no_yield_pca()
-
-@app.get("/api/tools/norway-heatmap/pc-regressions")
-def no_pc_regressions(current_user: dict = Depends(get_current_user)):
-    return get_no_pc_regressions()
-
-@app.get("/api/tools/norway-heatmap/fair-value")
-def no_fair_value(current_user: dict = Depends(get_current_user)):
-    return get_no_fair_value()
-
-
-@app.get("/api/tools/switzerland-heatmap/factors")
-def ch_daily_factors(current_user: dict = Depends(get_current_user)):
-    return get_ch_daily_factors()
-
-@app.get("/api/tools/switzerland-heatmap/yield-pca")
-def ch_yield_pca(current_user: dict = Depends(get_current_user)):
-    return get_ch_yield_pca()
-
-@app.get("/api/tools/switzerland-heatmap/pc-regressions")
-def ch_pc_regressions(current_user: dict = Depends(get_current_user)):
-    return get_ch_pc_regressions()
-
-@app.get("/api/tools/switzerland-heatmap/fair-value")
-def ch_fair_value(current_user: dict = Depends(get_current_user)):
-    return get_ch_fair_value()
-
-
-@app.get("/api/tools/australia-heatmap/factors")
-def au_daily_factors(current_user: dict = Depends(get_current_user)):
-    return get_au_daily_factors()
-
-@app.get("/api/tools/australia-heatmap/yield-pca")
-def au_yield_pca(current_user: dict = Depends(get_current_user)):
-    return get_au_yield_pca()
-
-@app.get("/api/tools/australia-heatmap/pc-regressions")
-def au_pc_regressions(current_user: dict = Depends(get_current_user)):
-    return get_au_pc_regressions()
-
-@app.get("/api/tools/australia-heatmap/fair-value")
-def au_fair_value(current_user: dict = Depends(get_current_user)):
-    return get_au_fair_value()
-
-
-@app.get("/api/tools/new-zealand-heatmap/factors")
-def nz_daily_factors(current_user: dict = Depends(get_current_user)):
-    return get_nz_daily_factors()
-
-@app.get("/api/tools/new-zealand-heatmap/yield-pca")
-def nz_yield_pca(current_user: dict = Depends(get_current_user)):
-    return get_nz_yield_pca()
-
-@app.get("/api/tools/new-zealand-heatmap/pc-regressions")
-def nz_pc_regressions(current_user: dict = Depends(get_current_user)):
-    return get_nz_pc_regressions()
-
-@app.get("/api/tools/new-zealand-heatmap/fair-value")
-def nz_fair_value(current_user: dict = Depends(get_current_user)):
-    return get_nz_fair_value()
 
 
 @app.get("/api/tools/global-yields")

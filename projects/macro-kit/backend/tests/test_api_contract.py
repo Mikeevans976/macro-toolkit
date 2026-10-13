@@ -242,3 +242,27 @@ def test_gzip_never_buffers_sse():
     # Starlette releases compressed (and so buffered) text/event-stream.
     from starlette.middleware import gzip
     assert "text/event-stream" in getattr(gzip, "DEFAULT_EXCLUDED_CONTENT_TYPES", ())
+
+
+# ---------------------------------------------------------------------------
+# Heatmaps: canonical /api/tools/heatmap/{region}/{view} == legacy URLs
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("region", _REGIONS)
+@pytest.mark.parametrize("view", _VIEWS)
+def test_heatmap_canonical_matches_legacy_snapshot(client, snapshot, region, view):
+    if UPDATE:
+        pytest.skip("canonical URLs are checked against the legacy snapshots")
+    resp = client.get(f"/api/tools/heatmap/{region}/{view}")
+    assert resp.status_code == 200
+    problems = _diff(snapshot[f"/api/tools/{region}-heatmap/{view}"], _digest(resp.json()))
+    assert not problems, "\n".join(problems)
+
+
+@pytest.mark.parametrize("url", [
+    "/api/tools/heatmap/atlantis/factors",
+    "/api/tools/heatmap/uk/not-a-view",
+    "/api/tools/atlantis-heatmap/factors",
+])
+def test_heatmap_rejects_unknown_region_or_view(client, url):
+    assert client.get(url).status_code == 422

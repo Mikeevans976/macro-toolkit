@@ -62,8 +62,9 @@ cd frontend && npm run build && cd .. && python backend/main.py
 | `main.py` | FastAPI app, all API routes, static file serving |
 | `auth.py` | JWT + bcrypt auth |
 | `dfm.py` | Mixed-frequency Dynamic Factor Model (Kalman filter/smoother) |
-| `euro_area_heatmap.py` | DFM, PCA, fair value, API functions for Euro Area |
-| `uk_heatmap.py` | Same for UK |
+| `regional_heatmap.py` | Shared heatmap engine: DFM, yield PCA, fair value |
+| `heatmap_regions.py` | One `HeatmapConfig` per region, keyed by URL slug |
+| `routers/` | Per-tool `APIRouter`s (`heatmaps.py`, `mean_reversion.py`) |
 | `fair_value_models.py` | Fair value model logic |
 | `macro_data_loader.py` | Loads macro series (Bloomberg/Haver) |
 | `data_fetcher.py` | Data fetching utilities |
@@ -102,9 +103,9 @@ The Euro Area heatmap (`EuroAreaHeatmap.tsx`) is the reference implementation. T
 
 | Layer | File | Notes |
 |-------|------|-------|
-| Backend model | `backend/<region>_heatmap.py` | DFM, PCA, fair value, API functions |
+| Backend config | `backend/heatmap_regions.py` | One `HeatmapConfig` entry per region (engine: `regional_heatmap.py`) |
 | Series metadata | `backend/data/series_catalogue_<region>.json` | Single source of truth for indicator tickers/lags |
-| API routes | `backend/main.py` | 4 endpoints wired per region |
+| API routes | `backend/routers/heatmaps.py` | Automatic: `/api/tools/heatmap/{region}/{factors,yield-pca,pc-regressions,fair-value}` |
 | Frontend page | `frontend/src/pages/<Region>Heatmap.tsx` | Self-contained, synthetic data (no live API calls) |
 | Routing | `frontend/src/App.tsx` | One route entry per region |
 | Nav config | `dashboard_config.yaml` | Tool entry under `macro-fundamentals` category |
@@ -173,8 +174,8 @@ Use single-quoted `'EOF'` to prevent shell variable/dollar-sign expansion in JSX
 ### Adding another region (e.g. US, Japan)
 
 1. Create `backend/data/series_catalogue_<region>.json` — mirror the UK schema
-2. Create `backend/<region>_heatmap.py` — copy `uk_heatmap.py`, adapt series/tickers
-3. Wire 4 routes in `backend/main.py`
+2. Add a `HeatmapConfig` entry to `REGIONS` in `backend/heatmap_regions.py` (routes appear automatically)
+3. Add the 4 new URLs to `_REGIONS` in `backend/tests/test_api_contract.py` and run with `UPDATE_SNAPSHOTS=1`
 4. Add entry in `dashboard_config.yaml` under `macro-fundamentals`
 5. Create `frontend/src/pages/<Region>Heatmap.tsx` using the 4-chunk `cat >>` approach
 6. Add import + route in `frontend/src/App.tsx`
