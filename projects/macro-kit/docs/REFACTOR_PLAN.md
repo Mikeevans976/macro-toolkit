@@ -272,3 +272,32 @@ If browser-side synthetic rendering must stay (e.g. for offline demos), move it 
 - `var/` state dir and SSE stream tickets are deferred until the in-progress `backend/pod/` work lands, because both touch pod storage and stream code.
 
 **Next:** Phase 1 leftovers (SSE ticket, lockfile via `uv`), then Phase 2: `pyproject.toml` packaging, the rest of the router split, and the heatmap route collapse (contract tests already cover all 40 heatmap URLs).
+
+### 2026-10-13 (cont.): Phase 2 backend structure, Phase 4 frontend foundations
+
+**Done** (branch `refactor/macro-kit-phase-0-1`, one commit per step)
+- **CrewAI stack removed** (`agents/{agents,crew,tasks,tools,general_tools}.py`, `crewai` dependency); `agents/storage.py` stays for the pod. *(F8, partial)*
+- **Heatmap collapse:** `heatmap_regions.py` (10 configs, verified identical) + `routers/heatmaps.py` → `GET /api/tools/heatmap/{region}/{view}`. Legacy URLs are kept as hidden aliases; the 10 wrapper modules are deleted. *(F5)*
+- **Router split:** all 23 remaining tool routes moved verbatim into 13 `routers/<tool>.py`, with auth at router level. `main.py` went from 1,113 to ~420 lines (app setup, auth, dashboard, agents, static). A new test checks that all 44 API routes return 401 without a token. *(Phase 2.2)*
+- **Typed bodies everywhere:** seasonality stats/heatmap/backtest and print-analysis market-reaction now use Pydantic models; no `payload: dict` remains outside the agent routes. *(F3)*
+- **`pyproject.toml`:** a single `pytest` runs both suites (308 tests); ruff config folded in; `sys.path` hacks removed from tests (except `test_pod.py`). *(F13, partial)*
+- **`BloombergUnavailable` → 503** with a clear message (previously a bare 500). *(F14, partial)*
+- **Frontend code-splitting:** every page is `React.lazy`, with vendor chunks for React and Recharts. Initial JS went from **2,032 KB to ~240 KB (81 KB gzipped)**. *(F10)*
+- **Shared API client** `src/api/client.ts`: `authFetch` + an axios interceptor. Every page now sends an expired session (401) to `/login`; before, `fetch` pages silently rendered nothing. *(F9, partial)*
+- **Heatmap de-duplication (step 1):** `src/lib/math/linalg.ts` and `src/features/heatmap/styles.ts` replace 715 duplicated lines. DOM-hash snapshots (clock and TZ pinned), taken before the change, are unchanged after it. *(F6, partial)*
+
+**More bugs found and fixed**
+
+| # | Bug | Fix |
+|---|-----|-----|
+| F34 | All three seasonality POST endpoints returned 500: `resample("BQ")` was removed in pandas 3 | `"BQE"` |
+| F35 | Seasonality backtest called `.strftime` on numpy `datetime64`, so it had never worked | `.dt.strftime` |
+
+**Found, not fixed**
+- The seasonality POST routes are not called by the frontend (it computes in-browser). Delete them or wire them up, as part of Phase 3.
+- The heatmap copies have drifted: `ols`, `Legend`, `formatCellValue`, `HeatmapTable` and the section components exist in 2–10 variants each. Merging them into one generic page needs the Phase 3 decision, because it changes either data source or rendering.
+
+**Next (blocked or needing a decision)**
+- **Phase 3 decision** (backend vs browser as the heatmap source of truth) before building a generic `RegionalHeatmapPage`.
+- **Waiting on the in-progress pod work:** the SSE stream ticket, the `var/` state dir, moving agent routes out of `main.py`, and the `macrokit` package rename (it rewrites imports inside `pod/`).
+- Lockfile (`uv`), ratcheting the ESLint warnings (98), widening the ruff rule set.
