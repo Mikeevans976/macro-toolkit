@@ -67,6 +67,15 @@ CASES: list[str] = (
 )
 SLOW_CASES: list[str] = ["/api/tools/fair-value-models"]
 
+def _seasonality_series() -> dict:
+    import numpy as np
+    import pandas as pd
+    d = pd.bdate_range("2018-01-01", "2023-12-29")
+    v = 2.0 + np.cumsum(np.random.default_rng(7).normal(0, 0.03, len(d)))
+    return {"dates": d.strftime("%Y-%m-%d").tolist(), "values": np.round(v, 4).tolist()}
+
+
+_SEAS = _seasonality_series()
 _MR = {"expression": "USGG10YR Index - USGG2YR Index", "start_date": "2018-01-01", "end_date": "2026-06-30"}
 POST_CASES: list[tuple[str, dict]] = [
     ("/api/tools/mean-reversion/analyse", {**_MR, "model_type": "linear_ou", "n_sims": 2000}),
@@ -79,6 +88,14 @@ POST_CASES: list[tuple[str, dict]] = [
     ("/api/tools/mean-reversion/sharpe-mc", {**_MR, "sim_sde": "polynomial", "n_sims": 2000}),
     ("/api/tools/mean-reversion/forward-hist", {**_MR, "sim_sde": "linear_ou", "n_sims": 2000,
                                                 "target_date": "2026-12-31"}),
+    ("/api/tools/seasonality/stats", _SEAS),
+    ("/api/tools/seasonality/heatmap", _SEAS),
+    ("/api/tools/seasonality/backtest", {**_SEAS, "rule": {"type": "dow", "bins": [0, 4], "direction": -1}}),
+    ("/api/tools/seasonality/backtest", {**_SEAS, "rule": {"type": "tom", "bins": [-1, 1], "direction": 1}}),
+    ("/api/tools/print-analysis/market-reaction", {
+        "market_ticker": "GDBR10 Index",
+        "releases": [{"period": f"2024-{m:02d}", "release_date": f"2024-{m:02d}-15", "surprise": (m - 6) / 10}
+                     for m in range(1, 13)]}),
 ]
 
 
@@ -266,3 +283,13 @@ def test_heatmap_canonical_matches_legacy_snapshot(client, snapshot, region, vie
 ])
 def test_heatmap_rejects_unknown_region_or_view(client, url):
     assert client.get(url).status_code == 422
+
+
+@pytest.mark.parametrize("url,body", [
+    ("/api/tools/seasonality/stats", {"dates": ["2024-01-02", "2024-01-03"], "values": [1.0]}),   # length mismatch
+    ("/api/tools/seasonality/backtest", {**_SEAS, "rule": {"type": "lunar", "bins": [0], "direction": 1}}),
+    ("/api/tools/seasonality/backtest", {**_SEAS, "rule": {"type": "dow", "bins": [0], "direction": 3}}),
+    ("/api/tools/print-analysis/market-reaction", {"releases": []}),                              # no ticker
+])
+def test_dict_payload_routes_reject_bad_input(client, url, body):
+    assert client.post(url, json=body).status_code == 422

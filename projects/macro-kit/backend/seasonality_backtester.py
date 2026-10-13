@@ -210,7 +210,7 @@ def _build_day_df(dates: list[str], values: list[float]) -> pd.DataFrame:
 
     # Quarter-end offsets (last 5 / first 5 bdays of quarter)
     qe_map: dict[pd.Timestamp, int] = {}
-    quarter_ends = s.resample("BQ").last().index
+    quarter_ends = s.resample("BQE").last().index   # "BQ" alias was removed in pandas 3
     for qe in quarter_ends:
         loc = idx.get_loc(qe) if qe in idx else None
         if loc is None:
@@ -337,7 +337,7 @@ def run_seasonality_backtest(
     dd        = strat_cum - run_max
 
     step = 5
-    eq_dates = [d.strftime("%Y-%m-%d") for d in df["date"].values[::step]]
+    eq_dates = df["date"].iloc[::step].dt.strftime("%Y-%m-%d").tolist()
     eq_strat = [round(float(v), 4) for v in strat_cum[::step]]
     eq_bnh   = [round(float(v), 4) for v in bnh_cum[::step]]
     eq_dd    = [round(float(v), 4) for v in dd[::step]]
