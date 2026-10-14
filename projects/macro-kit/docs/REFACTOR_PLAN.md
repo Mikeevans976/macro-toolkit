@@ -321,9 +321,12 @@ If browser-side synthetic rendering must stay (e.g. for offline demos), move it 
 | F38 | Any logged-in user could read or stream any other user's run by id (the run list was filtered by user, the detail and stream were not) | Owner-only; 404 otherwise |
 | F39 | The auth-coverage test skipped all `/api/pod/*` routes and any path containing "stream" | Now covers both (50 routes) |
 | F40 | `httpx` was never declared, but the pod (`pod/models.py`, `runner.py`, `web_local.py`) and `TestClient` import it; it only arrived via `crewai`. Once CrewAI was removed, a fresh deploy failed at startup and CI failed at collection | Declared in `requirements.in`; verified by importing all 64 backend modules in a fresh venv built only from the pins |
+| F41 | Global Yields built its date grid, Bloomberg fetch and PCA once at import: a running server never showed new days or refreshed live data, and the contract snapshot silently depended on the real date | Model built lazily, cached per calendar day; snapshot now follows the frozen clock |
 
 **Deliberately not done yet**
 - **`macrokit` package rename:** it rewrites almost every backend import, so it would conflict with the unmerged `merge/mm-bbg` live-Bloomberg work. Do it right after that merge, as one mechanical PR.
 - **Moving existing state into `var/`** on machines that already have `backend/users.json` / `backend/data/*.db` (stop the server first): `mkdir -p var && mv backend/users.json backend/data/agent_runs.db* backend/data/euribor_positioning.db* var/ && mv sandbox var/`.
 
-**Next:** the Phase 3 decision; the `macrokit` rename after the `mm-bbg` merge; ratchet the ESLint warnings (98) and widen ruff rules.
+- **ruff widened to all of pyflakes** (`E9` + `F`): 58 unused imports, 29 dead assignments (each reviewed; none hid a bug), 7 f-strings removed.
+
+**Next:** the Phase 3 decision; the `macrokit` rename after the `mm-bbg` merge; ratchet the ESLint warnings (98, mostly `no-explicit-any` in page code).
