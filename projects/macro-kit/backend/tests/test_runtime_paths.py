@@ -2,6 +2,14 @@
 import runtime_paths
 
 
+def test_explicit_state_dir_never_falls_back_to_legacy(tmp_path, monkeypatch):
+    monkeypatch.setattr(runtime_paths, "STATE_DIR", tmp_path / "state")
+    monkeypatch.setattr(runtime_paths, "_EXPLICIT_STATE_DIR", True)
+    legacy = tmp_path / "users.json"
+    legacy.write_text("{}")
+    assert runtime_paths.state_path("users.json", legacy=legacy) == tmp_path / "state" / "users.json"
+
+
 def test_new_install_uses_state_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(runtime_paths, "STATE_DIR", tmp_path / "var")
     p = runtime_paths.state_path("users.json", legacy=tmp_path / "backend" / "users.json")
@@ -10,6 +18,7 @@ def test_new_install_uses_state_dir(tmp_path, monkeypatch):
 
 def test_existing_legacy_file_is_used_not_moved(tmp_path, monkeypatch):
     monkeypatch.setattr(runtime_paths, "STATE_DIR", tmp_path / "var")
+    monkeypatch.setattr(runtime_paths, "_EXPLICIT_STATE_DIR", False)
     legacy = tmp_path / "backend" / "users.json"
     legacy.parent.mkdir()
     legacy.write_text("{}")
