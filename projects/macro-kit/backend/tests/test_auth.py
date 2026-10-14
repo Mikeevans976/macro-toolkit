@@ -120,3 +120,55 @@ def test_stream_ticket_expires(monkeypatch):
     monkeypatch.setattr(auth, "STREAM_TICKET_SECONDS", -1)
     with pytest.raises(HTTPException):
         auth.verify_stream_ticket(auth.create_stream_ticket("alice", "run-1"), "run-1")
+
+
+def test_dev_secret_key_is_persisted(tmp_path, monkeypatch):
+    import runtime_paths
+    monkeypatch.setattr(runtime_paths, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(auth, "settings", auth.settings.__class__(**{**auth.settings.__dict__, "secret_key": ""}))
+    first = auth._resolve_secret_key()
+    assert len(first) >= 32 and (tmp_path / "dev_secret_key").read_text() == first
+    assert oct((tmp_path / "dev_secret_key").stat().st_mode & 0o777) == "0o600"
+    assert auth._resolve_secret_key() == first          # same key after a "restart"
+
+
+def test_explicit_secret_key_wins(monkeypatch):
+    monkeypatch.setattr(auth, "settings", auth.settings.__class__(**{**auth.settings.__dict__, "secret_key": "k" * 40}))
+    assert auth._resolve_secret_key() == "k" * 40
+
+
+def test_login_rate_limiter_window():
+    now = [0.0]
+    lim = auth.LoginRateLimiter(max_failures=3, window_seconds=60, clock=lambda: now[0])
+    for _ in range(3):
+        assert lim.retry_after("ip:a") == 0
+        lim.record_failure("ip:a")
+    assert lim.retry_after("ip:a") == 61               # blocked until the oldest failure expires
+    assert lim.retry_after("ip:b") == 0                 # other keys unaffected
+    now[0] = 30.0
+    assert lim.retry_after("ip:a") == 31
+    now[0] = 60.0
+    assert lim.retry_after("ip:a") == 0                 # window passed
+    lim.record_failure("user:x"); lim.record_failure("user:x"); lim.record_failure("user:x")
+    lim.reset("user:x")
+    assert lim.retry_after("user:x") == 0
+
+
+def test_login_returns_429_after_repeated_failures(tmp_path, monkeypatch):
+    import bcrypt
+    from fastapi.testclient import TestClient
+    import main
+
+    users = tmp_path / "users.json"
+    hashed = bcrypt.hashpw(b"pw", bcrypt.gensalt()).decode()
+    users.write_text(json.dumps({"bob": {"username": "bob", "hashed_password": hashed}}))
+    monkeypatch.setattr(auth, "USERS_FILE", str(users))
+    monkeypatch.setattr(auth, "_users_cache", None)
+    monkeypatch.setattr(main, "login_limiter", auth.LoginRateLimiter(max_failures=3, window_seconds=300))
+
+    client = TestClient(main.app)
+    for _ in range(3):
+        assert client.post("/api/auth/login", data={"username": "bob", "password": "nope"}).status_code == 401
+    blocked = client.post("/api/auth/login", data={"username": "bob", "password": "pw"})
+    assert blocked.status_code == 429 and int(blocked.headers["Retry-After"]) > 0
+    assert "Too many failed login attempts" in blocked.json()["detail"]

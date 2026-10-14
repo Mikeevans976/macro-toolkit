@@ -55,7 +55,8 @@ cd frontend && npm run build && cd .. && python backend/main.py
 ### Stack
 - **Backend**: FastAPI + Python, Uvicorn. Runs on port 8000.
 - **Frontend**: React + Vite + TypeScript + Tailwind CSS. Dev server on port 5173; proxies `/api` to backend.
-- **Auth**: JWT (8h expiry) + bcrypt. Users live in `var/users.json` — create with `create_user.py`.
+- **Settings**: `backend/settings.py` loads `.env` (project root or `backend/`) and validates every setting once; import it, don't read `os.environ` directly. `MACROKIT_ENV=prod` requires `SECRET_KEY`. All variables are listed in `.env.example`.
+- **Auth**: JWT (8h expiry) + bcrypt, failed logins rate-limited per IP and per username (429). Users live in `var/users.json` — create with `create_user.py`.
 - **Runtime state**: `var/` (gitignored; `$MACROKIT_STATE_DIR` overrides) holds `users.json`, the SQLite DBs and the pod sandbox. Resolve paths with `runtime_paths.state_path()`, never next to source.
 - **Nav config**: `dashboard_config.yaml` — read on every request, no restart needed.
 

@@ -32,6 +32,8 @@ export default function Login() {
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         setError('Invalid username or password.')
+      } else if (axios.isAxiosError(err) && err.response?.status === 429) {
+        setError(String(err.response.data?.detail ?? 'Too many failed attempts. Please wait and try again.'))
       } else {
         setError('Something went wrong. Please try again.')
       }

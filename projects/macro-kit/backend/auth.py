@@ -2,8 +2,11 @@ import json
 import logging
 import os
 import secrets
+import threading
+import time
+from collections import deque
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Callable, Optional
 
 import bcrypt
 import jwt
@@ -11,18 +14,36 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
 from runtime_paths import BACKEND_DIR, state_path
+from settings import settings
 
 logger = logging.getLogger(__name__)
 
-# Secret key — set SECRET_KEY in any shared/deployed environment. Without it a
-# random per-process key is used: safe (nothing forgeable is baked into the
-# code) but every restart logs everyone out, and it must not be used with
-# multiple worker processes.
-SECRET_KEY = os.environ.get("SECRET_KEY") or ""
-if not SECRET_KEY:
-    SECRET_KEY = secrets.token_urlsafe(48)
-    logger.warning("SECRET_KEY is not set; using a random per-process key "
-                   "(tokens are invalidated on restart). Set SECRET_KEY in production.")
+
+def _resolve_secret_key() -> str:
+    """SECRET_KEY from settings (required in prod, enforced there). In dev
+    without one, a generated key is kept in var/dev_secret_key so restarts
+    and --reload don't log everyone out; nothing forgeable is in the code."""
+    if settings.secret_key:
+        return settings.secret_key
+    path = state_path("dev_secret_key")
+    try:
+        key = path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        key = ""
+    if len(key) < 32:
+        key = secrets.token_urlsafe(48)
+        try:
+            path.write_text(key, encoding="utf-8")
+            os.chmod(path, 0o600)
+            logger.warning("SECRET_KEY is not set; generated a development key in %s. "
+                           "Set SECRET_KEY (and MACROKIT_ENV=prod) for any shared deployment.", path)
+        except OSError:
+            logger.warning("SECRET_KEY is not set and %s is not writable; using a per-process key "
+                           "(restarts log everyone out).", path)
+    return key
+
+
+SECRET_KEY = _resolve_secret_key()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 8
 
@@ -142,3 +163,56 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
+
+
+class LoginRateLimiter:
+    """
+    Failed-login limiter: after ``max_failures`` failures for a key (client IP
+    or username) within ``window_seconds``, further attempts for that key get
+    429 until the oldest failure leaves the window. Successful logins are never
+    limited and clear the username's failures. In-process only, which matches
+    the single-process deployment; behind a reverse proxy the IP key is the
+    proxy's, so the username key does the work.
+    """
+
+    def __init__(self, max_failures: int, window_seconds: int,
+                 clock: Callable[[], float] = time.monotonic) -> None:
+        self.max_failures = max_failures
+        self.window = window_seconds
+        self._clock = clock
+        self._failures: dict[str, deque[float]] = {}
+        self._lock = threading.Lock()
+
+    def _prune(self, key: str, now: float) -> deque[float]:
+        q = self._failures.get(key)
+        if q is None:
+            return deque()
+        while q and now - q[0] >= self.window:
+            q.popleft()
+        if not q:
+            del self._failures[key]
+        return q
+
+    def retry_after(self, *keys: str) -> int:
+        """Seconds until an attempt is allowed for all keys (0 = allowed now)."""
+        now = self._clock()
+        wait = 0.0
+        with self._lock:
+            for key in keys:
+                q = self._prune(key, now)
+                if len(q) >= self.max_failures:
+                    wait = max(wait, self.window - (now - q[0]))
+        return int(wait) + 1 if wait > 0 else 0
+
+    def record_failure(self, *keys: str) -> None:
+        now = self._clock()
+        with self._lock:
+            for key in keys:
+                self._failures.setdefault(key, deque()).append(now)
+
+    def reset(self, key: str) -> None:
+        with self._lock:
+            self._failures.pop(key, None)
+
+
+login_limiter = LoginRateLimiter(settings.login_max_failures, settings.login_window_seconds)

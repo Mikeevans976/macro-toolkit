@@ -1,8 +1,9 @@
 """
 Pod-wide settings.
 
-Secrets come from the environment. For local use, put them in backend/.env
-(gitignored) — loaded here without overriding variables already set:
+Secrets come from the environment. For local use, put them in backend/.env or
+projects/macro-kit/.env (gitignored), loaded by settings.py without overriding
+variables already set:
 
     ANTHROPIC_API_KEY=...
     OPENROUTER_API_KEY=...
@@ -12,24 +13,8 @@ Model specs are "<provider>:<model id>", e.g. "anthropic:claude-sonnet-5-5" or
 can be overridden per agent (stored) or per run.
 """
 import os
-from pathlib import Path
 
-_ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
-
-
-def _load_env_file(path: Path) -> None:
-    if not path.is_file():
-        return
-    for raw in path.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.strip().removeprefix("export ").strip()
-        os.environ.setdefault(key, value.strip().strip('"').strip("'"))
-
-
-_load_env_file(_ENV_FILE)
+import settings  # noqa: F401  (loads the .env files before the getenv calls below)
 
 MODELS = {
     "opus": os.getenv("POD_MODEL_OPUS", "claude-opus-5-5"),

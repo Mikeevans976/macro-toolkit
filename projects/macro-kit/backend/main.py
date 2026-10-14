@@ -1,17 +1,26 @@
 import logging
-import os
 import threading
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from pathlib import Path
 
 import yaml
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
+
+# First: loads the .env files and validates configuration (fails fast in prod).
+from settings import settings
+
+# No-op if the host (e.g. a configured uvicorn/gunicorn) already set up logging.
+logging.basicConfig(
+    level=settings.log_level,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger("analytics_hub")
 
 from auth import (
     ACCESS_TOKEN_EXPIRE_HOURS,
@@ -19,6 +28,7 @@ from auth import (
     bootstrap_admin,
     create_access_token,
     get_current_user,
+    login_limiter,
 )
 
 # Create admin user from env vars on first deploy (no-op if users.json exists)
@@ -50,12 +60,6 @@ from routers import (
     swaps_rv,
 )
 
-# No-op if the host (e.g. a configured uvicorn/gunicorn) already set up logging.
-logging.basicConfig(
-    level=os.environ.get("LOG_LEVEL", "INFO").upper(),
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-)
-logger = logging.getLogger("analytics_hub")
 
 
 @asynccontextmanager
@@ -63,7 +67,7 @@ async def lifespan(_app: FastAPI):
     # Fair Value Models takes ~20 s to compute and is cached in-process; warm it
     # in the background so the first visitor after a restart doesn't wait.
     # Set PRECOMPUTE_ON_STARTUP=0 to skip (e.g. while iterating with --reload).
-    if os.environ.get("PRECOMPUTE_ON_STARTUP", "1") != "0":
+    if settings.precompute_on_startup:
         def _warm() -> None:
             try:
                 get_fair_value_models_data()
@@ -114,8 +118,7 @@ for _tool in (
 # CORS for local development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173",
-                   "http://localhost:5174", "http://127.0.0.1:5174"],
+    allow_origins=list(settings.cors_origins),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -141,14 +144,27 @@ def load_dashboard_config() -> dict:
 
 
 @app.post("/api/auth/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
+def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+    # Failed attempts are limited per client IP and per username (auth.LoginRateLimiter).
+    keys = (f"ip:{request.client.host if request.client else 'unknown'}",
+            f"user:{form_data.username.strip().lower()}")
+    wait = login_limiter.retry_after(*keys)
+    if wait:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many failed login attempts. Try again in {wait} seconds.",
+            headers={"Retry-After": str(wait)},
+        )
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
+        login_limiter.record_failure(*keys)
+        logger.warning("Failed login for %r from %s", form_data.username, keys[0][3:])
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    login_limiter.reset(keys[1])
     access_token = create_access_token(
         data={"sub": user["username"]},
         expires_delta=timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS),
@@ -195,5 +211,5 @@ if FRONTEND_DIST.exists():
 if __name__ == "__main__":
     import uvicorn
 
-    port = int(os.environ.get("PORT", 8000))
+    port = settings.port
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
