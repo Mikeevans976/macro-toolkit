@@ -39,6 +39,8 @@ REGIONS: dict[str, HeatmapConfig] = {
         pca_pc2_pivot=7,   # index of "30y" (last tenor)
         pca_pc3_pivot=3,   # index of "7y"
         random_seed=42,
+        display_name="Euro Area",
+        breakeven_mean=2.1,
     ),
     "uk": HeatmapConfig(
         region="uk_heatmap",
@@ -62,6 +64,8 @@ REGIONS: dict[str, HeatmapConfig] = {
         pca_pc2_pivot=4,   # index of "30y" (last tenor)
         pca_pc3_pivot=1,   # index of "5y"
         random_seed=99,
+        display_name="United Kingdom",
+        breakeven_mean=3.4,
     ),
     "us": HeatmapConfig(
         region="us_heatmap",
@@ -85,6 +89,9 @@ REGIONS: dict[str, HeatmapConfig] = {
         pca_pc2_pivot=4,   # index of "30y" (last tenor)
         pca_pc3_pivot=1,   # index of "5y"
         random_seed=42,
+        display_name="United States",
+        breakeven_mean=2.3,
+        real_yield_10y_series_id="us_tips_10y",
     ),
     "japan": HeatmapConfig(
         region="japan_heatmap",
@@ -108,6 +115,8 @@ REGIONS: dict[str, HeatmapConfig] = {
         pca_pc2_pivot=4,   # index of "30y" (last tenor)
         pca_pc3_pivot=1,   # index of "5y"
         random_seed=77,
+        display_name="Japan",
+        breakeven_mean=1.3,
     ),
     "canada": HeatmapConfig(
         region="canada_heatmap",
@@ -131,6 +140,8 @@ REGIONS: dict[str, HeatmapConfig] = {
         pca_pc2_pivot=4,   # index of "30y" (last tenor)
         pca_pc3_pivot=1,   # index of "5y"
         random_seed=55,
+        display_name="Canada",
+        breakeven_mean=1.9,
     ),
     "sweden": HeatmapConfig(
         region="sweden_heatmap",
@@ -154,6 +165,9 @@ REGIONS: dict[str, HeatmapConfig] = {
         pca_pc2_pivot=4,   # index of "30y" (last tenor)
         pca_pc3_pivot=1,   # index of "5y"
         random_seed=66,
+        display_name="Sweden",
+        breakeven_mean=1.8,
+        real_yield_10y_series_id="se_sgb_10y_real",
     ),
     "norway": HeatmapConfig(
         region="norway_heatmap",
@@ -177,6 +191,9 @@ REGIONS: dict[str, HeatmapConfig] = {
         pca_pc2_pivot=4,   # index of "30y" (last tenor)
         pca_pc3_pivot=1,   # index of "5y"
         random_seed=88,
+        display_name="Norway",
+        breakeven_mean=2.2,
+        real_yield_10y_series_id="no_ngb_10y_real",
     ),
     "switzerland": HeatmapConfig(
         region="switzerland_heatmap",
@@ -200,6 +217,8 @@ REGIONS: dict[str, HeatmapConfig] = {
         pca_pc2_pivot=4,   # index of "30y" (last tenor)
         pca_pc3_pivot=1,   # index of "5y"
         random_seed=33,
+        display_name="Switzerland",
+        breakeven_mean=0.9,
     ),
     "australia": HeatmapConfig(
         region="australia_heatmap",
@@ -223,6 +242,8 @@ REGIONS: dict[str, HeatmapConfig] = {
         pca_pc2_pivot=4,   # index of "30y" (last tenor)
         pca_pc3_pivot=1,   # index of "5y"
         random_seed=22,
+        display_name="Australia",
+        breakeven_mean=2.4,
     ),
     "new-zealand": HeatmapConfig(
         region="new_zealand_heatmap",
@@ -246,5 +267,7 @@ REGIONS: dict[str, HeatmapConfig] = {
         pca_pc2_pivot=4,   # index of "30y" (last tenor)
         pca_pc3_pivot=1,   # index of "5y"
         random_seed=11,
+        display_name="New Zealand",
+        breakeven_mean=2.2,
     ),
 }

@@ -1,8 +1,11 @@
 """
 Regional macro heatmap API — one router for every region in heatmap_regions.
 
-    GET /api/tools/heatmap/{region}/{view}
+    GET /api/tools/heatmap/{region}          every section of the page (one call)
+    GET /api/tools/heatmap/{region}/{view}   one Block 1/Block 2 output
 
+The backend is the single source of truth for the heatmap pages: the
+frontend renders this payload and does no modelling of its own.
 ``region`` is a slug from ``heatmap_regions.REGIONS`` (e.g. ``uk``,
 ``euro-area``, ``new-zealand``); ``view`` is one of the four Block 1/Block 2
 outputs below. The original per-region URLs (``/api/tools/uk-heatmap/factors``
@@ -40,6 +43,13 @@ _VIEW_METHODS: dict[View, Callable[[RegionalHeatmap], object]] = {
 }
 
 router = APIRouter(tags=["heatmaps"], dependencies=[Depends(get_current_user)])
+
+
+@router.get("/api/tools/heatmap/{region}")
+def heatmap_dashboard(region: Region):
+    """Indicators, DFM factors, yield PCA, regressions, fair value, curve and
+    breakeven regimes and scenario probabilities for one region."""
+    return {**_ENGINES[region.value].get_dashboard(), "region": region.value}
 
 
 @router.get("/api/tools/heatmap/{region}/{view}")

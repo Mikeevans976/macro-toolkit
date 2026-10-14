@@ -45,6 +45,7 @@ _VIEWS = ["factors", "yield-pca", "pc-regressions", "fair-value"]
 CASES: list[str] = (
     ["/api/dashboard"]
     + [f"/api/tools/{r}-heatmap/{v}" for r in _REGIONS for v in _VIEWS]
+    + [f"/api/tools/heatmap/{r}" for r in _REGIONS]      # full dashboard payload
     + [
         "/api/tools/global-yields",
         "/api/tools/pca-analysis",

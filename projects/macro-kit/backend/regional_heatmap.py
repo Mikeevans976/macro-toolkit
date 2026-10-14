@@ -121,6 +121,9 @@ class HeatmapConfig:
     pca_pc2_pivot: int                   # tenor index for PC2 sign anchor (typically longest tenor)
     pca_pc3_pivot: int                   # tenor index for PC3 sign anchor (typically 5y or 7y index)
     random_seed: int                     # RNG seed for reproducible simulation
+    display_name: str = ""               # e.g. "United Kingdom"
+    breakeven_mean: float = 2.2          # simulated 10y breakeven level (%)
+    real_yield_10y_series_id: Optional[str] = None   # catalogue id of the 10y real (linker) yield, if any
 
 
 # ---------------------------------------------------------------------------
@@ -274,15 +277,32 @@ class RegionalHeatmap:
                 macro_data.Y_daily
             )
             _true_factors = None
+            self.macro_source = "live"
+            # Latest known value of each indicator at each month end (raw units).
+            self._indicator_monthly = (
+                pd.DataFrame(macro_data.Y_daily).ffill().values[MONTH_END_IDX]
+            )
+            self._indicator_raw = True
+            observed = ~np.isnan(macro_data.Y_daily)
+            self._indicator_last_obs = [
+                DAILY_DATES[np.flatnonzero(observed[:, m])[-1]].strftime("%Y-%m-%d")
+                if observed[:, m].any() else None
+                for m in range(cfg.m_macro)
+            ]
         else:
             _true_factors, _Lambda_sim, _Y_monthly = self._simulate_macro_block()
             self.FACTORS_SMOOTH, self.FACTORS_FILT = self._build_macro_dfm_sim(
                 _Lambda_sim, _Y_monthly, _true_factors[MONTH_END_IDX]
             )
+            self.macro_source = "simulation"
+            self._indicator_monthly = _Y_monthly      # standardised units only
+            self._indicator_raw = False
+            self._indicator_last_obs = [None] * cfg.m_macro
 
         # ── Block 2: yield PCA ────────────────────────────────────────────────
         live_yields = self._fetch_yield_data(_fetch_start, _fetch_end)
 
+        self.yield_source = "live" if live_yields is not None else "simulation"
         if live_yields is not None:
             self.YIELDS = live_yields
         else:
@@ -564,8 +584,16 @@ class RegionalHeatmap:
 
         Returns [T_DAILY, N_TENORS] array aligned to DAILY_DATES, or None to simulate.
         """
+        return self._fetch_daily_matrix(self.cfg.yield_series_ids, start, end)
+
+    def _fetch_daily_matrix(self, series_ids: list[str], start: str, end: str) -> np.ndarray | None:
+        """
+        Fetch daily series from Bloomberg or Haver, aligned to DAILY_DATES and
+        forward/back-filled. Returns [T_DAILY, len(series_ids)], or None (the
+        caller then simulates) when the source is csv/simulation or data is missing.
+        """
         cfg = self.cfg
-        n_tenors = len(cfg.yield_tenors)
+        n_tenors = len(series_ids)
         source = os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower()
         if source in ("csv", "simulation"):
             return None
@@ -580,7 +608,7 @@ class RegionalHeatmap:
 
         try:
             fetcher = get_fetcher(source, **kwargs)   # type: ignore[arg-type]
-            data = fetcher.fetch(cfg.yield_series_ids, start=start, end=end)
+            data = fetcher.fetch(series_ids, start=start, end=end)
             if not data:
                 warnings.warn(
                     f"[{cfg.region}] No yield data from fetcher; simulating yields.",
@@ -591,7 +619,7 @@ class RegionalHeatmap:
             daily_arr = np.array(DAILY_DATES, dtype="datetime64[D]")
             yield_mat = np.full((T_DAILY, n_tenors), np.nan)
 
-            for k, sid in enumerate(cfg.yield_series_ids):
+            for k, sid in enumerate(series_ids):
                 series = data.get(sid)
                 if series is None or series.empty:
                     continue
@@ -671,3 +699,107 @@ class RegionalHeatmap:
             pc1=_fmt(self.PC1_REG),
             pc2=_fmt(self.PC2_REG),
         )
+
+    # ------------------------------------------------------------------
+    # Full dashboard (everything the regional heatmap page renders)
+    # ------------------------------------------------------------------
+
+    def _breakeven_10y(self) -> tuple[np.ndarray, str]:
+        """Daily 10y breakeven (%): nominal − real when a live real yield is
+        available, otherwise a seeded simulation tied to the Inflation factor."""
+        cfg = self.cfg
+        i10 = cfg.yield_tenors.index("10y")
+        if cfg.real_yield_10y_series_id:
+            start = (DAILY_DATES[0] - pd.DateOffset(years=2)).strftime("%Y-%m-%d")
+            real = self._fetch_daily_matrix([cfg.real_yield_10y_series_id], start,
+                                            DAILY_DATES[-1].strftime("%Y-%m-%d"))
+            if real is not None:
+                return self.YIELDS[:, i10] - real[:, 0], "live"
+        # Own RNG stream, so adding this series leaves every other output unchanged.
+        rng = np.random.default_rng([cfg.random_seed, 10])
+        infl = self.FACTORS_SMOOTH[:, FACTOR_NAMES.index("Inflation")]
+        infl = (infl - infl.mean()) / (infl.std() or 1.0)
+        noise = np.zeros(T_DAILY)
+        for t in range(1, T_DAILY):
+            noise[t] = 0.97 * noise[t - 1] + rng.standard_normal() * 0.012
+        return cfg.breakeven_mean + 0.12 * infl + noise, "simulation"
+
+    def _indicator_table(self) -> dict:
+        """Indicators grouped by catalogue heatmap_group with monthly z-scores."""
+        X = self._indicator_monthly                     # [T_MONTHLY, M]
+        mu = np.nanmean(X, axis=0)
+        sd = np.nanstd(X, axis=0)
+        sd = np.where(sd < 1e-12, 1.0, sd)
+        Z = (X - mu) / sd
+        groups: dict[str, list[dict]] = {}
+        for e in self._dfm_meta:
+            m = e["dfm_col_index"]
+            groups.setdefault(e.get("heatmap_group") or e["dfm_factor"], []).append({
+                "id": e["id"],
+                "name": e["name"],
+                "units": e.get("units", ""),
+                "factor": e["dfm_factor"],
+                "zscores": [None if np.isnan(z) else round(float(z), 3) for z in Z[:, m]],
+                "latest": (round(float(X[-1, m]), 4)
+                           if self._indicator_raw and not np.isnan(X[-1, m]) else None),
+                "last_obs": self._indicator_last_obs[m],
+            })
+        return {
+            "months": [d.strftime("%Y-%m-%d") for d in MONTHLY_DATES],
+            "raw_values": self._indicator_raw,
+            "groups": [{"name": g, "indicators": rows} for g, rows in groups.items()],
+        }
+
+    def get_dashboard(self) -> dict:
+        """Every section of the regional heatmap page in one payload."""
+        from dataclasses import asdict
+
+        import heatmap_analytics as ha
+
+        cfg = self.cfg
+        if getattr(self, "_dashboard", None) is not None:
+            return self._dashboard
+
+        dates = [d.strftime("%Y-%m-%d") for d in DAILY_DATES]
+        tenors = list(cfg.yield_tenors)
+        i2, i10 = tenors.index("2y"), tenors.index("10y")
+
+        # Macro fair value for every tenor: μ + L1·PC1_fitted + L2·PC2_fitted
+        fair = (self._yield_means[None, :]
+                + np.outer(self.PC1_REG["fitted"], self.PC_LOADINGS[0])
+                + np.outer(self.PC2_REG["fitted"], self.PC_LOADINGS[1]))
+
+        curve = [ha.curve_regime_section(dates, self.YIELDS[:, i10], self.YIELDS[:, i2], "2s10s")]
+        if "30y" in tenors:
+            curve.append(ha.curve_regime_section(dates, self.YIELDS[:, tenors.index("30y")],
+                                                 self.YIELDS[:, i2], "2s30s"))
+        be, be_source = self._breakeven_10y()
+        breakeven = ha.breakeven_section(dates, self.YIELDS[:, i10], be, be_source)
+
+        regressions = asdict(self.get_pc_regressions())
+        regressions["pc1"]["fitted"] = self.PC1_REG["fitted"].round(4).tolist()
+        regressions["pc2"]["fitted"] = self.PC2_REG["fitted"].round(4).tolist()
+
+        self._dashboard = {
+            "display_name": cfg.display_name,
+            "bond_name": cfg.bond_name,
+            "tenors": tenors,
+            "period": {"start": dates[0], "end": dates[-1]},
+            "data_source": {"macro": self.macro_source, "yields": self.yield_source, "breakeven": be_source},
+            "factors": {
+                **asdict(self.get_daily_factors()),
+                "summary": {name: ha.factor_summary(self.FACTORS_SMOOTH[:, k])
+                            for k, name in enumerate(FACTOR_NAMES)},
+            },
+            "yield_pca": asdict(self.get_yield_pca()),
+            "regressions": regressions,
+            "fair_value": {
+                **asdict(self.get_fair_value()),
+                "curve_table": ha.curve_fair_value_table(tenors, self.YIELDS, fair),
+            },
+            "curve_regimes": curve,
+            "breakeven": breakeven,
+            "scenarios": ha.scenario_section(curve[0], breakeven),
+            "indicators": self._indicator_table(),
+        }
+        return self._dashboard
