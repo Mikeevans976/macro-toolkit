@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import functools
 import warnings
 
 import numpy as np
@@ -79,11 +80,13 @@ _COUNTRY_TICKERS: dict[str, str] = {
 # Date grid
 # ---------------------------------------------------------------------------
 
-DAILY_DATES: pd.DatetimeIndex = pd.bdate_range(
-    "2022-01-03",
-    pd.Timestamp.today().normalize(),
-)
-T = len(DAILY_DATES)
+_GRID_START = "2022-01-03"
+
+
+def _daily_dates(today: pd.Timestamp) -> pd.DatetimeIndex:
+    """Business days from the grid start up to ``today`` (evaluated per request,
+    not at import, so a long-running server picks up new days)."""
+    return pd.bdate_range(_GRID_START, today)
 
 # ---------------------------------------------------------------------------
 # Approximate long-run yield means (%)
@@ -122,7 +125,7 @@ _MEANS = np.array([
 # Simulation
 # ---------------------------------------------------------------------------
 
-def _simulate_yields(rng: np.random.Generator) -> np.ndarray:
+def _simulate_yields(rng: np.random.Generator, T: int) -> np.ndarray:
     """
     Simulate [T, N] daily 10y bond yields using a 3-factor structure.
 
@@ -246,7 +249,7 @@ def _run_pca(yields: np.ndarray, n_components: int = 3) -> tuple:
     stds = np.where(stds < 1e-10, 1.0, stds)
     Z = (yields - means) / stds    # [T, N]
 
-    cov = Z.T @ Z / (T - 1)
+    cov = Z.T @ Z / (len(Z) - 1)
     eigenvalues, eigenvectors = np.linalg.eigh(cov)
     idx = np.argsort(eigenvalues)[::-1]
     eigenvalues = eigenvalues[idx]
@@ -277,12 +280,12 @@ def _run_pca(yields: np.ndarray, n_components: int = 3) -> tuple:
 # Live data fetch + matrix builder
 # ---------------------------------------------------------------------------
 
-def _fetch_yields(start: str, end: str) -> np.ndarray | None:
+def _fetch_yields(dates: pd.DatetimeIndex) -> np.ndarray | None:
     """
     Fetch live 10y yields from Bloomberg via direct blp.bdh() call.
     Tickers are read from series_catalogue_global_yields.json (_COUNTRY_TICKERS).
 
-    Returns a [T, N] daily matrix aligned to DAILY_DATES and ALL_COUNTRIES,
+    Returns a [T, N] daily matrix aligned to ``dates`` and ALL_COUNTRIES,
     or None on any failure so the caller can fall back to simulation.
     Missing individual countries are filled with their long-run mean (_MEANS)
     rather than triggering a full simulation fallback.
@@ -296,7 +299,7 @@ def _fetch_yields(start: str, end: str) -> np.ndarray | None:
     tickers = [_COUNTRY_TICKERS[c] for c in ALL_COUNTRIES]
 
     try:
-        df = blp.bdh(tickers, "PX_LAST", start, end)
+        df = blp.bdh(tickers, "PX_LAST", dates[0].strftime("%Y-%m-%d"), dates[-1].strftime("%Y-%m-%d"))
         if df is None or df.empty:
             warnings.warn("global_yields: Bloomberg returned no data — using simulation.")
             return None
@@ -306,10 +309,10 @@ def _fetch_yields(start: str, end: str) -> np.ndarray | None:
         warnings.warn(f"global_yields: Bloomberg fetch failed ({exc}) — using simulation.")
         return None
 
-    # Align each series to DAILY_DATES; forward-fill up to 5 business days
+    # Align each series to the date grid; forward-fill up to 5 business days
     # to handle holiday gaps; countries with no data default to their long-run mean.
-    matrix = np.full((len(DAILY_DATES), N), np.nan)
-    date_index = pd.DatetimeIndex(DAILY_DATES)
+    matrix = np.full((len(dates), N), np.nan)
+    date_index = pd.DatetimeIndex(dates)
 
     for col, country in enumerate(ALL_COUNTRIES):
         ticker = _COUNTRY_TICKERS[country]
@@ -331,31 +334,10 @@ def _fetch_yields(start: str, end: str) -> np.ndarray | None:
 
 
 # ---------------------------------------------------------------------------
-# Run model at module import
-# ---------------------------------------------------------------------------
-
-_START = DAILY_DATES[0].strftime("%Y-%m-%d")
-_END   = DAILY_DATES[-1].strftime("%Y-%m-%d")
-
-_live = _fetch_yields(_START, _END)
-
-if _live is not None:
-    YIELDS = _live
-    _source = "bloomberg"
-else:
-    _rng = np.random.default_rng(20240101)
-    YIELDS = _simulate_yields(_rng)
-    _source = "simulation"
-
-(PC_SCORES, PC_LOADINGS, PC_EXPLAINED_VAR,
- YIELD_MEANS, YIELD_STDS, FITTED_YIELDS, RESIDUALS_BPS) = _run_pca(YIELDS)
-
-
-# ---------------------------------------------------------------------------
 # Summary table
 # ---------------------------------------------------------------------------
 
-def _build_table() -> list[dict]:
+def _build_table(YIELDS: np.ndarray, FITTED_YIELDS: np.ndarray, RESIDUALS_BPS: np.ndarray) -> list[dict]:
     """
     For each country, compute statistics of the intrinsic residual
     (Actual − Model, in bps) over a 1-year lookback (~252 business days).
@@ -398,8 +380,23 @@ def _build_table() -> list[dict]:
 # ---------------------------------------------------------------------------
 
 def get_global_yields_data() -> dict:
-    """Return all data needed by the frontend in a single call."""
-    dates = [d.strftime("%Y-%m-%d") for d in DAILY_DATES]
+    """Return all data needed by the frontend in a single call (model cached per day)."""
+    return _model_for(pd.Timestamp.today().normalize())
+
+
+@functools.lru_cache(maxsize=1)
+def _model_for(today: pd.Timestamp) -> dict:
+    daily_dates = _daily_dates(today)
+    live = _fetch_yields(daily_dates)
+    if live is not None:
+        YIELDS, source = live, "bloomberg"
+    else:
+        YIELDS, source = _simulate_yields(np.random.default_rng(20240101), len(daily_dates)), "simulation"
+
+    (PC_SCORES, _loadings, PC_EXPLAINED_VAR,
+     _means, _stds, FITTED_YIELDS, RESIDUALS_BPS) = _run_pca(YIELDS)
+
+    dates = [d.strftime("%Y-%m-%d") for d in daily_dates]
 
     factors = {
         "Global": PC_SCORES[:, 0].round(4).tolist(),
@@ -422,6 +419,6 @@ def get_global_yields_data() -> dict:
         factors=factors,
         explained_var=explained_var,
         residuals=residuals,
-        table=_build_table(),
-        data_source=_source,   # "bloomberg" | "simulation"
+        table=_build_table(YIELDS, FITTED_YIELDS, RESIDUALS_BPS),
+        data_source=source,   # "bloomberg" | "simulation"
     )
