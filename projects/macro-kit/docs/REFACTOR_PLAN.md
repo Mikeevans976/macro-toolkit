@@ -330,3 +330,25 @@ If browser-side synthetic rendering must stay (e.g. for offline demos), move it 
 - **ruff widened to all of pyflakes** (`E9` + `F`): 58 unused imports, 29 dead assignments (each reviewed; none hid a bug), 7 f-strings removed.
 
 **Next:** the Phase 3 decision; the `macrokit` rename after the `mm-bbg` merge; ratchet the ESLint warnings (98, mostly `no-explicit-any` in page code).
+
+### 2026-10-14: Phase 3 decided and done: the backend is the heatmap source of truth
+
+**Decision:** the backend is the single source of truth for the regional heatmaps (owner's call, 2026-10-14).
+
+**Done**
+- **`GET /api/tools/heatmap/{region}`** returns the whole page: indicator z-score table (rows from each catalogue's `heatmap_group`), DFM factors with 1m/3m/12m/z summary, yield PCA, PC regressions with fitted series, 10y fair value plus the curve fair-value table, 2s10s/2s30s regime analytics, 10y breakeven regimes and scenario probabilities. ~30 KB gzipped per region.
+- **`heatmap_analytics.py`** ports the browser maths; tests check it against a literal transcription of the pages' loops.
+- **One shared page:** `features/heatmap/RegionalHeatmapPage.tsx` plus five section modules replace the ten page files (~11,000 lines → ~900; one 29 KB chunk). URLs are unchanged. Every region now gets every section the Euro Area page had (2s30s, look-back tables, scenario probabilities). `src/lib/math/linalg.ts` is deleted (no users left). *(F6, F7)*
+- **Breakevens:** nominal minus a live 10y real yield where the catalogue has one (US, Sweden, Norway); otherwise simulated, and the page says so.
+
+**Bugs found by putting the backend model on screen**
+
+| # | Bug | Fix |
+|---|-----|-----|
+| F42 | Simulation-mode DFM applied the **monthly** AR(1) estimate as a **daily** transition, so factors decayed to ~0 between month ends (spikes; daily autocorrelation ~0.8) | Monthly AR converted to daily (a^(1/h)), innovation variance rescaled; autocorrelation now ≥0.99 |
+| F43 | Simulated factors had half-lives of days and std ~0.1, so simulated 10y yields moved ~8 bp in two years and the curve PCs were mostly noise | Persistent factors in σ units, AR(1) yield idiosyncratic noise: 10y ranges of 70–125 bp, daily moves 3–4 bp, PC1 R² on macro 0.56–0.92 |
+| F44 | `MACROKIT_STATE_DIR` set explicitly still fell back to legacy files (found when a preview's `create_user.py` wrote to the real `backend/users.json`; reverted) | An explicit state dir always wins; legacy fallback only for the default `var/` |
+
+**Visible changes for users:** the heatmaps now show backend model output (different numbers from the old browser synthetics); the UK indicator table lists the catalogue's 48 DFM series instead of the page's 90 hard-coded rows; the "Latest / As of MTG / Change" columns showed invented strings and now show real levels only with live data.
+
+**Not done:** the regional date grid is still fixed (Jun 2023 – Jun 2025) even in live mode; extending it to today is a separate change because it moves every number. The seasonality POST routes are still unused.

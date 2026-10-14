@@ -3,26 +3,18 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import AppShell from './components/AppShell'
+import { HEATMAP_REGIONS } from './features/heatmap/regions'
 
 // Pages are code-split: each tool loads (and builds its synthetic data) only when opened.
+const RegionalHeatmapPage = lazy(() => import('./features/heatmap/RegionalHeatmapPage'))
 const SwapsRV = lazy(() => import('./pages/SwapsRV'))
 const EGBRV = lazy(() => import('./pages/EGBRV'))
-const EuroAreaHeatmap = lazy(() => import('./pages/EuroAreaHeatmap'))
 const GlobalYields = lazy(() => import('./pages/GlobalYields'))
 const OptionDerivedCDF = lazy(() => import('./pages/OptionDerivedCDF'))
 const FairValueModels = lazy(() => import('./pages/FairValueModels'))
-const UKHeatmap = lazy(() => import('./pages/UKHeatmap'))
-const USHeatmap = lazy(() => import('./pages/USHeatmap'))
-const JapanHeatmap = lazy(() => import('./pages/JapanHeatmap'))
 const SeasonalityBacktester = lazy(() => import('./pages/SeasonalityBacktester'))
 const PrintAnalysis = lazy(() => import('./pages/PrintAnalysis'))
 const Momentum = lazy(() => import('./pages/Momentum'))
-const CanadaHeatmap = lazy(() => import('./pages/CanadaHeatmap'))
-const SwedenHeatmap = lazy(() => import('./pages/SwedenHeatmap'))
-const NorwayHeatmap = lazy(() => import('./pages/NorwayHeatmap'))
-const SwitzerlandHeatmap = lazy(() => import('./pages/SwitzerlandHeatmap'))
-const AustraliaHeatmap = lazy(() => import('./pages/AustraliaHeatmap'))
-const NewZealandHeatmap = lazy(() => import('./pages/NewZealandHeatmap'))
 const InflationPCA = lazy(() => import('./pages/InflationPCA'))
 const InflationFixingsMonitor = lazy(() => import('./pages/InflationFixingsMonitor'))
 const MeanReversion = lazy(() => import('./pages/MeanReversion'))
@@ -67,18 +59,11 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        {HEATMAP_REGIONS.map(r => (
+          <Route key={r.slug} path={`/tools/${r.slug}-heatmap`} element={<ProtectedRoute><RegionalHeatmapPage region={r.slug} /></ProtectedRoute>} />
+        ))}
         <Route path="/tools/swaps-rv" element={<ProtectedRoute><SwapsRV /></ProtectedRoute>} />
         <Route path="/tools/egb-rv" element={<ProtectedRoute><EGBRV /></ProtectedRoute>} />
-        <Route path="/tools/euro-area-heatmap" element={<ProtectedRoute><EuroAreaHeatmap /></ProtectedRoute>} />
-        <Route path="/tools/uk-heatmap" element={<ProtectedRoute><UKHeatmap /></ProtectedRoute>} />
-        <Route path="/tools/us-heatmap" element={<ProtectedRoute><USHeatmap /></ProtectedRoute>} />
-        <Route path="/tools/japan-heatmap" element={<ProtectedRoute><JapanHeatmap /></ProtectedRoute>} />
-        <Route path="/tools/canada-heatmap" element={<ProtectedRoute><CanadaHeatmap /></ProtectedRoute>} />
-        <Route path="/tools/sweden-heatmap" element={<ProtectedRoute><SwedenHeatmap /></ProtectedRoute>} />
-        <Route path="/tools/norway-heatmap" element={<ProtectedRoute><NorwayHeatmap /></ProtectedRoute>} />
-        <Route path="/tools/switzerland-heatmap" element={<ProtectedRoute><SwitzerlandHeatmap /></ProtectedRoute>} />
-        <Route path="/tools/australia-heatmap" element={<ProtectedRoute><AustraliaHeatmap /></ProtectedRoute>} />
-        <Route path="/tools/new-zealand-heatmap" element={<ProtectedRoute><NewZealandHeatmap /></ProtectedRoute>} />
         <Route path="/tools/global-yields" element={<ProtectedRoute><GlobalYields /></ProtectedRoute>} />
         <Route path="/tools/option-derived-cdf" element={<ProtectedRoute><OptionDerivedCDF /></ProtectedRoute>} />
         <Route path="/tools/fair-value-models" element={<ProtectedRoute><FairValueModels /></ProtectedRoute>} />

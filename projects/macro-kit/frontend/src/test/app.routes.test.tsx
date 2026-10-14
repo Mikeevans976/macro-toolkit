@@ -7,7 +7,8 @@ describe('App routing', () => {
   it.each(['/tools/swaps-rv', '/tools/uk-heatmap', '/tools/mean-reversion'])('loads %s', async (path) => {
     window.history.pushState({}, '', path)
     const { container } = render(<App />)
-    await waitFor(() => expect(screen.queryByRole('status')).toBeNull(), { timeout: 30_000 })
+    // Wait for the route-level Suspense fallback ("Loading…") to be replaced by the page.
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull(), { timeout: 30_000 })
     expect(container.innerHTML.length).toBeGreaterThan(500)
   })
 

@@ -67,6 +67,7 @@ cd frontend && npm run build && cd .. && python backend/main.py
 | `dfm.py` | Mixed-frequency Dynamic Factor Model (Kalman filter/smoother) |
 | `regional_heatmap.py` | Shared heatmap engine: DFM, yield PCA, fair value |
 | `heatmap_regions.py` | One `HeatmapConfig` per region, keyed by URL slug |
+| `heatmap_analytics.py` | Pure maths behind the heatmap page (regimes, scenarios, curve fair value) |
 | `routers/` | One `APIRouter` per tool; `agents.py` holds the pod's `/api/agents` and `/api/pod` routes |
 | `fair_value_models.py` | Fair value model logic |
 | `macro_data_loader.py` | Loads macro series (Bloomberg/Haver) |
@@ -78,7 +79,7 @@ cd frontend && npm run build && cd .. && python backend/main.py
 | `data/series_catalogue_*.json` | Single source of truth for indicator tickers/lags per region |
 
 ### Frontend pages
-Each page in `frontend/src/pages/` corresponds to a tool tile in the dashboard. Most tool pages fetch from the backend (`/api/tools/...`); the ten regional heatmaps, MacroOptionsMonitor and parts of other pages still generate **deterministic synthetic data** in the browser (see docs/REFACTOR_PLAN.md, Phase 3).
+Each page in `frontend/src/pages/` corresponds to a tool tile in the dashboard. Most tool pages fetch from the backend (`/api/tools/...`); the ten regional heatmaps share one page driven entirely by the backend. MacroOptionsMonitor and parts of other pages still generate **deterministic synthetic data** in the browser.
 
 ### DFM (Dynamic Factor Model)
 `dfm.py` implements a mixed-frequency Kalman filter/smoother. Monthly macro series are observed on the last business day of each month (NaN otherwise); yield PCs are handled in a separate downstream pipeline to avoid circularity. The Euro Area model runs 5 factors × 60 series with block-PCA initialisation.
@@ -100,90 +101,28 @@ Agent run streams (`GET /api/agents/stream/{run_id}`) authenticate with a 60 s r
 
 ---
 
-## Adding a Regional Heatmap (UK pattern)
+## Regional Heatmaps
 
-The Euro Area heatmap (`EuroAreaHeatmap.tsx`) is the reference implementation. The UK heatmap was built by following this pattern.
-
-### Where things live
+The backend is the single source of truth: `GET /api/tools/heatmap/{region}` returns every section of the page (indicator z-scores, DFM factors, yield PCA, PC regressions, fair value, curve and breakeven regimes, scenario probabilities). The frontend renders it and does no modelling.
 
 | Layer | File | Notes |
 |-------|------|-------|
-| Backend config | `backend/heatmap_regions.py` | One `HeatmapConfig` entry per region (engine: `regional_heatmap.py`) |
-| Series metadata | `backend/data/series_catalogue_<region>.json` | Single source of truth for indicator tickers/lags |
-| API routes | `backend/routers/heatmaps.py` | Automatic: `/api/tools/heatmap/{region}/{factors,yield-pca,pc-regressions,fair-value}` |
-| Frontend page | `frontend/src/pages/<Region>Heatmap.tsx` | Self-contained, synthetic data (no live API calls) |
-| Routing | `frontend/src/App.tsx` | One route entry per region |
-| Nav config | `dashboard_config.yaml` | Tool entry under `macro-fundamentals` category |
+| Region config | `backend/heatmap_regions.py` | One `HeatmapConfig` per region, keyed by URL slug |
+| Series metadata | `backend/data/series_catalogue_<region>.json` | DFM inputs (`dfm_col_index`), `heatmap_group` for the table, tickers/lags |
+| Engine | `backend/regional_heatmap.py` | DFM (Kalman), yield PCA, regressions; `get_dashboard()` assembles the page payload |
+| Page maths | `backend/heatmap_analytics.py` | Regime classification, look-back tables, dispersion, scenarios, curve fair value (pure, unit tested) |
+| API | `backend/routers/heatmaps.py` | `/api/tools/heatmap/{region}` (+ the four single views) |
+| Page | `frontend/src/features/heatmap/RegionalHeatmapPage.tsx` | One shared page; sections in `features/heatmap/sections/` |
+| Routes | `frontend/src/features/heatmap/regions.ts` | Generates `/tools/{slug}-heatmap` routes in `App.tsx` |
 
-### Frontend page structure
+### Adding a region
 
-Each regional heatmap page is a single self-contained `.tsx` file (~1,200 lines). All sections are pure computation + recharts rendering:
+1. Create `backend/data/series_catalogue_<region>.json` (mirror an existing one: `dfm_col_index` 0..M-1, `dfm_factor`, `dfm_sign`, one `dfm_primary` per factor, `heatmap_group`)
+2. Add a `HeatmapConfig` to `REGIONS` in `backend/heatmap_regions.py` (set `real_yield_10y_series_id` if the catalogue has a 10y linker yield; otherwise the breakeven is simulated)
+3. Add the slug to `_REGIONS` in `backend/tests/test_api_contract.py` and run with `UPDATE_SNAPSHOTS=1`
+4. Add the slug to `frontend/src/features/heatmap/regions.ts`, a flag in `TOOL_FLAG` (`components/Glyph.tsx`) and a tile in `dashboard_config.yaml`
 
-1. **Imports + Types** — `Indicator`, `Group`
-2. **Date columns** — `generateMonths()` → 25 months Jun '23–Jun '25
-3. **Z-score generator** — deterministic sin/cos with per-indicator seeds
-4. **`GROUPS_META`** — hardcoded indicator metadata (name, latest, units, z-score params)
-5. **Gilt/Bund yields** — synthetic monthly yield arrays per tenor
-6. **Jacobi PCA** — in-browser PCA on the yield matrix
-7. **Color helpers + Legend + HeatmapTable** — reusable across regions
-8. **DFM factors** — `computeFactor()` averages z-scores across indicator groups
-9. **OLS helpers** — `matInv`, `ols` for PC regressions
-10. **`YieldPCChart`** — PC1/PC2/PC3 line charts + loadings table
-11. **`PCRegressionSection`** — OLS of yield PCs on macro factors
-12. **`[Region]FairValueSection`** — fair value via PCA inversion + rich/cheap chart
-13. **`CurveDynamicsSection`** — 2s10s daily directionality (63-day rolling)
-14. **`BEDynamicsSection`** — 10y breakeven regime analysis
-15. **Main page component** — header, nav, sections composed together
-
-Key styling constants (copy exactly): `cardStyle`, `stickyBg = '#07090c'`, z-score color thresholds (dark-ground diverging scale in `zscoreToColors`).
-
-
-### UK vs Euro Area differences
-
-| | Euro Area | UK |
-|--|-----------|-----|
-| Yield tenors | 2/3/5/7/10/15/20/30y (8) | 2/5/10/20/30y (5) |
-| Central bank | ECB (DFR) | BoE Bank Rate |
-| Benchmark bond | Bund | Gilt |
-| Benchmark rate | EURIBOR / ESTR | SONIA |
-| FX | EUR/USD | GBP/USD, GBP/EUR |
-| Equity | EuroStoxx 50 | FTSE 100, FTSE 250 |
-| Inflation measure | HICP | CPI / CPIH / RPI |
-
-### Critical implementation note — output token limit
-
-**`EuroAreaHeatmap.tsx` is 3,441 lines. Writing any regional heatmap in a single `Write` call will fail** — Claude Code's output is capped at 32,000 tokens.
-
-**The fix: build the file with multiple `cat >>` bash appends, each ~600 lines:**
-
-```bash
-cat > frontend/src/pages/UKHeatmap.tsx << 'EOF'
-# Part 1: imports, types, data, HeatmapTable
-EOF
-
-cat >> frontend/src/pages/UKHeatmap.tsx << 'EOF'
-# Part 2: DFM, OLS, YieldPCChart, PCRegressionSection
-EOF
-
-cat >> frontend/src/pages/UKHeatmap.tsx << 'EOF'
-# Part 3: fair value, curve dynamics
-EOF
-
-cat >> frontend/src/pages/UKHeatmap.tsx << 'EOF'
-# Part 4: BE dynamics, main page component
-EOF
-```
-
-Use single-quoted `'EOF'` to prevent shell variable/dollar-sign expansion in JSX/TypeScript.
-
-### Adding another region (e.g. US, Japan)
-
-1. Create `backend/data/series_catalogue_<region>.json` — mirror the UK schema
-2. Add a `HeatmapConfig` entry to `REGIONS` in `backend/heatmap_regions.py` (routes appear automatically)
-3. Add the 4 new URLs to `_REGIONS` in `backend/tests/test_api_contract.py` and run with `UPDATE_SNAPSHOTS=1`
-4. Add entry in `dashboard_config.yaml` under `macro-fundamentals`
-5. Create `frontend/src/pages/<Region>Heatmap.tsx` using the 4-chunk `cat >>` approach
-6. Add import + route in `frontend/src/App.tsx`
+After an intentional change to the dashboard payload, regenerate the frontend test fixture: `cd backend && python scripts/make_heatmap_fixture.py`.
 
 ---
 
