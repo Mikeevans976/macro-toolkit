@@ -21,6 +21,7 @@ from fastapi import APIRouter, Depends
 from auth import get_current_user
 from heatmap_regions import REGIONS
 from regional_heatmap import RegionalHeatmap
+from schemas.heatmap import DailyFactors, FairValue, HeatmapDashboard, PCRegressions, YieldPCA
 
 # Each engine precomputes its DFM + yield PCA on construction (~20 ms/region).
 _ENGINES: dict[str, RegionalHeatmap] = {slug: RegionalHeatmap(cfg) for slug, cfg in REGIONS.items()}
@@ -45,14 +46,15 @@ _VIEW_METHODS: dict[View, Callable[[RegionalHeatmap], object]] = {
 router = APIRouter(tags=["heatmaps"], dependencies=[Depends(get_current_user)])
 
 
-@router.get("/api/tools/heatmap/{region}")
+@router.get("/api/tools/heatmap/{region}", response_model=HeatmapDashboard)
 def heatmap_dashboard(region: Region):
     """Indicators, DFM factors, yield PCA, regressions, fair value, curve and
     breakeven regimes and scenario probabilities for one region."""
     return {**_ENGINES[region.value].get_dashboard(), "region": region.value}
 
 
-@router.get("/api/tools/heatmap/{region}/{view}")
+@router.get("/api/tools/heatmap/{region}/{view}",
+            response_model=DailyFactors | YieldPCA | PCRegressions | FairValue)
 def heatmap_view(region: Region, view: View):
     """One output of a regional macro heatmap."""
     return _VIEW_METHODS[view](_ENGINES[region.value])

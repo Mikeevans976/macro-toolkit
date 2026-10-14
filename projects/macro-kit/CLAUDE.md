@@ -96,7 +96,9 @@ CI (`.github/workflows/macro-kit-ci.yml` at the repo root) runs ruff, both pytes
 Simulated data must be deterministic across processes: seed RNGs with `zlib.crc32(name.encode())`, never `hash()` (randomised per process). Format calendar dates with `toLocalISODate` (`frontend/src/lib/dates.ts`), never `toISOString().slice(0, 10)` on local-midnight Dates.
 
 ### Routers
-New API routes go in `backend/routers/<tool>.py` as an `APIRouter` with Pydantic request models (see `routers/mean_reversion.py`), mounted in `main.py`. CPU-bound handlers are plain `def` (FastAPI runs them in a threadpool) — never `async def` without an `await`.
+New API routes go in `backend/routers/<tool>.py` as an `APIRouter` with Pydantic request models (see `routers/mean_reversion.py`), mounted in `main.py`.
+
+Response models live in `backend/schemas/` (`response_model=` on the route); the frontend's API types are generated from them. After changing a response model: `cd backend && python scripts/export_openapi.py`, then `cd frontend && npm run gen:api`, and use the types from `src/api/schema.ts` (see `features/heatmap/types.ts`). A backend test and a CI step fail when either file is stale. Typed so far: heatmaps and auth; the other tool routes and the pod routes still return untyped dicts. CPU-bound handlers are plain `def` (FastAPI runs them in a threadpool) — never `async def` without an `await`.
 
 Agent run streams (`GET /api/agents/stream/{run_id}`) authenticate with a 60 s run-scoped ticket (`POST .../ticket`, see `openRunStream` in `frontend/src/api/client.ts`), never the session token, and tail the `events` table rather than an in-memory queue.
 

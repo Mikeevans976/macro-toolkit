@@ -39,6 +39,7 @@ from agents.storage import init_db
 init_db()
 
 from bbg import BloombergUnavailable
+from schemas.auth import Me, Token
 from fair_value_models import get_fair_value_models_data  # startup warm-up
 from euribor_positioning_router import router as positioning_router
 from routers import (
@@ -143,7 +144,7 @@ def load_dashboard_config() -> dict:
 # ---------------------------------------------------------------------------
 
 
-@app.post("/api/auth/login")
+@app.post("/api/auth/login", response_model=Token)
 def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     # Failed attempts are limited per client IP and per username (auth.LoginRateLimiter).
     keys = (f"ip:{request.client.host if request.client else 'unknown'}",
@@ -177,7 +178,7 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
 # ---------------------------------------------------------------------------
 
 
-@app.get("/api/me")
+@app.get("/api/me", response_model=Me)
 def read_me(current_user: dict = Depends(get_current_user)):
     return {
         "username": current_user["username"],

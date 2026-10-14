@@ -60,6 +60,8 @@ jobs:
       - run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Generated API types are current (npm run gen:api)
+        run: npm run check:api
       - name: Unit and smoke tests
         run: npm test
       - name: Type-check and build

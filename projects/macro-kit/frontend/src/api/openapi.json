@@ -1,0 +1,4798 @@
+{
+ "components": {
+  "schemas": {
+   "AnalyseRequest": {
+    "properties": {
+     "end_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "End Date"
+     },
+     "expression": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Expression",
+      "type": "string"
+     },
+     "fit_end": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit End"
+     },
+     "fit_start": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit Start"
+     },
+     "model_type": {
+      "default": "linear_ou",
+      "enum": [
+       "linear_ou",
+       "polynomial",
+       "inverse_polynomial"
+      ],
+      "title": "Model Type",
+      "type": "string"
+     },
+     "n_sims": {
+      "default": 5000,
+      "maximum": 50000.0,
+      "minimum": 100.0,
+      "title": "N Sims",
+      "type": "integer"
+     },
+     "start_date": {
+      "default": "2018-01-01",
+      "title": "Start Date",
+      "type": "string"
+     },
+     "stop": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stop"
+     },
+     "target": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target"
+     }
+    },
+    "required": [
+     "expression"
+    ],
+    "title": "AnalyseRequest",
+    "type": "object"
+   },
+   "BacktestPayload": {
+    "properties": {
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 50000,
+      "minItems": 2,
+      "title": "Dates",
+      "type": "array"
+     },
+     "rule": {
+      "$ref": "#/components/schemas/BacktestRule"
+     },
+     "values": {
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 50000,
+      "minItems": 2,
+      "title": "Values",
+      "type": "array"
+     }
+    },
+    "required": [
+     "dates",
+     "values"
+    ],
+    "title": "BacktestPayload",
+    "type": "object"
+   },
+   "BacktestRule": {
+    "properties": {
+     "bins": {
+      "items": {
+       "type": "integer"
+      },
+      "maxItems": 64,
+      "title": "Bins",
+      "type": "array"
+     },
+     "direction": {
+      "default": 1,
+      "enum": [
+       1,
+       -1
+      ],
+      "title": "Direction",
+      "type": "integer"
+     },
+     "type": {
+      "default": "dow",
+      "enum": [
+       "dow",
+       "month",
+       "dom_quintile",
+       "tom",
+       "quarter_end"
+      ],
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "title": "BacktestRule",
+    "type": "object"
+   },
+   "Body_login_api_auth_login_post": {
+    "properties": {
+     "client_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Client Id"
+     },
+     "client_secret": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "format": "password",
+      "title": "Client Secret"
+     },
+     "grant_type": {
+      "anyOf": [
+       {
+        "pattern": "^password$",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Grant Type"
+     },
+     "password": {
+      "format": "password",
+      "title": "Password",
+      "type": "string"
+     },
+     "scope": {
+      "default": "",
+      "title": "Scope",
+      "type": "string"
+     },
+     "username": {
+      "title": "Username",
+      "type": "string"
+     }
+    },
+    "required": [
+     "username",
+     "password"
+    ],
+    "title": "Body_login_api_auth_login_post",
+    "type": "object"
+   },
+   "Breakeven": {
+    "properties": {
+     "breakeven": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Breakeven",
+      "type": "array"
+     },
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "dispersion": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Dispersion",
+      "type": "array"
+     },
+     "dispersion_avg": {
+      "title": "Dispersion Avg",
+      "type": "number"
+     },
+     "expansion": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Expansion",
+      "type": "array"
+     },
+     "goldilocks": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Goldilocks",
+      "type": "array"
+     },
+     "lookbacks": {
+      "items": {
+       "$ref": "#/components/schemas/BreakevenLookback"
+      },
+      "title": "Lookbacks",
+      "type": "array"
+     },
+     "regime_dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Regime Dates",
+      "type": "array"
+     },
+     "slowdown": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Slowdown",
+      "type": "array"
+     },
+     "source": {
+      "enum": [
+       "live",
+       "simulation"
+      ],
+      "title": "Source",
+      "type": "string"
+     },
+     "stagflation": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Stagflation",
+      "type": "array"
+     }
+    },
+    "required": [
+     "source",
+     "dates",
+     "breakeven",
+     "regime_dates",
+     "expansion",
+     "slowdown",
+     "stagflation",
+     "goldilocks",
+     "dispersion",
+     "dispersion_avg",
+     "lookbacks"
+    ],
+    "title": "Breakeven",
+    "type": "object"
+   },
+   "BreakevenLookback": {
+    "properties": {
+     "dispersion": {
+      "title": "Dispersion",
+      "type": "number"
+     },
+     "expansion": {
+      "title": "Expansion",
+      "type": "integer"
+     },
+     "goldilocks": {
+      "title": "Goldilocks",
+      "type": "integer"
+     },
+     "horizon": {
+      "title": "Horizon",
+      "type": "string"
+     },
+     "slowdown": {
+      "title": "Slowdown",
+      "type": "integer"
+     },
+     "stagflation": {
+      "title": "Stagflation",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "horizon",
+     "expansion",
+     "slowdown",
+     "stagflation",
+     "goldilocks",
+     "dispersion"
+    ],
+    "title": "BreakevenLookback",
+    "type": "object"
+   },
+   "CurrentScenarios": {
+    "properties": {
+     "breakeven": {
+      "$ref": "#/components/schemas/ScenarioProbs"
+     },
+     "curve": {
+      "$ref": "#/components/schemas/ScenarioProbs"
+     }
+    },
+    "required": [
+     "curve",
+     "breakeven"
+    ],
+    "title": "CurrentScenarios",
+    "type": "object"
+   },
+   "CurveFVRow": {
+    "properties": {
+     "current": {
+      "title": "Current",
+      "type": "number"
+     },
+     "fair_value": {
+      "title": "Fair Value",
+      "type": "number"
+     },
+     "is_spread": {
+      "title": "Is Spread",
+      "type": "boolean"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "resid_bp": {
+      "title": "Resid Bp",
+      "type": "number"
+     },
+     "std_bp": {
+      "title": "Std Bp",
+      "type": "number"
+     },
+     "zscore": {
+      "title": "Zscore",
+      "type": "number"
+     }
+    },
+    "required": [
+     "label",
+     "is_spread",
+     "current",
+     "fair_value",
+     "resid_bp",
+     "std_bp",
+     "zscore"
+    ],
+    "title": "CurveFVRow",
+    "type": "object"
+   },
+   "CurveLookback": {
+    "properties": {
+     "bear_flat": {
+      "title": "Bear Flat",
+      "type": "integer"
+     },
+     "bear_steep": {
+      "title": "Bear Steep",
+      "type": "integer"
+     },
+     "bull_flat": {
+      "title": "Bull Flat",
+      "type": "integer"
+     },
+     "bull_steep": {
+      "title": "Bull Steep",
+      "type": "integer"
+     },
+     "dispersion": {
+      "title": "Dispersion",
+      "type": "number"
+     },
+     "horizon": {
+      "title": "Horizon",
+      "type": "string"
+     }
+    },
+    "required": [
+     "horizon",
+     "bull_steep",
+     "bull_flat",
+     "bear_steep",
+     "bear_flat",
+     "dispersion"
+    ],
+    "title": "CurveLookback",
+    "type": "object"
+   },
+   "CurveRegimes": {
+    "properties": {
+     "bear_flat": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Bear Flat",
+      "type": "array"
+     },
+     "bear_steep": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Bear Steep",
+      "type": "array"
+     },
+     "bull_flat": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Bull Flat",
+      "type": "array"
+     },
+     "bull_steep": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Bull Steep",
+      "type": "array"
+     },
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "dispersion": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Dispersion",
+      "type": "array"
+     },
+     "dispersion_avg": {
+      "title": "Dispersion Avg",
+      "type": "number"
+     },
+     "lookbacks": {
+      "items": {
+       "$ref": "#/components/schemas/CurveLookback"
+      },
+      "title": "Lookbacks",
+      "type": "array"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "dates",
+     "bull_steep",
+     "bull_flat",
+     "bear_steep",
+     "bear_flat",
+     "dispersion",
+     "dispersion_avg",
+     "lookbacks"
+    ],
+    "title": "CurveRegimes",
+    "type": "object"
+   },
+   "DailyFactors": {
+    "properties": {
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "factors": {
+      "additionalProperties": {
+       "items": {
+        "type": "number"
+       },
+       "type": "array"
+      },
+      "title": "Factors",
+      "type": "object"
+     },
+     "smoothed": {
+      "default": true,
+      "title": "Smoothed",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "dates",
+     "factors"
+    ],
+    "title": "DailyFactors",
+    "type": "object"
+   },
+   "DashboardFactors": {
+    "properties": {
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "factors": {
+      "additionalProperties": {
+       "items": {
+        "type": "number"
+       },
+       "type": "array"
+      },
+      "title": "Factors",
+      "type": "object"
+     },
+     "smoothed": {
+      "default": true,
+      "title": "Smoothed",
+      "type": "boolean"
+     },
+     "summary": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/FactorSummary"
+      },
+      "title": "Summary",
+      "type": "object"
+     }
+    },
+    "required": [
+     "dates",
+     "factors",
+     "summary"
+    ],
+    "title": "DashboardFactors",
+    "type": "object"
+   },
+   "DashboardFairValue": {
+    "properties": {
+     "actual": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Actual",
+      "type": "array"
+     },
+     "curve_table": {
+      "items": {
+       "$ref": "#/components/schemas/CurveFVRow"
+      },
+      "title": "Curve Table",
+      "type": "array"
+     },
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "macro_fair_value": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Macro Fair Value",
+      "type": "array"
+     },
+     "pca_fitted": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Pca Fitted",
+      "type": "array"
+     },
+     "rich_cheap_bps": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Rich Cheap Bps",
+      "type": "array"
+     }
+    },
+    "required": [
+     "dates",
+     "actual",
+     "pca_fitted",
+     "macro_fair_value",
+     "rich_cheap_bps",
+     "curve_table"
+    ],
+    "title": "DashboardFairValue",
+    "type": "object"
+   },
+   "DashboardRegressions": {
+    "properties": {
+     "factor_names": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Factor Names",
+      "type": "array"
+     },
+     "pc1": {
+      "$ref": "#/components/schemas/FittedRegression"
+     },
+     "pc2": {
+      "$ref": "#/components/schemas/FittedRegression"
+     }
+    },
+    "required": [
+     "factor_names",
+     "pc1",
+     "pc2"
+    ],
+    "title": "DashboardRegressions",
+    "type": "object"
+   },
+   "DataSources": {
+    "properties": {
+     "breakeven": {
+      "enum": [
+       "live",
+       "simulation"
+      ],
+      "title": "Breakeven",
+      "type": "string"
+     },
+     "macro": {
+      "enum": [
+       "live",
+       "simulation"
+      ],
+      "title": "Macro",
+      "type": "string"
+     },
+     "yields": {
+      "enum": [
+       "live",
+       "simulation"
+      ],
+      "title": "Yields",
+      "type": "string"
+     }
+    },
+    "required": [
+     "macro",
+     "yields",
+     "breakeven"
+    ],
+    "title": "DataSources",
+    "type": "object"
+   },
+   "FactorSummary": {
+    "properties": {
+     "current": {
+      "title": "Current",
+      "type": "number"
+     },
+     "d12m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "D12M"
+     },
+     "d1m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "D1M"
+     },
+     "d3m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "D3M"
+     },
+     "zscore": {
+      "title": "Zscore",
+      "type": "number"
+     }
+    },
+    "required": [
+     "current",
+     "d1m",
+     "d3m",
+     "d12m",
+     "zscore"
+    ],
+    "title": "FactorSummary",
+    "type": "object"
+   },
+   "FairValue": {
+    "properties": {
+     "actual": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Actual",
+      "type": "array"
+     },
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "macro_fair_value": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Macro Fair Value",
+      "type": "array"
+     },
+     "pca_fitted": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Pca Fitted",
+      "type": "array"
+     },
+     "rich_cheap_bps": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Rich Cheap Bps",
+      "type": "array"
+     }
+    },
+    "required": [
+     "dates",
+     "actual",
+     "pca_fitted",
+     "macro_fair_value",
+     "rich_cheap_bps"
+    ],
+    "title": "FairValue",
+    "type": "object"
+   },
+   "FittedRegression": {
+    "properties": {
+     "adj_r2": {
+      "title": "Adj R2",
+      "type": "number"
+     },
+     "beta": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Beta",
+      "type": "array"
+     },
+     "fitted": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Fitted",
+      "type": "array"
+     },
+     "r2": {
+      "title": "R2",
+      "type": "number"
+     },
+     "tstat": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Tstat",
+      "type": "array"
+     }
+    },
+    "required": [
+     "beta",
+     "tstat",
+     "r2",
+     "adj_r2",
+     "fitted"
+    ],
+    "title": "FittedRegression",
+    "type": "object"
+   },
+   "ForwardDistRequest": {
+    "properties": {
+     "end_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "End Date"
+     },
+     "expression": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Expression",
+      "type": "string"
+     },
+     "fit_end": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit End"
+     },
+     "fit_start": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit Start"
+     },
+     "n_sims": {
+      "default": 10000,
+      "maximum": 50000.0,
+      "minimum": 100.0,
+      "title": "N Sims",
+      "type": "integer"
+     },
+     "sim_sde": {
+      "enum": [
+       "linear_ou",
+       "polynomial",
+       "inverse_polynomial"
+      ],
+      "title": "Sim Sde",
+      "type": "string"
+     },
+     "start_date": {
+      "default": "2018-01-01",
+      "title": "Start Date",
+      "type": "string"
+     }
+    },
+    "required": [
+     "expression",
+     "sim_sde"
+    ],
+    "title": "ForwardDistRequest",
+    "type": "object"
+   },
+   "ForwardHistRequest": {
+    "properties": {
+     "end_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "End Date"
+     },
+     "expression": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Expression",
+      "type": "string"
+     },
+     "fit_end": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit End"
+     },
+     "fit_start": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit Start"
+     },
+     "n_sims": {
+      "default": 10000,
+      "maximum": 50000.0,
+      "minimum": 100.0,
+      "title": "N Sims",
+      "type": "integer"
+     },
+     "sim_sde": {
+      "default": "linear_ou",
+      "enum": [
+       "linear_ou",
+       "polynomial",
+       "inverse_polynomial"
+      ],
+      "title": "Sim Sde",
+      "type": "string"
+     },
+     "start_date": {
+      "default": "2018-01-01",
+      "title": "Start Date",
+      "type": "string"
+     },
+     "target_date": {
+      "title": "Target Date",
+      "type": "string"
+     }
+    },
+    "required": [
+     "expression",
+     "target_date"
+    ],
+    "title": "ForwardHistRequest",
+    "type": "object"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "title": "Detail",
+      "type": "array"
+     }
+    },
+    "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "HeatmapDashboard": {
+    "properties": {
+     "bond_name": {
+      "title": "Bond Name",
+      "type": "string"
+     },
+     "breakeven": {
+      "$ref": "#/components/schemas/Breakeven"
+     },
+     "curve_regimes": {
+      "items": {
+       "$ref": "#/components/schemas/CurveRegimes"
+      },
+      "title": "Curve Regimes",
+      "type": "array"
+     },
+     "data_source": {
+      "$ref": "#/components/schemas/DataSources"
+     },
+     "display_name": {
+      "title": "Display Name",
+      "type": "string"
+     },
+     "factors": {
+      "$ref": "#/components/schemas/DashboardFactors"
+     },
+     "fair_value": {
+      "$ref": "#/components/schemas/DashboardFairValue"
+     },
+     "indicators": {
+      "$ref": "#/components/schemas/Indicators"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period"
+     },
+     "region": {
+      "title": "Region",
+      "type": "string"
+     },
+     "regressions": {
+      "$ref": "#/components/schemas/DashboardRegressions"
+     },
+     "scenarios": {
+      "$ref": "#/components/schemas/Scenarios"
+     },
+     "tenors": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Tenors",
+      "type": "array"
+     },
+     "yield_pca": {
+      "$ref": "#/components/schemas/YieldPCA"
+     }
+    },
+    "required": [
+     "region",
+     "display_name",
+     "bond_name",
+     "tenors",
+     "period",
+     "data_source",
+     "factors",
+     "yield_pca",
+     "regressions",
+     "fair_value",
+     "curve_regimes",
+     "breakeven",
+     "scenarios",
+     "indicators"
+    ],
+    "title": "HeatmapDashboard",
+    "type": "object"
+   },
+   "Indicator": {
+    "properties": {
+     "factor": {
+      "title": "Factor",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "last_obs": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Obs"
+     },
+     "latest": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "units": {
+      "title": "Units",
+      "type": "string"
+     },
+     "zscores": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Zscores",
+      "type": "array"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "units",
+     "factor",
+     "zscores",
+     "latest",
+     "last_obs"
+    ],
+    "title": "Indicator",
+    "type": "object"
+   },
+   "IndicatorGroup": {
+    "properties": {
+     "indicators": {
+      "items": {
+       "$ref": "#/components/schemas/Indicator"
+      },
+      "title": "Indicators",
+      "type": "array"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "indicators"
+    ],
+    "title": "IndicatorGroup",
+    "type": "object"
+   },
+   "Indicators": {
+    "properties": {
+     "groups": {
+      "items": {
+       "$ref": "#/components/schemas/IndicatorGroup"
+      },
+      "title": "Groups",
+      "type": "array"
+     },
+     "months": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Months",
+      "type": "array"
+     },
+     "raw_values": {
+      "title": "Raw Values",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "months",
+     "raw_values",
+     "groups"
+    ],
+    "title": "Indicators",
+    "type": "object"
+   },
+   "MarketReactionPayload": {
+    "properties": {
+     "market_ticker": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Market Ticker",
+      "type": "string"
+     },
+     "releases": {
+      "items": {
+       "$ref": "#/components/schemas/Release"
+      },
+      "maxItems": 5000,
+      "title": "Releases",
+      "type": "array"
+     }
+    },
+    "required": [
+     "market_ticker"
+    ],
+    "title": "MarketReactionPayload",
+    "type": "object"
+   },
+   "Me": {
+    "properties": {
+     "full_name": {
+      "title": "Full Name",
+      "type": "string"
+     },
+     "username": {
+      "title": "Username",
+      "type": "string"
+     }
+    },
+    "required": [
+     "username",
+     "full_name"
+    ],
+    "title": "Me",
+    "type": "object"
+   },
+   "ModelOverrideRequest": {
+    "properties": {
+     "model": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model"
+     }
+    },
+    "title": "ModelOverrideRequest",
+    "type": "object"
+   },
+   "PCRegressions": {
+    "properties": {
+     "factor_names": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Factor Names",
+      "type": "array"
+     },
+     "pc1": {
+      "$ref": "#/components/schemas/RegressionStats"
+     },
+     "pc2": {
+      "$ref": "#/components/schemas/RegressionStats"
+     }
+    },
+    "required": [
+     "factor_names",
+     "pc1",
+     "pc2"
+    ],
+    "title": "PCRegressions",
+    "type": "object"
+   },
+   "Period": {
+    "properties": {
+     "end": {
+      "title": "End",
+      "type": "string"
+     },
+     "start": {
+      "title": "Start",
+      "type": "string"
+     }
+    },
+    "required": [
+     "start",
+     "end"
+    ],
+    "title": "Period",
+    "type": "object"
+   },
+   "Region": {
+    "enum": [
+     "euro-area",
+     "uk",
+     "us",
+     "japan",
+     "canada",
+     "sweden",
+     "norway",
+     "switzerland",
+     "australia",
+     "new-zealand"
+    ],
+    "title": "Region",
+    "type": "string"
+   },
+   "RegressionStats": {
+    "properties": {
+     "adj_r2": {
+      "title": "Adj R2",
+      "type": "number"
+     },
+     "beta": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Beta",
+      "type": "array"
+     },
+     "r2": {
+      "title": "R2",
+      "type": "number"
+     },
+     "tstat": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Tstat",
+      "type": "array"
+     }
+    },
+    "required": [
+     "beta",
+     "tstat",
+     "r2",
+     "adj_r2"
+    ],
+    "title": "RegressionStats",
+    "type": "object"
+   },
+   "Release": {
+    "properties": {
+     "period": {
+      "title": "Period",
+      "type": "string"
+     },
+     "release_date": {
+      "title": "Release Date",
+      "type": "string"
+     },
+     "surprise": {
+      "title": "Surprise",
+      "type": "number"
+     }
+    },
+    "required": [
+     "period",
+     "release_date",
+     "surprise"
+    ],
+    "title": "Release",
+    "type": "object"
+   },
+   "RunRequest": {
+    "properties": {
+     "model": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model"
+     },
+     "question": {
+      "default": "",
+      "maxLength": 20000,
+      "title": "Question",
+      "type": "string"
+     },
+     "workflow": {
+      "default": "rates-desk",
+      "title": "Workflow",
+      "type": "string"
+     }
+    },
+    "title": "RunRequest",
+    "type": "object"
+   },
+   "ScenarioProbs": {
+    "properties": {
+     "hard_landing": {
+      "title": "Hard Landing",
+      "type": "integer"
+     },
+     "no_landing": {
+      "title": "No Landing",
+      "type": "integer"
+     },
+     "reacceleration": {
+      "title": "Reacceleration",
+      "type": "integer"
+     },
+     "soft_landing": {
+      "title": "Soft Landing",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "hard_landing",
+     "soft_landing",
+     "no_landing",
+     "reacceleration"
+    ],
+    "title": "ScenarioProbs",
+    "type": "object"
+   },
+   "ScenarioSeries": {
+    "properties": {
+     "hard_landing": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Hard Landing",
+      "type": "array"
+     },
+     "no_landing": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "No Landing",
+      "type": "array"
+     },
+     "reacceleration": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Reacceleration",
+      "type": "array"
+     },
+     "soft_landing": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Soft Landing",
+      "type": "array"
+     }
+    },
+    "required": [
+     "hard_landing",
+     "soft_landing",
+     "no_landing",
+     "reacceleration"
+    ],
+    "title": "ScenarioSeries",
+    "type": "object"
+   },
+   "Scenarios": {
+    "properties": {
+     "breakeven": {
+      "$ref": "#/components/schemas/ScenarioSeries"
+     },
+     "current": {
+      "$ref": "#/components/schemas/CurrentScenarios"
+     },
+     "curve": {
+      "$ref": "#/components/schemas/ScenarioSeries"
+     },
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     }
+    },
+    "required": [
+     "current",
+     "dates",
+     "curve",
+     "breakeven"
+    ],
+    "title": "Scenarios",
+    "type": "object"
+   },
+   "SeriesPayload": {
+    "properties": {
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 50000,
+      "minItems": 2,
+      "title": "Dates",
+      "type": "array"
+     },
+     "values": {
+      "items": {
+       "type": "number"
+      },
+      "maxItems": 50000,
+      "minItems": 2,
+      "title": "Values",
+      "type": "array"
+     }
+    },
+    "required": [
+     "dates",
+     "values"
+    ],
+    "title": "SeriesPayload",
+    "type": "object"
+   },
+   "SharpeMcRequest": {
+    "properties": {
+     "end_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "End Date"
+     },
+     "expression": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Expression",
+      "type": "string"
+     },
+     "fit_end": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit End"
+     },
+     "fit_start": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit Start"
+     },
+     "n_sims": {
+      "default": 10000,
+      "maximum": 50000.0,
+      "minimum": 100.0,
+      "title": "N Sims",
+      "type": "integer"
+     },
+     "sim_sde": {
+      "enum": [
+       "linear_ou",
+       "polynomial",
+       "inverse_polynomial"
+      ],
+      "title": "Sim Sde",
+      "type": "string"
+     },
+     "start_date": {
+      "default": "2018-01-01",
+      "title": "Start Date",
+      "type": "string"
+     }
+    },
+    "required": [
+     "expression",
+     "sim_sde"
+    ],
+    "title": "SharpeMcRequest",
+    "type": "object"
+   },
+   "SingleRunRequest": {
+    "properties": {
+     "model": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model"
+     },
+     "question": {
+      "default": "",
+      "maxLength": 20000,
+      "title": "Question",
+      "type": "string"
+     }
+    },
+    "title": "SingleRunRequest",
+    "type": "object"
+   },
+   "StantonRequest": {
+    "properties": {
+     "end_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "End Date"
+     },
+     "expression": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Expression",
+      "type": "string"
+     },
+     "fit_end": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit End"
+     },
+     "fit_start": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit Start"
+     },
+     "n_buckets": {
+      "default": 20,
+      "maximum": 200.0,
+      "minimum": 2.0,
+      "title": "N Buckets",
+      "type": "integer"
+     },
+     "sim_sde": {
+      "anyOf": [
+       {
+        "enum": [
+         "linear_ou",
+         "polynomial",
+         "inverse_polynomial"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sim Sde"
+     },
+     "start_date": {
+      "default": "2018-01-01",
+      "title": "Start Date",
+      "type": "string"
+     }
+    },
+    "required": [
+     "expression"
+    ],
+    "title": "StantonRequest",
+    "type": "object"
+   },
+   "Token": {
+    "properties": {
+     "access_token": {
+      "title": "Access Token",
+      "type": "string"
+     },
+     "token_type": {
+      "default": "bearer",
+      "title": "Token Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "access_token"
+    ],
+    "title": "Token",
+    "type": "object"
+   },
+   "TradeDecisionRequest": {
+    "properties": {
+     "action": {
+      "enum": [
+       "pm_approve",
+       "pm_reject",
+       "mark_live",
+       "close"
+      ],
+      "title": "Action",
+      "type": "string"
+     },
+     "note": {
+      "default": "",
+      "maxLength": 2000,
+      "title": "Note",
+      "type": "string"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "title": "TradeDecisionRequest",
+    "type": "object"
+   },
+   "ValidationError": {
+    "properties": {
+     "ctx": {
+      "title": "Context",
+      "type": "object"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "title": "Location",
+      "type": "array"
+     },
+     "msg": {
+      "title": "Message",
+      "type": "string"
+     },
+     "type": {
+      "title": "Error Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError",
+    "type": "object"
+   },
+   "View": {
+    "enum": [
+     "factors",
+     "yield-pca",
+     "pc-regressions",
+     "fair-value"
+    ],
+    "title": "View",
+    "type": "string"
+   },
+   "YieldPCA": {
+    "properties": {
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "explained_var": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "title": "Explained Var",
+      "type": "object"
+     },
+     "loadings": {
+      "additionalProperties": {
+       "items": {
+        "type": "number"
+       },
+       "type": "array"
+      },
+      "title": "Loadings",
+      "type": "object"
+     },
+     "pc_scores": {
+      "additionalProperties": {
+       "items": {
+        "type": "number"
+       },
+       "type": "array"
+      },
+      "title": "Pc Scores",
+      "type": "object"
+     },
+     "tenor_names": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Tenor Names",
+      "type": "array"
+     }
+    },
+    "required": [
+     "dates",
+     "pc_scores",
+     "loadings",
+     "explained_var",
+     "tenor_names"
+    ],
+    "title": "YieldPCA",
+    "type": "object"
+   }
+  },
+  "securitySchemes": {
+   "OAuth2PasswordBearer": {
+    "flows": {
+     "password": {
+      "scopes": {},
+      "tokenUrl": "/api/auth/login"
+     }
+    },
+    "type": "oauth2"
+   }
+  }
+ },
+ "info": {
+  "title": "Analytics Hub API",
+  "version": "1.0.0"
+ },
+ "openapi": "3.1.0",
+ "paths": {
+  "/api/agents/models": {
+   "get": {
+    "description": "Models the pod can run on: Claude tiers plus open-weight, tool-capable OpenRouter models.",
+    "operationId": "agents_models_api_agents_models_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "refresh",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Refresh",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Agents Models",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/agents/roster": {
+   "get": {
+    "operationId": "agents_roster_api_agents_roster_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "desk",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Desk"
+      }
+     },
+     {
+      "in": "query",
+      "name": "include_planned",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Include Planned",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Agents Roster",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/agents/run": {
+   "post": {
+    "operationId": "agents_run_api_agents_run_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RunRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Agents Run",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/agents/runs": {
+   "get": {
+    "operationId": "agents_runs_api_agents_runs_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "agent_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Agent Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Agents Runs",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/agents/runs/{run_id}": {
+   "get": {
+    "operationId": "agents_run_detail_api_agents_runs__run_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Agents Run Detail",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/agents/stream/{run_id}": {
+   "get": {
+    "description": "Server-sent events for one run: every stored event (each sent once, with\nits row id as the SSE id), then live events as the worker writes them,\nthen a final ``done``/``error``. Honours ``Last-Event-ID`` on reconnect.",
+    "operationId": "agents_stream_api_agents_stream__run_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     },
+     {
+      "description": "Stream ticket from POST /api/agents/stream/{run_id}/ticket",
+      "in": "query",
+      "name": "ticket",
+      "required": true,
+      "schema": {
+       "description": "Stream ticket from POST /api/agents/stream/{run_id}/ticket",
+       "title": "Ticket",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Agents Stream",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/agents/stream/{run_id}/ticket": {
+   "post": {
+    "operationId": "agents_stream_ticket_api_agents_stream__run_id__ticket_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Agents Stream Ticket",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/agents/workflows": {
+   "get": {
+    "operationId": "agents_workflows_api_agents_workflows_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Agents Workflows",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/agents/{agent_id}/model": {
+   "put": {
+    "description": "Set (or clear, with model=null) the stored model override for one agent.",
+    "operationId": "agents_set_model_api_agents__agent_id__model_put",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "agent_id",
+      "required": true,
+      "schema": {
+       "title": "Agent Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ModelOverrideRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Agents Set Model",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/agents/{agent_id}/run": {
+   "post": {
+    "operationId": "agent_single_run_api_agents__agent_id__run_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "agent_id",
+      "required": true,
+      "schema": {
+       "title": "Agent Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SingleRunRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Agent Single Run",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/auth/login": {
+   "post": {
+    "operationId": "login_api_auth_login_post",
+    "requestBody": {
+     "content": {
+      "application/x-www-form-urlencoded": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_login_api_auth_login_post"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Token"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Login"
+   }
+  },
+  "/api/dashboard": {
+   "get": {
+    "operationId": "get_dashboard_api_dashboard_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Dashboard"
+   }
+  },
+  "/api/me": {
+   "get": {
+    "operationId": "read_me_api_me_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Me"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Read Me"
+   }
+  },
+  "/api/pod/alerts": {
+   "get": {
+    "operationId": "pod_alerts_api_pod_alerts_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "include_acknowledged",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Include Acknowledged",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Pod Alerts",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/pod/alerts/{alert_id}/ack": {
+   "post": {
+    "operationId": "pod_alert_ack_api_pod_alerts__alert_id__ack_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "alert_id",
+      "required": true,
+      "schema": {
+       "title": "Alert Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Pod Alert Ack",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/pod/trades": {
+   "get": {
+    "operationId": "pod_trades_api_pod_trades_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "status",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Status"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Pod Trades",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/pod/trades/{trade_id}": {
+   "get": {
+    "operationId": "pod_trade_api_pod_trades__trade_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "trade_id",
+      "required": true,
+      "schema": {
+       "title": "Trade Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Pod Trade",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/pod/trades/{trade_id}/decision": {
+   "post": {
+    "description": "The human PM's ledger actions: pm_approve, pm_reject, mark_live, close.",
+    "operationId": "pod_trade_decision_api_pod_trades__trade_id__decision_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "trade_id",
+      "required": true,
+      "schema": {
+       "title": "Trade Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TradeDecisionRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Pod Trade Decision",
+    "tags": [
+     "agents"
+    ]
+   }
+  },
+  "/api/positioning/contract/{contract_id}": {
+   "get": {
+    "description": "Time-series history for a single contract (OI, rate, position z-score, quadrant).",
+    "operationId": "get_contract_history_api_positioning_contract__contract_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "contract_id",
+      "required": true,
+      "schema": {
+       "title": "Contract Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "instrument",
+      "required": false,
+      "schema": {
+       "default": "euribor",
+       "title": "Instrument",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "days",
+      "required": false,
+      "schema": {
+       "default": 252,
+       "title": "Days",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Contract History",
+    "tags": [
+     "positioning"
+    ]
+   }
+  },
+  "/api/positioning/dashboard": {
+   "get": {
+    "description": "Full dashboard \u2014 all seven panels.",
+    "operationId": "get_dashboard_api_positioning_dashboard_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "as_of",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "As Of"
+      }
+     },
+     {
+      "in": "query",
+      "name": "instrument",
+      "required": false,
+      "schema": {
+       "default": "euribor",
+       "title": "Instrument",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Dashboard",
+    "tags": [
+     "positioning"
+    ]
+   }
+  },
+  "/api/positioning/diagnostics": {
+   "get": {
+    "description": "Estimator quality + price impact diagnostics for the trailing `days` period.",
+    "operationId": "get_diagnostics_api_positioning_diagnostics_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "days",
+      "required": false,
+      "schema": {
+       "default": 252,
+       "title": "Days",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Diagnostics",
+    "tags": [
+     "positioning"
+    ]
+   }
+  },
+  "/api/positioning/init": {
+   "post": {
+    "description": "Initialise DB, seed contracts (FEI 2010\u20132030), and simulate 2 years of data.\nIdempotent \u2014 safe to call repeatedly.",
+    "operationId": "initialise_db_api_positioning_init_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Initialise Db",
+    "tags": [
+     "positioning"
+    ]
+   }
+  },
+  "/api/positioning/panel/{panel_name}": {
+   "get": {
+    "description": "Single panel by name.",
+    "operationId": "get_panel_api_positioning_panel__panel_name__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "panel_name",
+      "required": true,
+      "schema": {
+       "title": "Panel Name",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "as_of",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "As Of"
+      }
+     },
+     {
+      "in": "query",
+      "name": "instrument",
+      "required": false,
+      "schema": {
+       "default": "euribor",
+       "title": "Instrument",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Panel",
+    "tags": [
+     "positioning"
+    ]
+   }
+  },
+  "/api/positioning/status": {
+   "get": {
+    "description": "DB health check.",
+    "operationId": "get_status_api_positioning_status_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Status",
+    "tags": [
+     "positioning"
+    ]
+   }
+  },
+  "/api/tools/correlation-regimes/pair": {
+   "get": {
+    "description": "Pair drilldown \u2014 rolling correlation/beta timeline + regime-vs-recent scatter.",
+    "operationId": "correlation_regimes_pair_api_tools_correlation_regimes_pair_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "x",
+      "required": true,
+      "schema": {
+       "title": "X",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "y",
+      "required": true,
+      "schema": {
+       "title": "Y",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "long_window",
+      "required": false,
+      "schema": {
+       "default": 126,
+       "title": "Long Window",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "short_window",
+      "required": false,
+      "schema": {
+       "default": 21,
+       "title": "Short Window",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Correlation Regimes Pair"
+   }
+  },
+  "/api/tools/correlation-regimes/scan": {
+   "get": {
+    "description": "Cross-asset correlation-breakdown scan (dual-window Fisher-z).",
+    "operationId": "correlation_regimes_scan_api_tools_correlation_regimes_scan_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "long_window",
+      "required": false,
+      "schema": {
+       "default": 126,
+       "title": "Long Window",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "short_window",
+      "required": false,
+      "schema": {
+       "default": 21,
+       "title": "Short Window",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "min_abs_corr",
+      "required": false,
+      "schema": {
+       "default": 0.6,
+       "title": "Min Abs Corr",
+       "type": "number"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Correlation Regimes Scan"
+   }
+  },
+  "/api/tools/egb-rv": {
+   "get": {
+    "operationId": "get_egb_rv_api_tools_egb_rv_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "use_individual_bonds",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Use Individual Bonds",
+       "type": "boolean"
+      }
+     },
+     {
+      "in": "query",
+      "name": "refresh",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Refresh",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Egb Rv"
+   }
+  },
+  "/api/tools/egb-rv/series": {
+   "get": {
+    "description": "Full daily history for a single EGB expression (detail view).",
+    "operationId": "get_egb_rv_series_api_tools_egb_rv_series_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "label",
+      "required": true,
+      "schema": {
+       "title": "Label",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "use_individual_bonds",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Use Individual Bonds",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Egb Rv Series"
+   }
+  },
+  "/api/tools/fair-value-models": {
+   "get": {
+    "description": "Rolling Elastic Net fair value models for HICPxT inflation swaps.",
+    "operationId": "fair_value_models_api_tools_fair_value_models_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Fair Value Models"
+   }
+  },
+  "/api/tools/fitted-bond-curves": {
+   "get": {
+    "description": "Fitted discount curve + external regression: residuals, rich/cheap, benchmarks.",
+    "operationId": "fitted_bond_curves_api_tools_fitted_bond_curves_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "functional_form",
+      "required": false,
+      "schema": {
+       "default": "cubic_spline",
+       "title": "Functional Form",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "exponent",
+      "required": false,
+      "schema": {
+       "default": 2,
+       "title": "Exponent",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "weighting",
+      "required": false,
+      "schema": {
+       "default": "none",
+       "title": "Weighting",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "n_exp_splines",
+      "required": false,
+      "schema": {
+       "default": 7,
+       "title": "N Exp Splines",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "custom_bonds",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Custom Bonds",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "knots",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Knots",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "external_vars",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "External Vars",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "as_of",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "As Of",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Fitted Bond Curves"
+   }
+  },
+  "/api/tools/fitted-bond-curves/bond/{bond_id}": {
+   "get": {
+    "description": "Residual history, OU mean-reversion analysis and fan chart for one bond.",
+    "operationId": "fitted_bond_curves_bond_api_tools_fitted_bond_curves_bond__bond_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "bond_id",
+      "required": true,
+      "schema": {
+       "title": "Bond Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "functional_form",
+      "required": false,
+      "schema": {
+       "default": "cubic_spline",
+       "title": "Functional Form",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "exponent",
+      "required": false,
+      "schema": {
+       "default": 2,
+       "title": "Exponent",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "weighting",
+      "required": false,
+      "schema": {
+       "default": "none",
+       "title": "Weighting",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "n_exp_splines",
+      "required": false,
+      "schema": {
+       "default": 7,
+       "title": "N Exp Splines",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "custom_bonds",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Custom Bonds",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "knots",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Knots",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "external_vars",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "External Vars",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "as_of",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "As Of",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Fitted Bond Curves Bond"
+   }
+  },
+  "/api/tools/fitted-bond-curves/new-issue": {
+   "get": {
+    "description": "Predict pricing of a hypothetical new issue off the fitted curve (H&S p.180).",
+    "operationId": "fitted_bond_curves_new_issue_api_tools_fitted_bond_curves_new_issue_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "maturity",
+      "required": true,
+      "schema": {
+       "title": "Maturity",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "coupon",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Coupon"
+      }
+     },
+     {
+      "in": "query",
+      "name": "size_bn",
+      "required": false,
+      "schema": {
+       "default": 20.0,
+       "title": "Size Bn",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "extra_bp",
+      "required": false,
+      "schema": {
+       "default": 0.0,
+       "title": "Extra Bp",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "functional_form",
+      "required": false,
+      "schema": {
+       "default": "cubic_spline",
+       "title": "Functional Form",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "exponent",
+      "required": false,
+      "schema": {
+       "default": 2,
+       "title": "Exponent",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "weighting",
+      "required": false,
+      "schema": {
+       "default": "none",
+       "title": "Weighting",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "n_exp_splines",
+      "required": false,
+      "schema": {
+       "default": 7,
+       "title": "N Exp Splines",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "custom_bonds",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Custom Bonds",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "knots",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Knots",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "external_vars",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "External Vars",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "as_of",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "As Of",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Fitted Bond Curves New Issue"
+   }
+  },
+  "/api/tools/global-yields": {
+   "get": {
+    "description": "PCA factor model on global 10y yields: factors, residuals, fair-value table.",
+    "operationId": "global_yields_api_tools_global_yields_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Global Yields"
+   }
+  },
+  "/api/tools/heatmap/{region}": {
+   "get": {
+    "description": "Indicators, DFM factors, yield PCA, regressions, fair value, curve and\nbreakeven regimes and scenario probabilities for one region.",
+    "operationId": "heatmap_dashboard_api_tools_heatmap__region__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "region",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/Region"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HeatmapDashboard"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Heatmap Dashboard",
+    "tags": [
+     "heatmaps"
+    ]
+   }
+  },
+  "/api/tools/heatmap/{region}/{view}": {
+   "get": {
+    "description": "One output of a regional macro heatmap.",
+    "operationId": "heatmap_view_api_tools_heatmap__region___view__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "region",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/Region"
+      }
+     },
+     {
+      "in": "path",
+      "name": "view",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/View"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "anyOf": [
+          {
+           "$ref": "#/components/schemas/DailyFactors"
+          },
+          {
+           "$ref": "#/components/schemas/YieldPCA"
+          },
+          {
+           "$ref": "#/components/schemas/PCRegressions"
+          },
+          {
+           "$ref": "#/components/schemas/FairValue"
+          }
+         ],
+         "title": "Response Heatmap View Api Tools Heatmap  Region   View  Get"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Heatmap View",
+    "tags": [
+     "heatmaps"
+    ]
+   }
+  },
+  "/api/tools/inflation-fixings/eur": {
+   "get": {
+    "description": "HICP monthly fixing prices \u2014 24 contracts (EUSWIF1-12, EUSWIT1-12).",
+    "operationId": "hicp_fixings_api_tools_inflation_fixings_eur_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Date"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Hicp Fixings"
+   }
+  },
+  "/api/tools/inflation-fixings/gbp": {
+   "get": {
+    "description": "UK RPI monthly fixing prices \u2014 24 contracts (UKRPIF1-12, UKRPIT1-12).",
+    "operationId": "inflation_fixings_gbp_api_tools_inflation_fixings_gbp_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Date"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Inflation Fixings Gbp"
+   }
+  },
+  "/api/tools/inflation-fixings/usd": {
+   "get": {
+    "description": "US CPI monthly fixing prices \u2014 24 contracts (USCPIF1-12, USCPIT1-12).",
+    "operationId": "inflation_fixings_usd_api_tools_inflation_fixings_usd_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Date"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Inflation Fixings Usd"
+   }
+  },
+  "/api/tools/inflation-pca/{curve_id}": {
+   "get": {
+    "description": "PCA-neutral butterfly analysis for EUR/GBP ILB curves.",
+    "operationId": "inflation_pca_api_tools_inflation_pca__curve_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "curve_id",
+      "required": true,
+      "schema": {
+       "title": "Curve Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Inflation Pca"
+   }
+  },
+  "/api/tools/mean-reversion/analyse": {
+   "post": {
+    "operationId": "mean_reversion_analyse_api_tools_mean_reversion_analyse_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AnalyseRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Mean Reversion Analyse",
+    "tags": [
+     "mean-reversion"
+    ]
+   }
+  },
+  "/api/tools/mean-reversion/forward-dist": {
+   "post": {
+    "description": "MC forward distributions for a chosen SDE spec (user-triggered).",
+    "operationId": "mean_reversion_forward_dist_api_tools_mean_reversion_forward_dist_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ForwardDistRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Mean Reversion Forward Dist",
+    "tags": [
+     "mean-reversion"
+    ]
+   }
+  },
+  "/api/tools/mean-reversion/forward-hist": {
+   "post": {
+    "description": "Terminal distribution histogram + KDE at a user-specified future date.",
+    "operationId": "mean_reversion_forward_hist_api_tools_mean_reversion_forward_hist_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ForwardHistRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Mean Reversion Forward Hist",
+    "tags": [
+     "mean-reversion"
+    ]
+   }
+  },
+  "/api/tools/mean-reversion/sharpe-mc": {
+   "post": {
+    "description": "MC Sharpe profile for polynomial / inverse-polynomial SDEs.",
+    "operationId": "mean_reversion_sharpe_mc_api_tools_mean_reversion_sharpe_mc_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SharpeMcRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Mean Reversion Sharpe Mc",
+    "tags": [
+     "mean-reversion"
+    ]
+   }
+  },
+  "/api/tools/mean-reversion/stanton": {
+   "post": {
+    "description": "Lightweight endpoint: re-computes only the Stanton diagnostic buckets.",
+    "operationId": "mean_reversion_stanton_api_tools_mean_reversion_stanton_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/StantonRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Mean Reversion Stanton",
+    "tags": [
+     "mean-reversion"
+    ]
+   }
+  },
+  "/api/tools/momentum/cta-signals": {
+   "get": {
+    "operationId": "cta_signals_api_tools_momentum_cta_signals_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "ticker",
+      "required": true,
+      "schema": {
+       "title": "Ticker",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "start",
+      "required": false,
+      "schema": {
+       "default": "2010-01-01",
+       "title": "Start",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Cta Signals"
+   }
+  },
+  "/api/tools/option-cdf/{ccy}/{tail}": {
+   "get": {
+    "description": "Swaption market parameters for Option-Implied CDF tool.",
+    "operationId": "option_cdf_params_api_tools_option_cdf__ccy___tail__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "ccy",
+      "required": true,
+      "schema": {
+       "title": "Ccy",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "tail",
+      "required": true,
+      "schema": {
+       "title": "Tail",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Option Cdf Params"
+   }
+  },
+  "/api/tools/pca-analysis": {
+   "get": {
+    "description": "PCA on yield curve \u2014 eigenvalues, eigenvectors, factor time series, residuals, OU model.",
+    "operationId": "pca_analysis_api_tools_pca_analysis_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "curve",
+      "required": false,
+      "schema": {
+       "default": "bund",
+       "title": "Curve",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "tenors",
+      "required": false,
+      "schema": {
+       "default": "2,5,7,10",
+       "title": "Tenors",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "start_date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Start Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "end_date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "End Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "n_factors",
+      "required": false,
+      "schema": {
+       "default": 3,
+       "title": "N Factors",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "extra_tickers",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Extra Tickers",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "use_changes",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Use Changes",
+       "type": "boolean"
+      }
+     },
+     {
+      "in": "query",
+      "name": "roll_window_weeks",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Roll Window Weeks"
+      }
+     },
+     {
+      "in": "query",
+      "name": "custom_tickers",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Custom Tickers",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Pca Analysis"
+   }
+  },
+  "/api/tools/print-analysis/market-reaction": {
+   "post": {
+    "description": "Compute day-of-release market moves for a given instrument.",
+    "operationId": "market_reaction_api_tools_print_analysis_market_reaction_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/MarketReactionPayload"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Market Reaction"
+   }
+  },
+  "/api/tools/print-analysis/print-vs-consensus": {
+   "get": {
+    "description": "Fetch historical economic prints + Bloomberg survey consensus for a ticker.\nticker: Bloomberg ticker with yellow key, e.g. \"UKPRIC YOY Index\"",
+    "operationId": "print_vs_consensus_api_tools_print_analysis_print_vs_consensus_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "ticker",
+      "required": true,
+      "schema": {
+       "title": "Ticker",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "start",
+      "required": false,
+      "schema": {
+       "default": "2010-01-01",
+       "title": "Start",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Print Vs Consensus"
+   }
+  },
+  "/api/tools/seasonality/backtest": {
+   "post": {
+    "description": "Run a seasonality-driven backtest given a rule definition.",
+    "operationId": "seasonality_backtest_api_tools_seasonality_backtest_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/BacktestPayload"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Seasonality Backtest"
+   }
+  },
+  "/api/tools/seasonality/data": {
+   "get": {
+    "description": "Fetch and evaluate a Bloomberg expression, returning a daily time series.\nexpression examples:\n  'GDBR10 Index'\n  'GDBR10 Index - GDBR2 Index'\n  'GDBR30 Index - 2 * GDBR10 Index + GDBR2 Index'",
+    "operationId": "seasonality_data_api_tools_seasonality_data_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "expression",
+      "required": true,
+      "schema": {
+       "title": "Expression",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "start",
+      "required": false,
+      "schema": {
+       "default": "2010-01-01",
+       "title": "Start",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Seasonality Data"
+   }
+  },
+  "/api/tools/seasonality/heatmap": {
+   "post": {
+    "description": "Month \u00d7 day-of-week mean return matrix.",
+    "operationId": "seasonality_heatmap_api_tools_seasonality_heatmap_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SeriesPayload"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Seasonality Heatmap"
+   }
+  },
+  "/api/tools/seasonality/stats": {
+   "post": {
+    "description": "Seasonal statistics across all dimensions for a fetched time series.",
+    "operationId": "seasonality_stats_api_tools_seasonality_stats_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SeriesPayload"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Seasonality Stats"
+   }
+  },
+  "/api/tools/swaps-rv": {
+   "get": {
+    "operationId": "get_swaps_rv_api_tools_swaps_rv_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "currency",
+      "required": false,
+      "schema": {
+       "default": "EUR",
+       "title": "Currency",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Swaps Rv"
+   }
+  }
+ }
+}
