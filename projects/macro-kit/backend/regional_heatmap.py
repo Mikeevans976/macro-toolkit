@@ -351,8 +351,12 @@ class RegionalHeatmap:
         rng = self._rng
         m_macro = cfg.m_macro
 
-        ar = np.array([0.95, 0.92, 0.90, 0.93, 0.88])
-        innov_std = np.array([0.10, 0.15, 0.12, 0.10, 0.12])
+        # Daily persistence: half-lives of roughly 3-12 months, as for macro
+        # cycles (the previous 0.88-0.95 gave half-lives of a few days).
+        ar = np.array([0.997, 0.995, 0.994, 0.996, 0.993])
+        # Stationary std of each factor (σ units, as plotted). At 0.10-0.15 the
+        # simulated yields moved only a few bp over two years.
+        innov_std = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
 
         factors = np.zeros((T_DAILY, K))
         factors[0] = rng.standard_normal(K) * innov_std
@@ -384,11 +388,18 @@ class RegionalHeatmap:
         """Simulation fallback: OLS init → Kalman smoother."""
         cfg = self.cfg
         Lambda_est = estimate_loadings_ols(f_monthly, Y_monthly)
-        ar_est = estimate_ar1_daily(f_monthly)
-        A_est = np.diag(ar_est)
+        ar_monthly = estimate_ar1_daily(f_monthly)     # estimated month-to-month
+        innov_var_m = np.var(f_monthly[1:] - f_monthly[:-1] * ar_monthly[None, :], axis=0)
 
-        innov_var = np.var(f_monthly[1:] - f_monthly[:-1] * ar_est[None, :], axis=0)
-        Q_est = np.diag(np.maximum(innov_var, 1e-6))
+        # The filter steps daily, so convert the monthly AR(1) to its daily
+        # equivalent (a_d = a_m^(1/h), h business days per month) and rescale
+        # the innovation variance to keep the stationary variance unchanged.
+        # Using the monthly coefficient per day made the state decay to ~0
+        # between month-end observations (spiky factors).
+        h = T_DAILY / T_MONTHLY
+        ar_est = ar_monthly ** (1.0 / h)
+        A_est = np.diag(ar_est)
+        Q_est = np.diag(np.maximum(innov_var_m * (1 - ar_est ** 2) / np.maximum(1 - ar_monthly ** 2, 1e-6), 1e-8))
 
         resid = Y_monthly - f_monthly @ Lambda_est.T
         R_est = np.diag(np.maximum(np.var(resid, axis=0), 1e-6))
@@ -492,7 +503,14 @@ class RegionalHeatmap:
         """
         cfg = self.cfg
         n_tenors = len(cfg.yield_tenors)
-        noise = self._rng.standard_normal((T_DAILY, n_tenors)) * cfg.yield_noise_factor
+        shocks = self._rng.standard_normal((T_DAILY, n_tenors)) * cfg.yield_noise_factor
+        # Persistent (AR(1)) idiosyncratic deviations with the same marginal
+        # std as before: i.i.d. daily noise made the curve PCs mostly noise.
+        phi = 0.97
+        noise = np.empty_like(shocks)
+        noise[0] = shocks[0]
+        for t in range(1, T_DAILY):
+            noise[t] = phi * noise[t - 1] + np.sqrt(1 - phi ** 2) * shocks[t]
         return (
             cfg.yield_means[None, :]
             + true_factors @ cfg.yield_factor_loadings.T
