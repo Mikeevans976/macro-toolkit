@@ -352,3 +352,20 @@ If browser-side synthetic rendering must stay (e.g. for offline demos), move it 
 **Visible changes for users:** the heatmaps now show backend model output (different numbers from the old browser synthetics); the UK indicator table lists the catalogue's 48 DFM series instead of the page's 90 hard-coded rows; the "Latest / As of MTG / Change" columns showed invented strings and now show real levels only with live data.
 
 **Not done:** the regional date grid is still fixed (Jun 2023 – Jun 2025) even in live mode; extending it to today is a separate change because it moves every number. The seasonality POST routes are still unused.
+
+### 2026-10-14 (cont.): settings, login rate limit, typed responses
+
+**Done**
+- **`backend/settings.py`** loads `.env` (project root, then `backend/`) before anything reads the environment and validates every setting once. `MACROKIT_ENV=prod` refuses to start without a 32+ character `SECRET_KEY`; in dev a generated key is kept in `var/dev_secret_key`, so restarts no longer log everyone out. CORS origins are configurable; `.env.example` lists every setting. *(Phase 1.1, F1)*
+- **Login rate limit:** failed logins are limited per client IP and per username (default 5 per 5 minutes; 429 + `Retry-After`); the login page shows the message. *(Phase 1.2)*
+- **Typed responses (first slice):** Pydantic response models for the heatmap and auth routes in `backend/schemas/`; `openapi.json` is exported and `src/api/schema.ts` generated with openapi-typescript; the heatmap page's types come from it. A backend test and a CI step fail when either is stale. *(Phase 2.8, partial)*
+
+**Bug found and fixed**
+
+| # | Bug | Fix |
+|---|-----|-----|
+| F45 | `SECRET_KEY` in `backend/.env` was silently ignored (that file was only loaded by `pod/config.py`, after `auth.py` had read the key), and the root `.env` that `.env.example` describes was never loaded at all | `settings.py` loads both first |
+
+**Deferred by decision (2026-10-14):** the unified `DataSource` layer waits until `merge/mm-bbg` (live Bloomberg: raw blpapi client, verified-ticker catalogue overlay) lands through its own PR, then gets built on its `catalogue.py`.
+
+**Next:** response models for the remaining tool and pod routes; UI primitives; breaking up the largest pages; ESLint warnings (79).
