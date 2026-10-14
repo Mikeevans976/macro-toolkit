@@ -10,22 +10,18 @@ from __future__ import annotations
 
 import datetime
 import math
-import tempfile
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from ..data.db import connect, init_db, load_params, next_business_day
+from ..data.db import connect, init_db, load_params
 from ..data.contract_calendar import generate_contracts
 from ..data.ingest_ice_eod import simulate_eod_data
 from ..core.spreads import (
-    build_doi_matrix,
-    compute_rolling_pair_corr,
     detect_spreads_day,
     build_spread_signal,
     compute_weekly_spread_validation,
-    spread_adjusted_quadrant_signal,
 )
 
 
@@ -102,14 +98,6 @@ def _inject_spread_activity(
     )
     if len(quarterly) < 4:
         return
-
-    # Enumerate business days
-    n_days = (end_date - start_date).days + 1
-    all_dates = [
-        start_date + datetime.timedelta(days=i)
-        for i in range(n_days)
-        if (start_date + datetime.timedelta(days=i)).weekday() < 5
-    ]
 
     # Build weekly schedule: collect Fridays and assign an AR(1) spread level
     fridays: list[datetime.date] = []
@@ -331,7 +319,7 @@ def test_bundle_detection():
     )
     # Verify no pack rows (bundle takes precedence)
     pack_rows = result[result["spread_type"] == "pack"]
-    assert len(pack_rows) == 0, f"Expected no pack rows when bundle is detected"
+    assert len(pack_rows) == 0, "Expected no pack rows when bundle is detected"
 
 
 def test_calendar_spread_from_corr():
@@ -385,9 +373,6 @@ def test_spread_not_double_counted():
     # All 4 should be in pack (pack was detected first at level 2, or bundle at level 1)
     # Since we have 4 contracts, pack detection happens at level 2
     # The pack attribution should prevent calendar attribution
-    pack_rows = result[result["spread_type"] == "pack"]
-    calendar_rows = result[result["spread_type"] == "calendar"]
-    bundle_rows = result[result["spread_type"] == "bundle"]
 
     # No row should be both pack AND calendar
     pack_or_bundle_ids = set(result[result["spread_type"].isin(["pack", "bundle"])]["contract_id"])

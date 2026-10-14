@@ -139,7 +139,6 @@ def test_hierarchy():
 
 def test_routing_map_ids_exist():
     from pod.roster import _read_skill
-    import re as _re
     rows = [l for l in _read_skill("routing-map").splitlines() if l.startswith("|") and "---" not in l][1:]
     ids = {i.strip() for row in rows for i in row.strip("|").split("|")[-1].split(",")}
     unknown = {i for i in ids if i not in AGENTS}

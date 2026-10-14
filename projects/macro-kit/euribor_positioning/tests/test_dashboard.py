@@ -12,10 +12,9 @@ import json
 import math
 
 import numpy as np
-import pandas as pd
 import pytest
 
-from ..data.db import connect, init_db, load_params, next_business_day
+from ..data.db import connect, init_db, load_params
 from ..data.contract_calendar import generate_contracts
 from ..data.ingest_ice_eod import simulate_eod_data
 from ..outputs.dashboard import (
@@ -508,7 +507,6 @@ def test_panel_error_isolation(tmp_db):
     import unittest.mock as mock
     from ..outputs import dashboard as dash_module
 
-    original_fn = dash_module.panel_centre_of_gravity
 
     def _raise_panel(*args, **kwargs):
         raise RuntimeError("Simulated panel failure for error isolation test")

@@ -13,7 +13,6 @@ Month codes (CME/ICE standard):
 """
 
 import datetime
-from typing import Iterator
 
 MONTH_CODES = {
     1: "F", 2: "G", 3: "H", 4: "J", 5: "K", 6: "M",

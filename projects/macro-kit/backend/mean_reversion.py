@@ -851,7 +851,6 @@ def first_passage_times(
         # argmax returns first True index (0-indexed from step 1 → add 1 for days)
         first_idx = np.where(any_hit, np.argmax(crossed, axis=1) + 1, -1)
         hit_days = first_idx[any_hit].astype(float)
-        n_never = int((~any_hit).sum())
         total = n_sims
 
         if len(hit_days) == 0:

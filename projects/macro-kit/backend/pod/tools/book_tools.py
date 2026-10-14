@@ -236,7 +236,6 @@ def _business_days_since(d: date) -> int:
 
 
 def data_health() -> dict:
-    import json
     from pod.tools import REGISTRY
     report = []
     for name, args in _HEALTH_CHECKS.items():

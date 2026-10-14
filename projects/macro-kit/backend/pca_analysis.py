@@ -46,7 +46,6 @@ import math
 import os
 import warnings
 import zlib
-from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -169,7 +168,6 @@ def _ns_raw_loadings(tenors: list[int]) -> np.ndarray:
       e2 (slope):      negative short, positive long (sign change in middle)
       e3 (curvature):  belly negative, wings positive (two sign changes)
     """
-    n = len(tenors)
     t_arr = np.array(tenors, dtype=float)
     t_max = float(max(tenors))
 
@@ -760,7 +758,6 @@ def get_pca_data(
         yields_sub_idx = list(range(n_obs))
 
     factor_history = []
-    fk_names = [f"f{k+1}" for k in range(n_factors)]
     for i, ds in enumerate(dates_sub):
         row: dict = {"date": ds}
         for k in range(n_factors):

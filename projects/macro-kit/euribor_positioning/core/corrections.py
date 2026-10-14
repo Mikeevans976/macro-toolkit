@@ -15,8 +15,6 @@ The final flow column for Stage 10 is `flow_final`.
 
 from __future__ import annotations
 
-import calendar
-import math
 from datetime import date, timedelta
 from typing import Optional
 
@@ -466,7 +464,6 @@ def inject_migration_events(
     """
     from ..data.db import next_business_day as _nbd
 
-    euribor_root = params["contracts"].get("euribor_root", "FEI")
     estr_root    = params["contracts"].get("estr_root",    "FEF")
 
     # Ensure €STR contracts exist in contracts table

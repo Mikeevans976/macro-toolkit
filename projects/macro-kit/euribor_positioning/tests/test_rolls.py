@@ -14,7 +14,6 @@ Supporting tests:
 """
 
 import datetime
-import math
 import statistics
 
 import pytest

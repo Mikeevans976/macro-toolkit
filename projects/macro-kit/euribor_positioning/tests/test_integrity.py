@@ -11,11 +11,9 @@ Checks:
 
 import datetime
 import pytest
-import tempfile
-from pathlib import Path
 
-from ..data.db import connect, init_db, load_params, get_db_path
-from ..data.contract_calendar import generate_contracts, cot_publication_date
+from ..data.db import connect, init_db, load_params
+from ..data.contract_calendar import generate_contracts
 from ..data.ingest_ice_eod import simulate_eod_data
 from ..data.ingest_ice_cot import simulate_cot_data
 

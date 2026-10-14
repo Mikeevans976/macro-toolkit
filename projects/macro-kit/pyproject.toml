@@ -15,4 +15,4 @@ extend-exclude = ["frontend", "presentations", "sandbox"]
 [tool.ruff.lint]
 # Gate on real errors only for now (syntax, invalid comparisons/statements, undefined names);
 # widen as the restructure lands.
-select = ["E9", "F63", "F7", "F82"]
+select = ["E9", "F"]   # syntax errors + all of pyflakes (unused imports/variables, undefined names, …)

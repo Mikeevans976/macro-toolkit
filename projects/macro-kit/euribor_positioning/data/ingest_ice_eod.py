@@ -15,7 +15,7 @@ import sqlite3
 from pathlib import Path
 
 from .db import connect, next_business_day, get_db_path, load_params
-from .contract_calendar import parse_contract_id, make_contract_id, MONTH_CODES
+from .contract_calendar import make_contract_id
 
 
 # -- Column name aliases (case-insensitive) -----------------------------------

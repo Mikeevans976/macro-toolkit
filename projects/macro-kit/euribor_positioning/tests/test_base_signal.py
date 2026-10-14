@@ -10,15 +10,13 @@ from __future__ import annotations
 
 import datetime
 import math
-import tempfile
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from ..data.db import connect, init_db, load_params, next_business_day
-from ..data.contract_calendar import generate_contracts, cot_publication_date
+from ..data.db import connect, init_db, load_params
+from ..data.contract_calendar import generate_contracts
 from ..data.ingest_ice_eod import simulate_eod_data
 from ..core.base_signal import (
     aggregate_signal,
@@ -100,7 +98,6 @@ def _plant_cot_from_signal(signal_df, conn, params, noise_level=0.3, seed=99):
         raise ValueError("No whites position data to plant COT from")
 
     # Resample to weekly Friday close — matching calibrate_halflife's alignment
-    pos_index = pd.to_datetime(pd.Series(daily_pos.index))
     daily_pos_ts = pd.Series(daily_pos.values, index=pd.to_datetime(daily_pos.index))
     weekly_pos = daily_pos_ts.resample("W-FRI").last().dropna()
 

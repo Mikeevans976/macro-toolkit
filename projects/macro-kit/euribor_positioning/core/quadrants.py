@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import math
 from datetime import date
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -345,7 +344,6 @@ def build_quadrant_signal(
     pos_q_list = []
     for cid, grp in df.groupby("contract_id", sort=False):
         grp_s = grp.sort_values("trade_date").copy()
-        hl    = int(grp_s["halflife"].iloc[0])
         lam   = grp_s["decay_lambda"].iloc[0]
 
         flow_vals = grp_s["flow_quadrant"].values
@@ -450,11 +448,6 @@ def aggregate_quadrant_signal(
 
     # Rolling build share (5d and 10d): build days / classified days
     # A "build day" = hard_label in {long_build, short_build}
-    day_is_build      = pd.Series(
-        {td: int((df[df["trade_date"] == td]["hard_label"].isin(["long_build", "short_build"])).any())
-         for td in dates},
-        name="is_build_day",
-    )
     day_n_classified  = daily["n_classified"]
 
     def _rolling_build_share(window: int) -> pd.Series:

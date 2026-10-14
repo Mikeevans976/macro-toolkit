@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import math
 from datetime import date, timedelta
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -451,14 +450,12 @@ def diagnostic_conditional_returns(
 
         episodes = []
         in_episode = False
-        ep_start = None
         ep_dates = []
 
         for td in series.index:
             if flag.loc[td]:
                 if not in_episode:
                     in_episode = True
-                    ep_start = td
                     ep_dates = [td]
                 else:
                     ep_dates.append(td)
@@ -476,7 +473,6 @@ def diagnostic_conditional_returns(
                             "forward_return_1m": None,
                         })
                     in_episode = False
-                    ep_start = None
                     ep_dates = []
 
         # Close out final episode

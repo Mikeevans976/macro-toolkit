@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 import math
-from datetime import date, timedelta
+from datetime import date
 from typing import Optional
 
 import numpy as np
@@ -114,7 +114,6 @@ def _compute_per_contract_flow(df: pd.DataFrame, params: dict) -> pd.DataFrame:
 
     for cid, grp in df.groupby("contract_id", sort=False):
         grp = grp.sort_values("trade_date").copy()
-        n = len(grp)
 
         # --- §4.1  Rate-space ---
         grp["rate"]      = 100.0 - grp["settlement_price"]

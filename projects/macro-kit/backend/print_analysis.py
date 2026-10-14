@@ -20,7 +20,6 @@ Missing survey fields are returned as null and excluded from derived stats.
 
 from __future__ import annotations
 
-import warnings
 import zlib
 from typing import Any
 

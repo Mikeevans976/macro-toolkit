@@ -16,7 +16,7 @@ import asyncio
 from datetime import date
 
 from pod import book
-from pod.roster import ENABLED, AgentDef, team_of
+from pod.roster import ENABLED, team_of
 from pod.runner import AgentResult, Runner
 
 RESEARCH_DESK_HEADS = ["head-of-macro-research", "head-of-rates", "head-of-fx-cross-asset", "head-of-quant"]

@@ -341,7 +341,6 @@ def build_spread_signal(
         curve_weekly_change,  # curve_position(t) - curve_position(t-5)
         spread_share,         # SUM(doi_spread_attributed) / SUM(|doi|) for the day
     """
-    sp = params.get("spreads", {})
     dv01_per = float(params["dv01"]["eur_per_bp_per_contract"])
 
     # Halflife for curve position — use blues halflife (longest bucket)
@@ -566,7 +565,6 @@ def spread_adjusted_quadrant_signal(
       but doi and flow_quadrant/position_quadrant are spread-corrected.
       curve_df is the curve positioning DataFrame from build_spread_signal().
     """
-    from .base_signal import _decay_lambda
 
     # Stage 4 signal
     qsig = build_quadrant_signal(conn, start_date, end_date, as_of_date, params, instrument_roots=instrument_roots)

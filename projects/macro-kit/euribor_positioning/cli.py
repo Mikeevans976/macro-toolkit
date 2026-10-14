@@ -13,7 +13,6 @@ Commands:
 import datetime
 import sys
 import argparse
-from pathlib import Path
 
 from .data.db import init_db, connect, load_params, get_db_path
 from .data.contract_calendar import generate_contracts

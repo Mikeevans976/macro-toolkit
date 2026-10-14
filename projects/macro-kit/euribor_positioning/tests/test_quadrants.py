@@ -9,19 +9,17 @@ from __future__ import annotations
 
 import datetime
 import math
-import tempfile
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from ..data.db import connect, init_db, load_params, next_business_day
+from ..data.db import connect, init_db, load_params
 from ..data.contract_calendar import generate_contracts
 from ..data.ingest_ice_eod import simulate_eod_data
 from ..core.base_signal import build_base_signal
 from ..core.quadrants import (
     classify_row,
-    short_covering_confidence,
     build_quadrant_signal,
     aggregate_quadrant_signal,
 )
@@ -322,10 +320,6 @@ def test_draining_excluded_from_quadrant(tmp_db_quadrant):
     db_path, params = tmp_db_quadrant
     qsig = _build_quad(db_path, params)
     agg  = aggregate_quadrant_signal(qsig, params)
-
-    # Draining contracts in raw signal
-    df = qsig.reset_index()
-    draining_flow = df[df["is_draining"]]["dv01_flow_quadrant"].abs().sum()
 
     # aggregate_quadrant_signal sums only non-draining active rows
     # Check: total_dv01_flow_quadrant should not include draining

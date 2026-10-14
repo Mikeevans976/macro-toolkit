@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import math
 from datetime import date, timedelta
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -35,7 +34,7 @@ try:
 except ImportError:
     _HAS_SPREADS = False
 
-from .rolls import assign_pack, imm_roll_dates
+from .rolls import assign_pack
 
 DV01_PER_CONTRACT = 25.0  # EUR per bp — reference only; always read from params
 
@@ -476,7 +475,6 @@ def build_dv01_timeseries(
     # -----------------------------------------------------------------------
     # We need slightly earlier data for draining flag (trailing peak lookback)
     lookback_drain = int(params["expiry_drain"]["lookback_business_days"])
-    drain_frac = float(params["expiry_drain"]["fraction_of_3m_peak"])
     extended_start = start_date - timedelta(days=lookback_drain * 2)
 
     oi_df = _fetch_oi_table(conn, extended_start, end_date, as_of_date)
@@ -701,7 +699,6 @@ def build_dv01_timeseries(
     # 50 bp annualised → vol_reference_price_annual = 50 × 0.01 = 0.50 pts/year
     vol_ref_price_annual = vol_ref_bp * 0.01
     # Vol reference per day (annualised → daily)
-    vol_ref_daily = vol_ref_price_annual / math.sqrt(vol_ann_factor)
 
     for b in _BUCKETS:
         # OI-weighted average EWMA sigma (daily price units), rolled 60-day EWMA for stability

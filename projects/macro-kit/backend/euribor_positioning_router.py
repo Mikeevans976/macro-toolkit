@@ -18,7 +18,6 @@ _PKG_ROOT = str(Path(__file__).parent.parent)
 if _PKG_ROOT not in sys.path:
     sys.path.insert(0, _PKG_ROOT)
 
-import yaml
 from fastapi import APIRouter, Depends, HTTPException
 
 from auth import get_current_user
@@ -57,7 +56,6 @@ def _get_params() -> dict:
 
 
 def _get_conn():
-    params = _get_params()
     return _db_connect(_DB_PATH)
 
 
@@ -110,7 +108,7 @@ def _db_status() -> dict:
             "date_range": {"start": date_start, "end": date_end},
             "last_knowledge_date": last_kd,
         }
-    except Exception as e:
+    except Exception:
         # Tables don't exist yet or other schema issue
         return {
             "initialised": False,
@@ -331,7 +329,6 @@ def get_contract_history(
         return {"error": "not_initialised", "hint": "POST /api/positioning/init"}
 
     try:
-        import datetime as _dt
         params = _get_params()
 
         as_of_date = (

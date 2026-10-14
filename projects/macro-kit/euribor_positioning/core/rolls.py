@@ -19,9 +19,7 @@ All numeric constants come from params; no magic numbers in this module.
 from __future__ import annotations
 
 import datetime
-from typing import Any
 
-from ..data.db import connect
 from ..data.contract_calendar import generate_contracts  # noqa: F401 (re-export for tests)
 
 

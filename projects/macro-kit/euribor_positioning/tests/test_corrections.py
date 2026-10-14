@@ -9,21 +9,17 @@ from __future__ import annotations
 
 import datetime
 import math
-import tempfile
 
-import numpy as np
 import pandas as pd
 import pytest
 
-from ..data.db import connect, init_db, load_params, next_business_day
+from ..data.db import connect, init_db, load_params
 from ..data.contract_calendar import generate_contracts
 from ..data.ingest_ice_eod import simulate_eod_data
 from ..core.corrections import (
     detect_migration_days,
     apply_migration_correction,
     third_friday,
-    option_expiry_dates,
-    flag_option_delta_days,
     build_corrected_signal,
     inject_migration_events,
 )

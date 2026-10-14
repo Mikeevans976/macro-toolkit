@@ -12,22 +12,19 @@ vol-scaling.
 from __future__ import annotations
 
 import datetime
-import math
-import statistics
 import tempfile
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from ..data.db import connect, init_db, load_params, next_business_day
+from ..data.db import connect, init_db, load_params
 from ..data.contract_calendar import generate_contracts
 from ..data.ingest_ice_eod import simulate_eod_data
 from ..core.rolls import imm_roll_dates
 from ..core.dv01 import (
     compute_dv01_snapshot,
     build_dv01_timeseries,
-    compute_cog_lead_correlation,
 )
 
 # Import spread injection helper from test_spreads
@@ -154,7 +151,6 @@ def test_cog_shifts_front_load(tmp_db):
     We build a temporary in-memory DB with synthetically front-loaded OI.
     """
     _, params, _ = tmp_db
-    params_copy = {k: v for k, v in params.items()}
 
     # Build a minimal in-memory DB with a controlled OI profile
     contracts = generate_contracts(
@@ -164,9 +160,7 @@ def test_cog_shifts_front_load(tmp_db):
         include_serials=False,
     )
 
-    import sqlite3
     from ..data.db import init_db
-    from pathlib import Path
 
     with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
         db_path_local = f.name
@@ -400,7 +394,6 @@ def test_vol_scaling_zero_safe():
     Uses a minimal synthetic timeseries without DB access.
     """
     from ..core.dv01 import _BUCKETS
-    import pandas as pd
 
     # Build a minimal timeseries with zero vol
     n = 30
@@ -516,7 +509,6 @@ def test_draining_excluded():
 
     # Gross DV01 must include draining contract's OI
     expected_gross_draining = drained_oi * dv01_per
-    non_draining_gross = sum(50_000 * dv01_per for _ in range(3))  # 3 non-draining
     assert snap["total_gross_dv01"] >= expected_gross_draining, (
         f"Gross DV01 {snap['total_gross_dv01']} should include draining OI "
         f"(draining contributes ≥ {expected_gross_draining})"

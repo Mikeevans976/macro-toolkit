@@ -179,7 +179,7 @@ def main():
 
     # Sanity checks
     last = df.iloc[-1]
-    print(f"\nSanity checks on latest date:")
+    print("\nSanity checks on latest date:")
     print(f"  5y5y  = {last['5y5y']:.4f}%   (expect > 5y par ≈ {swaps.iloc[-1]['5y']:.4f}%)")
     print(f"  1y1y  = {last['1y1y']:.4f}%   (expect close to 2y par ≈ {swaps.iloc[-1]['2y']:.4f}%)")
     print(f"  10y10y = {last['10y10y']:.4f}%  (expect close to 20y par ≈ {swaps.iloc[-1]['20y']:.4f}%)")

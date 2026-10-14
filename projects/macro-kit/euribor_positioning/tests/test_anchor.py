@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ..data.db import connect, init_db, load_params, next_business_day
+from ..data.db import connect, init_db, load_params
 from ..data.contract_calendar import generate_contracts
 from ..data.ingest_ice_eod import simulate_eod_data
 from ..core.anchor import (
@@ -23,7 +23,6 @@ from ..core.anchor import (
     compute_r2,
     build_anchor,
     build_anchor_all_categories,
-    _sigmoid,
 )
 from ..core.spreads import spread_adjusted_quadrant_signal
 
@@ -336,7 +335,6 @@ def test_cot_timing_discipline():
         true_states[t] = x
 
     # Tuesdays and Fridays
-    fridays  = [t for t in dates if t.weekday() == 4]
     tuesdays = [t for t in dates if t.weekday() == 1]
 
     # Shared COT values: each week has one net-position reading
@@ -393,7 +391,6 @@ def test_mle_converges(tmp_db_anchor):
     db_path, params, contracts = tmp_db_anchor
     start = datetime.date(2023, 1, 3)
     end   = datetime.date(2024, 12, 31)
-    as_of = datetime.date(2025, 1, 1)
 
     with connect(db_path) as conn:
         daily_flow = _plant_cot_from_signal(conn, db_path, start, end, params, seed=1)
@@ -424,7 +421,6 @@ def test_mle_beta_positive(tmp_db_anchor):
     db_path, params, contracts = tmp_db_anchor
     start = datetime.date(2023, 1, 3)
     end   = datetime.date(2024, 12, 31)
-    as_of = datetime.date(2025, 1, 1)
 
     with connect(db_path) as conn:
         daily_flow = _plant_cot_from_signal(conn, db_path, start, end, params, seed=2)
@@ -455,7 +451,6 @@ def test_mle_lambda_in_range(tmp_db_anchor):
     db_path, params, contracts = tmp_db_anchor
     start = datetime.date(2023, 1, 3)
     end   = datetime.date(2024, 12, 31)
-    as_of = datetime.date(2025, 1, 1)
 
     with connect(db_path) as conn:
         daily_flow = _plant_cot_from_signal(conn, db_path, start, end, params, seed=3)
@@ -483,7 +478,6 @@ def test_mle_lambda_in_range(tmp_db_anchor):
 
 def test_r2_formula():
     """Hand-compute R² on small example and compare to compute_r2()."""
-    params = load_params()
 
     # Small example: 3 Fridays with known z_t values
     fridays = [

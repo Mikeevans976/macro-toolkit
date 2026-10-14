@@ -202,17 +202,17 @@ print("""
 """)
 c11 = (hand_f11 - 2.0) * 100
 c21 = (hand_f21 - hand_f11) * 100
-print(f"  For 1y1y  (s=1, t=1):")
+print("  For 1y1y  (s=1, t=1):")
 print(f"      f_now    = f(1,1) = {hand_f11:.6f}%    ← your locked-in rate")
-print(f"      f_rolled = f(0,1) = R(1) = 2.000000%  ← where it rolls to (spot 1y)")
+print("      f_rolled = f(0,1) = R(1) = 2.000000%  ← where it rolls to (spot 1y)")
 print(f"      carry    = ({hand_f11:.6f}% – 2.000000%) × 100")
 print(f"               = +{c11:.4f} bps  ✓ positive on upward-sloping curve")
-print(f"\n  For 2y1y  (s=2, t=1):")
+print("\n  For 2y1y  (s=2, t=1):")
 print(f"      f_now    = f(2,1) = {hand_f21:.6f}%")
 print(f"      f_rolled = f(1,1) = {hand_f11:.6f}%")
 print(f"      carry    = ({hand_f21:.6f}% – {hand_f11:.6f}%) × 100")
 print(f"               = +{c21:.4f} bps")
-print(f"\n  Flattener = pay 1y1y (weight −1), receive 2y1y (weight +1):")
+print("\n  Flattener = pay 1y1y (weight −1), receive 2y1y (weight +1):")
 print(f"      carry_expr = (-1)x{c11:.4f} + (+1)x{c21:.4f}")
 
 hand_carry_1y1y = (hand_f11 - _fwd_rate(0, 1, D_tool)) * 100.0  # f_now - f_rolled
@@ -293,7 +293,7 @@ print("""
 daily_changes = np.diff(SERIES)
 print(f"  daily_changes = {daily_changes.tolist()}")
 std_changes = daily_changes.std(ddof=1)
-print(f"\n  std(changes, ddof=1) = sqrt([(8×0² + 15²) / 8])")
+print("\n  std(changes, ddof=1) = sqrt([(8×0² + 15²) / 8])")
 print(f"                       = sqrt({8*0 + 15**2:.1f} / 8)")
 print(f"                       = sqrt({225/8:.4f})")
 print(f"                       = {np.sqrt(225/8):.6f} bps/day")

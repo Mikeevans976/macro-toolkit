@@ -41,7 +41,6 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from scipy import stats
 from scipy.interpolate import CubicSpline
 
 from egb_expressions_config import (

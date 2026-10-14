@@ -417,7 +417,6 @@ def fit_curve(
     prices = np.array([b.dirty for b in bonds])
     bpvs = np.array([_bpv(b, b.dirty) for b in bonds])
     X = _external_matrix(bonds, bpvs, ext_vars)
-    n_ext = X.shape[1]
 
     weights = 1.0 / bpvs if weighting == 'bpv' else np.ones(len(bonds))
     weights = weights / weights.mean()
@@ -446,7 +445,6 @@ def fit_curve(
     if functional_form == 'cubic_spline':
         knot_init = np.interp(knots, ttms[order], ytms[order])
         curve_init = knot_init
-        n_curve = len(knots)
     else:
         # α init ~ 0.05; β init from lstsq on discount factors implied by YTMs
         alpha0 = 0.05
@@ -455,7 +453,6 @@ def fit_curve(
         E = np.exp(-np.outer(ttms, j) * alpha0)
         beta0, *_ = np.linalg.lstsq(E, df_target, rcond=None)
         curve_init = np.concatenate([[np.log(alpha0)], beta0])
-        n_curve = 1 + n_exp
 
     # Stack all cash flows so each objective evaluation builds the discount
     # curve exactly once (H&S p.175 stress numerical speed for exactly this
