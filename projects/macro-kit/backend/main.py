@@ -57,6 +57,7 @@ from routers import (
     option_cdf,
     pca_analysis,
     print_analysis,
+    research,
     seasonality,
     swaps_rv,
 )
@@ -76,6 +77,9 @@ async def lifespan(_app: FastAPI):
             except Exception:
                 logger.exception("Fair Value Models warm-up failed; will compute on first request")
         threading.Thread(target=_warm, name="fvm-warmup", daemon=True).start()
+    # Bloomberg news subscriber (only when BBG_NEWS_AUTOSTART=1 and subscriptions are configured)
+    from pod.bloomberg import start_news_subscriber_thread
+    start_news_subscriber_thread()
     yield
 
 
@@ -111,6 +115,7 @@ for _tool in (
     option_cdf,
     pca_analysis,
     print_analysis,
+    research,
     seasonality,
     swaps_rv,
 ):

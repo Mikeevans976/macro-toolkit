@@ -17,7 +17,12 @@ scikit-learn>=1.4.0
 anthropic>=1.11.0          # pod runner (backend/pod) needs 1.x: fallbacks, adaptive thinking
 httpx>=0.27,<1               # pod model catalogue, runner, web tools (also used by fastapi.testclient)
 duckduckgo-search>=6.0      # pod web search (pod/tools/web_local.py)
+pdfplumber>=0.11            # text extraction for research PDFs (pod/research)
+playwright>=1.48            # research portal browsing (pod/research/browser.py); then: python -m playwright install chromium
 
 # Optional: data source connectors (install whichever you use)
-# blpapi            # Bloomberg blpapi SDK        — pip install blpapi (Bloomberg Terminal must be running)
+# blpapi            # Bloomberg blpapi SDK (Terminal or B-PIPE; settings in bbg.py docstring):
+#                   #   pip install --index-url=https://blpapi.bloomberg.com/repository/releases/python/simple/ blpapi
+#                   # Install it only on machines with a Bloomberg connection: without one, data
+#                   # modules retry the connection instead of falling back to simulated data quickly.
 # Haver>=2.1       # Haver Analytics DLX        — pip install Haver

@@ -8,6 +8,7 @@ start rather than mid-run.
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional
 
 import yaml
 
@@ -19,6 +20,7 @@ SKILLS_DIR = _HERE / "skills"
 
 BASELINE_TOOLS = [
     "submit_view", "read_desk_views", "get_house_view", "search_pod_memory", "list_trades",
+    "research_search", "research_calls",
     "sandbox_read", "sandbox_write", "sandbox_edit", "sandbox_list", "sqlite_sandbox",
     "python_sandbox", "web_search", "web_fetch",
 ]
@@ -41,6 +43,7 @@ class AgentDef:
     enabled: bool = True
     blocked_on: tuple[str, ...] = ()
     missing_tools: tuple[str, ...] = ()
+    max_turns: Optional[int] = None     # overrides config.MAX_TURNS for long tasks (e.g. portal sweeps)
     system_prompt: str = field(default="", compare=False, repr=False)
 
     @property
@@ -134,6 +137,7 @@ def _load() -> tuple[dict[str, AgentDef], dict[str, str]]:
             is_manager=a.get("is_manager", False), enabled=enabled,
             blocked_on=tuple(a.get("blocked_on", [])),
             missing_tools=tuple(a.get("missing_tools", [])),
+            max_turns=a.get("max_turns"),
             system_prompt=_system_prompt(a, desks, by_id) if enabled else "",
         )
     return agents, desks

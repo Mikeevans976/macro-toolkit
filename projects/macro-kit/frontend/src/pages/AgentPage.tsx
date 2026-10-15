@@ -4,6 +4,7 @@ import axios from 'axios'
 import { openRunStream } from '../api/client'
 import Glyph, { toolGlyph } from '../components/Glyph'
 import PageTitle, { headerBar } from '../components/PageTitle'
+import { BloombergStatusBox, ResearchLibraryPanel } from '../components/researchLibrary'
 import { accent, fg, fontNum, ink, line, line2, neg, warn } from '../theme'
 import {
   AGENTS_MARK, AgentInfo, Chip, EventLine, KEYFRAMES, MODEL_LABEL, Markdown, ModelCatalogue, ModelPicker,
@@ -184,8 +185,9 @@ const TEMPLATES: Record<string, string[]> = {
     'Which release this week has the most market sensitivity?',
   ],
   'research-librarian': [
-    "What does our research folder say about the ECB's terminal rate?",
-    'Find past pod work on BTP-Bund spreads.',
+    "Run through the portals I'm logged into and collect this week's macro and rates research.",
+    'What is the street consensus for the ECB deposit rate at end-2027, and who changed their call this month?',
+    'Summarise what the banks are saying about gilts and the BoE.',
   ],
   'data-quality-sentinel': [
     'Check the data feeding the pod and flag problems.',
@@ -420,6 +422,7 @@ export default function AgentPage() {
 
         {/* Sidebar */}
         <aside style={{ width: 270, flexShrink: 0, borderRight: `1px solid ${line}`, padding: '20px 18px', overflowY: 'auto' }}>
+          {(agent.id === 'news-scanner' || agent.id === 'calendar-analyst') && <BloombergStatusBox />}
           <div style={sideBlock}>
             <SectionLabel>Reports to</SectionLabel>
             {boss
@@ -533,6 +536,7 @@ export default function AgentPage() {
         {/* Conversation */}
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
+            {agent.id === 'research-librarian' && <ResearchLibraryPanel />}
             {messages.length === 0 && status !== 'running' && (
               <div style={{ maxWidth: 560, margin: '56px auto 0', textAlign: 'center', display: 'grid', gap: 10, justifyItems: 'center' }}>
                 <Glyph name={glyph} size={32} style={{ color: mark }} />

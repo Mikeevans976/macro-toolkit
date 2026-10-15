@@ -1,0 +1,34 @@
+# Economic releases tracked by the econ_calendar tool (Bloomberg ECO tickers).
+#
+# VERIFY BEFORE RELYING ON IT: check each ticker and field on the Terminal (or with your
+# Bloomberg admin for B-PIPE) and edit freely. Add or remove indicators as the pod needs.
+# importance: 1 = market-moving, 2 = notable, 3 = minor.
+
+fields:
+  last_release_date: ECO_RELEASE_DT            # date of the latest release (used by print_analysis.py)
+  future_release_dates: ECO_FUTURE_RELEASE_DATE_LIST   # bulk field: upcoming release dates/times
+  consensus_median: ECO_SURVEY_MEDIAN
+  consensus_high: ECO_SURVEY_HIGH
+  consensus_low: ECO_SURVEY_LOW
+  n_forecasts: BN_SURVEY_NUMBER
+  latest_value: PX_LAST
+  relevance: RELEVANCE_VALUE
+
+regions:
+  US:
+    - {ticker: NFP TCH Index, name: Nonfarm payrolls (change), importance: 1}
+    - {ticker: USURTOT Index, name: Unemployment rate, importance: 1}
+    - {ticker: CPI XYOY Index, name: CPI ex food & energy YoY, importance: 1}
+    - {ticker: CPI YOY Index, name: CPI YoY, importance: 1}
+    - {ticker: PCE CYOY Index, name: Core PCE deflator YoY, importance: 1}
+    - {ticker: NAPMPMI Index, name: ISM manufacturing, importance: 2}
+    - {ticker: INJCJC Index, name: Initial jobless claims, importance: 2}
+    - {ticker: GDP CQOQ Index, name: GDP QoQ annualised, importance: 1}
+  EA:
+    - {ticker: ECCPEMUY Index, name: Euro area HICP YoY, importance: 1}
+    - {ticker: GRIFPBUS Index, name: Germany Ifo business climate, importance: 2}
+    - {ticker: GRZEWI Index, name: Germany ZEW expectations, importance: 2}
+  UK:
+    - {ticker: UKRPCJYY Index, name: UK CPI YoY, importance: 1}
+  JP:
+    - {ticker: JNCPIYOY Index, name: Japan CPI YoY, importance: 1}

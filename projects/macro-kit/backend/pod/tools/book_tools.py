@@ -1,11 +1,10 @@
 """
 Book, risk and pod-operations tools: the trade ledger, risk engine, sizing,
-alerts, consulting another agent, data health, research search and report
+alerts, consulting another agent, data health and report
 publishing. Role checks for ledger transitions live in pod/book.py.
 """
 import re
 from datetime import date, datetime, timedelta
-from pathlib import Path
 
 from pod import book, risk
 from pod.tools import Tool, ToolContext, register, schema
@@ -265,52 +264,10 @@ register(Tool(
     max_chars=8000,
 ))
 
-# ── research search and publishing ───────────────────────────────────────────
+# ── publishing ───────────────────────────────────────────────────────────────
+# (research search lives in pod/tools/research_tools.py, over the research library)
 
-RESEARCH_DIR = SANDBOX_ROOT / "research"
 REPORTS_DIR = SANDBOX_ROOT / "reports"
-
-
-def _doc_text(path: Path) -> str:
-    if path.suffix.lower() == ".pdf":
-        import pdfplumber
-        with pdfplumber.open(str(path)) as pdf:
-            return "\n".join((p.extract_text() or "") for p in pdf.pages[:40])
-    return path.read_text(encoding="utf-8", errors="replace")
-
-
-def research_search(query: str, limit: int = 5) -> object:
-    RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
-    terms = [t.lower() for t in re.findall(r"\w+", query) if len(t) > 2]
-    if not terms:
-        raise ValueError("query needs at least one word of 3+ letters")
-    hits = []
-    for path in RESEARCH_DIR.rglob("*"):
-        if not path.is_file() or path.suffix.lower() not in (".pdf", ".md", ".txt", ".html", ".csv"):
-            continue
-        try:
-            text = _doc_text(path)
-        except Exception:
-            continue
-        low = text.lower()
-        score = sum(low.count(t) for t in terms)
-        if score:
-            i = min((low.find(t) for t in terms if t in low), default=0)
-            hits.append({"file": str(path.relative_to(SANDBOX_ROOT)), "score": score,
-                         "excerpt": text[max(0, i - 300): i + 600].replace("\n", " ")})
-    hits.sort(key=lambda h: h["score"], reverse=True)
-    if not hits:
-        return (f"No documents in sandbox/research mention {query!r}. Drop sell-side PDFs or notes into "
-                f"{RESEARCH_DIR} to make them searchable.")
-    return hits[:limit]
-
-
-register(Tool(
-    name="research_search",
-    description="Keyword search over research documents in sandbox/research/ (PDF, Markdown, text). Returns excerpts.",
-    input_schema=schema({"query": {"type": "string"}, "limit": {"type": "integer", "minimum": 1, "maximum": 10}}, ["query"]),
-    handler=research_search,
-))
 
 
 def publish_report(title: str, markdown: str, kind: str = "note") -> str:

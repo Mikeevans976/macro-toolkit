@@ -530,6 +530,19 @@ The FX & Cross-Asset desk, the Risk line and Execution have **no tools yet**. Th
   - EM/China data and the CB communications corpus
 - **Risk limits in `pod/limits.yaml` are placeholders** until the PM sets them.
 
+### Bloomberg and the research library (2026-10-14)
+
+- **Bloomberg over B-PIPE** (`bbg.py`): host, application authentication and TLS come from the environment.
+  - `econ_calendar` runs over the release tickers in `pod/econ_universe.yaml`; **verify the tickers and fields on the Terminal before relying on it**.
+  - `bloomberg_news` searches headlines stored by a B-PIPE news subscriber (`pod/bloomberg.py`). Its subscription strings come from the Bloomberg admin.
+  - `bloomberg_reference` gives ad hoc reference-data lookups.
+  - The News Scanner and Calendar Analyst use these first, and fall back to web sources if Bloomberg isn't connected.
+- **Research library** (`pod/research/`, `var/research.db`): full-text search over documents, plus a calls table that tracks each bank's forecasts and trade recommendations over time.
+  - Sources: bank portals (Playwright, with a dedicated browser profile you log into by hand; `pod/research/portals.yaml`), a research inbox over IMAP, uploads and a drop folder.
+  - The **Research Sweep** workflow collects, summarises and records calls. The Morning Briefing gets a digest of the last two days.
+  - Every agent can search the library and read the tracked calls.
+- **Not built:** programmatic Bloomberg research (BRES), pending confirmation from Bloomberg that an API exists for it; scheduled sweeps.
+
 ---
 
 ## 10. Open questions

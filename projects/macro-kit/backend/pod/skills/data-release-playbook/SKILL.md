@@ -5,6 +5,8 @@ description: How to preview and interpret economic data releases.
 
 # Data release playbook
 
+Get dates, consensus (median, high, low, number of forecasts) and the latest value from `econ_calendar`; use `bloomberg_reference` for tickers outside the tracked universe. Street forecasts beyond the next release are in the research library (`research_calls`).
+
 ## Before a release (preview)
 - State consensus, the range of forecasts and your own estimate with its reasoning.
 - Name the component that matters most for the central bank (e.g. services inflation, not headline).

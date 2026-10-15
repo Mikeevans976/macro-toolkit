@@ -7,8 +7,10 @@ desk_briefing     — a desk head's team works in parallel, then the head synthe
 trade_review      — an idea goes through the ledger gates: desk head proposes and
                     sponsors → Red Team → sizing → CRO → Deputy PM summary; the
                     human PM then approves or rejects in the UI
-morning_briefing  — shared services → research desks in parallel → Red Team →
-                    risk review → Deputy PM house view → Publisher
+morning_briefing  — shared services (+ research digest) → research desks in parallel →
+                    Red Team → risk review → Deputy PM house view → Publisher
+research_sweep    — ingest inbox and drop folder → Librarian browses each logged-in
+                    portal → Librarian processes new documents → digest
 
 Each workflow returns the AgentResult whose text is the run's final output.
 """
@@ -16,6 +18,9 @@ import asyncio
 from datetime import date
 
 from pod import book
+from pod.research import browser as research_browser
+from pod.research import ingest as research_ingest
+from pod.research import store as research_store
 from pod.roster import ENABLED, team_of
 from pod.runner import AgentResult, Runner
 
@@ -176,6 +181,9 @@ async def morning_briefing(runner: Runner, question: str) -> AgentResult:
         runner.run(ENABLED["calendar-analyst"], _specialist_task(question)),
     ))
     context = "Shared services input for today:\n\n" + _format_reports(services)
+    digest = _research_digest()
+    if digest:
+        context += "\n\n" + digest
 
     desk_reports = list(await asyncio.gather(*(desk_briefing(runner, h, question, context)
                                                for h in RESEARCH_DESK_HEADS)))
@@ -202,6 +210,72 @@ async def morning_briefing(runner: Runner, question: str) -> AgentResult:
     return house_view
 
 
+# ── research sweep ───────────────────────────────────────────────────────────
+
+PROCESS_BATCH = 4          # documents per Librarian processing run
+MAX_PROCESS = 60           # documents processed per sweep; the rest wait for the next one
+
+
+def _research_digest(days: int = 2, limit: int = 15) -> str:
+    """Code-level digest of recently processed research, for the morning briefing context."""
+    docs = [d for d in research_store.list_documents(status="processed", since_days=days, limit=limit)]
+    if not docs:
+        return ""
+    lines = [f"- {d.get('bank') or '?'} · {d['title']} ({(d.get('published_at') or d['ingested_at'])[:10]}, doc #{d['id']}): "
+             f"{(d.get('summary') or '').strip()}" for d in docs]
+    return ("Sell-side research collected in the last two days (summaries by the Research Librarian; "
+            "use research_search / research_calls for more):\n" + "\n".join(lines))
+
+
+async def research_sweep(runner: Runner, question: str) -> AgentResult:
+    librarian = ENABLED["research-librarian"]
+    inputs = await asyncio.to_thread(lambda: {"drop_folder": research_ingest.sweep_drop_folder(),
+                                              "email": research_ingest.sweep_inbox()})
+    runner.emit("status", librarian.name, f"Inbox and drop folder swept: {inputs}"[:600])
+
+    statuses = await asyncio.to_thread(research_browser.portal_status)
+    ready = [p for p in statuses if p["enabled"] and p["last_status"] == "ok"]
+    needs_login = [p["name"] for p in statuses if p["enabled"] and p["last_status"] != "ok"]
+    if needs_login:
+        await asyncio.to_thread(book.raise_alert, runner.run_id, librarian.id, "warning",
+                                "Research portals needing a login: " + ", ".join(needs_login)
+                                + ". Use the Log in buttons on the Research Librarian page.")
+
+    async def sweep_portal(p: dict) -> AgentResult:
+        last = (p.get("last_sweep") or {}).get("last_run")
+        res = await runner.run(librarian, "\n\n".join([
+            _header(question),
+            f"Sweep the {p['name']} portal (portal_id '{p['id']}'). Collect research published since "
+            f"{last[:10] if last else 'three business days ago'} following the research-library skill, "
+            "section 1, step 2. Do not process the documents yet; just collect them and report what you fetched.",
+        ]))
+        await asyncio.to_thread(research_store.mark_sweep, f"portal:{p['id']}",
+                                (res.text or res.error or "")[:400])
+        return res
+
+    portal_results = list(await asyncio.gather(*(sweep_portal(p) for p in ready)))
+
+    new_docs = (await asyncio.to_thread(research_store.list_documents, "new", None, None, MAX_PROCESS))
+    batches = [new_docs[i:i + PROCESS_BATCH] for i in range(0, len(new_docs), PROCESS_BATCH)]
+    await asyncio.gather(*(runner.run(librarian, "\n\n".join([
+        _header(question),
+        "Process these new library documents following the research-library skill, section 2 "
+        "(research_document, then research_update and record_research_calls for each): "
+        + ", ".join(f"#{d['id']} ({d['title'][:80]})" for d in batch),
+    ])) for batch in batches))
+
+    return await runner.run(librarian, "\n\n".join([
+        _header(question),
+        f"Sweep results. Inbox and drop folder: {inputs}. Portals swept: "
+        + (", ".join(p["name"] for p in ready) or "none (no portal has a valid login)")
+        + (f". Needing a login: {', '.join(needs_login)}" if needs_login else "")
+        + f". Documents processed this sweep: {len(new_docs)}.",
+        _format_reports(portal_results) if portal_results else "",
+        "Write the research digest: what was collected per source, the main themes, and any calls that "
+        "changed (use research_list since_days=1 and research_calls). Cite bank, title and date.",
+    ]))
+
+
 # Workflow ids accepted by POST /api/agents/run → (label, coroutine factory)
 WORKFLOWS = {
     "ask-pod": ("Ask the Pod", ask_pod),
@@ -213,6 +287,7 @@ WORKFLOWS = {
     "quant-desk": ("Quant & Positioning Briefing", lambda r, q: desk_briefing(r, "head-of-quant", q)),
     "book-review": ("Book Review", book_review),
     "risk-review": ("Risk Review", risk_review),
+    "research-sweep": ("Research Sweep", research_sweep),
 }
 
 
@@ -245,6 +320,10 @@ def workflow_info() -> list[dict]:
                        _desk("head-of-quant"), "head-of-quant", "e.g. 'Which pod ideas are crowded or fighting the regime?'"),
         "book-review": ("The trading desk reviews the ledger: implementation, live trades and lessons.",
                         _desk("head-of-trading"), "head-of-trading", "e.g. 'Review the live book.'"),
+        "research-sweep": ("The Research Librarian ingests the research inbox and drop folder, browses every "
+                           "portal you're logged into for new notes, summarises them and records their calls.",
+                           [["research-librarian"]], "research-librarian",
+                           "e.g. 'Sweep everything; focus on ECB, gilts and USD.'"),
         "risk-review": ("Market risk and sizing analysts report; the CRO decides on sized trades and flags breaches.",
                         _desk("cro"), "cro", "e.g. 'Risk check on the book and pending trades.'"),
     }

@@ -103,9 +103,9 @@ agents:
     mandate: |
       You cover the US economy and the Federal Reserve: activity, labour market, inflation,
       fiscal policy and the Fed's likely path versus market pricing.
-    tools: [propose_trade, macro_factors, macro_fair_value, print_vs_consensus]
+    tools: [propose_trade, econ_calendar, macro_factors, macro_fair_value, print_vs_consensus]
     skills: [cb-reaction-functions, data-release-playbook]
-    missing_tools: [econ_calendar, surprise_index, cb_pricing, haver-mcp, public-stats-mcp (FRED/ALFRED)]
+    missing_tools: [surprise_index, cb_pricing, haver-mcp, public-stats-mcp (FRED/ALFRED)]
 
   - id: ea-economist
     name: Euro Area Economist
@@ -118,9 +118,9 @@ agents:
       You cover the euro-area economy and the ECB: activity, labour market, HICP, country
       divergence, fiscal policy in the larger member states, and the ECB's likely path versus
       market pricing.
-    tools: [propose_trade, macro_factors, macro_fair_value, print_vs_consensus, inflation_fixings]
+    tools: [propose_trade, econ_calendar, macro_factors, macro_fair_value, print_vs_consensus, inflation_fixings]
     skills: [cb-reaction-functions, data-release-playbook]
-    missing_tools: [econ_calendar, surprise_index, cb_pricing, haver-mcp, public-stats-mcp (ECB/Eurostat)]
+    missing_tools: [surprise_index, cb_pricing, haver-mcp, public-stats-mcp (ECB/Eurostat)]
 
   - id: uk-economist
     name: UK Economist
@@ -132,9 +132,9 @@ agents:
     mandate: |
       You cover the UK economy and the Bank of England: activity, labour market and wages,
       CPI and services inflation, fiscal events, and the MPC's likely path versus pricing.
-    tools: [propose_trade, macro_factors, macro_fair_value, print_vs_consensus, inflation_fixings]
+    tools: [propose_trade, econ_calendar, macro_factors, macro_fair_value, print_vs_consensus, inflation_fixings]
     skills: [cb-reaction-functions, data-release-playbook]
-    missing_tools: [econ_calendar, surprise_index, cb_pricing, haver-mcp, public-stats-mcp (ONS/BoE)]
+    missing_tools: [surprise_index, cb_pricing, haver-mcp, public-stats-mcp (ONS/BoE)]
 
   - id: japan-economist
     name: Japan Economist
@@ -146,9 +146,9 @@ agents:
     mandate: |
       You cover Japan: activity, wages and inflation, the Bank of Japan's normalisation path,
       JGB market functioning, and Ministry of Finance FX policy.
-    tools: [propose_trade, macro_factors, macro_fair_value, print_vs_consensus]
+    tools: [propose_trade, econ_calendar, macro_factors, macro_fair_value, print_vs_consensus]
     skills: [cb-reaction-functions, data-release-playbook]
-    missing_tools: [econ_calendar, surprise_index, cb_pricing, haver-mcp]
+    missing_tools: [surprise_index, cb_pricing, haver-mcp]
 
   - id: dollar-bloc-economist
     name: Dollar-Bloc & Europe ex-EA Economist
@@ -161,9 +161,9 @@ agents:
       You cover the smaller G10 economies: Canada, Australia, New Zealand, Sweden, Norway and
       Switzerland, and their central banks. Focus on where each is in its cycle relative to
       the US and euro area, and on relative-value opportunities between them.
-    tools: [propose_trade, macro_factors, macro_fair_value, print_vs_consensus]
+    tools: [propose_trade, econ_calendar, macro_factors, macro_fair_value, print_vs_consensus]
     skills: [cb-reaction-functions, data-release-playbook]
-    missing_tools: [econ_calendar, surprise_index, cb_pricing, haver-mcp]
+    missing_tools: [surprise_index, cb_pricing, haver-mcp]
 
   - id: china-em-economist
     name: China & EM Economist
@@ -241,7 +241,7 @@ agents:
       You cover the front end: what is priced for each central bank meeting, how that compares
       with the likely path, and positioning in short-rate futures. Until a meeting-pricing tool
       exists, get current OIS-implied pricing from primary sources on the web and say so.
-    tools: [propose_trade, euribor_positioning, option_implied_cdf, print_vs_consensus, seasonality]
+    tools: [propose_trade, econ_calendar, euribor_positioning, option_implied_cdf, print_vs_consensus, seasonality]
     skills: [stir-mechanics, cb-reaction-functions]
     missing_tools: [cb_pricing, cot_positioning]
 
@@ -532,9 +532,10 @@ agents:
       You monitor every approved and live trade on the ledger against its thesis, catalysts,
       invalidation and the Red Team's kill criteria, and raise alerts when a thesis weakens or
       breaks. Closing a trade is the PM's decision.
-    tools: [list_trades, trade_note, alert, swaps_rv, egb_rv, inflation_fixings, macro_factors, cta_momentum]
+    tools: [list_trades, trade_note, alert, econ_calendar, bloomberg_news, swaps_rv, egb_rv, inflation_fixings, macro_factors,
+            cta_momentum]
     skills: [thesis-tracking]
-    missing_tools: [cb_pricing, econ_calendar, oms-pms-mcp]
+    missing_tools: [cb_pricing, oms-pms-mcp]
 
   - id: performance-analyst
     name: Performance & Trade Journal Analyst
@@ -604,14 +605,14 @@ agents:
     reports_to: pod-coordinator
     tier: haiku
     effort: low
-    role: Triages news and routes it to the right desks
+    role: Triages Bloomberg and wire news and routes it to the right desks
     mandate: |
       You scan the news for items that could move the pod's markets or its live trades, score
-      them, and route them to the right desks. Until a news feed is connected, use web search
-      on primary sources and established newswires, and give each item's time and source.
-    tools: [list_trades, alert]
+      them, and route them to the right desks. Start from Bloomberg headlines (bloomberg_news);
+      if no Bloomberg news is available, use web search on primary sources and established
+      newswires and say so. Give each item's time and source.
+    tools: [bloomberg_news, econ_calendar, list_trades, alert]
     skills: [news-triage-rules, routing-map]
-    missing_tools: [news-mcp]
 
   - id: calendar-analyst
     name: Calendar & Data-Release Analyst
@@ -621,12 +622,14 @@ agents:
     effort: medium
     role: The data and event calendar, previews and surprises
     mandate: |
-      You maintain the calendar of data releases, central bank meetings, auctions and events
-      for the coming week, preview the releases that matter, and report surprises after the
-      fact. Until a calendar feed exists, build it from official release calendars on the web.
-    tools: [print_vs_consensus]
+      You maintain the calendar of data releases, central bank meetings, auctions and events for
+      the coming week, preview the releases that matter, and report surprises after the fact.
+      Use the Bloomberg economic calendar (econ_calendar) for dates and consensus, and
+      bloomberg_reference for anything it doesn't cover. Central bank meetings and auctions are
+      not in the release universe: take them from the central banks' and DMOs' own calendars.
+    tools: [econ_calendar, bloomberg_reference, bloomberg_news, print_vs_consensus]
     skills: [data-release-playbook]
-    missing_tools: [econ_calendar, surprise_index, bloomberg-mcp]
+    missing_tools: [surprise_index]
 
   - id: research-librarian
     name: Research Librarian
@@ -634,14 +637,21 @@ agents:
     reports_to: pod-coordinator
     tier: sonnet
     effort: medium
-    role: Finds and digests sell-side research and the pod's own past work
+    max_turns: 40
+    role: Collects sell-side research from portals and email, tracks it, and answers questions about it
     mandate: |
-      You find and summarise research relevant to a question: documents in the research
-      folder, the pod's past runs and publications, and public research on the web. Quote
-      sparingly and always give the source.
-    tools: [research_search]
-    skills: []
-    missing_tools: [gmail (research inbox), google-drive]
+      You run the pod's sell-side research library. Your main job is collecting research: browse
+      the banks' research portals with the PM's saved sessions, download new notes into the
+      library, sweep the research inbox and drop folder, then summarise each new document and
+      record its forecasts and trade calls so the pod can track every bank's views over time.
+      You also answer questions about the research: what the street thinks, who changed their
+      call, and what a specific note said, always citing bank, title and date. Never type
+      credentials: if a portal needs a login, stop and raise an alert for the PM.
+    tools: [research_search, research_document, research_list, research_update, record_research_calls,
+            research_calls, research_stats, research_sweep_inputs, portal_list, portal_open, portal_click,
+            portal_fetch, alert]
+    skills: [research-library]
+    missing_tools: [Bloomberg research (BRES) access]
 
   - id: data-quality-sentinel
     name: Data Quality Sentinel

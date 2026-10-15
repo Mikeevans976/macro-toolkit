@@ -218,6 +218,23 @@
     "title": "Body_login_api_auth_login_post",
     "type": "object"
    },
+   "Body_research_upload_api_pod_research_upload_post": {
+    "properties": {
+     "files": {
+      "items": {
+       "contentMediaType": "application/octet-stream",
+       "type": "string"
+      },
+      "title": "Files",
+      "type": "array"
+     }
+    },
+    "required": [
+     "files"
+    ],
+    "title": "Body_research_upload_api_pod_research_upload_post",
+    "type": "object"
+   },
    "Breakeven": {
     "properties": {
      "breakeven": {
@@ -2514,6 +2531,447 @@
     "summary": "Pod Alert Ack",
     "tags": [
      "agents"
+    ]
+   }
+  },
+  "/api/pod/bloomberg/status": {
+   "get": {
+    "operationId": "bloomberg_status_api_pod_bloomberg_status_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Bloomberg Status",
+    "tags": [
+     "research"
+    ]
+   }
+  },
+  "/api/pod/research/calls": {
+   "get": {
+    "operationId": "research_calls_api_pod_research_calls_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "market",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Market"
+      }
+     },
+     {
+      "in": "query",
+      "name": "bank",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Bank"
+      }
+     },
+     {
+      "in": "query",
+      "name": "kind",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Kind"
+      }
+     },
+     {
+      "in": "query",
+      "name": "since_days",
+      "required": false,
+      "schema": {
+       "default": 365,
+       "title": "Since Days",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "latest_only",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Latest Only",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Research Calls",
+    "tags": [
+     "research"
+    ]
+   }
+  },
+  "/api/pod/research/documents": {
+   "get": {
+    "operationId": "research_documents_api_pod_research_documents_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "in": "query",
+      "name": "bank",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Bank"
+      }
+     },
+     {
+      "in": "query",
+      "name": "status",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Status"
+      }
+     },
+     {
+      "in": "query",
+      "name": "since_days",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Since Days"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 50,
+       "title": "Limit",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Research Documents",
+    "tags": [
+     "research"
+    ]
+   }
+  },
+  "/api/pod/research/documents/{doc_id}": {
+   "get": {
+    "operationId": "research_document_api_pod_research_documents__doc_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Research Document",
+    "tags": [
+     "research"
+    ]
+   }
+  },
+  "/api/pod/research/portals/{portal_id}/check": {
+   "post": {
+    "operationId": "portal_check_api_pod_research_portals__portal_id__check_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "portal_id",
+      "required": true,
+      "schema": {
+       "title": "Portal Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Portal Check",
+    "tags": [
+     "research"
+    ]
+   }
+  },
+  "/api/pod/research/portals/{portal_id}/login": {
+   "post": {
+    "operationId": "portal_login_api_pod_research_portals__portal_id__login_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "portal_id",
+      "required": true,
+      "schema": {
+       "title": "Portal Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Portal Login",
+    "tags": [
+     "research"
+    ]
+   }
+  },
+  "/api/pod/research/status": {
+   "get": {
+    "operationId": "research_status_api_pod_research_status_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Research Status",
+    "tags": [
+     "research"
+    ]
+   }
+  },
+  "/api/pod/research/upload": {
+   "post": {
+    "operationId": "research_upload_api_pod_research_upload_post",
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_research_upload_api_pod_research_upload_post"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Research Upload",
+    "tags": [
+     "research"
     ]
    }
   },

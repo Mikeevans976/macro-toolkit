@@ -85,5 +85,5 @@ def schema(properties: dict | None = None, required: list[str] | None = None) ->
 
 def load_all() -> dict[str, Tool]:
     """Import every tool module so they register themselves."""
-    from pod.tools import analytics, sandbox, pod_state, server, book_tools  # noqa: F401
+    from pod.tools import analytics, sandbox, pod_state, server, book_tools, research_tools  # noqa: F401
     return REGISTRY

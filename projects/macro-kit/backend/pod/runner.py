@@ -178,7 +178,7 @@ class Runner:
         messages: list[dict] = [{"role": "user", "content": task}]
         pauses = 0
         while True:
-            last_turn = result.turns >= MAX_TURNS - 1
+            last_turn = result.turns >= (agent.max_turns or MAX_TURNS) - 1
             extra = {"tool_choice": {"type": "none"}} if last_turn else {}
             async with self._sem:
                 async with self.client.beta.messages.stream(messages=messages, **params, **extra) as stream:
@@ -204,7 +204,7 @@ class Runner:
                     if is_error:
                         block["is_error"] = True
                     results.append(block)
-                if result.turns >= MAX_TURNS - 1:
+                if result.turns >= (agent.max_turns or MAX_TURNS) - 1:
                     results.append({"type": "text", "text": _CAP_NOTICE})
                 messages.append({"role": "user", "content": results})
                 continue
@@ -237,7 +237,7 @@ class Runner:
             {"role": "user", "content": task},
         ]
         while True:
-            last_turn = result.turns >= MAX_TURNS - 1
+            last_turn = result.turns >= (agent.max_turns or MAX_TURNS) - 1
             body: dict[str, Any] = {
                 "model": model,
                 "messages": messages,
@@ -284,7 +284,7 @@ class Runner:
                 outcomes = await asyncio.gather(*(run_call(tc) for tc in tool_calls))
                 for tc, (content, _is_error) in zip(tool_calls, outcomes):
                     messages.append({"role": "tool", "tool_call_id": tc.get("id"), "content": content})
-                if result.turns >= MAX_TURNS - 1:
+                if result.turns >= (agent.max_turns or MAX_TURNS) - 1:
                     messages.append({"role": "user", "content": _CAP_NOTICE})
                 continue
 

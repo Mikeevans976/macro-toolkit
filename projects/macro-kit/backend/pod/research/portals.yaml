@@ -1,0 +1,61 @@
+# Sell-side research portals the Research Librarian browses.
+#
+# Log into each portal once by hand in the pod's dedicated browser profile:
+#     python -m pod.research.browser login <id>
+# (or the "Log in" button on the Research Librarian page). The Librarian reuses that
+# session until it expires, then raises an alert asking you to log in again.
+# It never sees or types passwords.
+#
+# VERIFY each start_url and the allowed domains against your firm's subscriptions; edit
+# freely. `allowed_domains` limits where the Librarian may navigate and download from.
+# Set enabled: false to pause a portal.
+
+portals:
+  - id: jpm
+    name: J.P. Morgan Markets
+    bank: J.P. Morgan
+    start_url: https://markets.jpmorgan.com/
+    allowed_domains: [jpmorgan.com, jpmm.com]
+    enabled: true
+  - id: gs
+    name: Goldman Sachs Marquee
+    bank: Goldman Sachs
+    start_url: https://marquee.gs.com/
+    allowed_domains: [gs.com]
+    enabled: true
+  - id: ms
+    name: Morgan Stanley Matrix
+    bank: Morgan Stanley
+    start_url: https://matrix.ms.com/
+    allowed_domains: [ms.com, morganstanley.com]
+    enabled: true
+  - id: barclays
+    name: Barclays Live
+    bank: Barclays
+    start_url: https://live.barcap.com/
+    allowed_domains: [barcap.com, barclays.com]
+    enabled: true
+  - id: citi
+    name: Citi Velocity
+    bank: Citi
+    start_url: https://www.citivelocity.com/
+    allowed_domains: [citivelocity.com, citi.com]
+    enabled: true
+  - id: ubs
+    name: UBS Neo
+    bank: UBS
+    start_url: https://neo.ubs.com/
+    allowed_domains: [ubs.com]
+    enabled: true
+  - id: bofa
+    name: BofA Global Research
+    bank: BofA
+    start_url: https://rsch.baml.com/          # verify: your entitlement may use a different host
+    allowed_domains: [baml.com, bofa.com, bankofamerica.com, ml.com]
+    enabled: true
+  - id: db
+    name: Deutsche Bank Research
+    bank: Deutsche Bank
+    start_url: https://research.db.com/        # verify
+    allowed_domains: [db.com]
+    enabled: true
