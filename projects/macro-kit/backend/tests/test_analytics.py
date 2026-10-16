@@ -20,6 +20,7 @@ from swaps_rv import (
     _carry_fwd_bps,
     _fwd_rate,
     _parse_label,
+    compute_history,
     compute_rv,
 )
 
@@ -307,21 +308,26 @@ class TestEndToEnd:
     def rv(self):
         return compute_rv()
 
+    @pytest.fixture(scope="class")
+    def series(self, rv):
+        """Each structure's history, served on demand; the last 1y as the detail view shows it."""
+        return {r["label"]: compute_history("EUR", r["label"])["points"][-252:] for r in rv["rv_monitor"]}
+
     def test_response_keys(self, rv):
-        assert {"as_of", "rv_monitor", "beta_monitor", "series"}.issubset(rv.keys())
+        assert {"as_of", "rv_monitor", "beta_monitor", "curve"}.issubset(rv.keys())
 
     def test_rv_monitor_not_empty(self, rv):
         assert len(rv["rv_monitor"]) > 0
 
-    def test_all_labels_have_series(self, rv):
+    def test_all_labels_have_series(self, rv, series):
         rv_labels    = {r["label"] for r in rv["rv_monitor"]}
-        series_labels = set(rv["series"].keys())
+        series_labels = {label for label, pts in series.items() if pts}
         missing = rv_labels - series_labels
         assert not missing, f"Labels missing from series: {missing}"
 
-    def test_series_length_reasonable(self, rv):
+    def test_series_length_reasonable(self, series):
         """Every series should have 63–252 points (3m–1y of business days)."""
-        for label, pts in rv["series"].items():
+        for label, pts in series.items():
             assert 63 <= len(pts) <= 252, (
                 f"{label}: series has {len(pts)} points, expected 63–252"
             )
@@ -372,13 +378,13 @@ class TestEndToEnd:
         labels = {r["label"] for r in rv["rv_monitor"]}
         assert "2y1y-1y1y" in labels or len(labels) > 0  # at least one curve present
 
-    def test_series_dates_ascending(self, rv):
-        for label, pts in rv["series"].items():
+    def test_series_dates_ascending(self, series):
+        for label, pts in series.items():
             dates = [p["date"] for p in pts]
             assert dates == sorted(dates), f"{label}: dates not ascending"
 
-    def test_series_values_finite(self, rv):
-        for label, pts in rv["series"].items():
+    def test_series_values_finite(self, series):
+        for label, pts in series.items():
             vals = [p["value"] for p in pts]
             assert all(np.isfinite(v) for v in vals), f"{label}: non-finite value in series"
 

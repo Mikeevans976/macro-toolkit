@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from scipy.interpolate import CubicSpline
-from curves_flies_config import CURVES_BY_CCY, FLIES_BY_CCY
+from curves_flies_config import CORE_CURVES, CORE_FLIES, EXTENDED_CURVES, EXTENDED_FLIES
 from settings import settings
 
 # ---------------------------------------------------------------------------
@@ -51,10 +51,50 @@ def _fwd_rate(s: int, t: int, D: np.ndarray) -> float:
     return (num / den) * 100.0
 
 
+def _discount_factor_matrix(par: np.ndarray) -> np.ndarray:
+    """
+    Vectorised _build_discount_factors for many days at once.
+    par: (n_days, len(_SWAP_TENORS)) par rates in %; returns D: (n_days, _MAX_TENOR + 1).
+    """
+    rates = CubicSpline(_SWAP_TENORS, par, axis=1, bc_type="not-a-knot")(np.arange(1, _MAX_TENOR + 1, dtype=float))
+    rates[:, 30:] = par[:, -1:]          # flat beyond 30y
+    rates = rates / 100.0
+    D = np.zeros((par.shape[0], _MAX_TENOR + 1))
+    D[:, 0] = 1.0
+    annuity = np.zeros(par.shape[0])
+    for n in range(1, _MAX_TENOR + 1):
+        D[:, n] = (1.0 - rates[:, n - 1] * annuity) / (1.0 + rates[:, n - 1])
+        annuity += D[:, n]
+    return D
+
+
+def _fwd_rate_vec(s: int, t: int, D: np.ndarray, A: np.ndarray) -> np.ndarray:
+    """Vectorised _fwd_rate (%) across days; A = np.cumsum(D, axis=1)."""
+    return (D[:, s] - D[:, s + t]) / (A[:, s + t] - A[:, s]) * 100.0
+
+
 def _parse_label(label: str):
-    """'12y3y' -> (12, 3)"""
+    """'12y3y' -> (12, 3) forward; '10y' -> (0, 10) spot."""
     parts = label.split("y")
+    if len(parts) == 2:          # "10y" -> ["10", ""]
+        return 0, int(parts[0])
     return int(parts[0]), int(parts[1])
+
+
+def _rolled(s: int, t: int) -> "tuple[int, int]":
+    """Where a leg sits a year later on an unchanged curve: a forward's start moves one
+    year closer (s -> s-1); a spot swap's tenor shortens (t -> t-1)."""
+    return (s - 1, t) if s >= 1 else (0, t - 1)
+
+
+def _rolled_label(s: int, t: int) -> str:
+    rs, rt = _rolled(s, t)
+    return f"{rs}y{rt}y" if rs >= 1 else f"{rt}y spot"
+
+
+def _valid_leg(s: int, t: int) -> bool:
+    """Legs the engine can price and roll: spot from 2y (a 1y spot rolls into an overnight rate)."""
+    return (s >= 1 or t >= 2) and t >= 1 and s + t <= _MAX_TENOR
 
 
 def _carry_fwd_bps(label: str, D: np.ndarray) -> float:
@@ -67,8 +107,8 @@ def _carry_fwd_bps(label: str, D: np.ndarray) -> float:
       because the front's roll-down exceeds the back's.
     """
     s, t  = _parse_label(label)
-    f_now    = _fwd_rate(s,     t, D)
-    f_rolled = _fwd_rate(s - 1, t, D)   # s-1 == 0 gives the spot par rate
+    f_now    = _fwd_rate(s, t, D)
+    f_rolled = _fwd_rate(*_rolled(s, t), D)   # start 0 gives the spot par rate
     return (f_now - f_rolled) * 100.0   # bps, receiver convention
 
 
@@ -142,19 +182,44 @@ _BETA_VARS = ["1y10y_fwd", "2y1y_fwd", "1m10y_vol", "1y10y_vol"]
 # BBG helpers
 # ---------------------------------------------------------------------------
 
+UNIVERSES = ("core", "extended")
+
+
+def _structures(universe: str = "core") -> "list[tuple[str, str, tuple, tuple, str]]":
+    """(label, group, legs, weights, set) for the core, or core + extended, universe;
+    structures with a leg the engine cannot roll are left out."""
+    if universe not in UNIVERSES:
+        raise ValueError(f"universe must be one of {UNIVERSES}")
+    sets = [("core", CORE_CURVES, CORE_FLIES)]
+    if universe == "extended":
+        sets.append(("extended", EXTENDED_CURVES, EXTENDED_FLIES))
+    out = []
+    for name, curves, flies in sets:
+        out += [(lbl, "curve", (fr, bk), (-1, 1), name) for lbl, fr, bk in curves]
+        out += [(lbl, "fly", (fr, bl, bk), (-1, 2, -1), name) for lbl, fr, bl, bk in flies]
+    return [x for x in out if all(_valid_leg(*_parse_label(leg)) for leg in x[2])]
+
+
 def _fwd_labels_for_ccy(ccy: str) -> list[str]:
-    """Collect every unique forward label referenced by curves, flies, and snapshot."""
+    """Every leg label referenced by the full universe and the curve snapshot."""
     labels: set[str] = set()
     for group_info in FORWARD_GROUPS.values():
         labels.update(group_info["labels"])
-    for _, front, back in CURVES_BY_CCY[ccy]:
-        labels.add(front)
-        labels.add(back)
-    for _, front, belly, back in FLIES_BY_CCY[ccy]:
-        labels.add(front)
-        labels.add(belly)
-        labels.add(back)
+    for _, _, legs, _, _ in _structures("extended"):
+        labels.update(legs)
     return sorted(labels)
+
+
+def _forward_columns(par: pd.DataFrame, labels) -> pd.DataFrame:
+    """Forward (and spot) par rates in % for every day of `par`, all days at once."""
+    D_all = _discount_factor_matrix(par.values.astype(float))
+    A_all = np.cumsum(D_all, axis=1)
+    cols: dict[str, np.ndarray] = {}
+    for label in labels:
+        s, t = _parse_label(label)
+        if _valid_leg(s, t):
+            cols[label] = _fwd_rate_vec(s, t, D_all, A_all)
+    return pd.DataFrame(cols, index=par.index)
 
 
 def _fetch_from_bbg(
@@ -198,18 +263,8 @@ def _fetch_from_bbg(
         swap_df = par.copy()   # par rates, integer-keyed columns
 
         # ── 2. Bootstrap forward rates for every business day ───────────────
-        fwd_labels = _fwd_labels_for_ccy(ccy)
-        fwd_rows: list[dict] = []
-        for date, row in par.iterrows():
-            D = _build_discount_factors(row.values.astype(float))
-            rec: dict = {}
-            for label in fwd_labels:
-                s, t = _parse_label(label)
-                if s >= 1 and s + t <= _MAX_TENOR:
-                    rec[label] = _fwd_rate(s, t, D)   # already in %
-            fwd_rows.append(rec)
-
-        fwd_df = pd.DataFrame(fwd_rows, index=par.index)
+        #    All days at once: one spline + bootstrap over the (days × tenors) matrix
+        fwd_df = _forward_columns(par, _fwd_labels_for_ccy(ccy))   # already in %
 
         # ── 3. Fetch swaption vols (optional beta explanatory variables) ────
         vol_tickers = list(_VOL_TICKERS[ccy].values())
@@ -308,6 +363,10 @@ def _load_frames(ccy: str, as_of_date: str | None, fetched: "tuple | None"):
         fwd_df  = pd.read_csv(DATA_DIR / files["forwards"], parse_dates=["date"], index_col="date")
         beta_df = pd.read_csv(DATA_DIR / files["betas"],    parse_dates=["date"], index_col="date")
         swap_df = pd.read_csv(DATA_DIR / files["swaps"],    parse_dates=["date"], index_col="date")
+        missing = [lbl for lbl in _fwd_labels_for_ccy(ccy) if lbl not in fwd_df.columns]
+        if missing:
+            derived = _forward_columns(swap_df.sort_index(), missing).reindex(fwd_df.index)
+            fwd_df = pd.concat([fwd_df, derived], axis=1)
 
     common_idx = fwd_df.index.intersection(beta_df.index)
     fwd_df = fwd_df.loc[common_idx].sort_index()
@@ -354,20 +413,19 @@ def _residual_zscore(resid: np.ndarray) -> float:
     return (float(cumresid[-1]) - float(cumresid.mean())) / cr_std if cr_std > 0 else 0.0
 
 
-def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bool = False) -> dict:
+def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bool = False,
+               universe: str = "core") -> dict:
     ccy = currency.upper()
     if ccy not in _CCY_FILES:
         raise ValueError(f"Unsupported currency: {currency}")
-
-    curves = CURVES_BY_CCY[ccy]
-    flies  = FLIES_BY_CCY[ccy]
+    structures = _structures(universe)
 
     # 1. Load data — Bloomberg when it is the configured source, else (or on failure) CSV.
     #    The live window is the 5y to today; an as-of date slices it below.
     fetched = _load_bbg(ccy, refresh) if settings.data_source == "bloomberg" else None
     data_source = "bloomberg" if fetched is not None else "csv"
     if fetched is not None:
-        cached = _rv_cache.get((ccy, as_of_date))
+        cached = _rv_cache.get((ccy, as_of_date, universe))
         if cached and cached[0] == fetched[0]:
             return cached[1]
 
@@ -399,25 +457,15 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
             "points": points,
         }
 
-    # 5. Build curve and fly time series
-    def curve_series(front, back):
-        return (fwd_df[back] - fwd_df[front]) * 100  # bps
-
-    def fly_series(front, belly, back):
-        return (2 * fwd_df[belly] - fwd_df[front] - fwd_df[back]) * 100  # bps
-
-    # Collect all series: list of (label, group, series, legs, weights)
+    # 5. Build curve and fly time series (bps): curve = back − front, fly = 2·belly − wings
     all_series = []
-    for label, front, back in curves:
-        if front not in fwd_df.columns or back not in fwd_df.columns:
+    set_of: dict[str, str] = {}
+    for label, group, legs, weights, which in structures:
+        if any(leg not in fwd_df.columns for leg in legs):
             continue
-        all_series.append((label, "curve", curve_series(front, back),
-                           (front, back), (-1, 1)))
-    for label, front, belly, back in flies:
-        if any(leg not in fwd_df.columns for leg in (front, belly, back)):
-            continue
-        all_series.append((label, "fly", fly_series(front, belly, back),
-                           (front, belly, back), (-1, 2, -1)))
+        series = sum(w * fwd_df[leg] for w, leg in zip(weights, legs)) * 100
+        all_series.append((label, group, series, legs, weights))
+        set_of[label] = which
 
     n = len(fwd_df)
     win_1y = min(252, n)
@@ -448,8 +496,8 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
                 "tenor": t,
                 "start": s,
                 "rate": round(float(_fwd_rate(s, t, D)), 4),
-                "rolled_label": f"{s - 1}y{t}y" if s > 1 else f"{t}y spot",
-                "rolled_rate": round(float(_fwd_rate(s - 1, t, D)), 4),
+                "rolled_label": _rolled_label(s, t),
+                "rolled_rate": round(float(_fwd_rate(*_rolled(s, t), D)), 4),
                 "contribution_bps": round(float(w * _carry_fwd_bps(leg, D)), 2),
             })
         rv_monitor.append({
@@ -465,11 +513,12 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
             "carry1y_bps": carry1y_bps,
             "carry_vol_ratio": carry_vol_ratio,
             "legs": leg_detail,
+            "set": set_of[label],
         })
 
     # Curve the carry is computed on: par quotes, the fitted par curve, and a forward
     # curve f(s, t) by start s for every leg tenor t (s = 0 is the spot par rate).
-    leg_tenors = sorted({_parse_label(leg)[1] for _, _, _, legs, _ in all_series for leg in legs})
+    leg_tenors = sorted({t for _, _, _, legs, _ in all_series for s, t in map(_parse_label, legs) if s >= 1})
     par_fit = _fit_par_rates(swap_row)
     curve = {
         "par_quotes": [{"tenor": n, "rate": round(float(r), 4)} for n, r in zip(_SWAP_TENORS, swap_row)],
@@ -497,27 +546,11 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
             **{f"beta_{v}": round(float(betas[v]), 3) if v in betas else None for v in _BETA_VARS},
             "r2": r2,
             "residual_zscore": residual_zscore,
+            "set": set_of[label],
         })
 
-    # 7. 1y time series for each expression (for detail chart)
-    series_out: dict = {}
-    for label, group, series, legs, weights in all_series:
-        window = series.iloc[-win_1y:]
-        series_out[label] = [
-            {"date": d.strftime("%Y-%m-%d"), "value": round(float(v), 2)}
-            for d, v in zip(window.index, window.values)
-        ]
-
-    # 8. Full available history (up to as-of) for the detail view's lookback selector.
-    #    Shared date axis + one value array per label keeps the payload compact.
-    history_df = pd.DataFrame({label: series for label, _, series, _, _ in all_series}).round(2)
-    history = {
-        "dates": [d.strftime("%Y-%m-%d") for d in history_df.index],
-        "values": {
-            label: [None if pd.isna(v) else float(v) for v in history_df[label].values]
-            for label in history_df.columns
-        },
-    }
+    # Each structure's full history is served on demand (compute_history) when its detail
+    # view opens, so the payload stays small however large the universe.
 
     # When the latest live day is shown, its prices are intraday as of the Bloomberg pull;
     # past days are closes, so they carry no time.
@@ -533,14 +566,13 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
         "curve": curve,
         "rv_monitor": rv_monitor,
         "beta_monitor": beta_monitor,
-        "series": series_out,
-        "history": history,
+        "universe": universe,
     }
     if fetched is not None:
         # Drop this currency's payloads built from older data, then remember this one
         for key in [k for k, v in _rv_cache.items() if k[0] == ccy and v[0] != fetched[0]]:
             del _rv_cache[key]
-        _rv_cache[(ccy, as_of_date)] = (fetched[0], payload)
+        _rv_cache[(ccy, as_of_date, universe)] = (fetched[0], payload)
     return payload
 
 
@@ -549,14 +581,28 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
 # ---------------------------------------------------------------------------
 
 def _expression(ccy: str, label: str) -> "tuple[str, tuple, tuple]":
-    """(group, legs, weights) for a curve or fly label."""
-    for lbl, front, back in CURVES_BY_CCY[ccy]:
+    """(group, legs, weights) for a curve or fly label in the full universe."""
+    for lbl, group, legs, weights, _ in _structures("extended"):
         if lbl == label:
-            return "curve", (front, back), (-1, 1)
-    for lbl, front, belly, back in FLIES_BY_CCY[ccy]:
-        if lbl == label:
-            return "fly", (front, belly, back), (-1, 2, -1)
+            return group, legs, weights
     raise KeyError(f"Unknown {ccy} structure: {label}")
+
+
+def compute_history(currency: str, label: str, as_of_date: str | None = None) -> dict:
+    """Full daily history (bps) of one structure up to the as-of date, for its detail view."""
+    ccy = currency.upper()
+    if ccy not in _CCY_FILES:
+        raise ValueError(f"Unsupported currency: {currency}")
+    _, legs, weights = _expression(ccy, label)
+    fetched = _load_bbg(ccy) if settings.data_source == "bloomberg" else None
+    fwd_df, _, _, _, _ = _load_frames(ccy, as_of_date, fetched)
+    if any(leg not in fwd_df.columns for leg in legs):
+        raise KeyError(f"No data for {label}")
+    series = (sum(w * fwd_df[leg] for w, leg in zip(weights, legs)) * 100).dropna().round(2)
+    return {
+        "label": label,
+        "points": [{"date": d.strftime("%Y-%m-%d"), "value": float(v)} for d, v in series.items()],
+    }
 
 
 def compute_regression(currency: str, label: str, as_of_date: str | None = None, window: int = 63) -> dict:
@@ -664,3 +710,158 @@ def compute_regression(currency: str, label: str, as_of_date: str | None = None,
         "residuals": residuals,
         "attribution": attribution,
     }
+
+
+# ---------------------------------------------------------------------------
+# Carry realisation backtest
+# ---------------------------------------------------------------------------
+# For every past day t and structure: the 1y carry an unchanged curve predicted on t,
+# and the P&L of holding it for a year (receive at f_t(s, T), mark at f_{t+1y}(s-1, T)).
+# realised = carry + forward error, where forward error = f_t(s-1, T) - f_{t+1y}(s-1, T):
+# how far the rolled point moved from where t's curve put it. All days and structures are
+# computed in one vectorised pass and cached until the data changes.
+
+_BT_WINDOWS = {"1y": pd.DateOffset(years=1), "2y": pd.DateOffset(years=2), "all": None}
+_bt_cache: dict[str, tuple] = {}   # ccy -> (data stamp, core arrays)
+
+
+def _carry_backtest_core(ccy: str, swap_df: pd.DataFrame) -> dict:
+    dates = swap_df.index
+    D = _discount_factor_matrix(swap_df.values.astype(float))
+    A = np.cumsum(D, axis=1)
+    fwd_cache: dict[tuple, np.ndarray] = {}
+
+    def f(s: int, t: int) -> np.ndarray:   # forward in bp for every day
+        if (s, t) not in fwd_cache:
+            fwd_cache[(s, t)] = _fwd_rate_vec(s, t, D, A) * 100.0
+        return fwd_cache[(s, t)]
+
+    # Day t's holding period ends on the last business day on or before t + 1y
+    targets = dates + pd.DateOffset(years=1)
+    has_end = targets <= dates[-1]
+    end_idx = np.clip(dates.searchsorted(targets, side="right") - 1, 0, len(dates) - 1)
+
+    labels, groups, sets, carry_cols, real_cols = [], [], [], [], []
+    for lbl, group, legs, weights, which in _structures("extended"):
+        st = [_parse_label(leg) for leg in legs]
+        carry = sum(w * (f(s, t) - f(*_rolled(s, t))) for w, (s, t) in zip(weights, st))
+        realised = sum(w * (f(s, t) - f(*_rolled(s, t))[end_idx]) for w, (s, t) in zip(weights, st))
+        labels.append(lbl)
+        groups.append(group)
+        sets.append(which)
+        carry_cols.append(carry)
+        real_cols.append(np.where(has_end, realised, np.nan))
+    return {
+        "dates": dates, "end_dates": dates[end_idx], "has_end": has_end,
+        "labels": labels, "groups": groups, "sets": np.array(sets),
+        "carry": np.column_stack(carry_cols), "realised": np.column_stack(real_cols),
+    }
+
+
+def _row_rank_corr(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """Spearman correlation across structures, one value per start date (rows)."""
+    rx = stats.rankdata(x, axis=1)
+    ry = stats.rankdata(y, axis=1)
+    rx -= rx.mean(axis=1, keepdims=True)
+    ry -= ry.mean(axis=1, keepdims=True)
+    den = np.sqrt((rx ** 2).sum(axis=1) * (ry ** 2).sum(axis=1))
+    return np.divide((rx * ry).sum(axis=1), den, out=np.full(len(rx), np.nan), where=den > 0)
+
+
+def _bt_stats(carry: np.ndarray, realised: np.ndarray) -> dict:
+    """Pooled stats; the 'strategy' receives a structure when its carry is positive, pays when negative."""
+    c, r = carry.ravel(), realised.ravel()
+    sgn = np.sign(c)
+    pred, real = float(np.mean(sgn * c)), float(np.mean(sgn * r))
+    return {
+        "predicted_bp": round(pred, 2),
+        "realised_bp": round(real, 2),
+        "delivered": round(real / pred, 3) if pred > 0 else None,
+        "hit_rate": round(float(np.mean(np.sign(r) == sgn)), 3),
+        "slope": round(float(np.polyfit(c, r, 1)[0]), 3) if len(c) > 2 and np.ptp(c) > 0 else None,
+    }
+
+
+def compute_carry_backtest(currency: str = "EUR", as_of_date: str | None = None,
+                           label: str | None = None, window: str = "1y", universe: str = "core") -> dict:
+    """
+    How much of the predicted 1y roll-down was delivered, for holding periods ending in
+    `window` before the as-of date: per currency (all structures) and per structure; with
+    `label`, that structure's full predicted-vs-realised history.
+    """
+    ccy = currency.upper()
+    if ccy not in _CCY_FILES:
+        raise ValueError(f"Unsupported currency: {currency}")
+    if window not in _BT_WINDOWS:
+        raise ValueError(f"window must be one of {list(_BT_WINDOWS)}")
+    if universe not in UNIVERSES:
+        raise ValueError(f"universe must be one of {UNIVERSES}")
+
+    fetched = _load_bbg(ccy) if settings.data_source == "bloomberg" else None
+    stamp = fetched[0] if fetched is not None else "csv"
+    hit = _bt_cache.get(ccy)
+    if hit and hit[0] == stamp:
+        core = hit[1]
+    else:
+        swap_df = fetched[1][2] if fetched is not None else \
+            pd.read_csv(DATA_DIR / _CCY_FILES[ccy]["swaps"], parse_dates=["date"], index_col="date")
+        core = _carry_backtest_core(ccy, swap_df.sort_index())
+        _bt_cache[ccy] = (stamp, core)
+
+    dates, end_dates = core["dates"], core["end_dates"]
+    as_of = min(pd.Timestamp(as_of_date), dates[-1]) if as_of_date else dates[-1]
+    known = core["has_end"] & (end_dates <= as_of)           # outcome observable by the as-of date
+    span = _BT_WINDOWS[window]
+    in_window = known & ((end_dates > as_of - span) if span is not None else True)
+
+    labels = core["labels"]
+    cols = np.flatnonzero(core["sets"] == "core") if universe == "core" else np.arange(len(labels))
+    carry = core["carry"][in_window][:, cols]
+    realised = core["realised"][in_window][:, cols]
+    n_starts = int(in_window.sum())
+
+    result: dict = {
+        "currency": ccy,
+        "as_of": as_of.strftime("%Y-%m-%d"),
+        "data_source": "bloomberg" if fetched is not None else "csv",
+        "window": window,
+        "universe": universe,
+        "n_starts": n_starts,
+        "first_end": end_dates[in_window][0].strftime("%Y-%m-%d") if n_starts else None,
+        "last_end": end_dates[in_window][-1].strftime("%Y-%m-%d") if n_starts else None,
+        "summary": None,
+        "structures": [],
+    }
+    if n_starts >= 2:
+        result["summary"] = {
+            **_bt_stats(carry, realised),
+            "rank_corr": round(float(np.nanmean(_row_rank_corr(carry, realised))), 3),
+        }
+        for j, k in enumerate(cols):
+            st = _bt_stats(carry[:, j], realised[:, j])
+            result["structures"].append({
+                "label": labels[k], "group": core["groups"][k], "set": str(core["sets"][k]),
+                "avg_carry_bp": round(float(carry[:, j].mean()), 2),
+                "avg_realised_bp": round(float(realised[:, j].mean()), 2),
+                "hit_rate": st["hit_rate"], "delivered": st["delivered"], "slope": st["slope"],
+            })
+
+    if label is not None:
+        if label not in labels:
+            raise KeyError(f"Unknown {ccy} structure: {label}")
+        k = labels.index(label)
+        upto = dates <= as_of
+        series = []
+        for i in np.flatnonzero(upto):
+            done = bool(known[i])
+            c = float(core["carry"][i, k])
+            r = float(core["realised"][i, k]) if done else None
+            series.append({
+                "start": dates[i].strftime("%Y-%m-%d"),
+                "end": end_dates[i].strftime("%Y-%m-%d") if done else None,
+                "carry": round(c, 2),
+                "realised": round(r, 2) if r is not None else None,
+                "fwd_err": round(r - c, 2) if r is not None else None,
+            })
+        result["series"] = series
+    return result

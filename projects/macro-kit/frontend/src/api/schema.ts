@@ -1175,6 +1175,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/swaps-rv/carry-backtest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Swaps Rv Carry Backtest
+         * @description How much predicted 1y roll-down was delivered: per currency, per structure, and one structure's history.
+         */
+        get: operations["get_swaps_rv_carry_backtest_api_tools_swaps_rv_carry_backtest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/swaps-rv/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Swaps Rv History
+         * @description Full daily history of one structure (bps) up to the as-of date.
+         */
+        get: operations["get_swaps_rv_history_api_tools_swaps_rv_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tools/swaps-rv/regression": {
         parameters: {
             query?: never;
@@ -3751,6 +3791,75 @@ export interface operations {
                 date?: string | null;
                 currency?: string;
                 refresh?: boolean;
+                universe?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_swaps_rv_carry_backtest_api_tools_swaps_rv_carry_backtest_get: {
+        parameters: {
+            query?: {
+                currency?: string;
+                date?: string | null;
+                label?: string | null;
+                window?: string;
+                universe?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_swaps_rv_history_api_tools_swaps_rv_history_get: {
+        parameters: {
+            query: {
+                label: string;
+                currency?: string;
+                date?: string | null;
             };
             header?: never;
             path?: never;

@@ -16,6 +16,7 @@ import {
 import ExpressionDetail, { fmtBp, type SeriesPoint, type StatGroupDef } from '../components/ExpressionDetail'
 import CurveRolldown, { type CurveData, type RollLeg } from '../components/CurveRolldown'
 import RegressionDetail from '../components/RegressionDetail'
+import { CarryRealisationDetail, CarryRealisationSummary } from '../components/CarryBacktest'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,7 @@ interface RVRow {
   carry1y_bps: number
   carry_vol_ratio: number | null
   legs?: RollLeg[]     // per-leg roll-down behind carry1y_bps
+  set?: 'core' | 'extended'
 }
 
 interface BetaRow {
@@ -67,9 +69,10 @@ interface SwapsRVData {
   curve?: CurveData                // the as-of curve carry is computed on
   rv_monitor: RVRow[]
   beta_monitor: BetaRow[]
-  series: Record<string, SeriesPoint[]>
-  history?: { dates: string[]; values: Record<string, (number | null)[]> }
+  universe?: Universe
 }
+
+type Universe = 'core' | 'extended'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -511,6 +514,7 @@ function DetailChart({ label, history, rvRow, betaRow, rvMonitor, curve, asOf, c
       {curve && rvRow.legs && (
         <CurveRolldown curve={curve} legs={rvRow.legs} carryBps={rvRow.carry1y_bps} asOf={asOf} />
       )}
+      <CarryRealisationDetail currency={currency} label={label} asOf={asOf} dataStamp={dataStamp} />
     </>
   )
 }
@@ -793,6 +797,9 @@ export default function SwapsRV() {
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [focusLabel, setFocusLabel] = useState<string | null>(null)
   const [detailLabel, setDetailLabel] = useState<string | null>(null)
+  const [universe, setUniverse] = useState<Universe>('core')
+  // History of the structure open in the detail view, fetched on demand
+  const [detailHistory, setDetailHistory] = useState<{ key: string; points: SeriesPoint[] } | null>(null)
   const [betaVar, setBetaVar] = useState<string>('beta_1y10y_fwd')
   const detailRef = useRef<HTMLElement>(null)
   const navigate = useNavigate()
@@ -803,16 +810,21 @@ export default function SwapsRV() {
     : BETA_VARS
   const volsMissing = data?.beta_vars !== undefined && betaOptions.length < BETA_VARS.length
 
-  // Full history for one expression; falls back to the 1y series if the backend omits it
-  function historyFor(label: string): SeriesPoint[] {
-    const h = data?.history
-    if (h && h.values[label]) {
-      const out: SeriesPoint[] = []
-      h.values[label].forEach((v, i) => { if (v !== null) out.push({ date: h.dates[i], value: v }) })
-      return out
-    }
-    return data?.series[label] ?? []
-  }
+  // Full history of the open structure, loaded when its detail view opens
+  const historyKey = detailLabel && data ? `${currency}|${detailLabel}|${data.as_of}|${data.data_timestamp ?? ''}` : null
+  useEffect(() => {
+    if (!historyKey || !detailLabel || !data) return
+    let cancelled = false
+    const params = new URLSearchParams({ currency, label: detailLabel, date: data.as_of })
+    axios
+      .get<{ points: SeriesPoint[] }>(`/api/tools/swaps-rv/history?${params}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token') ?? ''}` },
+      })
+      .then(res => { if (!cancelled) setDetailHistory({ key: historyKey, points: res.data.points }) })
+      .catch(() => { if (!cancelled) setDetailHistory({ key: historyKey, points: [] }) })
+    return () => { cancelled = true }
+  }, [historyKey])   // eslint-disable-line react-hooks/exhaustive-deps
+  const openHistory = detailHistory && detailHistory.key === historyKey ? detailHistory.points : null
 
   function openDetail(label: string) {
     setFocusLabel(label)
@@ -820,7 +832,7 @@ export default function SwapsRV() {
     detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  function fetchData(isRefresh = false, date?: string, ccy?: string) {
+  function fetchData(isRefresh = false, date?: string, ccy?: string, uni?: Universe) {
     const token = localStorage.getItem('access_token')
     if (!token) {
       navigate('/login', { replace: true })
@@ -832,7 +844,7 @@ export default function SwapsRV() {
     setNoData(false)
 
     const activeCcy = ccy ?? currency
-    const params = new URLSearchParams({ currency: activeCcy })
+    const params = new URLSearchParams({ currency: activeCcy, universe: uni ?? universe })
     if (date) params.set('date', date)
     if (isRefresh) params.set('refresh', 'true')   // bypass the backend's live-data cache
     axios
@@ -865,6 +877,11 @@ export default function SwapsRV() {
         setLoading(false)
         setRefreshing(false)
       })
+  }
+
+  function switchUniverse(u: Universe) {
+    setUniverse(u)
+    fetchData(false, selectedDate || undefined, undefined, u)
   }
 
   function switchCurrency(ccy: string) {
@@ -936,6 +953,32 @@ export default function SwapsRV() {
           ))}
         </div>
 
+        {/* Universe toggle */}
+        <div
+          className="flex items-center"
+          title="Core: the curated structures. Extended: core plus a generated grid of spot and forward curves and flies."
+          style={{ background: 'rgba(200,220,240,0.04)', border: '1px solid rgba(200,220,240,0.08)', borderRadius: 6, padding: 3, gap: 2 }}
+        >
+          {(['core', 'extended'] as Universe[]).map(u => (
+            <button
+              key={u}
+              onClick={() => universe !== u && switchUniverse(u)}
+              style={{
+                padding: '4px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, border: 'none',
+                cursor: universe === u ? 'default' : 'pointer',
+                background: universe === u ? 'rgba(106,169,204,0.25)' : 'transparent',
+                color: universe === u ? '#a9d2e8' : '#9aa5b1',
+                outline: universe === u ? '1px solid rgba(106,169,204,0.35)' : 'none',
+              }}
+            >
+              {u === 'core' ? 'Core' : 'Extended'}
+              {data && data.universe === u && (
+                <span style={{ marginLeft: 6, fontWeight: 400, color: '#8995a2' }}>{data.rv_monitor.length}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center gap-3">
           {data?.data_source && (
             <span
@@ -993,7 +1036,7 @@ export default function SwapsRV() {
             </div>
           )}
           <button
-            onClick={() => fetchData(true)}
+            onClick={() => fetchData(true, selectedDate && selectedDate !== data?.as_of ? selectedDate : undefined)}
             disabled={refreshing}
             className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
@@ -1057,10 +1100,12 @@ export default function SwapsRV() {
           {/* A. Carry/Vol vs Z-score / Detail view */}
           <section ref={detailRef} style={{ scrollMarginTop: 88 }}>
             <div style={cardStyle}>
-              {detailLabel && historyFor(detailLabel).length > 1 && data.rv_monitor.some(r => r.label === detailLabel) ? (
+              {detailLabel && data.rv_monitor.some(r => r.label === detailLabel) && openHistory === null ? (
+                <div style={{ color: '#8995a2', fontSize: 12, padding: '40px 0', textAlign: 'center' }}>Loading {detailLabel} history…</div>
+              ) : detailLabel && openHistory && openHistory.length > 1 && data.rv_monitor.some(r => r.label === detailLabel) ? (
                 <DetailChart
                   label={detailLabel}
-                  history={historyFor(detailLabel)}
+                  history={openHistory}
                   rvRow={data.rv_monitor.find(r => r.label === detailLabel)!}
                   betaRow={data.beta_monitor.find(b => b.label === detailLabel)}
                   rvMonitor={data.rv_monitor}
@@ -1154,6 +1199,20 @@ export default function SwapsRV() {
                 </p>
               </div>
               <BetaMonitorTable rows={data.beta_monitor} selected={detailLabel} onSelect={openDetail} />
+            </div>
+          </section>
+
+          {/* D. Carry Realisation */}
+          <section>
+            <div style={cardStyle}>
+              <CarryRealisationSummary
+                currency={currency}
+                universe={universe}
+                asOf={data.as_of}
+                dataStamp={data.data_timestamp}
+                selected={detailLabel}
+                onSelect={openDetail}
+              />
             </div>
           </section>
         </main>

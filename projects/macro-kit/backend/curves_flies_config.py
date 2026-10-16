@@ -233,16 +233,101 @@ USD_FLIES = [
     ("1y2y|1y10y|1y20y",  "1y2y",  "1y10y", "1y20y"),
 ]
 
-# ─── Lookup by currency ───────────────────────────────────────────────────────
+# ─── Universe ─────────────────────────────────────────────────────────────────
+# One universe for every currency (GBP/USD/EUR lists above are kept as the
+# historical record of what each market showed). Leg labels:
+#   "5y10y" = 10y swap starting in 5y (forward);  "10y" = 10y spot swap.
+# Spot legs start at 2y: a 1y spot swap rolls into an overnight rate, which is
+# not on the curve, so its carry is undefined.
 
-CURVES_BY_CCY = {
-    "EUR": CURVES,
-    "GBP": GBP_CURVES,
-    "USD": USD_CURVES,
-}
 
-FLIES_BY_CCY = {
-    "EUR": FLIES,
-    "GBP": GBP_FLIES,
-    "USD": USD_FLIES,
-}
+def _union(*lists):
+    seen, out = set(), []
+    for lst in lists:
+        for item in lst:
+            if item[0] not in seen:
+                seen.add(item[0])
+                out.append(item)
+    return out
+
+
+# Core: everything the three markets showed before, plus curated additions
+CURATED_CURVES = [
+    # Spot benchmarks (value = back − front, e.g. 2s10s = 10y − 2y)
+    ("2s5s",   "2y",  "5y"),
+    ("2s10s",  "2y",  "10y"),
+    ("2s30s",  "2y",  "30y"),
+    ("5s10s",  "5y",  "10y"),
+    ("5s30s",  "5y",  "30y"),
+    ("10s20s", "10y", "20y"),
+    ("10s30s", "10y", "30y"),
+    ("20s30s", "20y", "30y"),
+    # Forward vs (near-)spot of the same tenor
+    ("5y5y-1y5y",    "1y5y",  "5y5y"),
+    ("10y10y-1y10y", "1y10y", "10y10y"),
+    ("20y10y-1y10y", "1y10y", "20y10y"),
+]
+
+CURATED_FLIES = [
+    # Spot benchmarks (value = 2 × belly − wings)
+    ("2s5s10s",   "2y",  "5y",  "10y"),
+    ("2s10s30s",  "2y",  "10y", "30y"),
+    ("5s7s10s",   "5y",  "7y",  "10y"),
+    ("5s10s30s",  "5y",  "10y", "30y"),
+    ("10s15s20s", "10y", "15y", "20y"),
+    ("10s20s30s", "10y", "20y", "30y"),
+    # Long-end forwards
+    ("1y10y|10y10y|20y10y", "1y10y", "10y10y", "20y10y"),
+]
+
+CORE_CURVES = _union(CURVES, GBP_CURVES, USD_CURVES, CURATED_CURVES)
+CORE_FLIES  = _union(FLIES, GBP_FLIES, USD_FLIES, CURATED_FLIES)
+
+
+# Extended: generated from a grid, minus anything already in the core.
+#   spot      — every pair of spot tenors; flies on neighbouring spot tenors
+#   forwards  — fixed tenor, neighbouring starts (and flies on three neighbours);
+#               fixed start, neighbouring tenors (and flies on three neighbours)
+# Forwards are capped at start + tenor <= 40y (beyond 30y the curve is extrapolated flat).
+SPOT_GRID   = [2, 3, 5, 7, 10, 15, 20, 30]
+START_GRID  = [1, 2, 3, 4, 5, 7, 10, 15, 20]
+TENOR_GRID  = [1, 2, 3, 5, 10, 20, 30]
+MAX_END     = 40
+
+
+def _spot(t):
+    return f"{t}y"
+
+
+def _fwd(s, t):
+    return f"{s}y{t}y"
+
+
+def _generate():
+    curves, flies = [], []
+    for i, a in enumerate(SPOT_GRID):
+        for b in SPOT_GRID[i + 1:]:
+            curves.append((f"{a}s{b}s", _spot(a), _spot(b)))
+    for a, b, c in zip(SPOT_GRID, SPOT_GRID[1:], SPOT_GRID[2:]):
+        flies.append((f"{a}s{b}s{c}s", _spot(a), _spot(b), _spot(c)))
+    for t in TENOR_GRID:     # same tenor, neighbouring starts
+        starts = [s for s in START_GRID if s + t <= MAX_END]
+        for a, b in zip(starts, starts[1:]):
+            curves.append((f"{_fwd(b, t)}-{_fwd(a, t)}", _fwd(a, t), _fwd(b, t)))
+        for a, b, c in zip(starts, starts[1:], starts[2:]):
+            flies.append((f"{_fwd(a, t)}|{_fwd(b, t)}|{_fwd(c, t)}", _fwd(a, t), _fwd(b, t), _fwd(c, t)))
+    for s in START_GRID:     # same start, neighbouring tenors
+        tenors = [t for t in TENOR_GRID if s + t <= MAX_END]
+        for a, b in zip(tenors, tenors[1:]):
+            curves.append((f"{_fwd(s, b)}-{_fwd(s, a)}", _fwd(s, a), _fwd(s, b)))
+        for a, b, c in zip(tenors, tenors[1:], tenors[2:]):
+            flies.append((f"{_fwd(s, a)}|{_fwd(s, b)}|{_fwd(s, c)}", _fwd(s, a), _fwd(s, b), _fwd(s, c)))
+    core = {x[0] for x in CORE_CURVES} | {x[0] for x in CORE_FLIES}
+    return [c for c in _union(curves) if c[0] not in core], [f for f in _union(flies) if f[0] not in core]
+
+
+EXTENDED_CURVES, EXTENDED_FLIES = _generate()
+
+# Kept for callers that look structures up by currency: every market shares the core.
+CURVES_BY_CCY = {ccy: CORE_CURVES for ccy in ("EUR", "GBP", "USD")}
+FLIES_BY_CCY  = {ccy: CORE_FLIES for ccy in ("EUR", "GBP", "USD")}

@@ -85,15 +85,18 @@ export default function CurveRolldown({ curve, legs, carryBps, asOf }: {
 }) {
   const [zoom, setZoom] = useState<'full' | 'legs'>('full')
 
-  // One forward curve per distinct leg tenor, coloured consistently
-  const tenors = useMemo(() => [...new Set(legs.map(l => l.tenor))].sort((a, b) => a - b), [legs])
+  // Spot legs (start 0) roll along the par curve, so they are drawn on the par chart;
+  // forward legs roll along their own forward curve f(·, tenor)
+  const spotLegs = useMemo(() => legs.filter(l => l.start === 0), [legs])
+  const fwdLegs = useMemo(() => legs.filter(l => l.start > 0), [legs])
+  const tenors = useMemo(() => [...new Set(fwdLegs.map(l => l.tenor))].sort((a, b) => a - b), [fwdLegs])
   const tenorColor = (t: number) => palette[tenors.indexOf(t) % palette.length]
 
   const xDomain: [number, number] = useMemo(() => {
-    if (zoom === 'full') return [0, 30]
-    const lo = Math.min(...legs.map(l => l.start - 1)), hi = Math.max(...legs.map(l => l.start))
+    if (zoom === 'full' || !fwdLegs.length) return [0, 30]
+    const lo = Math.min(...fwdLegs.map(l => l.start - 1)), hi = Math.max(...fwdLegs.map(l => l.start))
     return [Math.max(0, lo - 2), Math.min(30, hi + 2)]
-  }, [zoom, legs])
+  }, [zoom, fwdLegs])
 
   const fwdRows = useMemo(() => {
     const byStart = new Map<number, Record<string, number>>()
@@ -110,10 +113,10 @@ export default function CurveRolldown({ curve, legs, carryBps, asOf }: {
     return [...byStart.values()].sort((a, b) => a.start - b.start)
   }, [curve.forwards, tenors, xDomain])
 
-  const fwdDomain = useMemo(
-    () => fitDomain(fwdRows.flatMap(r => tenors.flatMap(t => [r[`t${t}`], r[`t${t}x`]]).filter((v): v is number => v !== undefined))),
-    [fwdRows, tenors],
-  )
+  const fwdDomain = useMemo(() => {
+    const vals = fwdRows.flatMap(r => tenors.flatMap(t => [r[`t${t}`], r[`t${t}x`]]).filter((v): v is number => v !== undefined))
+    return vals.length ? fitDomain(vals) : ([0, 1] as [number, number])
+  }, [fwdRows, tenors])
   const parDomain = useMemo(
     () => fitDomain([...curve.par_fitted.map(p => p.rate), ...curve.par_quotes.map(p => p.rate)]),
     [curve],
@@ -140,12 +143,14 @@ export default function CurveRolldown({ curve, legs, carryBps, asOf }: {
     <div style={{ marginTop: 20 }}>
       <div style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Curve &amp; roll-down</div>
       <div style={{ color: '#8995a2', fontSize: 12, marginBottom: 12 }}>
-        Curve as of {asOf}. Carry assumes this curve stays unchanged for a year: each leg slides one year
-        down its own forward curve (start s → s−1).
+        Curve as of {asOf}. Carry assumes this curve stays unchanged for a year: a forward leg slides one year
+        down its own forward curve (start s → s−1); a spot leg slides down the par curve (tenor t → t−1).
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 12 }}>
-        <Panel title="Par OIS curve" sub="Dots: Bloomberg par quotes · line: cubic-spline fit used for discounting (flat beyond 30y)">
+        <Panel title="Par OIS curve" sub={spotLegs.length
+          ? 'Dots: par quotes · line: spline fit · gold: spot legs today → in 1y (tenor shortens by a year)'
+          : 'Dots: Bloomberg par quotes · line: cubic-spline fit used for discounting (flat beyond 30y)'}>
           <ResponsiveContainer width="100%" height={260}>
             <ComposedChart data={curve.par_fitted} margin={{ top: 8, right: 12, bottom: 16, left: 0 }}>
               <CartesianGrid {...chart.grid} />
@@ -157,6 +162,20 @@ export default function CurveRolldown({ curve, legs, carryBps, asOf }: {
                 formatter={(v: number, name: string) => [`${v.toFixed(3)}%`, name]} />
               <Line dataKey="rate" name="Fitted par" stroke="#86c0de" strokeWidth={1.5} dot={false} isAnimationActive={false} />
               <Scatter data={curve.par_quotes} dataKey="rate" name="Quote" fill="#e4eaf1" isAnimationActive={false} />
+              {spotLegs.map(l => (
+                <ReferenceLine key={`sarrow-${l.label}`} ifOverflow="hidden"
+                  segment={[{ x: l.tenor, y: l.rate }, { x: l.tenor - 1, y: l.rolled_rate }]}
+                  shape={RollArrow('#d6ad66')} />
+              ))}
+              {spotLegs.map(l => (
+                <ReferenceDot key={`srolled-${l.label}`} x={l.tenor - 1} y={l.rolled_rate} r={4}
+                  fill="#0b0f14" stroke="#d6ad66" strokeWidth={1.5} ifOverflow="hidden" />
+              ))}
+              {spotLegs.map(l => (
+                <ReferenceDot key={`snow-${l.label}`} x={l.tenor} y={l.rate} r={4.5}
+                  fill="#d6ad66" stroke="#0b0f14" ifOverflow="hidden"
+                  label={{ value: `${l.weight > 0 ? '+' : ''}${l.weight}× ${l.label}`, position: 'right', offset: 8, fill: fg[2], fontSize: 10, fontFamily: MONO }} />
+              ))}
             </ComposedChart>
           </ResponsiveContainer>
         </Panel>
@@ -166,6 +185,11 @@ export default function CurveRolldown({ curve, legs, carryBps, asOf }: {
           sub="f(s, tenor) by forward start s · filled dot: leg today · arrow: where it rolls in 1y · dashed: needs par rates beyond 30y"
           right={<div style={{ display: 'flex', gap: 4 }}>{zoomBtn('full', 'Full')}{zoomBtn('legs', 'Around legs')}</div>}
         >
+          {!fwdLegs.length ? (
+            <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8995a2', fontSize: 12, textAlign: 'center', padding: '0 24px' }}>
+              All legs are spot swaps: each rolls along the par curve (left) as its tenor shortens by a year.
+            </div>
+          ) : (
           <ResponsiveContainer width="100%" height={260}>
             <ComposedChart data={fwdRows} margin={{ top: 8, right: 12, bottom: 16, left: 0 }}>
               <CartesianGrid {...chart.grid} />
@@ -184,22 +208,23 @@ export default function CurveRolldown({ curve, legs, carryBps, asOf }: {
                 <Line key={`${t}x`} dataKey={`t${t}x`} name={`${t}y fwd (extrap.)`} stroke={tenorColor(t)}
                   strokeWidth={1.2} strokeDasharray="3 3" strokeOpacity={0.6} dot={false} isAnimationActive={false} />
               ))}
-              {legs.map(l => (
+              {fwdLegs.map(l => (
                 <ReferenceLine key={`arrow-${l.label}`} ifOverflow="hidden"
                   segment={[{ x: l.start, y: l.rate }, { x: l.start - 1, y: l.rolled_rate }]}
                   shape={RollArrow(tenorColor(l.tenor))} />
               ))}
-              {legs.map(l => (
+              {fwdLegs.map(l => (
                 <ReferenceDot key={`rolled-${l.label}`} x={l.start - 1} y={l.rolled_rate} r={4}
                   fill="#0b0f14" stroke={tenorColor(l.tenor)} strokeWidth={1.5} ifOverflow="hidden" />
               ))}
-              {legs.map(l => (
+              {fwdLegs.map(l => (
                 <ReferenceDot key={`now-${l.label}`} x={l.start} y={l.rate} r={4.5}
                   fill={tenorColor(l.tenor)} stroke="#0b0f14" ifOverflow="hidden"
                   label={{ value: `${l.weight > 0 ? '+' : ''}${l.weight}× ${l.label}`, position: 'right', offset: 8, fill: fg[2], fontSize: 10, fontFamily: MONO }} />
               ))}
             </ComposedChart>
           </ResponsiveContainer>
+          )}
         </Panel>
       </div>
 
@@ -218,8 +243,8 @@ export default function CurveRolldown({ curve, legs, carryBps, asOf }: {
               return (
                 <tr key={l.label} style={{ borderTop: '1px solid rgba(200,220,240,0.05)' }}>
                   <td style={{ padding: '6px 10px', color: '#e4eaf1' }}>
-                    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: tenorColor(l.tenor), marginRight: 8 }} />
-                    {l.label}
+                    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: l.start === 0 ? '#d6ad66' : tenorColor(l.tenor), marginRight: 8 }} />
+                    {l.start === 0 ? `${l.label} spot` : l.label}
                   </td>
                   <td style={{ padding: '6px 10px', textAlign: 'right', color: '#c6ced8' }}>{l.weight > 0 ? '+' : ''}{l.weight}</td>
                   <td style={{ padding: '6px 10px', textAlign: 'right', color: '#c6ced8' }}>{l.rate.toFixed(3)}%</td>
