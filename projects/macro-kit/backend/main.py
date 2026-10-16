@@ -77,6 +77,15 @@ async def lifespan(_app: FastAPI):
             except Exception:
                 logger.exception("Fair Value Models warm-up failed; will compute on first request")
         threading.Thread(target=_warm, name="fvm-warmup", daemon=True).start()
+
+        def _warm_swaps() -> None:
+            try:
+                from swaps_rv import warm_cache
+                warm_cache()
+                logger.info("Swaps RV live-data cache warmed")
+            except Exception:
+                logger.exception("Swaps RV warm-up failed; will fetch on first request")
+        threading.Thread(target=_warm_swaps, name="swaps-rv-warmup", daemon=True).start()
     # Bloomberg news subscriber (only when BBG_NEWS_AUTOSTART=1 and subscriptions are configured)
     from pod.bloomberg import start_news_subscriber_thread
     start_news_subscriber_thread()

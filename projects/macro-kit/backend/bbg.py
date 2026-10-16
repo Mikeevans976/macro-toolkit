@@ -79,8 +79,8 @@ _TIMEOUT_MS = 10_000   # 10 s per event wait
 # ---------------------------------------------------------------------------
 
 def bdh(
-    tickers: Sequence[str],
-    flds: Sequence[str],
+    tickers: str | Sequence[str],
+    flds: str | Sequence[str],
     start_date: str,
     end_date: str,
     periodicity: str = "DAILY",
@@ -116,8 +116,10 @@ def bdh(
             "Bloomberg Terminal (or B-PIPE / SAPI) must also be running."
         )
 
-    tickers = list(tickers)
-    flds    = list(flds)
+    # Like xbbg, accept a single ticker or field as a plain string: list("PX_LAST")
+    # would split it into characters and Bloomberg would silently return nothing.
+    tickers = [tickers] if isinstance(tickers, str) else list(tickers)
+    flds    = [flds] if isinstance(flds, str) else list(flds)
 
     session = open_session()
     try:
@@ -362,11 +364,13 @@ def _reference_request(tickers: Sequence[str], flds: Sequence[str],
         session.stop()
 
 
-def bdp(tickers: Sequence[str], flds: Sequence[str],
+def bdp(tickers: str | Sequence[str], flds: str | Sequence[str],
         overrides: dict[str, Any] | None = None) -> dict[str, dict[str, Any]]:
     """Reference data: {ticker: {field: value}}. Missing fields are absent; errors under '_errors'."""
+    tickers = [tickers] if isinstance(tickers, str) else list(tickers)
+    flds    = [flds] if isinstance(flds, str) else list(flds)
     result: dict[str, dict[str, Any]] = {}
-    for sd in _reference_request(list(tickers), list(flds), overrides):
+    for sd in _reference_request(tickers, flds, overrides):
         row = dict(sd.get("fieldData") or {})
         errors = [e for e in [sd.get("securityError")] if e] + list(sd.get("fieldExceptions") or [])
         if errors:

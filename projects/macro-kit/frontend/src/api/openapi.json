@@ -5222,6 +5222,16 @@
        "title": "Currency",
        "type": "string"
       }
+     },
+     {
+      "in": "query",
+      "name": "refresh",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Refresh",
+       "type": "boolean"
+      }
      }
     ],
     "responses": {
@@ -5250,6 +5260,87 @@
      }
     ],
     "summary": "Get Swaps Rv"
+   }
+  },
+  "/api/tools/swaps-rv/regression": {
+   "get": {
+    "description": "Beta Monitor regression for one structure: coefficients, rolling betas, residuals, attribution.",
+    "operationId": "get_swaps_rv_regression_api_tools_swaps_rv_regression_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "label",
+      "required": true,
+      "schema": {
+       "title": "Label",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "currency",
+      "required": false,
+      "schema": {
+       "default": "EUR",
+       "title": "Currency",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "window",
+      "required": false,
+      "schema": {
+       "default": 63,
+       "maximum": 504,
+       "minimum": 20,
+       "title": "Window",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Swaps Rv Regression"
    }
   }
  }

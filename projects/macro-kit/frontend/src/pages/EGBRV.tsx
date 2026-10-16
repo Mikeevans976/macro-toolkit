@@ -482,7 +482,7 @@ function DetailModal({
             lineColor={col}
             extraGroups={extraGroups}
             footnote={<>
-              Level and positioning stats use the selected lookback; carry, 3m RVol and betas are the monitor's
+              Level and mean-reversion stats use the selected lookback; carry, 3m RVol and betas are the monitor's
               fixed-window figures. Carry includes your repo assumptions. ←/→ to step through the list, Esc to close.
             </>}
             header={<>

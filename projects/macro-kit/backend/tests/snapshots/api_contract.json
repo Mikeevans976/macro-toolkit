@@ -26646,7 +26646,11 @@
    "keys": [
     "as_of",
     "beta_monitor",
+    "beta_vars",
+    "curve",
     "curve_snapshot",
+    "data_source",
+    "data_timestamp",
     "history",
     "max_date",
     "min_date",
@@ -26674,32 +26678,32 @@
    ]
   },
   "$.beta_monitor[].beta_1m10y_vol": {
-   "max": 0.036,
+   "max": 0.034,
    "min": -0.01,
    "n_num": 50,
-   "sum": 0.36400000000000016,
-   "sumsq": 0.005412000000000004
+   "sum": 0.3410000000000002,
+   "sumsq": 0.0048730000000000015
   },
   "$.beta_monitor[].beta_1y10y_fwd": {
    "max": 0.002,
    "min": -0.008,
    "n_num": 50,
-   "sum": -0.07400000000000001,
-   "sumsq": 0.0004000000000000001
+   "sum": -0.08000000000000002,
+   "sumsq": 0.0003980000000000001
   },
   "$.beta_monitor[].beta_1y10y_vol": {
-   "max": 0.011,
-   "min": -0.037,
+   "max": 0.009,
+   "min": -0.03,
    "n_num": 50,
-   "sum": -0.3910000000000002,
-   "sumsq": 0.006061000000000002
+   "sum": -0.31500000000000017,
+   "sumsq": 0.003916999999999999
   },
   "$.beta_monitor[].beta_2y1y_fwd": {
-   "max": 0.028,
+   "max": 0.027,
    "min": -0.007,
    "n_num": 50,
-   "sum": 0.3090000000000001,
-   "sumsq": 0.004291
+   "sum": 0.29200000000000015,
+   "sumsq": 0.003914
   },
   "$.beta_monitor[].group": {
    "n_str": 50,
@@ -26710,18 +26714,250 @@
    "str_sha1": "76b744cfa72b55f8e8d6d721f827cda4955b25d4"
   },
   "$.beta_monitor[].r2": {
-   "max": 0.023,
+   "max": 0.028,
    "min": 0.001,
    "n_num": 50,
-   "sum": 0.3360000000000002,
-   "sumsq": 0.003023999999999999
+   "sum": 0.3250000000000002,
+   "sumsq": 0.0029029999999999993
   },
   "$.beta_monitor[].residual_zscore": {
-   "max": 0.22,
-   "min": -0.36,
+   "max": 0.76,
+   "min": -0.52,
    "n_num": 50,
-   "sum": -4.25,
-   "sumsq": 0.9619
+   "sum": 21.07,
+   "sumsq": 11.5949
+  },
+  "$.beta_vars": {
+   "n_items": 4
+  },
+  "$.beta_vars[]": {
+   "n_str": 4,
+   "str_sha1": "74c95beb8d51db78db258e11f579be52e6a5800d"
+  },
+  "$.curve": {
+   "keys": [
+    "forwards",
+    "par_fitted",
+    "par_quotes"
+   ]
+  },
+  "$.curve.forwards": {
+   "keys": [
+    "1",
+    "10",
+    "2",
+    "20",
+    "3",
+    "30",
+    "5"
+   ]
+  },
+  "$.curve.forwards.1": {
+   "n_items": 31
+  },
+  "$.curve.forwards.10": {
+   "n_items": 31
+  },
+  "$.curve.forwards.10[]": {
+   "keys": [
+    "rate",
+    "start"
+   ]
+  },
+  "$.curve.forwards.10[].rate": {
+   "max": 2.6317,
+   "min": 2.5055,
+   "n_num": 31,
+   "sum": 81.00949999999999,
+   "sumsq": 211.71728809
+  },
+  "$.curve.forwards.10[].start": {
+   "max": 30.0,
+   "min": 0.0,
+   "n_num": 31,
+   "sum": 465.0,
+   "sumsq": 9455.0
+  },
+  "$.curve.forwards.1[]": {
+   "keys": [
+    "rate",
+    "start"
+   ]
+  },
+  "$.curve.forwards.1[].rate": {
+   "max": 2.6355,
+   "min": 2.103,
+   "n_num": 31,
+   "sum": 80.3517,
+   "sumsq": 208.62514555
+  },
+  "$.curve.forwards.1[].start": {
+   "max": 30.0,
+   "min": 0.0,
+   "n_num": 31,
+   "sum": 465.0,
+   "sumsq": 9455.0
+  },
+  "$.curve.forwards.2": {
+   "n_items": 31
+  },
+  "$.curve.forwards.20": {
+   "n_items": 31
+  },
+  "$.curve.forwards.20[]": {
+   "keys": [
+    "rate",
+    "start"
+   ]
+  },
+  "$.curve.forwards.20[].rate": {
+   "max": 2.6308,
+   "min": 2.5598,
+   "n_num": 31,
+   "sum": 80.89780000000002,
+   "sumsq": 211.12201045999998
+  },
+  "$.curve.forwards.20[].start": {
+   "max": 30.0,
+   "min": 0.0,
+   "n_num": 31,
+   "sum": 465.0,
+   "sumsq": 9455.0
+  },
+  "$.curve.forwards.2[]": {
+   "keys": [
+    "rate",
+    "start"
+   ]
+  },
+  "$.curve.forwards.2[].rate": {
+   "max": 2.6345,
+   "min": 2.2202,
+   "n_num": 31,
+   "sum": 80.58630000000001,
+   "sumsq": 209.70207237000002
+  },
+  "$.curve.forwards.2[].start": {
+   "max": 30.0,
+   "min": 0.0,
+   "n_num": 31,
+   "sum": 465.0,
+   "sumsq": 9455.0
+  },
+  "$.curve.forwards.3": {
+   "n_items": 31
+  },
+  "$.curve.forwards.30": {
+   "n_items": 21
+  },
+  "$.curve.forwards.30[]": {
+   "keys": [
+    "rate",
+    "start"
+   ]
+  },
+  "$.curve.forwards.30[].rate": {
+   "max": 2.6224,
+   "min": 2.5779,
+   "n_num": 21,
+   "sum": 54.840900000000005,
+   "sumsq": 143.21767029
+  },
+  "$.curve.forwards.30[].start": {
+   "max": 20.0,
+   "min": 0.0,
+   "n_num": 21,
+   "sum": 210.0,
+   "sumsq": 2870.0
+  },
+  "$.curve.forwards.3[]": {
+   "keys": [
+    "rate",
+    "start"
+   ]
+  },
+  "$.curve.forwards.3[].rate": {
+   "max": 2.6337,
+   "min": 2.3023,
+   "n_num": 31,
+   "sum": 80.74180000000001,
+   "sumsq": 210.43415373999994
+  },
+  "$.curve.forwards.3[].start": {
+   "max": 30.0,
+   "min": 0.0,
+   "n_num": 31,
+   "sum": 465.0,
+   "sumsq": 9455.0
+  },
+  "$.curve.forwards.5": {
+   "n_items": 31
+  },
+  "$.curve.forwards.5[]": {
+   "keys": [
+    "rate",
+    "start"
+   ]
+  },
+  "$.curve.forwards.5[].rate": {
+   "max": 2.6327,
+   "min": 2.4037,
+   "n_num": 31,
+   "sum": 80.91260000000001,
+   "sumsq": 211.254204
+  },
+  "$.curve.forwards.5[].start": {
+   "max": 30.0,
+   "min": 0.0,
+   "n_num": 31,
+   "sum": 465.0,
+   "sumsq": 9455.0
+  },
+  "$.curve.par_fitted": {
+   "n_items": 30
+  },
+  "$.curve.par_fitted[]": {
+   "keys": [
+    "rate",
+    "tenor"
+   ]
+  },
+  "$.curve.par_fitted[].rate": {
+   "max": 2.5779,
+   "min": 2.103,
+   "n_num": 30,
+   "sum": 74.88680000000001,
+   "sumsq": 187.31364885999997
+  },
+  "$.curve.par_fitted[].tenor": {
+   "max": 30.0,
+   "min": 1.0,
+   "n_num": 30,
+   "sum": 465.0,
+   "sumsq": 9455.0
+  },
+  "$.curve.par_quotes": {
+   "n_items": 15
+  },
+  "$.curve.par_quotes[]": {
+   "keys": [
+    "rate",
+    "tenor"
+   ]
+  },
+  "$.curve.par_quotes[].rate": {
+   "max": 2.5779,
+   "min": 2.103,
+   "n_num": 15,
+   "sum": 36.536300000000004,
+   "sumsq": 89.25834989
+  },
+  "$.curve.par_quotes[].tenor": {
+   "max": 30.0,
+   "min": 1.0,
+   "n_num": 15,
+   "sum": 157.0,
+   "sumsq": 2679.0
   },
   "$.curve_snapshot": {
    "keys": [
@@ -26999,6 +27235,13 @@
    "n_num": 5,
    "sum": 18.0,
    "sumsq": 88.0
+  },
+  "$.data_source": {
+   "n_str": 1,
+   "str_sha1": "801cff18c1778ad1330245b58f334e6a42b7a792"
+  },
+  "$.data_timestamp": {
+   "n_null": 1
   },
   "$.history": {
    "keys": [
@@ -27587,6 +27830,7 @@
     "d1w_bps",
     "group",
     "label",
+    "legs",
     "pctile_1y",
     "value_bps",
     "vol3m_bps",
@@ -27635,6 +27879,71 @@
   "$.rv_monitor[].label": {
    "n_str": 50,
    "str_sha1": "76b744cfa72b55f8e8d6d721f827cda4955b25d4"
+  },
+  "$.rv_monitor[].legs": {
+   "n_items": 122
+  },
+  "$.rv_monitor[].legs[]": {
+   "keys": [
+    "contribution_bps",
+    "label",
+    "rate",
+    "rolled_label",
+    "rolled_rate",
+    "start",
+    "tenor",
+    "weight"
+   ]
+  },
+  "$.rv_monitor[].legs[].contribution_bps": {
+   "max": 26.48,
+   "min": -23.71,
+   "n_num": 122,
+   "sum": -182.52000000000024,
+   "sumsq": 8072.970800000001
+  },
+  "$.rv_monitor[].legs[].label": {
+   "n_str": 122,
+   "str_sha1": "c6468bda2bffe2b435afbb1375a1e28c73c557a3"
+  },
+  "$.rv_monitor[].legs[].rate": {
+   "max": 2.6317,
+   "min": 2.3401,
+   "n_num": 122,
+   "sum": 314.4129,
+   "sumsq": 810.9016898099995
+  },
+  "$.rv_monitor[].legs[].rolled_label": {
+   "n_str": 122,
+   "str_sha1": "cef893d7e4132fbb6b464418afff8060071fb34d"
+  },
+  "$.rv_monitor[].legs[].rolled_rate": {
+   "max": 2.6313,
+   "min": 2.103,
+   "n_num": 122,
+   "sum": 308.9773999999999,
+   "sumsq": 784.5481035
+  },
+  "$.rv_monitor[].legs[].start": {
+   "max": 30.0,
+   "min": 1.0,
+   "n_num": 122,
+   "sum": 599.0,
+   "sumsq": 5551.0
+  },
+  "$.rv_monitor[].legs[].tenor": {
+   "max": 30.0,
+   "min": 1.0,
+   "n_num": 122,
+   "sum": 900.0,
+   "sumsq": 13478.0
+  },
+  "$.rv_monitor[].legs[].weight": {
+   "max": 2.0,
+   "min": -1.0,
+   "n_num": 122,
+   "sum": 0.0,
+   "sumsq": 188.0
   },
   "$.rv_monitor[].pctile_1y": {
    "max": 93.3,

@@ -14,6 +14,8 @@ import {
   ReferenceArea,
 } from 'recharts'
 import ExpressionDetail, { fmtBp, type SeriesPoint, type StatGroupDef } from '../components/ExpressionDetail'
+import CurveRolldown, { type CurveData, type RollLeg } from '../components/CurveRolldown'
+import RegressionDetail from '../components/RegressionDetail'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,6 +42,7 @@ interface RVRow {
   vol3m_bps: number
   carry1y_bps: number
   carry_vol_ratio: number | null
+  legs?: RollLeg[]     // per-leg roll-down behind carry1y_bps
 }
 
 interface BetaRow {
@@ -47,17 +50,21 @@ interface BetaRow {
   group: string
   beta_1y10y_fwd: number
   beta_2y1y_fwd: number
-  beta_1m10y_vol: number
-  beta_1y10y_vol: number
+  beta_1m10y_vol: number | null   // null when the data source has no swaption vols
+  beta_1y10y_vol: number | null
   r2: number
   residual_zscore: number
 }
 
 interface SwapsRVData {
+  data_source?: 'bloomberg' | 'csv'
+  beta_vars?: string[]            // regressors used, e.g. ["1y10y_fwd", "2y1y_fwd"]
   as_of: string
+  data_timestamp?: string | null  // ISO time of the Bloomberg pull; only for the latest live day
   min_date: string
   max_date: string
   curve_snapshot: Record<string, CurveGroup>
+  curve?: CurveData                // the as-of curve carry is computed on
   rv_monitor: RVRow[]
   beta_monitor: BetaRow[]
   series: Record<string, SeriesPoint[]>
@@ -97,7 +104,8 @@ function fmtChange(v: number | null): string {
   return `${sign}${v.toFixed(1)} bp`
 }
 
-function fmtBeta(v: number): string {
+function fmtBeta(v: number | null): string {
+  if (v === null) return '—'
   const sign = v >= 0 ? '+' : ''
   return `${sign}${v.toFixed(3)}`
 }
@@ -441,8 +449,12 @@ function StructureSelect({ rvMonitor, value, onChange, label = 'Focus on', inclu
 
 // ─── Expression Detail ────────────────────────────────────────────────────────
 
-function DetailChart({ label, history, rvRow, betaRow, rvMonitor, onBack, onSwitch }: {
+function DetailChart({ label, history, rvRow, betaRow, rvMonitor, curve, asOf, currency, dataStamp, onBack, onSwitch }: {
   label: string
+  curve?: CurveData
+  asOf: string
+  currency: string
+  dataStamp?: string | null
   history: SeriesPoint[]
   rvRow: RVRow
   betaRow?: BetaRow
@@ -466,34 +478,40 @@ function DetailChart({ label, history, rvRow, betaRow, rvMonitor, onBack, onSwit
   }
 
   return (
-    <ExpressionDetail
-      history={history}
-      extraGroups={[carryGroup]}
-      footnote="Level and positioning stats use the selected lookback; carry, 3m RVol and betas are the monitor's fixed-window figures. Positive carry → receiver / flattener."
-      header={<>
-        <button
-          onClick={onBack}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            background: 'rgba(200,220,240,0.05)',
-            border: '1px solid rgba(200,220,240,0.09)',
-            borderRadius: 6, padding: '5px 12px',
-            color: '#c6ced8', fontSize: 12, cursor: 'pointer',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(200,220,240,0.1)'; e.currentTarget.style.color = '#e4eaf1' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(200,220,240,0.05)'; e.currentTarget.style.color = '#c6ced8' }}
-        >
-          ← Overview
-        </button>
-        <StructureSelect rvMonitor={rvMonitor} value={label} onChange={(l) => l && onSwitch(l)} label="Structure" includeGroups={false} />
-        <span style={{
-          fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, fontSize: 15, color: '#e4eaf1',
-          background: 'rgba(106,169,204,0.12)', border: '1px solid rgba(106,169,204,0.25)',
-          borderRadius: 6, padding: '3px 10px',
-        }}>{label}</span>
-        <span style={{ color: '#8995a2', fontSize: 12 }}>{rvRow.group}</span>
-      </>}
-    />
+    <>
+      <ExpressionDetail
+        history={history}
+        extraGroups={[carryGroup]}
+        footnote="Level and mean-reversion stats use the selected lookback; carry, 3m RVol and betas are the monitor's fixed-window figures. Positive carry → receiver / flattener."
+        header={<>
+          <button
+            onClick={onBack}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'rgba(200,220,240,0.05)',
+              border: '1px solid rgba(200,220,240,0.09)',
+              borderRadius: 6, padding: '5px 12px',
+              color: '#c6ced8', fontSize: 12, cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(200,220,240,0.1)'; e.currentTarget.style.color = '#e4eaf1' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(200,220,240,0.05)'; e.currentTarget.style.color = '#c6ced8' }}
+          >
+            ← Overview
+          </button>
+          <StructureSelect rvMonitor={rvMonitor} value={label} onChange={(l) => l && onSwitch(l)} label="Structure" includeGroups={false} />
+          <span style={{
+            fontFamily: "'Geist Mono', ui-monospace, monospace", fontWeight: 600, fontSize: 15, color: '#e4eaf1',
+            background: 'rgba(106,169,204,0.12)', border: '1px solid rgba(106,169,204,0.25)',
+            borderRadius: 6, padding: '3px 10px',
+          }}>{label}</span>
+          <span style={{ color: '#8995a2', fontSize: 12 }}>{rvRow.group}</span>
+        </>}
+      />
+      <RegressionDetail currency={currency} label={label} asOf={asOf} dataStamp={dataStamp} />
+      {curve && rvRow.legs && (
+        <CurveRolldown curve={curve} legs={rvRow.legs} carryBps={rvRow.carry1y_bps} asOf={asOf} />
+      )}
+    </>
   )
 }
 
@@ -770,6 +788,7 @@ export default function SwapsRV() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [noData, setNoData] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [currency, setCurrency] = useState('EUR')
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [focusLabel, setFocusLabel] = useState<string | null>(null)
@@ -777,6 +796,12 @@ export default function SwapsRV() {
   const [betaVar, setBetaVar] = useState<string>('beta_1y10y_fwd')
   const detailRef = useRef<HTMLElement>(null)
   const navigate = useNavigate()
+
+  // Only offer the betas the backend actually estimated (vols can be missing)
+  const betaOptions = data?.beta_vars
+    ? BETA_VARS.filter(b => data.beta_vars!.includes((b.key as string).replace(/^beta_/, '')))
+    : BETA_VARS
+  const volsMissing = data?.beta_vars !== undefined && betaOptions.length < BETA_VARS.length
 
   // Full history for one expression; falls back to the 1y series if the backend omits it
   function historyFor(label: string): SeriesPoint[] {
@@ -809,6 +834,7 @@ export default function SwapsRV() {
     const activeCcy = ccy ?? currency
     const params = new URLSearchParams({ currency: activeCcy })
     if (date) params.set('date', date)
+    if (isRefresh) params.set('refresh', 'true')   // bypass the backend's live-data cache
     axios
       .get<SwapsRVData>(`/api/tools/swaps-rv?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -824,6 +850,15 @@ export default function SwapsRV() {
         } else {
           setData(null)
           setNoData(true)
+          // Say why: an unreachable server or a server error is not missing data
+          if (axios.isAxiosError(err) && !err.response) {
+            setLoadError('Cannot reach the backend server. Check that it is running, then press Refresh.')
+          } else if (axios.isAxiosError(err)) {
+            const detail = (err.response?.data as { detail?: unknown } | undefined)?.detail
+            setLoadError(`Server error ${err.response?.status}${typeof detail === 'string' ? `: ${detail}` : ''}`)
+          } else {
+            setLoadError(String(err))
+          }
         }
       })
       .finally(() => {
@@ -902,6 +937,23 @@ export default function SwapsRV() {
         </div>
 
         <div className="flex items-center gap-3">
+          {data?.data_source && (
+            <span
+              title={data.data_source === 'bloomberg' ? 'Live Bloomberg data' : 'Bloomberg unavailable: showing stored CSV data'}
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                padding: '3px 8px',
+                borderRadius: 6,
+                color: data.data_source === 'bloomberg' ? '#6fc2a2' : '#dfbb78',
+                background: data.data_source === 'bloomberg' ? 'rgba(88,173,142,0.12)' : 'rgba(214,173,102,0.12)',
+              }}
+            >
+              {data.data_source === 'bloomberg' ? 'Live' : 'CSV'}
+            </span>
+          )}
           {data && (
             <div className="flex items-center gap-2">
               <span style={{ color: '#8995a2', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -930,6 +982,14 @@ export default function SwapsRV() {
                   colorScheme: 'dark',
                 }}
               />
+              {data.data_timestamp && (
+                <span
+                  title={`Bloomberg data pulled ${new Date(data.data_timestamp).toLocaleString()}`}
+                  style={{ color: '#a9d2e8', fontSize: 12, fontFamily: "'Geist Mono', ui-monospace, monospace" }}
+                >
+                  {new Date(data.data_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
             </div>
           )}
           <button
@@ -971,13 +1031,13 @@ export default function SwapsRV() {
       {!loading && noData && (
         <div className="flex flex-col items-center justify-center py-32 gap-4">
           <div style={{ color: '#8995a2', fontSize: 14 }}>
-            No {currency} data available yet.
+            Could not load {currency} swaps RV data.
           </div>
-          <div style={{ color: '#77828f', fontSize: 12, textAlign: 'center', maxWidth: 420 }}>
-            Populate <code style={{ color: '#9aa5b1' }}>data/{currency.toLowerCase() === 'gbp' ? 'gbp_sonia' : 'usd_sofr'}_forwards.csv</code>,&nbsp;
-            <code style={{ color: '#9aa5b1' }}>{currency.toLowerCase()}_beta_variables.csv</code> and&nbsp;
-            <code style={{ color: '#9aa5b1' }}>{currency.toLowerCase() === 'gbp' ? 'gbp_sonia' : 'usd_sofr'}_swaps.csv</code> to enable this view.
-          </div>
+          {loadError && (
+            <div style={{ color: '#77828f', fontSize: 12, textAlign: 'center', maxWidth: 480 }}>
+              {loadError}
+            </div>
+          )}
         </div>
       )}
 
@@ -1004,6 +1064,10 @@ export default function SwapsRV() {
                   rvRow={data.rv_monitor.find(r => r.label === detailLabel)!}
                   betaRow={data.beta_monitor.find(b => b.label === detailLabel)}
                   rvMonitor={data.rv_monitor}
+                  curve={data.curve}
+                  asOf={data.as_of}
+                  currency={currency}
+                  dataStamp={data.data_timestamp}
                   onBack={() => setDetailLabel(null)}
                   onSwitch={(l) => { setDetailLabel(l); setFocusLabel(l) }}
                 />
@@ -1033,7 +1097,7 @@ export default function SwapsRV() {
                                 borderRadius: 6, color: '#e4eaf1', fontSize: 12, padding: '5px 10px',
                                 outline: 'none', cursor: 'pointer', colorScheme: 'dark',
                               }}>
-                                {BETA_VARS.map(({ key, label }) => (
+                                {betaOptions.map(({ key, label }) => (
                                   <option key={key as string} value={key as string}>{label}</option>
                                 ))}
                               </select>
@@ -1086,6 +1150,7 @@ export default function SwapsRV() {
                 </h2>
                 <p style={{ color: '#8995a2', fontSize: 12, marginTop: 4 }}>
                   OLS on 1y daily changes (bps)
+                  {volsMissing && ' · swaption vols unavailable from the data source, regressed on forwards only'}
                 </p>
               </div>
               <BetaMonitorTable rows={data.beta_monitor} selected={detailLabel} onSelect={openDetail} />

@@ -24,7 +24,7 @@ export interface SeriesPoint {
 
 export interface StatItem {
   label: string
-  value: string
+  value: ReactNode
   color?: string
   sub?: string
 }
@@ -79,7 +79,7 @@ interface WindowStats {
   zscore: number
   pctile: number
   rangePos: number
-  rvolAnn: number
+  rvolDaily: number   // std of daily changes; scaled by √t for longer horizons
   bigUp: number
   bigDown: number
   ar1: number | null
@@ -123,7 +123,7 @@ function computeWindowStats(pts: SeriesPoint[]): WindowStats {
     zscore: std > 0 ? (current - mean) / std : 0,
     pctile: (v.filter(x => x <= current).length / n) * 100,
     rangePos: max > min ? ((current - min) / (max - min)) * 100 : 50,
-    rvolAnn: dStd * Math.sqrt(252),
+    rvolDaily: dStd,
     bigUp: d.length ? Math.max(...d) : 0,
     bigDown: d.length ? Math.min(...d) : 0,
     ar1, halfLife,
@@ -177,9 +177,69 @@ function HistTooltip({ active, payload }: any) {
   )
 }
 
+const thCell: React.CSSProperties = {
+  position: 'sticky', top: 0, background: '#0d1116', color: '#9aa5b1', fontSize: 10, fontWeight: 600,
+  textTransform: 'uppercase', letterSpacing: '0.06em', padding: '8px 12px', textAlign: 'right',
+  borderBottom: '1px solid rgba(200,220,240,0.08)',
+}
+const tdCell: React.CSSProperties = {
+  padding: '5px 12px', fontSize: 12, fontFamily: MONO, textAlign: 'right',
+  borderBottom: '1px solid rgba(200,220,240,0.04)',
+}
+
+// Same window as the chart, newest first; z-score is against the window's mean/std
+function SeriesTable({ points, mean, std, height }: {
+  points: SeriesPoint[]; mean: number; std: number; height: number
+}) {
+  const rows = useMemo(() => points.map((p, i) => ({
+    ...p,
+    d1: i > 0 ? p.value - points[i - 1].value : null,
+    z: std > 0 ? (p.value - mean) / std : 0,
+  })).reverse(), [points, mean, std])
+  return (
+    <div style={{ height, overflowY: 'auto', border: '1px solid rgba(200,220,240,0.06)', borderRadius: 6 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th style={{ ...thCell, textAlign: 'left' }}>Date</th>
+            <th style={thCell}>Level (bp)</th>
+            <th style={thCell}>Δ1d (bp)</th>
+            <th style={thCell}>Z-score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.date}>
+              <td style={{ ...tdCell, textAlign: 'left', color: '#c6ced8' }}>{r.date}</td>
+              <td style={{ ...tdCell, color: '#eef2f6' }}>{r.value.toFixed(1)}</td>
+              <td style={{ ...tdCell, color: signColor(r.d1) }}>{r.d1 === null ? '—' : `${r.d1 > 0 ? '+' : ''}${r.d1.toFixed(1)}`}</td>
+              <td style={{ ...tdCell, color: zscoreColor(r.z) }}>{r.z.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function fmtAxisDate(d: string): string {
   const dt = new Date(d)
   return dt.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })
+}
+
+// Realised vol scaled by √t to several horizons, each number under its horizon label
+function VolHorizons({ daily }: { daily: number }) {
+  const horizons: [string, number][] = [['ann', 252], ['3m', 63], ['1m', 21], ['1d', 1]]
+  return (
+    <span style={{ display: 'inline-flex', gap: 10 }}>
+      {horizons.map(([tag, t]) => (
+        <span key={tag} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.15 }}>
+          <span style={{ color: '#77828f', fontSize: 9, fontFamily: MONO }}>{tag}</span>
+          <span style={{ color: '#e4eaf1', fontSize: 12, fontFamily: MONO }}>{(daily * Math.sqrt(t)).toFixed(1)}</span>
+        </span>
+      ))}
+    </span>
+  )
 }
 
 function StatGroup({ title, items }: StatGroupDef) {
@@ -191,7 +251,7 @@ function StatGroup({ title, items }: StatGroupDef) {
     }}>
       <div style={{ color: '#8995a2', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, fontWeight: 600 }}>{title}</div>
       {items.map(({ label, value, color, sub }) => (
-        <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '4px 0', gap: 12 }}>
+        <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: typeof value === 'string' ? 'baseline' : 'center', padding: '4px 0', gap: 12 }}>
           <span style={{ color: '#9aa5b1', fontSize: 12, whiteSpace: 'nowrap' }}>{label}</span>
           <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
             <span style={{ color: color ?? '#e4eaf1', fontSize: 13, fontFamily: MONO }}>{value}</span>
@@ -222,6 +282,7 @@ export default function ExpressionDetail({
   const wanted = lookbackProp ?? ownLookback
   const lookback = available.some(l => l.key === wanted) ? wanted : 'All'
   const setLookback = (key: string) => { setOwnLookback(key); onLookbackChange?.(key) }
+  const [view, setView] = useState<'chart' | 'table'>('chart')
   const lbN = LOOKBACKS.find(l => l.key === lookback)?.n ?? Infinity
 
   const windowData = useMemo(
@@ -260,7 +321,7 @@ export default function ExpressionDetail({
       { label: 'Min',      value: fmtBp(s.min), sub: s.minDate },
       { label: 'Max',      value: fmtBp(s.max), sub: s.maxDate },
     ] },
-    { title: `Positioning · ${lookback}`, items: [
+    { title: `Mean reversion · ${lookback}`, items: [
       { label: 'Z-score',        value: s.zscore.toFixed(2), color: zscoreColor(s.zscore) },
       { label: 'Percentile',     value: `${s.pctile.toFixed(0)}%`, color: pctileColor(s.pctile) },
       { label: 'Range position', value: `${s.rangePos.toFixed(0)}%` },
@@ -273,7 +334,7 @@ export default function ExpressionDetail({
       { label: 'Δ1w',  value: fmtSignedBp(chgN(5)),  color: signColor(chgN(5)) },
       { label: 'Δ1m',  value: fmtSignedBp(chgN(21)), color: signColor(chgN(21)) },
       { label: 'Δ3m',  value: fmtSignedBp(chgN(63)), color: signColor(chgN(63)) },
-      { label: 'Realised vol', value: fmtBp(s.rvolAnn), sub: 'ann.' },
+      { label: 'RVol (bp)', value: <VolHorizons daily={s.rvolDaily} /> },
       { label: 'Max daily ±', value: `${s.bigUp >= 0 ? '+' : ''}${s.bigUp.toFixed(1)} / ${s.bigDown.toFixed(1)}` },
     ] },
     ...extraGroups,
@@ -286,6 +347,19 @@ export default function ExpressionDetail({
         {header}
         <div style={{
           marginLeft: 'auto', display: 'flex', gap: 2, padding: 3,
+          background: 'rgba(200,220,240,0.04)', border: '1px solid rgba(200,220,240,0.08)', borderRadius: 6,
+        }}>
+          {(['chart', 'table'] as const).map(v => (
+            <button key={v} onClick={() => setView(v)} style={{
+              padding: '3px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, border: 'none',
+              cursor: 'pointer', textTransform: 'capitalize',
+              background: view === v ? 'rgba(106,169,204,0.25)' : 'transparent',
+              color: view === v ? '#a9d2e8' : '#9aa5b1',
+            }}>{v}</button>
+          ))}
+        </div>
+        <div style={{
+          display: 'flex', gap: 2, padding: 3,
           background: 'rgba(200,220,240,0.04)', border: '1px solid rgba(200,220,240,0.08)', borderRadius: 6,
         }}>
           {available.map(({ key }) => (
@@ -302,6 +376,9 @@ export default function ExpressionDetail({
       {/* Time series + distribution */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 3fr) minmax(0, 1fr)', gap: 16 }}>
         <div>
+          {view === 'table' ? (
+            <SeriesTable points={windowData} mean={s.mean} std={s.std} height={320} />
+          ) : (
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={windowData} margin={{ top: 10, right: 56, bottom: 24, left: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(200,220,240,0.04)" />
@@ -323,6 +400,7 @@ export default function ExpressionDetail({
               <Line type="monotone" dataKey="value" stroke={lineColor} strokeWidth={1.6} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
+          )}
         </div>
 
         <div>
