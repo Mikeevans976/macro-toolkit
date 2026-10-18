@@ -59,3 +59,31 @@ def test_issuer_curves_fit_their_bonds(client):
         for b in bonds:
             nearest = min(c["points"], key=lambda p: abs(p["tenor"] - b["ttm"]))
             assert abs(nearest["bp"] - b["target_spread_bp"]) < 15
+
+
+def test_funding_defaults(client):
+    r = client.get("/api/tools/swap-spreads/funding")
+    assert r.status_code == 200
+    d = r.json()
+    assert d["secured_unsecured"]["basis_bp"] == pytest.approx(16.0)
+    assert d["cds"]["adjusted_bp"] == pytest.approx(60 * 0.39)
+    assert {c["issuer"] for c in d["haircuts"]["curves"]} == {"UST", "Bund", "OAT", "BTP", "Gilt"}
+    assert len(d["haircuts"]["sources"]) == 3
+
+
+def test_btp_downgrade_widens_btp_only(client):
+    base = client.get("/api/tools/swap-spreads/funding?zero=true").json()["haircuts"]["curves"]
+    down = client.get("/api/tools/swap-spreads/funding?zero=true&btp_downgrade=true").json()["haircuts"]["curves"]
+    at10 = lambda curves, iss: next(p["drag_bp"] for c in curves if c["issuer"] == iss  # noqa: E731
+                                    for p in c["points"] if p["tenor"] == 10)
+    assert at10(base, "BTP") == at10(base, "Bund")
+    assert at10(down, "BTP") > at10(down, "Bund")
+    assert at10(down, "Bund") == at10(base, "Bund")
+
+
+def test_funding_validates_inputs(client):
+    assert client.get("/api/tools/swap-spreads/funding?settlement=swap").status_code == 422
+    assert client.get("/api/tools/swap-spreads/funding?recovery=2").status_code == 422
+    # no capital charge: the implied cost of equity is undefined, not an error
+    r = client.get("/api/tools/swap-spreads/funding?q=0")
+    assert r.status_code == 200 and r.json()["term_rate"]["implied_g_pct"] is None

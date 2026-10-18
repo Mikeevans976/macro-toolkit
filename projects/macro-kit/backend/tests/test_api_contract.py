@@ -60,6 +60,8 @@ CASES: list[str] = (
         "/api/tools/swap-spreads",
         "/api/tools/swap-spreads?target=JPY",
         "/api/tools/swap-spreads/bond?bond_id=JGB-10Y&target=USD",
+        "/api/tools/swap-spreads/funding",
+        "/api/tools/swap-spreads/funding?zero=true&btp_downgrade=true&settlement=cash",
         "/api/tools/option-cdf/USD/10y",
         "/api/tools/inflation-pca/dbrei",
         "/api/tools/momentum/cta-signals?ticker=TY1%20Comdty",

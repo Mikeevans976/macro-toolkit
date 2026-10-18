@@ -569,6 +569,74 @@
     "title": "CashFlow",
     "type": "object"
    },
+   "CdsAdjustment": {
+    "properties": {
+     "adjusted_bp": {
+      "title": "Adjusted Bp",
+      "type": "number"
+     },
+     "cds_bp": {
+      "title": "Cds Bp",
+      "type": "number"
+     },
+     "factor": {
+      "title": "Factor",
+      "type": "number"
+     },
+     "scenarios": {
+      "items": {
+       "$ref": "#/components/schemas/CdsScenario"
+      },
+      "title": "Scenarios",
+      "type": "array"
+     },
+     "settlement": {
+      "enum": [
+       "cash",
+       "physical"
+      ],
+      "title": "Settlement",
+      "type": "string"
+     }
+    },
+    "required": [
+     "cds_bp",
+     "settlement",
+     "factor",
+     "adjusted_bp",
+     "scenarios"
+    ],
+    "title": "CdsAdjustment",
+    "type": "object"
+   },
+   "CdsScenario": {
+    "properties": {
+     "adjusted_bp": {
+      "title": "Adjusted Bp",
+      "type": "number"
+     },
+     "case": {
+      "enum": [
+       "low",
+       "mid",
+       "high"
+      ],
+      "title": "Case",
+      "type": "string"
+     },
+     "factor": {
+      "title": "Factor",
+      "type": "number"
+     }
+    },
+    "required": [
+     "case",
+     "factor",
+     "adjusted_bp"
+    ],
+    "title": "CdsScenario",
+    "type": "object"
+   },
    "CurrentScenarios": {
     "properties": {
      "breakeven": {
@@ -1234,6 +1302,39 @@
     "title": "ForwardHistRequest",
     "type": "object"
    },
+   "FundingInputs": {
+    "properties": {
+     "cds": {
+      "$ref": "#/components/schemas/CdsAdjustment"
+     },
+     "data_source": {
+      "enum": [
+       "live",
+       "simulation"
+      ],
+      "title": "Data Source",
+      "type": "string"
+     },
+     "haircuts": {
+      "$ref": "#/components/schemas/Haircuts"
+     },
+     "secured_unsecured": {
+      "$ref": "#/components/schemas/SecuredUnsecured"
+     },
+     "term_rate": {
+      "$ref": "#/components/schemas/TermRate"
+     }
+    },
+    "required": [
+     "data_source",
+     "cds",
+     "secured_unsecured",
+     "term_rate",
+     "haircuts"
+    ],
+    "title": "FundingInputs",
+    "type": "object"
+   },
    "HTTPValidationError": {
     "properties": {
      "detail": {
@@ -1245,6 +1346,202 @@
      }
     },
     "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "HaircutBond": {
+    "properties": {
+     "bond_id": {
+      "title": "Bond Id",
+      "type": "string"
+     },
+     "drag_bp": {
+      "title": "Drag Bp",
+      "type": "number"
+     },
+     "duration": {
+      "title": "Duration",
+      "type": "number"
+     },
+     "haircut_pct": {
+      "title": "Haircut Pct",
+      "type": "number"
+     },
+     "issuer": {
+      "title": "Issuer",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "ttm": {
+      "title": "Ttm",
+      "type": "number"
+     }
+    },
+    "required": [
+     "bond_id",
+     "issuer",
+     "name",
+     "ttm",
+     "duration",
+     "haircut_pct",
+     "drag_bp"
+    ],
+    "title": "HaircutBond",
+    "type": "object"
+   },
+   "HaircutCurve": {
+    "properties": {
+     "class_label": {
+      "title": "Class Label",
+      "type": "string"
+     },
+     "haircut_class": {
+      "title": "Haircut Class",
+      "type": "string"
+     },
+     "issuer": {
+      "title": "Issuer",
+      "type": "string"
+     },
+     "points": {
+      "items": {
+       "$ref": "#/components/schemas/HaircutPoint"
+      },
+      "title": "Points",
+      "type": "array"
+     },
+     "rating_basis": {
+      "title": "Rating Basis",
+      "type": "string"
+     },
+     "schedule": {
+      "title": "Schedule",
+      "type": "string"
+     }
+    },
+    "required": [
+     "issuer",
+     "schedule",
+     "haircut_class",
+     "class_label",
+     "rating_basis",
+     "points"
+    ],
+    "title": "HaircutCurve",
+    "type": "object"
+   },
+   "HaircutPoint": {
+    "properties": {
+     "drag_bp": {
+      "title": "Drag Bp",
+      "type": "number"
+     },
+     "haircut_pct": {
+      "title": "Haircut Pct",
+      "type": "number"
+     },
+     "tenor": {
+      "title": "Tenor",
+      "type": "number"
+     }
+    },
+    "required": [
+     "tenor",
+     "haircut_pct",
+     "drag_bp"
+    ],
+    "title": "HaircutPoint",
+    "type": "object"
+   },
+   "HaircutSource": {
+    "properties": {
+     "as_of": {
+      "title": "As Of",
+      "type": "string"
+     },
+     "basis": {
+      "enum": [
+       "residual_maturity",
+       "duration"
+      ],
+      "title": "Basis",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "schedule": {
+      "title": "Schedule",
+      "type": "string"
+     },
+     "source": {
+      "title": "Source",
+      "type": "string"
+     },
+     "url": {
+      "title": "Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "schedule",
+     "name",
+     "source",
+     "url",
+     "as_of",
+     "basis"
+    ],
+    "title": "HaircutSource",
+    "type": "object"
+   },
+   "Haircuts": {
+    "properties": {
+     "bonds": {
+      "items": {
+       "$ref": "#/components/schemas/HaircutBond"
+      },
+      "title": "Bonds",
+      "type": "array"
+     },
+     "btp_downgrade": {
+      "title": "Btp Downgrade",
+      "type": "boolean"
+     },
+     "curves": {
+      "items": {
+       "$ref": "#/components/schemas/HaircutCurve"
+      },
+      "title": "Curves",
+      "type": "array"
+     },
+     "excess_funding_bp": {
+      "title": "Excess Funding Bp",
+      "type": "number"
+     },
+     "sources": {
+      "items": {
+       "$ref": "#/components/schemas/HaircutSource"
+      },
+      "title": "Sources",
+      "type": "array"
+     },
+     "zero_coupon": {
+      "title": "Zero Coupon",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "excess_funding_bp",
+     "zero_coupon",
+     "btp_downgrade",
+     "curves",
+     "bonds",
+     "sources"
+    ],
+    "title": "Haircuts",
     "type": "object"
    },
    "HeatmapDashboard": {
@@ -1806,6 +2103,49 @@
     "title": "Scenarios",
     "type": "object"
    },
+   "SecuredUnsecured": {
+    "properties": {
+     "basis_bp": {
+      "title": "Basis Bp",
+      "type": "number"
+     },
+     "basis_new_bp": {
+      "title": "Basis New Bp",
+      "type": "number"
+     },
+     "change_bp": {
+      "title": "Change Bp",
+      "type": "number"
+     },
+     "d": {
+      "title": "D",
+      "type": "number"
+     },
+     "d_new": {
+      "title": "D New",
+      "type": "number"
+     },
+     "g": {
+      "title": "G",
+      "type": "number"
+     },
+     "q": {
+      "title": "Q",
+      "type": "number"
+     }
+    },
+    "required": [
+     "g",
+     "q",
+     "d",
+     "basis_bp",
+     "d_new",
+     "basis_new_bp",
+     "change_bp"
+    ],
+    "title": "SecuredUnsecured",
+    "type": "object"
+   },
    "SeriesPayload": {
     "properties": {
      "dates": {
@@ -2193,6 +2533,120 @@
      "synthetic_coupon"
     ],
     "title": "SwapSteps",
+    "type": "object"
+   },
+   "TermRate": {
+    "properties": {
+     "implied_g_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Implied G Pct"
+     },
+     "inputs": {
+      "$ref": "#/components/schemas/TermRateInputs"
+     },
+     "market_rate_pct": {
+      "title": "Market Rate Pct",
+      "type": "number"
+     },
+     "market_spread_to_repo_bp": {
+      "title": "Market Spread To Repo Bp",
+      "type": "number"
+     },
+     "model": {
+      "$ref": "#/components/schemas/TermRateModel"
+     }
+    },
+    "required": [
+     "inputs",
+     "model",
+     "market_rate_pct",
+     "market_spread_to_repo_bp",
+     "implied_g_pct"
+    ],
+    "title": "TermRate",
+    "type": "object"
+   },
+   "TermRateInputs": {
+    "properties": {
+     "b": {
+      "title": "B",
+      "type": "number"
+     },
+     "d": {
+      "title": "D",
+      "type": "number"
+     },
+     "g": {
+      "title": "G",
+      "type": "number"
+     },
+     "pd": {
+      "title": "Pd",
+      "type": "number"
+     },
+     "q": {
+      "title": "Q",
+      "type": "number"
+     },
+     "recovery": {
+      "title": "Recovery",
+      "type": "number"
+     },
+     "repo": {
+      "title": "Repo",
+      "type": "number"
+     }
+    },
+    "required": [
+     "repo",
+     "pd",
+     "recovery",
+     "q",
+     "d",
+     "g",
+     "b"
+    ],
+    "title": "TermRateInputs",
+    "type": "object"
+   },
+   "TermRateModel": {
+    "properties": {
+     "capital": {
+      "title": "Capital",
+      "type": "number"
+     },
+     "credit": {
+      "title": "Credit",
+      "type": "number"
+     },
+     "funding": {
+      "title": "Funding",
+      "type": "number"
+     },
+     "rate": {
+      "title": "Rate",
+      "type": "number"
+     },
+     "spread_to_repo_bp": {
+      "title": "Spread To Repo Bp",
+      "type": "number"
+     }
+    },
+    "required": [
+     "rate",
+     "funding",
+     "credit",
+     "capital",
+     "spread_to_repo_bp"
+    ],
+    "title": "TermRateModel",
     "type": "object"
    },
    "Token": {
@@ -5786,6 +6240,220 @@
      }
     ],
     "summary": "Swap Spreads Bond"
+   }
+  },
+  "/api/tools/swap-spreads/funding": {
+   "get": {
+    "description": "Fair-value building blocks: CDS adjustment, secured-unsecured basis, repo-term rate, haircut cost.",
+    "operationId": "swap_spreads_funding_api_tools_swap_spreads_funding_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "cds_bp",
+      "required": false,
+      "schema": {
+       "default": 60.0,
+       "maximum": 5000,
+       "minimum": 0,
+       "title": "Cds Bp",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "settlement",
+      "required": false,
+      "schema": {
+       "default": "physical",
+       "enum": [
+        "cash",
+        "physical"
+       ],
+       "title": "Settlement",
+       "type": "string"
+      }
+     },
+     {
+      "description": "cost of equity",
+      "in": "query",
+      "name": "g",
+      "required": false,
+      "schema": {
+       "default": 0.1,
+       "description": "cost of equity",
+       "maximum": 1.0,
+       "minimum": -0.5,
+       "title": "G",
+       "type": "number"
+      }
+     },
+     {
+      "description": "risk weight",
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "default": 0.2,
+       "description": "risk weight",
+       "maximum": 1.5,
+       "minimum": 0,
+       "title": "Q",
+       "type": "number"
+      }
+     },
+     {
+      "description": "capital ratio",
+      "in": "query",
+      "name": "d",
+      "required": false,
+      "schema": {
+       "default": 0.08,
+       "description": "capital ratio",
+       "maximum": 0.5,
+       "minimum": 0,
+       "title": "D",
+       "type": "number"
+      }
+     },
+     {
+      "description": "what-if capital ratio",
+      "in": "query",
+      "name": "d_new",
+      "required": false,
+      "schema": {
+       "default": 0.12,
+       "description": "what-if capital ratio",
+       "maximum": 0.5,
+       "minimum": 0,
+       "title": "D New",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "repo",
+      "required": false,
+      "schema": {
+       "default": 0.019,
+       "maximum": 0.5,
+       "minimum": -0.05,
+       "title": "Repo",
+       "type": "number"
+      }
+     },
+     {
+      "description": "default probability",
+      "in": "query",
+      "name": "pd",
+      "required": false,
+      "schema": {
+       "default": 0.0025,
+       "description": "default probability",
+       "maximum": 0.5,
+       "minimum": 0,
+       "title": "Pd",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "recovery",
+      "required": false,
+      "schema": {
+       "default": 0.4,
+       "maximum": 1,
+       "minimum": 0,
+       "title": "Recovery",
+       "type": "number"
+      }
+     },
+     {
+      "description": "return earned on the capital",
+      "in": "query",
+      "name": "b",
+      "required": false,
+      "schema": {
+       "default": 0.019,
+       "description": "return earned on the capital",
+       "maximum": 0.5,
+       "minimum": -0.05,
+       "title": "B",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "market_term_rate",
+      "required": false,
+      "schema": {
+       "default": 0.0215,
+       "maximum": 0.5,
+       "minimum": -0.05,
+       "title": "Market Term Rate",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "excess_funding_bp",
+      "required": false,
+      "schema": {
+       "default": 600.0,
+       "maximum": 5000,
+       "minimum": 0,
+       "title": "Excess Funding Bp",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "zero",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Zero",
+       "type": "boolean"
+      }
+     },
+     {
+      "in": "query",
+      "name": "btp_downgrade",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Btp Downgrade",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FundingInputs"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Swap Spreads Funding"
    }
   },
   "/api/tools/swaps-rv": {

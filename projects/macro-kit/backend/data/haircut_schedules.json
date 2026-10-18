@@ -1,0 +1,64 @@
+{
+  "note": "Central-bank haircut schedules for sovereign collateral (H&S Ch 18, Tables 18.1-18.3). Haircut in % of market value. Bucket edges in years: a value v falls in bucket i when edges[i] <= v < edges[i+1]. Schedules change: re-check each source and update as_of when it does.",
+  "schedules": {
+    "ecb": {
+      "name": "ECB (Eurosystem), haircut category I: central government debt",
+      "source": "Guideline ECB/2015/35, Annex Table 2, as amended by Guideline (EU) 2023/832; EUR-Lex consolidated text of 30 March 2026",
+      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02015O0035-20260330",
+      "as_of": "2026-03-30",
+      "basis": "residual_maturity",
+      "edges": [0, 1, 3, 5, 7, 10, 15, 30],
+      "caveat": "A 2026 amending guideline updating haircut categories I-V was in draft when this was recorded.",
+      "classes": {
+        "cqs12": {
+          "label": "Credit quality steps 1-2 (AAA to A-)",
+          "coupon": [0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0],
+          "zero":   [0.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 9.0]
+        },
+        "cqs3": {
+          "label": "Credit quality step 3 (BBB+ to BBB-)",
+          "coupon": [5.0, 6.0, 8.5, 10.0, 11.5, 12.5, 13.5, 14.0],
+          "zero":   [5.0, 7.0, 10.0, 11.5, 13.0, 14.0, 15.0, 17.0]
+        }
+      }
+    },
+    "fed": {
+      "name": "Federal Reserve discount window: U.S. Treasuries",
+      "source": "Securities Valuation and Margins Table, effective 1 July 2026 (margins 99/99/98/97/95% and STRIPS 96/96/96/96/94% of market value; haircut = 100 - margin)",
+      "url": "https://www.frbdiscountwindow.org/pages/collateral/collateral_valuation",
+      "as_of": "2026-07-01",
+      "basis": "duration",
+      "edges": [0, 1, 3, 5, 10],
+      "classes": {
+        "ust": {
+          "label": "Bills, notes, bonds, FRNs and inflation-indexed; zero = STRIPS",
+          "coupon": [1.0, 1.0, 2.0, 3.0, 5.0],
+          "zero":   [4.0, 4.0, 4.0, 4.0, 6.0]
+        }
+      }
+    },
+    "boe": {
+      "name": "Bank of England Sterling Monetary Framework, Level A: UK sovereign debt (conventional)",
+      "source": "Summary of haircuts for securities eligible for the Bank's lending operations, 18 June 2026 (fixed-rate columns; floating-rate gilts 0.5%)",
+      "url": "https://www.bankofengland.co.uk/-/media/boe/files/markets/eligible-collateral/summary-tables-of-haircuts-for-bank-lending-operations.pdf",
+      "as_of": "2026-06-18",
+      "basis": "residual_maturity",
+      "edges": [0, 1, 3, 5, 10, 20, 30],
+      "classes": {
+        "uk": {
+          "label": "UK gilts, conventional; zero = strips",
+          "coupon": [0.5, 1.5, 2.0, 3.5, 6.0, 8.5, 10.0],
+          "zero":   [0.5, 1.5, 2.5, 3.5, 7.0, 10.5, 15.0]
+        }
+      }
+    }
+  },
+  "issuers": {
+    "UST":  {"schedule": "fed", "class": "ust",   "rating_basis": "US Treasury"},
+    "Bund": {"schedule": "ecb", "class": "cqs12", "rating_basis": "AAA"},
+    "OAT":  {"schedule": "ecb", "class": "cqs12", "rating_basis": "AA range"},
+    "BTP":  {"schedule": "ecb", "class": "cqs12", "rating_basis": "Morningstar DBRS A (low), affirmed Oct 2026 (ECB first-best rule); was BBB (high) = step 3 when H&S wrote Fig 18.1", "alternative_class": "cqs3"},
+    "Gilt": {"schedule": "boe", "class": "uk",    "rating_basis": "UK sovereign"},
+    "JGB":  {"schedule": null,  "class": null,    "rating_basis": "Bank of Japan schedule not loaded"}
+  }
+}

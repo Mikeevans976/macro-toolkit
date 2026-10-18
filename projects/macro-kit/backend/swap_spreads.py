@@ -16,6 +16,8 @@ Entry points
 ------------
   compute_swap_spreads(target)   bond table + fitted spread curve per issuer
   get_bond_breakdown(bond_id, target)
+  get_funding_inputs(...)          CDS adjustment, secured-unsecured basis,
+                                   repo-term rate, haircut cost (H&S Ch 11-13, 18)
 """
 
 from __future__ import annotations
@@ -28,7 +30,8 @@ import numpy as np
 import pandas as pd
 
 from asset_basis_swap import Market, asset_and_basis_swap, leg_times, par_swap_rate
-from bond_math import DiscountFn, curve_bpv, fisher_weil_duration
+from bond_math import DiscountFn, curve_bpv, fisher_weil_duration, macaulay_duration
+import funding_models as fm
 
 CURVE_TENORS = [1, 2, 3, 5, 7, 10, 15, 20, 30]
 BENCHMARK_TENORS = [2, 5, 10, 30]
@@ -257,4 +260,83 @@ def get_bond_breakdown(bond_id: str, target: str = 'USD') -> dict:
         'cashflows': [{'time': round(float(t), 4), 'amount': round(float(a), 6),
                        'df': round(float(d), 6), 'pv': round(float(a * d), 6)}
                       for t, a, d in zip(bond.times, bond.amounts, dfs)],
+    }
+
+
+# ── Fair-value building blocks (CDS, basis, term rate, haircuts) ───────────────
+
+HAIRCUT_GRID = [round(x, 2) for x in np.r_[np.arange(0.5, 10, 0.5), np.arange(10, 40.5, 1.0)]]
+_PAR_YIELD_FOR_DURATION = 0.04   # duration of a grid point = a 4% semi-annual par bond's
+
+
+def _grid_duration(T: float, zero: bool) -> float:
+    if zero:
+        return T
+    t = leg_times(T, 2)
+    a = np.full(len(t), _PAR_YIELD_FOR_DURATION * 100 / 2)
+    a[-1] += 100.0
+    return macaulay_duration(t, a, _PAR_YIELD_FOR_DURATION, freq=2)
+
+
+def _haircut_block(excess_funding_bp: float, zero: bool, btp_downgrade: bool) -> dict:
+    sched = fm.load_schedules()
+    curves, bonds = [], []
+    for issuer, meta in sched['issuers'].items():
+        name, cls = fm.issuer_haircut_class(issuer, alternative=btp_downgrade)
+        if name is None:
+            continue
+        pts = []
+        for T in HAIRCUT_GRID:
+            h = fm.haircut_pct(name, cls, T, _grid_duration(T, zero), zero)
+            pts.append({'tenor': T, 'haircut_pct': h, 'drag_bp': round(fm.haircut_drag_bp(h, excess_funding_bp), 2)})
+        curves.append({'issuer': issuer, 'schedule': name, 'haircut_class': cls,
+                       'class_label': sched['schedules'][name]['classes'][cls]['label'],
+                       'rating_basis': meta['rating_basis'], 'points': pts})
+    for b in build_bonds(_markets()):
+        name, cls = fm.issuer_haircut_class(b.issuer, alternative=btp_downgrade)
+        if name is None:
+            continue
+        dur = fisher_weil_duration(b.times, b.amounts, b.discount)
+        h = fm.haircut_pct(name, cls, b.ttm, dur, zero=False)      # benchmark bonds pay coupons
+        bonds.append({'bond_id': b.bond_id, 'issuer': b.issuer, 'name': b.name, 'ttm': round(b.ttm, 4),
+                      'duration': round(dur, 3), 'haircut_pct': h,
+                      'drag_bp': round(fm.haircut_drag_bp(h, excess_funding_bp), 2)})
+    return {
+        'excess_funding_bp': excess_funding_bp,
+        'zero_coupon': zero,
+        'btp_downgrade': btp_downgrade,
+        'curves': curves,
+        'bonds': bonds,
+        'sources': [{'schedule': k, 'name': v['name'], 'source': v['source'], 'url': v['url'],
+                     'as_of': v['as_of'], 'basis': v['basis']} for k, v in sched['schedules'].items()],
+    }
+
+
+def get_funding_inputs(
+    cds_bp: float = 60.0, settlement: str = 'physical',
+    g: float = 0.10, q: float = 0.20, d: float = 0.08, d_new: float = 0.12,
+    repo: float = 0.019, pd_: float = 0.0025, recovery: float = 0.40, b: float = 0.019,
+    market_term_rate: float = 0.0215,
+    excess_funding_bp: float = 600.0, zero: bool = False, btp_downgrade: bool = False,
+) -> dict:
+    basis = fm.secured_unsecured_basis_bp(g, q, d)
+    basis_new = fm.secured_unsecured_basis_bp(g, q, d_new)
+    tr = fm.term_rate(repo, pd_, recovery, q, d, g, b)
+    cds = fm.adjusted_cds(cds_bp, settlement)
+    return {
+        'data_source': 'simulation',
+        'cds': {**cds, 'adjusted_bp': round(cds['adjusted_bp'], 4),
+                'scenarios': [{**sc, 'adjusted_bp': round(sc['adjusted_bp'], 4)} for sc in cds['scenarios']]},
+        'secured_unsecured': {'g': g, 'q': q, 'd': d, 'basis_bp': round(basis, 4),
+                              'd_new': d_new, 'basis_new_bp': round(basis_new, 4),
+                              'change_bp': round(basis_new - basis, 4)},
+        'term_rate': {
+            'inputs': {'repo': repo, 'pd': pd_, 'recovery': recovery, 'q': q, 'd': d, 'g': g, 'b': b},
+            'model': {k: round(v * 100, 6) if k != 'spread_to_repo_bp' else round(v, 4) for k, v in tr.items()},
+            'market_rate_pct': round(market_term_rate * 100, 6),
+            'market_spread_to_repo_bp': round((market_term_rate - repo) / 1e-4, 4),
+            'implied_g_pct': round(fm.implied_cost_of_equity(market_term_rate, repo, pd_, recovery, q, d, b) * 100, 4)
+            if q * d else None,
+        },
+        'haircuts': _haircut_block(excess_funding_bp, zero, btp_downgrade),
     }

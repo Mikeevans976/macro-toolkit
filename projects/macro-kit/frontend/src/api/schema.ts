@@ -1198,6 +1198,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/swap-spreads/funding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Swap Spreads Funding
+         * @description Fair-value building blocks: CDS adjustment, secured-unsecured basis, repo-term rate, haircut cost.
+         */
+        get: operations["swap_spreads_funding_api_tools_swap_spreads_funding_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tools/swaps-rv": {
         parameters: {
             query?: never;
@@ -1526,6 +1546,34 @@ export interface components {
             /** Time */
             time: number;
         };
+        /** CdsAdjustment */
+        CdsAdjustment: {
+            /** Adjusted Bp */
+            adjusted_bp: number;
+            /** Cds Bp */
+            cds_bp: number;
+            /** Factor */
+            factor: number;
+            /** Scenarios */
+            scenarios: components["schemas"]["CdsScenario"][];
+            /**
+             * Settlement
+             * @enum {string}
+             */
+            settlement: "cash" | "physical";
+        };
+        /** CdsScenario */
+        CdsScenario: {
+            /** Adjusted Bp */
+            adjusted_bp: number;
+            /**
+             * Case
+             * @enum {string}
+             */
+            case: "low" | "mid" | "high";
+            /** Factor */
+            factor: number;
+        };
         /** CurrentScenarios */
         CurrentScenarios: {
             breakeven: components["schemas"]["ScenarioProbs"];
@@ -1757,10 +1805,96 @@ export interface components {
             /** Target Date */
             target_date: string;
         };
+        /** FundingInputs */
+        FundingInputs: {
+            cds: components["schemas"]["CdsAdjustment"];
+            /**
+             * Data Source
+             * @enum {string}
+             */
+            data_source: "live" | "simulation";
+            haircuts: components["schemas"]["Haircuts"];
+            secured_unsecured: components["schemas"]["SecuredUnsecured"];
+            term_rate: components["schemas"]["TermRate"];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HaircutBond */
+        HaircutBond: {
+            /** Bond Id */
+            bond_id: string;
+            /** Drag Bp */
+            drag_bp: number;
+            /** Duration */
+            duration: number;
+            /** Haircut Pct */
+            haircut_pct: number;
+            /** Issuer */
+            issuer: string;
+            /** Name */
+            name: string;
+            /** Ttm */
+            ttm: number;
+        };
+        /** HaircutCurve */
+        HaircutCurve: {
+            /** Class Label */
+            class_label: string;
+            /** Haircut Class */
+            haircut_class: string;
+            /** Issuer */
+            issuer: string;
+            /** Points */
+            points: components["schemas"]["HaircutPoint"][];
+            /** Rating Basis */
+            rating_basis: string;
+            /** Schedule */
+            schedule: string;
+        };
+        /** HaircutPoint */
+        HaircutPoint: {
+            /** Drag Bp */
+            drag_bp: number;
+            /** Haircut Pct */
+            haircut_pct: number;
+            /** Tenor */
+            tenor: number;
+        };
+        /** HaircutSource */
+        HaircutSource: {
+            /** As Of */
+            as_of: string;
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "residual_maturity" | "duration";
+            /** Name */
+            name: string;
+            /** Schedule */
+            schedule: string;
+            /** Source */
+            source: string;
+            /** Url */
+            url: string;
+        };
+        /** Haircuts */
+        Haircuts: {
+            /** Bonds */
+            bonds: components["schemas"]["HaircutBond"][];
+            /** Btp Downgrade */
+            btp_downgrade: boolean;
+            /** Curves */
+            curves: components["schemas"]["HaircutCurve"][];
+            /** Excess Funding Bp */
+            excess_funding_bp: number;
+            /** Sources */
+            sources: components["schemas"]["HaircutSource"][];
+            /** Zero Coupon */
+            zero_coupon: boolean;
         };
         /** HeatmapDashboard */
         HeatmapDashboard: {
@@ -1944,6 +2078,23 @@ export interface components {
             /** Dates */
             dates: string[];
         };
+        /** SecuredUnsecured */
+        SecuredUnsecured: {
+            /** Basis Bp */
+            basis_bp: number;
+            /** Basis New Bp */
+            basis_new_bp: number;
+            /** Change Bp */
+            change_bp: number;
+            /** D */
+            d: number;
+            /** D New */
+            d_new: number;
+            /** G */
+            g: number;
+            /** Q */
+            q: number;
+        };
         /** SeriesPayload */
         SeriesPayload: {
             /** Dates */
@@ -2083,6 +2234,47 @@ export interface components {
             upfront: number;
             /** Ytm */
             ytm: number;
+        };
+        /** TermRate */
+        TermRate: {
+            /** Implied G Pct */
+            implied_g_pct: number | null;
+            inputs: components["schemas"]["TermRateInputs"];
+            /** Market Rate Pct */
+            market_rate_pct: number;
+            /** Market Spread To Repo Bp */
+            market_spread_to_repo_bp: number;
+            model: components["schemas"]["TermRateModel"];
+        };
+        /** TermRateInputs */
+        TermRateInputs: {
+            /** B */
+            b: number;
+            /** D */
+            d: number;
+            /** G */
+            g: number;
+            /** Pd */
+            pd: number;
+            /** Q */
+            q: number;
+            /** Recovery */
+            recovery: number;
+            /** Repo */
+            repo: number;
+        };
+        /** TermRateModel */
+        TermRateModel: {
+            /** Capital */
+            capital: number;
+            /** Credit */
+            credit: number;
+            /** Funding */
+            funding: number;
+            /** Rate */
+            rate: number;
+            /** Spread To Repo Bp */
+            spread_to_repo_bp: number;
         };
         /** Token */
         Token: {
@@ -4099,6 +4291,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BondBreakdown"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    swap_spreads_funding_api_tools_swap_spreads_funding_get: {
+        parameters: {
+            query?: {
+                cds_bp?: number;
+                settlement?: "cash" | "physical";
+                /** @description cost of equity */
+                g?: number;
+                /** @description risk weight */
+                q?: number;
+                /** @description capital ratio */
+                d?: number;
+                /** @description what-if capital ratio */
+                d_new?: number;
+                repo?: number;
+                /** @description default probability */
+                pd?: number;
+                recovery?: number;
+                /** @description return earned on the capital */
+                b?: number;
+                market_term_rate?: number;
+                excess_funding_bp?: number;
+                zero?: boolean;
+                btp_downgrade?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FundingInputs"];
                 };
             };
             /** @description Validation Error */

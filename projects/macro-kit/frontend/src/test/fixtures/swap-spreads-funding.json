@@ -1,0 +1,1566 @@
+{
+ "data_source": "simulation",
+ "cds": {
+  "cds_bp": 60.0,
+  "settlement": "physical",
+  "factor": 0.39,
+  "adjusted_bp": 23.4,
+  "scenarios": [
+   {
+    "case": "low",
+    "factor": 0.3,
+    "adjusted_bp": 18.0
+   },
+   {
+    "case": "mid",
+    "factor": 0.45,
+    "adjusted_bp": 27.0
+   },
+   {
+    "case": "high",
+    "factor": 0.6,
+    "adjusted_bp": 36.0
+   }
+  ]
+ },
+ "secured_unsecured": {
+  "g": 0.1,
+  "q": 0.2,
+  "d": 0.08,
+  "basis_bp": 16.0,
+  "d_new": 0.12,
+  "basis_new_bp": 24.0,
+  "change_bp": 8.0
+ },
+ "term_rate": {
+  "inputs": {
+   "repo": 0.019,
+   "pd": 0.0025,
+   "recovery": 0.4,
+   "q": 0.2,
+   "d": 0.08,
+   "g": 0.1,
+   "b": 0.019
+  },
+  "model": {
+   "rate": 2.182874,
+   "funding": 1.902854,
+   "credit": 0.150225,
+   "capital": 0.129795,
+   "spread_to_repo_bp": 28.2874
+  },
+  "market_rate_pct": 2.15,
+  "market_spread_to_repo_bp": 25.0,
+  "implied_g_pct": 7.9484
+ },
+ "haircuts": {
+  "excess_funding_bp": 600.0,
+  "zero_coupon": false,
+  "btp_downgrade": false,
+  "curves": [
+   {
+    "issuer": "UST",
+    "schedule": "fed",
+    "haircut_class": "ust",
+    "class_label": "Bills, notes, bonds, FRNs and inflation-indexed; zero = STRIPS",
+    "rating_basis": "US Treasury",
+    "points": [
+     {
+      "tenor": 0.5,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 1.0,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 1.5,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 2.0,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 2.5,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 3.0,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 3.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 4.0,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 4.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 5.0,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 5.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 6.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 6.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 7.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 7.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 8.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 8.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 9.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 9.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 10.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 11.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 12.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 13.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 14.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 15.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 16.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 17.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 18.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 19.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 20.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 21.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 22.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 23.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 24.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 25.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 26.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 27.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 28.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 29.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 30.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 31.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 32.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 33.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 34.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 35.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 36.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 37.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 38.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 39.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 40.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     }
+    ]
+   },
+   {
+    "issuer": "Bund",
+    "schedule": "ecb",
+    "haircut_class": "cqs12",
+    "class_label": "Credit quality steps 1-2 (AAA to A-)",
+    "rating_basis": "AAA",
+    "points": [
+     {
+      "tenor": 0.5,
+      "haircut_pct": 0.5,
+      "drag_bp": 3.0
+     },
+     {
+      "tenor": 1.0,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 1.5,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 2.0,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 2.5,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 3.0,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 3.5,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 4.0,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 4.5,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 5.0,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 5.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 6.0,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 6.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 7.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 7.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 8.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 8.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 9.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 9.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 10.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 11.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 12.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 13.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 14.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 15.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 16.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 17.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 18.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 19.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 20.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 21.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 22.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 23.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 24.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 25.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 26.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 27.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 28.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 29.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 30.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 31.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 32.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 33.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 34.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 35.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 36.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 37.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 38.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 39.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 40.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     }
+    ]
+   },
+   {
+    "issuer": "OAT",
+    "schedule": "ecb",
+    "haircut_class": "cqs12",
+    "class_label": "Credit quality steps 1-2 (AAA to A-)",
+    "rating_basis": "AA range",
+    "points": [
+     {
+      "tenor": 0.5,
+      "haircut_pct": 0.5,
+      "drag_bp": 3.0
+     },
+     {
+      "tenor": 1.0,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 1.5,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 2.0,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 2.5,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 3.0,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 3.5,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 4.0,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 4.5,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 5.0,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 5.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 6.0,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 6.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 7.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 7.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 8.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 8.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 9.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 9.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 10.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 11.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 12.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 13.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 14.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 15.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 16.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 17.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 18.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 19.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 20.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 21.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 22.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 23.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 24.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 25.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 26.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 27.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 28.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 29.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 30.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 31.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 32.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 33.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 34.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 35.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 36.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 37.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 38.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 39.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 40.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     }
+    ]
+   },
+   {
+    "issuer": "BTP",
+    "schedule": "ecb",
+    "haircut_class": "cqs12",
+    "class_label": "Credit quality steps 1-2 (AAA to A-)",
+    "rating_basis": "Morningstar DBRS A (low), affirmed Oct 2026 (ECB first-best rule); was BBB (high) = step 3 when H&S wrote Fig 18.1",
+    "points": [
+     {
+      "tenor": 0.5,
+      "haircut_pct": 0.5,
+      "drag_bp": 3.0
+     },
+     {
+      "tenor": 1.0,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 1.5,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 2.0,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 2.5,
+      "haircut_pct": 1.0,
+      "drag_bp": 6.0
+     },
+     {
+      "tenor": 3.0,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 3.5,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 4.0,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 4.5,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 5.0,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 5.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 6.0,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 6.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 7.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 7.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 8.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 8.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 9.0,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 9.5,
+      "haircut_pct": 3.0,
+      "drag_bp": 18.0
+     },
+     {
+      "tenor": 10.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 11.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 12.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 13.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 14.0,
+      "haircut_pct": 4.0,
+      "drag_bp": 24.0
+     },
+     {
+      "tenor": 15.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 16.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 17.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 18.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 19.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 20.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 21.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 22.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 23.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 24.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 25.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 26.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 27.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 28.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 29.0,
+      "haircut_pct": 5.0,
+      "drag_bp": 30.0
+     },
+     {
+      "tenor": 30.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 31.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 32.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 33.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 34.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 35.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 36.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 37.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 38.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 39.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 40.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     }
+    ]
+   },
+   {
+    "issuer": "Gilt",
+    "schedule": "boe",
+    "haircut_class": "uk",
+    "class_label": "UK gilts, conventional; zero = strips",
+    "rating_basis": "UK sovereign",
+    "points": [
+     {
+      "tenor": 0.5,
+      "haircut_pct": 0.5,
+      "drag_bp": 3.0
+     },
+     {
+      "tenor": 1.0,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 1.5,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 2.0,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 2.5,
+      "haircut_pct": 1.5,
+      "drag_bp": 9.0
+     },
+     {
+      "tenor": 3.0,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 3.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 4.0,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 4.5,
+      "haircut_pct": 2.0,
+      "drag_bp": 12.0
+     },
+     {
+      "tenor": 5.0,
+      "haircut_pct": 3.5,
+      "drag_bp": 21.0
+     },
+     {
+      "tenor": 5.5,
+      "haircut_pct": 3.5,
+      "drag_bp": 21.0
+     },
+     {
+      "tenor": 6.0,
+      "haircut_pct": 3.5,
+      "drag_bp": 21.0
+     },
+     {
+      "tenor": 6.5,
+      "haircut_pct": 3.5,
+      "drag_bp": 21.0
+     },
+     {
+      "tenor": 7.0,
+      "haircut_pct": 3.5,
+      "drag_bp": 21.0
+     },
+     {
+      "tenor": 7.5,
+      "haircut_pct": 3.5,
+      "drag_bp": 21.0
+     },
+     {
+      "tenor": 8.0,
+      "haircut_pct": 3.5,
+      "drag_bp": 21.0
+     },
+     {
+      "tenor": 8.5,
+      "haircut_pct": 3.5,
+      "drag_bp": 21.0
+     },
+     {
+      "tenor": 9.0,
+      "haircut_pct": 3.5,
+      "drag_bp": 21.0
+     },
+     {
+      "tenor": 9.5,
+      "haircut_pct": 3.5,
+      "drag_bp": 21.0
+     },
+     {
+      "tenor": 10.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 11.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 12.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 13.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 14.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 15.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 16.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 17.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 18.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 19.0,
+      "haircut_pct": 6.0,
+      "drag_bp": 36.0
+     },
+     {
+      "tenor": 20.0,
+      "haircut_pct": 8.5,
+      "drag_bp": 51.0
+     },
+     {
+      "tenor": 21.0,
+      "haircut_pct": 8.5,
+      "drag_bp": 51.0
+     },
+     {
+      "tenor": 22.0,
+      "haircut_pct": 8.5,
+      "drag_bp": 51.0
+     },
+     {
+      "tenor": 23.0,
+      "haircut_pct": 8.5,
+      "drag_bp": 51.0
+     },
+     {
+      "tenor": 24.0,
+      "haircut_pct": 8.5,
+      "drag_bp": 51.0
+     },
+     {
+      "tenor": 25.0,
+      "haircut_pct": 8.5,
+      "drag_bp": 51.0
+     },
+     {
+      "tenor": 26.0,
+      "haircut_pct": 8.5,
+      "drag_bp": 51.0
+     },
+     {
+      "tenor": 27.0,
+      "haircut_pct": 8.5,
+      "drag_bp": 51.0
+     },
+     {
+      "tenor": 28.0,
+      "haircut_pct": 8.5,
+      "drag_bp": 51.0
+     },
+     {
+      "tenor": 29.0,
+      "haircut_pct": 8.5,
+      "drag_bp": 51.0
+     },
+     {
+      "tenor": 30.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     },
+     {
+      "tenor": 31.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     },
+     {
+      "tenor": 32.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     },
+     {
+      "tenor": 33.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     },
+     {
+      "tenor": 34.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     },
+     {
+      "tenor": 35.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     },
+     {
+      "tenor": 36.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     },
+     {
+      "tenor": 37.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     },
+     {
+      "tenor": 38.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     },
+     {
+      "tenor": 39.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     },
+     {
+      "tenor": 40.0,
+      "haircut_pct": 10.0,
+      "drag_bp": 60.0
+     }
+    ]
+   }
+  ],
+  "bonds": [
+   {
+    "bond_id": "UST-2Y",
+    "issuer": "UST",
+    "name": "UST 3.125% Oct-28",
+    "ttm": 2.0014,
+    "duration": 1.925,
+    "haircut_pct": 1.0,
+    "drag_bp": 6.0
+   },
+   {
+    "bond_id": "UST-5Y",
+    "issuer": "UST",
+    "name": "UST 3.875% Jul-31",
+    "ttm": 4.7474,
+    "duration": 4.336,
+    "haircut_pct": 2.0,
+    "drag_bp": 12.0
+   },
+   {
+    "bond_id": "UST-10Y",
+    "issuer": "UST",
+    "name": "UST 4.125% Oct-36",
+    "ttm": 10.0014,
+    "duration": 8.098,
+    "haircut_pct": 3.0,
+    "drag_bp": 18.0
+   },
+   {
+    "bond_id": "UST-30Y",
+    "issuer": "UST",
+    "name": "UST 4.375% Oct-56",
+    "ttm": 30.0014,
+    "duration": 16.404,
+    "haircut_pct": 5.0,
+    "drag_bp": 30.0
+   },
+   {
+    "bond_id": "Bund-2Y",
+    "issuer": "Bund",
+    "name": "Bund 2% Aug-28",
+    "ttm": 1.8344,
+    "duration": 1.815,
+    "haircut_pct": 1.0,
+    "drag_bp": 6.0
+   },
+   {
+    "bond_id": "Bund-5Y",
+    "issuer": "Bund",
+    "name": "Bund 2.5% Oct-31",
+    "ttm": 4.9993,
+    "duration": 4.761,
+    "haircut_pct": 1.5,
+    "drag_bp": 9.0
+   },
+   {
+    "bond_id": "Bund-10Y",
+    "issuer": "Bund",
+    "name": "Bund 2.6% Aug-36",
+    "ttm": 9.8344,
+    "duration": 8.758,
+    "haircut_pct": 3.0,
+    "drag_bp": 18.0
+   },
+   {
+    "bond_id": "Bund-30Y",
+    "issuer": "Bund",
+    "name": "Bund 2.7% Jul-56",
+    "ttm": 29.7495,
+    "duration": 20.542,
+    "haircut_pct": 5.0,
+    "drag_bp": 30.0
+   },
+   {
+    "bond_id": "OAT-2Y",
+    "issuer": "OAT",
+    "name": "OAT 2% May-28",
+    "ttm": 1.5825,
+    "duration": 1.563,
+    "haircut_pct": 1.0,
+    "drag_bp": 6.0
+   },
+   {
+    "bond_id": "OAT-5Y",
+    "issuer": "OAT",
+    "name": "OAT 2.5% Feb-31",
+    "ttm": 4.3368,
+    "duration": 4.096,
+    "haircut_pct": 1.5,
+    "drag_bp": 9.0
+   },
+   {
+    "bond_id": "OAT-10Y",
+    "issuer": "OAT",
+    "name": "OAT 3% May-36",
+    "ttm": 9.5825,
+    "duration": 8.344,
+    "haircut_pct": 3.0,
+    "drag_bp": 18.0
+   },
+   {
+    "bond_id": "OAT-30Y",
+    "issuer": "OAT",
+    "name": "OAT 3.25% May-56",
+    "ttm": 29.5825,
+    "duration": 18.849,
+    "haircut_pct": 5.0,
+    "drag_bp": 30.0
+   },
+   {
+    "bond_id": "BTP-2Y",
+    "issuer": "BTP",
+    "name": "BTP 2.45% Aug-28",
+    "ttm": 1.8344,
+    "duration": 1.798,
+    "haircut_pct": 1.0,
+    "drag_bp": 6.0
+   },
+   {
+    "bond_id": "BTP-5Y",
+    "issuer": "BTP",
+    "name": "BTP 3% Jun-31",
+    "ttm": 4.6653,
+    "duration": 4.342,
+    "haircut_pct": 1.5,
+    "drag_bp": 9.0
+   },
+   {
+    "bond_id": "BTP-10Y",
+    "issuer": "BTP",
+    "name": "BTP 3.55% Jul-36",
+    "ttm": 9.7495,
+    "duration": 8.22,
+    "haircut_pct": 3.0,
+    "drag_bp": 18.0
+   },
+   {
+    "bond_id": "BTP-30Y",
+    "issuer": "BTP",
+    "name": "BTP 3.9% Jul-56",
+    "ttm": 29.7495,
+    "duration": 17.369,
+    "haircut_pct": 5.0,
+    "drag_bp": 30.0
+   },
+   {
+    "bond_id": "Gilt-2Y",
+    "issuer": "Gilt",
+    "name": "Gilt 3.875% Aug-28",
+    "ttm": 1.8344,
+    "duration": 1.778,
+    "haircut_pct": 1.5,
+    "drag_bp": 9.0
+   },
+   {
+    "bond_id": "Gilt-5Y",
+    "issuer": "Gilt",
+    "name": "Gilt 4.5% Oct-31",
+    "ttm": 4.9993,
+    "duration": 4.531,
+    "haircut_pct": 2.0,
+    "drag_bp": 12.0
+   },
+   {
+    "bond_id": "Gilt-10Y",
+    "issuer": "Gilt",
+    "name": "Gilt 4.5% May-36",
+    "ttm": 9.5825,
+    "duration": 7.713,
+    "haircut_pct": 3.5,
+    "drag_bp": 21.0
+   },
+   {
+    "bond_id": "Gilt-30Y",
+    "issuer": "Gilt",
+    "name": "Gilt 4.75% May-56",
+    "ttm": 29.5825,
+    "duration": 15.553,
+    "haircut_pct": 8.5,
+    "drag_bp": 51.0
+   }
+  ],
+  "sources": [
+   {
+    "schedule": "ecb",
+    "name": "ECB (Eurosystem), haircut category I: central government debt",
+    "source": "Guideline ECB/2015/35, Annex Table 2, as amended by Guideline (EU) 2023/832; EUR-Lex consolidated text of 30 March 2026",
+    "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02015O0035-20260330",
+    "as_of": "2026-03-30",
+    "basis": "residual_maturity"
+   },
+   {
+    "schedule": "fed",
+    "name": "Federal Reserve discount window: U.S. Treasuries",
+    "source": "Securities Valuation and Margins Table, effective 1 July 2026 (margins 99/99/98/97/95% and STRIPS 96/96/96/96/94% of market value; haircut = 100 - margin)",
+    "url": "https://www.frbdiscountwindow.org/pages/collateral/collateral_valuation",
+    "as_of": "2026-07-01",
+    "basis": "duration"
+   },
+   {
+    "schedule": "boe",
+    "name": "Bank of England Sterling Monetary Framework, Level A: UK sovereign debt (conventional)",
+    "source": "Summary of haircuts for securities eligible for the Bank's lending operations, 18 June 2026 (fixed-rate columns; floating-rate gilts 0.5%)",
+    "url": "https://www.bankofengland.co.uk/-/media/boe/files/markets/eligible-collateral/summary-tables-of-haircuts-for-bank-lending-operations.pdf",
+    "as_of": "2026-06-18",
+    "basis": "residual_maturity"
+   }
+  ]
+ }
+}

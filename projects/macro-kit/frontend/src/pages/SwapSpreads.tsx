@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   CartesianGrid,
+  Line,
+  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Scatter,
@@ -96,9 +98,11 @@ function TargetPicker({ value, onChange }: { value: Target; onChange: (t: Target
 const TABS = [
   { id: 'calculator', label: 'Asset & basis-swap calculator' },
   { id: 'curve', label: 'Global ASW curve' },
+  { id: 'funding', label: 'Fair-value inputs' },
 ] as const
+type Tab = (typeof TABS)[number]['id']
 
-function Tabs({ value, onChange }: { value: 'calculator' | 'curve'; onChange: (t: 'calculator' | 'curve') => void }) {
+function Tabs({ value, onChange }: { value: Tab; onChange: (t: Tab) => void }) {
   return (
     <div role="tablist" style={{ display: 'flex', gap: 4, borderBottom: `1px solid ${line}` }}>
       {TABS.map(t => (
@@ -313,8 +317,11 @@ type MarkerShape = 'circle' | 'square' | 'diamond' | 'triangle' | 'wye' | 'star'
 const SHAPES: MarkerShape[] = ['circle', 'square', 'diamond', 'triangle', 'wye', 'star']
 const LOG_TICKS = [2, 3, 5, 7, 10, 20, 30]
 
-function issuerStyle(issuers: string[], issuer: string) {
-  const i = issuers.indexOf(issuer)
+// Fixed order so an issuer keeps its colour on every tab (colour follows the entity).
+const ISSUER_ORDER = ['UST', 'Bund', 'OAT', 'BTP', 'Gilt', 'JGB']
+
+function issuerStyle(issuer: string) {
+  const i = Math.max(ISSUER_ORDER.indexOf(issuer), 0)
   return { color: series[i % series.length], shape: SHAPES[i % SHAPES.length] }
 }
 
@@ -322,7 +329,7 @@ function LegendRow({ issuers }: { issuers: string[] }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 8 }}>
       {issuers.map(iss => {
-        const { color, shape } = issuerStyle(issuers, iss)
+        const { color, shape } = issuerStyle(iss)
         return (
           <span key={iss} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: fg[2] }}>
             <svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><MarkerGlyph shape={shape} color={color} /></svg>
@@ -388,7 +395,7 @@ function GlobalCurve({ data, onPick }: { data: Payload; onPick: (bondId: string)
             <ReferenceLine y={0} stroke={line2} />
             <Tooltip content={<CurveTooltip rfr={data.target_rfr} />} cursor={false} />
             {data.issuer_curves.map(c => {
-              const { color } = issuerStyle(issuers, c.issuer)
+              const { color } = issuerStyle(c.issuer)
               const last = c.points[c.points.length - 1]
               return (
                 <Scatter
@@ -405,7 +412,7 @@ function GlobalCurve({ data, onPick }: { data: Payload; onPick: (bondId: string)
               )
             })}
             {issuers.map(iss => {
-              const { color, shape } = issuerStyle(issuers, iss)
+              const { color, shape } = issuerStyle(iss)
               return (
                 <Scatter
                   key={`${iss}-bonds`}
@@ -495,6 +502,301 @@ function MarketInputs({ markets }: { markets: Payload['markets'] }) {
   )
 }
 
+// ─── Fair-value inputs (CDS, basis, term rate, haircuts) ──────────────────────
+
+type Funding = S['FundingInputs']
+
+// Rates are sent as decimals; `pct` fields are edited in % and divided by 100.
+const FUNDING_FIELDS = {
+  cds_bp: { label: 'Sovereign CDS', unit: 'bp', step: 5, pct: false },
+  g: { label: 'Cost of equity g', unit: '%', step: 0.5, pct: true },
+  q: { label: 'Risk weight q', unit: '%', step: 5, pct: true },
+  d: { label: 'Capital ratio d', unit: '%', step: 0.5, pct: true },
+  d_new: { label: 'What-if capital ratio', unit: '%', step: 0.5, pct: true },
+  repo: { label: 'Repo / RFR R', unit: '%', step: 0.05, pct: true },
+  pd: { label: 'Default probability p', unit: '%', step: 0.05, pct: true },
+  recovery: { label: 'Recovery c', unit: '%', step: 5, pct: true },
+  b: { label: 'Return on capital b', unit: '%', step: 0.05, pct: true },
+  market_term_rate: { label: 'Market term rate', unit: '%', step: 0.05, pct: true },
+  excess_funding_bp: { label: 'Excess funding cost', unit: 'bp', step: 50, pct: false },
+} as const
+type FieldKey = keyof typeof FUNDING_FIELDS
+
+const FUNDING_DEFAULTS: Record<FieldKey, number> = {
+  cds_bp: 60, g: 0.10, q: 0.20, d: 0.08, d_new: 0.12, repo: 0.019, pd: 0.0025,
+  recovery: 0.40, b: 0.019, market_term_rate: 0.0215, excess_funding_bp: 600,
+}
+
+function NumField({ k, value, onChange, hint }: { k: FieldKey; value: number; onChange: (k: FieldKey, v: number) => void; hint?: string }) {
+  const f = FUNDING_FIELDS[k]
+  const shown = f.pct ? +(value * 100).toFixed(4) : value
+  return (
+    <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '3px 0' }} title={hint}>
+      <span style={{ fontSize: 12, color: fg[3] }}>{f.label}</span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <input
+          type="number"
+          aria-label={f.label}
+          value={shown}
+          step={f.step}
+          onChange={e => {
+            const v = parseFloat(e.target.value)
+            if (Number.isFinite(v)) onChange(k, f.pct ? v / 100 : v)
+          }}
+          style={{
+            width: 74, background: 'rgba(200,220,240,0.04)', border: `1px solid ${line2}`, borderRadius: 4,
+            color: fg[1], fontFamily: fontNum, fontSize: 12, padding: '3px 6px', textAlign: 'right',
+          }}
+        />
+        <span style={{ fontSize: 11, color: fg[4], width: 18 }}>{f.unit}</span>
+      </span>
+    </label>
+  )
+}
+
+function Toggle({ label, checked, onChange, hint }: { label: string; checked: boolean; onChange: (v: boolean) => void; hint?: string }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: fg[2], cursor: 'pointer' }} title={hint}>
+      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} style={{ accentColor: accent }} />
+      {label}
+    </label>
+  )
+}
+
+function CdsCard({ data, settlement, onSettlement, field }: {
+  data: Funding['cds']; settlement: 'cash' | 'physical'; onSettlement: (s: 'cash' | 'physical') => void; field: React.ReactNode
+}) {
+  return (
+    <Step n={1} title="CDS adjustment (Ch 13)" formula="adjusted CDS = CDS × factor">
+      {field}
+      <div role="radiogroup" aria-label="CDS settlement" style={{ display: 'flex', gap: 12, padding: '4px 0 6px' }}>
+        {(['physical', 'cash'] as const).map(s => (
+          <label key={s} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: fg[2], cursor: 'pointer' }}>
+            <input type="radio" name="settlement" checked={settlement === s} onChange={() => onSettlement(s)} style={{ accentColor: accent }} />
+            {s === 'physical' ? 'Physical (FX + delivery option, 0.39)' : 'Cash (FX only, 0.45)'}
+          </label>
+        ))}
+      </div>
+      <Row label="Adjusted CDS fed into the ASW" value={`${fmt(data.adjusted_bp, 1)} bp`} strong />
+      <div style={{ borderTop: `1px solid ${line}`, marginTop: 6, paddingTop: 6 }}>
+        {data.scenarios.map(sc => (
+          <Row key={sc.case} label={`${sc.case[0].toUpperCase()}${sc.case.slice(1)} case (${fmt(sc.factor * 100, 0)}%)`} value={`${fmt(sc.adjusted_bp, 1)} bp`} />
+        ))}
+      </div>
+      <div style={{ fontSize: 11, color: fg[4], marginTop: 6 }}>H&S: check every credit-linked trade under all three cases.</div>
+    </Step>
+  )
+}
+
+function BasisCard({ data, fields }: { data: Funding['secured_unsecured']; fields: React.ReactNode }) {
+  return (
+    <Step n={2} title="Secured–unsecured basis (Ch 11)" formula="basis ≈ g · q · d">
+      {fields}
+      <Row label="Secured–unsecured basis" value={`${fmt(data.basis_bp, 1)} bp`} strong />
+      <Row label={`At capital ratio ${fmt(data.d_new * 100, 1)}%`} value={`${fmt(data.basis_new_bp, 1)} bp`} />
+      <Row label="Change in basis" value={`${fmtBp(data.change_bp)} bp`} />
+      <div style={{ fontSize: 11, color: fg[4], marginTop: 6 }}>
+        The OIS-ASW subtracts g·q·d, so it moves by {fmtBp(-data.change_bp)} bp.
+      </div>
+    </Step>
+  )
+}
+
+function TermRateCard({ data, fields }: { data: Funding['term_rate']; fields: React.ReactNode }) {
+  const m = data.model
+  return (
+    <Step n={3} title="Repo–term-rate model (Ch 11)" formula="L = [R + p(1−c) + q·d·(g − b)] / (1 − p(1−c))">
+      {fields}
+      <Row label="Funding: R / (1 − p(1−c))" value={`${fmt(m.funding, 3)}%`} />
+      <Row label="Credit: p(1−c) / (1 − p(1−c))" value={`${fmt(m.credit, 3)}%`} />
+      <Row label="Capital: q·d·(g − b) / (1 − p(1−c))" value={`${fmt(m.capital, 3)}%`} />
+      <Row label="Model term rate L" value={`${fmt(m.rate, 3)}% · ${fmtBp(m.spread_to_repo_bp)} bp over repo`} strong />
+      <div style={{ borderTop: `1px solid ${line}`, marginTop: 6, paddingTop: 6 }}>
+        <Row label="Market term rate" value={`${fmt(data.market_rate_pct, 3)}% · ${fmtBp(data.market_spread_to_repo_bp)} bp over repo`} />
+        <Row
+          label="Implied cost of equity g"
+          value={data.implied_g_pct == null ? 'n/a (q·d = 0)' : `${fmt(data.implied_g_pct, 2)}%`}
+          strong
+          hint="The g that makes the model rate equal the market rate: a gauge of bank funding stress"
+        />
+      </div>
+    </Step>
+  )
+}
+
+/** Issuers whose haircut curves are identical share one line and one label. */
+function groupCurves(curves: Funding['haircuts']['curves']) {
+  const groups: { issuers: string[]; curve: Funding['haircuts']['curves'][number] }[] = []
+  for (const c of curves) {
+    const sig = c.points.map(p => p.drag_bp).join(',')
+    const g = groups.find(x => x.curve.points.map(p => p.drag_bp).join(',') === sig)
+    if (g) g.issuers.push(c.issuer)
+    else groups.push({ issuers: [c.issuer], curve: c })
+  }
+  return groups
+}
+
+function HaircutChart({ data }: { data: Funding['haircuts'] }) {
+  const groups = groupCurves(data.curves)
+  return (
+    <div style={{ height: 360 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart margin={{ top: 10, right: 110, bottom: 24, left: 4 }}>
+          <CartesianGrid {...chart.grid} />
+          <XAxis
+            type="number" dataKey="tenor" domain={[0, 40]} ticks={[1, 3, 5, 7, 10, 15, 20, 30, 40]}
+            {...chart.axis} tickFormatter={(t: number) => `${t}y`}
+            label={{ value: 'Residual maturity', position: 'insideBottom', offset: -14, fill: fg[4], fontSize: 10 }}
+          />
+          <YAxis
+            type="number" {...chart.axis} width={44}
+            label={{ value: 'bp of yield', angle: -90, position: 'insideLeft', fill: fg[4], fontSize: 10 }}
+          />
+          <Tooltip
+            {...chart.tooltip}
+            labelFormatter={(t: number) => `${t}y`}
+            formatter={(v: number, name: string) => [`${fmt(v, 1)} bp`, name]}
+          />
+          {groups.map(g => {
+            const { color } = issuerStyle(g.issuers[0])
+            const name = g.issuers.join(' · ')
+            return (
+              <Line
+                key={name}
+                name={name}
+                data={g.curve.points}
+                dataKey="drag_bp"
+                type="stepAfter"
+                stroke={color}
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+                label={(p: { x?: number; y?: number; index?: number }) =>
+                  p.index === g.curve.points.length - 1 && p.x != null && p.y != null
+                    ? <text key={name} x={p.x + 8} y={p.y + 4} fill={fg[2]} fontSize={11}>{name}</text>
+                    : <g key={`${name}-${p.index}`} />}
+              />
+            )
+          })}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+function HaircutCard({ data, excessField, zero, onZero, downgrade, onDowngrade }: {
+  data: Funding['haircuts']; excessField: React.ReactNode
+  zero: boolean; onZero: (v: boolean) => void; downgrade: boolean; onDowngrade: (v: boolean) => void
+}) {
+  const btp = data.curves.find(c => c.issuer === 'BTP')
+  return (
+    <div style={card}>
+      <div style={sectionLabel}>4 · Haircut cost by maturity (Ch 18) · yield drag ≈ haircut × excess funding cost</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 20, marginBottom: 8 }}>
+        <div style={{ width: 260 }}>{excessField}</div>
+        <Toggle label="Zero-coupon bonds" checked={zero} onChange={onZero} hint="Zero-coupon haircuts are higher at the long end" />
+        <Toggle
+          label="BTP downgraded to ECB credit quality step 3"
+          checked={downgrade}
+          onChange={onDowngrade}
+          hint={btp?.rating_basis}
+        />
+      </div>
+      <HaircutChart data={data} />
+      <div style={{ fontSize: 11, color: fg[4], margin: '6px 0 12px' }}>
+        ECB and BoE schedules are bucketed by residual maturity; the Fed's by duration (a 4% par bond's on this chart, each bond's own below).
+        {btp && <> BTP: {btp.class_label} — {btp.rating_basis}.</>}
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: `1px solid ${line2}` }}>
+            <th style={{ ...th, textAlign: 'left' }}>Benchmark bond</th>
+            <th style={th}>TTM</th>
+            <th style={th}>Duration</th>
+            <th style={th}>Haircut %</th>
+            <th style={th}>Drag bp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.bonds.map(b => (
+            <tr key={b.bond_id} style={{ borderBottom: `1px solid ${line}` }}>
+              <td style={{ ...td, textAlign: 'left', fontFamily: undefined, color: fg[1] }}>{b.name}</td>
+              <td style={td}>{fmt(b.ttm, 1)}</td>
+              <td style={td}>{fmt(b.duration, 2)}</td>
+              <td style={td}>{fmt(b.haircut_pct, 1)}</td>
+              <td style={td}>{fmt(b.drag_bp, 1)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div style={{ marginTop: 12, display: 'grid', gap: 3 }}>
+        {data.sources.map(s => (
+          <div key={s.schedule} style={{ fontSize: 11, color: fg[4] }}>
+            <a href={s.url} target="_blank" rel="noreferrer" style={{ color: fg[3] }}>{s.name}</a> · {s.source} · as of {s.as_of}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function FundingTab() {
+  const [values, setValues] = useState<Record<FieldKey, number>>(FUNDING_DEFAULTS)
+  const [settlement, setSettlement] = useState<'cash' | 'physical'>('physical')
+  const [zero, setZero] = useState(false)
+  const [downgrade, setDowngrade] = useState(false)
+  const [data, setData] = useState<Funding | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const query = useMemo(() => {
+    const p = new URLSearchParams({ settlement, zero: String(zero), btp_downgrade: String(downgrade) })
+    for (const [k, v] of Object.entries(values)) p.set(k, String(v))
+    return p.toString()
+  }, [values, settlement, zero, downgrade])
+
+  useEffect(() => {
+    let cancelled = false
+    const t = setTimeout(() => {
+      authFetch(`/api/tools/swap-spreads/funding?${query}`)
+        .then(async res => {
+          if (!res.ok) throw new Error(res.status === 422 ? 'an input is out of range' : `HTTP ${res.status}`)
+          const body: Funding = await res.json()
+          if (!cancelled) { setData(body); setError(null) }
+        })
+        .catch(e => { if (!cancelled) setError(String(e.message ?? e)) })
+    }, 250)
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [query])
+
+  const set = (k: FieldKey, v: number) => setValues(prev => ({ ...prev, [k]: v }))
+  const field = (k: FieldKey, hint?: string) => <NumField k={k} value={values[k]} onChange={set} hint={hint} />
+
+  if (!data) return <div style={{ ...card, color: error ? neg : fg[3], fontSize: 13 }}>{error ? `Failed to load: ${error}` : 'Loading…'}</div>
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      {error && <div style={{ color: neg, fontSize: 12 }}>Not updated: {error}</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16, alignItems: 'start' }}>
+        <CdsCard data={data.cds} settlement={settlement} onSettlement={setSettlement} field={field('cds_bp')} />
+        <BasisCard data={data.secured_unsecured} fields={<>{field('g')}{field('q')}{field('d')}{field('d_new')}</>} />
+        <TermRateCard
+          data={data.term_rate}
+          fields={<>
+            {field('repo')}{field('pd', 'Probability the bank defaults over the year (e.g. from a bank CDS index)')}
+            {field('recovery')}{field('b', 'Return earned on the capital itself; set to the secured rate by default')}
+            {field('market_term_rate', 'e.g. Euribor 3M, to back out the implied cost of equity')}
+            <div style={{ fontSize: 11, color: fg[4], padding: '2px 0 6px' }}>Uses g, q, d from the basis card.</div>
+          </>}
+        />
+      </div>
+      <HaircutCard
+        data={data.haircuts}
+        excessField={field('excess_funding_bp', 'Cost of funding the haircut portion above repo (H&S default 600bp)')}
+        zero={zero} onZero={setZero} downgrade={downgrade} onDowngrade={setDowngrade}
+      />
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SwapSpreads() {
@@ -503,7 +805,7 @@ export default function SwapSpreads() {
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [detail, setDetail] = useState<Breakdown | null>(null)
-  const [tab, setTab] = useState<'calculator' | 'curve'>('calculator')
+  const [tab, setTab] = useState<Tab>('calculator')
 
   useEffect(() => {
     let cancelled = false
@@ -540,11 +842,11 @@ export default function SwapSpreads() {
           category="Funding"
           categoryId="funding"
           title="Swap Spreads & Basis"
-          subtitle={<>Asset & basis-swap calculator (Huggins & Schaller Ch 16–17){data ? ` · ${data.as_of}` : ''}</>}
+          subtitle={<>Asset swaps, basis swaps and their funding inputs (Huggins & Schaller Ch 11–18){data ? ` · ${data.as_of}` : ''}</>}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {data && <SourceBadge source={data.data_source} />}
-          <TargetPicker value={target} onChange={setTarget} />
+          {tab !== 'funding' && <TargetPicker value={target} onChange={setTarget} />}
         </div>
       </header>
 
@@ -559,13 +861,15 @@ export default function SwapSpreads() {
                 <BondTable bonds={data.bonds} target={target} targetRfr={data.target_rfr} selected={selected} onSelect={setSelected} />
                 {detail ? <BreakdownPanel data={detail} /> : <div style={{ ...card, color: fg[3], fontSize: 13 }}>Select a bond.</div>}
               </div>
-            ) : (
+            ) : tab === 'curve' ? (
               <>
                 <GlobalCurve data={data} onPick={id => { setSelected(id); setTab('calculator') }} />
                 <CurveTable data={data} />
               </>
+            ) : (
+              <FundingTab />
             )}
-            <MarketInputs markets={data.markets} />
+            {tab !== 'funding' && <MarketInputs markets={data.markets} />}
           </div>
         )}
       </main>
