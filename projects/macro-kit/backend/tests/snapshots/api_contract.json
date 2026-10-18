@@ -27324,6 +27324,908 @@
    "str_sha1": "a8879d512311610f47ee75378af938dbe3d5924d"
   }
  },
+ "/api/tools/swap-spreads/funding": {
+  "$": {
+   "keys": [
+    "cds",
+    "data_source",
+    "haircuts",
+    "secured_unsecured",
+    "term_rate"
+   ]
+  },
+  "$.cds": {
+   "keys": [
+    "adjusted_bp",
+    "cds_bp",
+    "factor",
+    "scenarios",
+    "settlement"
+   ]
+  },
+  "$.cds.adjusted_bp": {
+   "max": 23.4,
+   "min": 23.4,
+   "n_num": 1,
+   "sum": 23.4,
+   "sumsq": 547.56
+  },
+  "$.cds.cds_bp": {
+   "max": 60.0,
+   "min": 60.0,
+   "n_num": 1,
+   "sum": 60.0,
+   "sumsq": 3600.0
+  },
+  "$.cds.factor": {
+   "max": 0.39,
+   "min": 0.39,
+   "n_num": 1,
+   "sum": 0.39,
+   "sumsq": 0.1521
+  },
+  "$.cds.scenarios": {
+   "n_items": 3
+  },
+  "$.cds.scenarios[]": {
+   "keys": [
+    "adjusted_bp",
+    "case",
+    "factor"
+   ]
+  },
+  "$.cds.scenarios[].adjusted_bp": {
+   "max": 36.0,
+   "min": 18.0,
+   "n_num": 3,
+   "sum": 81.0,
+   "sumsq": 2349.0
+  },
+  "$.cds.scenarios[].case": {
+   "n_str": 3,
+   "str_sha1": "004c281b230354fb0d1f57cf7c10ce41ca8bffa1"
+  },
+  "$.cds.scenarios[].factor": {
+   "max": 0.6,
+   "min": 0.3,
+   "n_num": 3,
+   "sum": 1.35,
+   "sumsq": 0.6525
+  },
+  "$.cds.settlement": {
+   "n_str": 1,
+   "str_sha1": "9e923b5ce7ecc48b2120e3c83d57f6456f8b8c78"
+  },
+  "$.data_source": {
+   "n_str": 1,
+   "str_sha1": "ed95df93d5fc4f666d901c6234bbda7bc3f71e1c"
+  },
+  "$.haircuts": {
+   "keys": [
+    "bonds",
+    "btp_downgrade",
+    "curves",
+    "excess_funding_bp",
+    "sources",
+    "zero_coupon"
+   ]
+  },
+  "$.haircuts.bonds": {
+   "n_items": 20
+  },
+  "$.haircuts.bonds[]": {
+   "keys": [
+    "bond_id",
+    "drag_bp",
+    "duration",
+    "haircut_pct",
+    "issuer",
+    "name",
+    "ttm"
+   ]
+  },
+  "$.haircuts.bonds[].bond_id": {
+   "n_str": 20,
+   "str_sha1": "5295face3be7c15d67c8c2b325f55a47f395ac6d"
+  },
+  "$.haircuts.bonds[].drag_bp": {
+   "max": 51.0,
+   "min": 6.0,
+   "n_num": 20,
+   "sum": 348.0,
+   "sumsq": 8694.0
+  },
+  "$.haircuts.bonds[].duration": {
+   "max": 20.542,
+   "min": 1.566,
+   "n_num": 20,
+   "sum": 160.80500000000004,
+   "sumsq": 2042.593895
+  },
+  "$.haircuts.bonds[].haircut_pct": {
+   "max": 8.5,
+   "min": 1.0,
+   "n_num": 20,
+   "sum": 58.0,
+   "sumsq": 241.5
+  },
+  "$.haircuts.bonds[].issuer": {
+   "n_str": 20,
+   "str_sha1": "93593d91c790c173ef9600a5120d699bc3f87767"
+  },
+  "$.haircuts.bonds[].name": {
+   "n_str": 20,
+   "str_sha1": "9822a448a55346791c60f3d64db10d858173a0ef"
+  },
+  "$.haircuts.bonds[].ttm": {
+   "max": 30.0014,
+   "min": 1.5852,
+   "n_num": 20,
+   "sum": 230.2616,
+   "sumsq": 5025.951833100001
+  },
+  "$.haircuts.btp_downgrade": {
+   "n_bool": 1,
+   "n_true": 0
+  },
+  "$.haircuts.curves": {
+   "n_items": 5
+  },
+  "$.haircuts.curves[]": {
+   "keys": [
+    "class_label",
+    "haircut_class",
+    "issuer",
+    "points",
+    "rating_basis",
+    "schedule"
+   ]
+  },
+  "$.haircuts.curves[].class_label": {
+   "n_str": 5,
+   "str_sha1": "8979eedf79f4f2e703be5c79ab0be0bcebe001ce"
+  },
+  "$.haircuts.curves[].haircut_class": {
+   "n_str": 5,
+   "str_sha1": "0faa454c2f068cfe332ed7a687e148b8510831ec"
+  },
+  "$.haircuts.curves[].issuer": {
+   "n_str": 5,
+   "str_sha1": "251ddaf2b883a27c6b7ab6c2948d695201666f5f"
+  },
+  "$.haircuts.curves[].points": {
+   "n_items": 250
+  },
+  "$.haircuts.curves[].points[]": {
+   "keys": [
+    "drag_bp",
+    "haircut_pct",
+    "tenor"
+   ]
+  },
+  "$.haircuts.curves[].points[].drag_bp": {
+   "max": 60.0,
+   "min": 3.0,
+   "n_num": 250,
+   "sum": 6516.0,
+   "sumsq": 214488.0
+  },
+  "$.haircuts.curves[].points[].haircut_pct": {
+   "max": 10.0,
+   "min": 0.5,
+   "n_num": 250,
+   "sum": 1086.0,
+   "sumsq": 5958.0
+  },
+  "$.haircuts.curves[].points[].tenor": {
+   "max": 40.0,
+   "min": 0.5,
+   "n_num": 250,
+   "sum": 4350.0,
+   "sumsq": 112362.5
+  },
+  "$.haircuts.curves[].rating_basis": {
+   "n_str": 5,
+   "str_sha1": "6fa1861039c2275e3f1b887c39f11b5713af530c"
+  },
+  "$.haircuts.curves[].schedule": {
+   "n_str": 5,
+   "str_sha1": "f1669112696bb827f230bf941e8e5531e864d960"
+  },
+  "$.haircuts.excess_funding_bp": {
+   "max": 600.0,
+   "min": 600.0,
+   "n_num": 1,
+   "sum": 600.0,
+   "sumsq": 360000.0
+  },
+  "$.haircuts.sources": {
+   "n_items": 3
+  },
+  "$.haircuts.sources[]": {
+   "keys": [
+    "as_of",
+    "basis",
+    "name",
+    "schedule",
+    "source",
+    "url"
+   ]
+  },
+  "$.haircuts.sources[].as_of": {
+   "n_str": 3,
+   "str_sha1": "16d65869af23ce106c97269e6198240c296eca86"
+  },
+  "$.haircuts.sources[].basis": {
+   "n_str": 3,
+   "str_sha1": "ae7abcd0f4a72b44a4dcc5c6b2263ef3a536683c"
+  },
+  "$.haircuts.sources[].name": {
+   "n_str": 3,
+   "str_sha1": "8c59cc150c4f391f78f930a8ebc9b97c92790bde"
+  },
+  "$.haircuts.sources[].schedule": {
+   "n_str": 3,
+   "str_sha1": "bd556519fb43a26bc7993a3b6fb2ca2e79cdff72"
+  },
+  "$.haircuts.sources[].source": {
+   "n_str": 3,
+   "str_sha1": "9058f1bfbcdcd466fec2423db10af2dafb4bdced"
+  },
+  "$.haircuts.sources[].url": {
+   "n_str": 3,
+   "str_sha1": "1348efb158a009ed24b461da18ce9aa430f4bb3f"
+  },
+  "$.haircuts.zero_coupon": {
+   "n_bool": 1,
+   "n_true": 0
+  },
+  "$.secured_unsecured": {
+   "keys": [
+    "basis_bp",
+    "basis_new_bp",
+    "change_bp",
+    "d",
+    "d_new",
+    "g",
+    "q"
+   ]
+  },
+  "$.secured_unsecured.basis_bp": {
+   "max": 16.0,
+   "min": 16.0,
+   "n_num": 1,
+   "sum": 16.0,
+   "sumsq": 256.0
+  },
+  "$.secured_unsecured.basis_new_bp": {
+   "max": 24.0,
+   "min": 24.0,
+   "n_num": 1,
+   "sum": 24.0,
+   "sumsq": 576.0
+  },
+  "$.secured_unsecured.change_bp": {
+   "max": 8.0,
+   "min": 8.0,
+   "n_num": 1,
+   "sum": 8.0,
+   "sumsq": 64.0
+  },
+  "$.secured_unsecured.d": {
+   "max": 0.08,
+   "min": 0.08,
+   "n_num": 1,
+   "sum": 0.08,
+   "sumsq": 0.0064
+  },
+  "$.secured_unsecured.d_new": {
+   "max": 0.12,
+   "min": 0.12,
+   "n_num": 1,
+   "sum": 0.12,
+   "sumsq": 0.0144
+  },
+  "$.secured_unsecured.g": {
+   "max": 0.1,
+   "min": 0.1,
+   "n_num": 1,
+   "sum": 0.1,
+   "sumsq": 0.010000000000000002
+  },
+  "$.secured_unsecured.q": {
+   "max": 0.2,
+   "min": 0.2,
+   "n_num": 1,
+   "sum": 0.2,
+   "sumsq": 0.04000000000000001
+  },
+  "$.term_rate": {
+   "keys": [
+    "implied_g_pct",
+    "inputs",
+    "market_rate_pct",
+    "market_spread_to_repo_bp",
+    "model"
+   ]
+  },
+  "$.term_rate.implied_g_pct": {
+   "max": 7.9484,
+   "min": 7.9484,
+   "n_num": 1,
+   "sum": 7.9484,
+   "sumsq": 63.17706256
+  },
+  "$.term_rate.inputs": {
+   "keys": [
+    "b",
+    "d",
+    "g",
+    "pd",
+    "q",
+    "recovery",
+    "repo"
+   ]
+  },
+  "$.term_rate.inputs.b": {
+   "max": 0.019,
+   "min": 0.019,
+   "n_num": 1,
+   "sum": 0.019,
+   "sumsq": 0.000361
+  },
+  "$.term_rate.inputs.d": {
+   "max": 0.08,
+   "min": 0.08,
+   "n_num": 1,
+   "sum": 0.08,
+   "sumsq": 0.0064
+  },
+  "$.term_rate.inputs.g": {
+   "max": 0.1,
+   "min": 0.1,
+   "n_num": 1,
+   "sum": 0.1,
+   "sumsq": 0.010000000000000002
+  },
+  "$.term_rate.inputs.pd": {
+   "max": 0.0025,
+   "min": 0.0025,
+   "n_num": 1,
+   "sum": 0.0025,
+   "sumsq": 6.25e-06
+  },
+  "$.term_rate.inputs.q": {
+   "max": 0.2,
+   "min": 0.2,
+   "n_num": 1,
+   "sum": 0.2,
+   "sumsq": 0.04000000000000001
+  },
+  "$.term_rate.inputs.recovery": {
+   "max": 0.4,
+   "min": 0.4,
+   "n_num": 1,
+   "sum": 0.4,
+   "sumsq": 0.16000000000000003
+  },
+  "$.term_rate.inputs.repo": {
+   "max": 0.019,
+   "min": 0.019,
+   "n_num": 1,
+   "sum": 0.019,
+   "sumsq": 0.000361
+  },
+  "$.term_rate.market_rate_pct": {
+   "max": 2.15,
+   "min": 2.15,
+   "n_num": 1,
+   "sum": 2.15,
+   "sumsq": 4.6225
+  },
+  "$.term_rate.market_spread_to_repo_bp": {
+   "max": 25.0,
+   "min": 25.0,
+   "n_num": 1,
+   "sum": 25.0,
+   "sumsq": 625.0
+  },
+  "$.term_rate.model": {
+   "keys": [
+    "capital",
+    "credit",
+    "funding",
+    "rate",
+    "spread_to_repo_bp"
+   ]
+  },
+  "$.term_rate.model.capital": {
+   "max": 0.129795,
+   "min": 0.129795,
+   "n_num": 1,
+   "sum": 0.129795,
+   "sumsq": 0.016846742025
+  },
+  "$.term_rate.model.credit": {
+   "max": 0.150225,
+   "min": 0.150225,
+   "n_num": 1,
+   "sum": 0.150225,
+   "sumsq": 0.022567550625
+  },
+  "$.term_rate.model.funding": {
+   "max": 1.902854,
+   "min": 1.902854,
+   "n_num": 1,
+   "sum": 1.902854,
+   "sumsq": 3.620853345316
+  },
+  "$.term_rate.model.rate": {
+   "max": 2.182874,
+   "min": 2.182874,
+   "n_num": 1,
+   "sum": 2.182874,
+   "sumsq": 4.764938899876
+  },
+  "$.term_rate.model.spread_to_repo_bp": {
+   "max": 28.2874,
+   "min": 28.2874,
+   "n_num": 1,
+   "sum": 28.2874,
+   "sumsq": 800.1769987600001
+  }
+ },
+ "/api/tools/swap-spreads/funding?zero=true&btp_downgrade=true&settlement=cash": {
+  "$": {
+   "keys": [
+    "cds",
+    "data_source",
+    "haircuts",
+    "secured_unsecured",
+    "term_rate"
+   ]
+  },
+  "$.cds": {
+   "keys": [
+    "adjusted_bp",
+    "cds_bp",
+    "factor",
+    "scenarios",
+    "settlement"
+   ]
+  },
+  "$.cds.adjusted_bp": {
+   "max": 27.0,
+   "min": 27.0,
+   "n_num": 1,
+   "sum": 27.0,
+   "sumsq": 729.0
+  },
+  "$.cds.cds_bp": {
+   "max": 60.0,
+   "min": 60.0,
+   "n_num": 1,
+   "sum": 60.0,
+   "sumsq": 3600.0
+  },
+  "$.cds.factor": {
+   "max": 0.45,
+   "min": 0.45,
+   "n_num": 1,
+   "sum": 0.45,
+   "sumsq": 0.2025
+  },
+  "$.cds.scenarios": {
+   "n_items": 3
+  },
+  "$.cds.scenarios[]": {
+   "keys": [
+    "adjusted_bp",
+    "case",
+    "factor"
+   ]
+  },
+  "$.cds.scenarios[].adjusted_bp": {
+   "max": 36.0,
+   "min": 18.0,
+   "n_num": 3,
+   "sum": 81.0,
+   "sumsq": 2349.0
+  },
+  "$.cds.scenarios[].case": {
+   "n_str": 3,
+   "str_sha1": "004c281b230354fb0d1f57cf7c10ce41ca8bffa1"
+  },
+  "$.cds.scenarios[].factor": {
+   "max": 0.6,
+   "min": 0.3,
+   "n_num": 3,
+   "sum": 1.35,
+   "sumsq": 0.6525
+  },
+  "$.cds.settlement": {
+   "n_str": 1,
+   "str_sha1": "7b61373ddaf0c85b7bdde9eabd84bd0209e142a1"
+  },
+  "$.data_source": {
+   "n_str": 1,
+   "str_sha1": "ed95df93d5fc4f666d901c6234bbda7bc3f71e1c"
+  },
+  "$.haircuts": {
+   "keys": [
+    "bonds",
+    "btp_downgrade",
+    "curves",
+    "excess_funding_bp",
+    "sources",
+    "zero_coupon"
+   ]
+  },
+  "$.haircuts.bonds": {
+   "n_items": 20
+  },
+  "$.haircuts.bonds[]": {
+   "keys": [
+    "bond_id",
+    "drag_bp",
+    "duration",
+    "haircut_pct",
+    "issuer",
+    "name",
+    "ttm"
+   ]
+  },
+  "$.haircuts.bonds[].bond_id": {
+   "n_str": 20,
+   "str_sha1": "5295face3be7c15d67c8c2b325f55a47f395ac6d"
+  },
+  "$.haircuts.bonds[].drag_bp": {
+   "max": 81.0,
+   "min": 6.0,
+   "n_num": 20,
+   "sum": 522.0,
+   "sumsq": 22572.0
+  },
+  "$.haircuts.bonds[].duration": {
+   "max": 20.542,
+   "min": 1.566,
+   "n_num": 20,
+   "sum": 160.80500000000004,
+   "sumsq": 2042.593895
+  },
+  "$.haircuts.bonds[].haircut_pct": {
+   "max": 13.5,
+   "min": 1.0,
+   "n_num": 20,
+   "sum": 87.0,
+   "sumsq": 627.0
+  },
+  "$.haircuts.bonds[].issuer": {
+   "n_str": 20,
+   "str_sha1": "93593d91c790c173ef9600a5120d699bc3f87767"
+  },
+  "$.haircuts.bonds[].name": {
+   "n_str": 20,
+   "str_sha1": "9822a448a55346791c60f3d64db10d858173a0ef"
+  },
+  "$.haircuts.bonds[].ttm": {
+   "max": 30.0014,
+   "min": 1.5852,
+   "n_num": 20,
+   "sum": 230.2616,
+   "sumsq": 5025.951833100001
+  },
+  "$.haircuts.btp_downgrade": {
+   "n_bool": 1,
+   "n_true": 1
+  },
+  "$.haircuts.curves": {
+   "n_items": 5
+  },
+  "$.haircuts.curves[]": {
+   "keys": [
+    "class_label",
+    "haircut_class",
+    "issuer",
+    "points",
+    "rating_basis",
+    "schedule"
+   ]
+  },
+  "$.haircuts.curves[].class_label": {
+   "n_str": 5,
+   "str_sha1": "5165cbb195bee8dffb8af2d1f846c9471d8bc983"
+  },
+  "$.haircuts.curves[].haircut_class": {
+   "n_str": 5,
+   "str_sha1": "3133240187befea5059033e383793b9857630c0c"
+  },
+  "$.haircuts.curves[].issuer": {
+   "n_str": 5,
+   "str_sha1": "251ddaf2b883a27c6b7ab6c2948d695201666f5f"
+  },
+  "$.haircuts.curves[].points": {
+   "n_items": 250
+  },
+  "$.haircuts.curves[].points[]": {
+   "keys": [
+    "drag_bp",
+    "haircut_pct",
+    "tenor"
+   ]
+  },
+  "$.haircuts.curves[].points[].drag_bp": {
+   "max": 102.0,
+   "min": 3.0,
+   "n_num": 250,
+   "sum": 11217.0,
+   "sumsq": 676827.0
+  },
+  "$.haircuts.curves[].points[].haircut_pct": {
+   "max": 17.0,
+   "min": 0.5,
+   "n_num": 250,
+   "sum": 1869.5,
+   "sumsq": 18800.75
+  },
+  "$.haircuts.curves[].points[].tenor": {
+   "max": 40.0,
+   "min": 0.5,
+   "n_num": 250,
+   "sum": 4350.0,
+   "sumsq": 112362.5
+  },
+  "$.haircuts.curves[].rating_basis": {
+   "n_str": 5,
+   "str_sha1": "6fa1861039c2275e3f1b887c39f11b5713af530c"
+  },
+  "$.haircuts.curves[].schedule": {
+   "n_str": 5,
+   "str_sha1": "f1669112696bb827f230bf941e8e5531e864d960"
+  },
+  "$.haircuts.excess_funding_bp": {
+   "max": 600.0,
+   "min": 600.0,
+   "n_num": 1,
+   "sum": 600.0,
+   "sumsq": 360000.0
+  },
+  "$.haircuts.sources": {
+   "n_items": 3
+  },
+  "$.haircuts.sources[]": {
+   "keys": [
+    "as_of",
+    "basis",
+    "name",
+    "schedule",
+    "source",
+    "url"
+   ]
+  },
+  "$.haircuts.sources[].as_of": {
+   "n_str": 3,
+   "str_sha1": "16d65869af23ce106c97269e6198240c296eca86"
+  },
+  "$.haircuts.sources[].basis": {
+   "n_str": 3,
+   "str_sha1": "ae7abcd0f4a72b44a4dcc5c6b2263ef3a536683c"
+  },
+  "$.haircuts.sources[].name": {
+   "n_str": 3,
+   "str_sha1": "8c59cc150c4f391f78f930a8ebc9b97c92790bde"
+  },
+  "$.haircuts.sources[].schedule": {
+   "n_str": 3,
+   "str_sha1": "bd556519fb43a26bc7993a3b6fb2ca2e79cdff72"
+  },
+  "$.haircuts.sources[].source": {
+   "n_str": 3,
+   "str_sha1": "9058f1bfbcdcd466fec2423db10af2dafb4bdced"
+  },
+  "$.haircuts.sources[].url": {
+   "n_str": 3,
+   "str_sha1": "1348efb158a009ed24b461da18ce9aa430f4bb3f"
+  },
+  "$.haircuts.zero_coupon": {
+   "n_bool": 1,
+   "n_true": 1
+  },
+  "$.secured_unsecured": {
+   "keys": [
+    "basis_bp",
+    "basis_new_bp",
+    "change_bp",
+    "d",
+    "d_new",
+    "g",
+    "q"
+   ]
+  },
+  "$.secured_unsecured.basis_bp": {
+   "max": 16.0,
+   "min": 16.0,
+   "n_num": 1,
+   "sum": 16.0,
+   "sumsq": 256.0
+  },
+  "$.secured_unsecured.basis_new_bp": {
+   "max": 24.0,
+   "min": 24.0,
+   "n_num": 1,
+   "sum": 24.0,
+   "sumsq": 576.0
+  },
+  "$.secured_unsecured.change_bp": {
+   "max": 8.0,
+   "min": 8.0,
+   "n_num": 1,
+   "sum": 8.0,
+   "sumsq": 64.0
+  },
+  "$.secured_unsecured.d": {
+   "max": 0.08,
+   "min": 0.08,
+   "n_num": 1,
+   "sum": 0.08,
+   "sumsq": 0.0064
+  },
+  "$.secured_unsecured.d_new": {
+   "max": 0.12,
+   "min": 0.12,
+   "n_num": 1,
+   "sum": 0.12,
+   "sumsq": 0.0144
+  },
+  "$.secured_unsecured.g": {
+   "max": 0.1,
+   "min": 0.1,
+   "n_num": 1,
+   "sum": 0.1,
+   "sumsq": 0.010000000000000002
+  },
+  "$.secured_unsecured.q": {
+   "max": 0.2,
+   "min": 0.2,
+   "n_num": 1,
+   "sum": 0.2,
+   "sumsq": 0.04000000000000001
+  },
+  "$.term_rate": {
+   "keys": [
+    "implied_g_pct",
+    "inputs",
+    "market_rate_pct",
+    "market_spread_to_repo_bp",
+    "model"
+   ]
+  },
+  "$.term_rate.implied_g_pct": {
+   "max": 7.9484,
+   "min": 7.9484,
+   "n_num": 1,
+   "sum": 7.9484,
+   "sumsq": 63.17706256
+  },
+  "$.term_rate.inputs": {
+   "keys": [
+    "b",
+    "d",
+    "g",
+    "pd",
+    "q",
+    "recovery",
+    "repo"
+   ]
+  },
+  "$.term_rate.inputs.b": {
+   "max": 0.019,
+   "min": 0.019,
+   "n_num": 1,
+   "sum": 0.019,
+   "sumsq": 0.000361
+  },
+  "$.term_rate.inputs.d": {
+   "max": 0.08,
+   "min": 0.08,
+   "n_num": 1,
+   "sum": 0.08,
+   "sumsq": 0.0064
+  },
+  "$.term_rate.inputs.g": {
+   "max": 0.1,
+   "min": 0.1,
+   "n_num": 1,
+   "sum": 0.1,
+   "sumsq": 0.010000000000000002
+  },
+  "$.term_rate.inputs.pd": {
+   "max": 0.0025,
+   "min": 0.0025,
+   "n_num": 1,
+   "sum": 0.0025,
+   "sumsq": 6.25e-06
+  },
+  "$.term_rate.inputs.q": {
+   "max": 0.2,
+   "min": 0.2,
+   "n_num": 1,
+   "sum": 0.2,
+   "sumsq": 0.04000000000000001
+  },
+  "$.term_rate.inputs.recovery": {
+   "max": 0.4,
+   "min": 0.4,
+   "n_num": 1,
+   "sum": 0.4,
+   "sumsq": 0.16000000000000003
+  },
+  "$.term_rate.inputs.repo": {
+   "max": 0.019,
+   "min": 0.019,
+   "n_num": 1,
+   "sum": 0.019,
+   "sumsq": 0.000361
+  },
+  "$.term_rate.market_rate_pct": {
+   "max": 2.15,
+   "min": 2.15,
+   "n_num": 1,
+   "sum": 2.15,
+   "sumsq": 4.6225
+  },
+  "$.term_rate.market_spread_to_repo_bp": {
+   "max": 25.0,
+   "min": 25.0,
+   "n_num": 1,
+   "sum": 25.0,
+   "sumsq": 625.0
+  },
+  "$.term_rate.model": {
+   "keys": [
+    "capital",
+    "credit",
+    "funding",
+    "rate",
+    "spread_to_repo_bp"
+   ]
+  },
+  "$.term_rate.model.capital": {
+   "max": 0.129795,
+   "min": 0.129795,
+   "n_num": 1,
+   "sum": 0.129795,
+   "sumsq": 0.016846742025
+  },
+  "$.term_rate.model.credit": {
+   "max": 0.150225,
+   "min": 0.150225,
+   "n_num": 1,
+   "sum": 0.150225,
+   "sumsq": 0.022567550625
+  },
+  "$.term_rate.model.funding": {
+   "max": 1.902854,
+   "min": 1.902854,
+   "n_num": 1,
+   "sum": 1.902854,
+   "sumsq": 3.620853345316
+  },
+  "$.term_rate.model.rate": {
+   "max": 2.182874,
+   "min": 2.182874,
+   "n_num": 1,
+   "sum": 2.182874,
+   "sumsq": 4.764938899876
+  },
+  "$.term_rate.model.spread_to_repo_bp": {
+   "max": 28.2874,
+   "min": 28.2874,
+   "n_num": 1,
+   "sum": 28.2874,
+   "sumsq": 800.1769987600001
+  }
+ },
  "/api/tools/swap-spreads?target=JPY": {
   "$": {
    "keys": [
