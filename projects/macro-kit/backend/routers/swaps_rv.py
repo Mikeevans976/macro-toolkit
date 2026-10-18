@@ -3,7 +3,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from auth import get_current_user
-from swaps_rv import compute_carry_backtest, compute_history, compute_neutral, compute_regression, compute_rv
+from swaps_rv import (
+    compute_candidates,
+    compute_carry_backtest,
+    compute_history,
+    compute_neutral,
+    compute_regression,
+    compute_rv,
+)
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
@@ -48,6 +55,17 @@ def get_swaps_rv_neutral(label: str, currency: str = "EUR", date: str | None = N
         return compute_neutral(currency=currency, label=label, as_of_date=date)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
+
+
+@router.get("/api/tools/swaps-rv/candidates")
+def get_swaps_rv_candidates(
+    currency: str = "EUR",
+    date: str | None = None,
+    universe: str = Query("core", pattern="^(core|extended)$"),
+    basis: str = Query("neutral", pattern="^(neutral|standard)$"),
+):
+    """Every structure's mean-reversion trade with expected 1y P&L, score and which signals agree."""
+    return compute_candidates(currency=currency, as_of_date=date, universe=universe, basis=basis)
 
 
 @router.get("/api/tools/swaps-rv/carry-backtest")

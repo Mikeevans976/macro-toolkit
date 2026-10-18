@@ -1175,6 +1175,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/swaps-rv/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Swaps Rv Candidates
+         * @description Every structure's mean-reversion trade with expected 1y P&L, score and which signals agree.
+         */
+        get: operations["get_swaps_rv_candidates_api_tools_swaps_rv_candidates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tools/swaps-rv/carry-backtest": {
         parameters: {
             query?: never;
@@ -3812,6 +3832,40 @@ export interface operations {
                 currency?: string;
                 refresh?: boolean;
                 universe?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_swaps_rv_candidates_api_tools_swaps_rv_candidates_get: {
+        parameters: {
+            query?: {
+                currency?: string;
+                date?: string | null;
+                universe?: string;
+                basis?: string;
             };
             header?: never;
             path?: never;

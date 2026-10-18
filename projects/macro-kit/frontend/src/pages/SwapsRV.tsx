@@ -17,6 +17,7 @@ import ExpressionDetail, { fmtBp, type SeriesPoint, type StatGroupDef } from '..
 import CurveRolldown, { type CurveData, type RollLeg } from '../components/CurveRolldown'
 import RegressionDetail from '../components/RegressionDetail'
 import FactorNeutral from '../components/FactorNeutral'
+import TradeCandidates from '../components/TradeCandidates'
 import { CarryRealisationDetail, CarryRealisationSummary } from '../components/CarryBacktest'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -822,6 +823,7 @@ export default function SwapsRV() {
   const [noData, setNoData] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [currency, setCurrency] = useState('EUR')
+  const [tab, setTab] = useState<'currency' | 'candidates'>('currency')   // Candidates: every currency's trade candidates
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [focusLabel, setFocusLabel] = useState<string | null>(null)
   const [detailLabel, setDetailLabel] = useState<string | null>(null)
@@ -912,14 +914,22 @@ export default function SwapsRV() {
     fetchData(false, selectedDate || undefined, undefined, u)
   }
 
-  function switchCurrency(ccy: string) {
+  function switchCurrency(ccy: string, openLabel: string | null = null) {
+    setTab('currency')
     setCurrency(ccy)
     setData(null)
     setSelectedDate('')
-    setFocusLabel(null)
-    setDetailLabel(null)
+    setFocusLabel(openLabel)
+    setDetailLabel(openLabel)
     setBetaVar('beta_1y10y_fwd')
     fetchData(false, undefined, ccy)
+  }
+
+  // From the Candidates tab: open the structure's detail view in its currency
+  function openCandidate(ccy: string, label: string) {
+    window.scrollTo({ top: 0 })
+    if (ccy !== currency) switchCurrency(ccy, label)
+    else { setTab('currency'); setFocusLabel(label); setDetailLabel(label) }
   }
 
   useEffect(() => { fetchData() }, [navigate])
@@ -957,28 +967,36 @@ export default function SwapsRV() {
             gap: 2,
           }}
         >
-          {CURRENCIES.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => currency !== key && switchCurrency(key)}
-              style={{
-                padding: '4px 14px',
-                borderRadius: 6,
-                fontSize: 12,
-                fontWeight: 600,
-                border: 'none',
-                cursor: currency === key ? 'default' : 'pointer',
-                transition: 'all 0.15s',
-                background: currency === key
-                  ? 'rgba(106,169,204,0.25)'
-                  : 'transparent',
-                color: currency === key ? '#a9d2e8' : '#9aa5b1',
-                outline: currency === key ? '1px solid rgba(106,169,204,0.35)' : 'none',
-              }}
-            >
-              {label}
-            </button>
-          ))}
+          {[...CURRENCIES, { key: 'candidates', label: 'Candidates' }].map(({ key, label }) => {
+            const active = key === 'candidates' ? tab === 'candidates' : tab === 'currency' && currency === key
+            return (
+              <button
+                key={key}
+                onClick={() => {
+                  if (active) return
+                  if (key === 'candidates') setTab('candidates')
+                  else if (key === currency) setTab('currency')
+                  else switchCurrency(key)
+                }}
+                title={key === 'candidates' ? 'Trade candidates across EUR, GBP and USD' : undefined}
+                style={{
+                  padding: '4px 14px',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  border: 'none',
+                  marginLeft: key === 'candidates' ? 6 : 0,
+                  cursor: active ? 'default' : 'pointer',
+                  transition: 'all 0.15s',
+                  background: active ? 'rgba(106,169,204,0.25)' : 'transparent',
+                  color: active ? '#a9d2e8' : '#9aa5b1',
+                  outline: active ? '1px solid rgba(106,169,204,0.35)' : 'none',
+                }}
+              >
+                {label}
+              </button>
+            )
+          })}
         </div>
 
         {/* Universe toggle */}
@@ -1092,14 +1110,14 @@ export default function SwapsRV() {
       </header>
 
       {/* Loading */}
-      {loading && (
+      {tab === 'currency' && loading && (
         <div className="flex items-center justify-center py-32 text-slate-500 text-sm">
           <span className="animate-pulse">Loading {currency} swaps RV data…</span>
         </div>
       )}
 
       {/* No data */}
-      {!loading && noData && (
+      {tab === 'currency' && !loading && noData && (
         <div className="flex flex-col items-center justify-center py-32 gap-4">
           <div style={{ color: '#8995a2', fontSize: 14 }}>
             Could not load {currency} swaps RV data.
@@ -1112,8 +1130,23 @@ export default function SwapsRV() {
         </div>
       )}
 
+      {/* Candidates tab: every currency's trade candidates */}
+      {tab === 'candidates' && (
+        <main className="relative" style={{ maxWidth: '1536px', margin: '0 auto', padding: '32px 24px' }}>
+          <div style={cardStyle}>
+            <TradeCandidates
+              currencies={CURRENCIES.map(c => c.key)}
+              universe={universe}
+              asOf={selectedDate && data && selectedDate !== data.max_date ? selectedDate : undefined}
+              dataStamp={data?.data_timestamp}
+              onSelect={openCandidate}
+            />
+          </div>
+        </main>
+      )}
+
       {/* Body */}
-      {!loading && data && (
+      {tab === 'currency' && !loading && data && (
         <main
           className="relative"
           style={{

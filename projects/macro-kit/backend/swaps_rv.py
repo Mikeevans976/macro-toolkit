@@ -1026,3 +1026,122 @@ def compute_carry_backtest(currency: str = "EUR", as_of_date: str | None = None,
             })
         result["series"] = series
     return result
+
+
+# ---------------------------------------------------------------------------
+# Trade candidates
+# ---------------------------------------------------------------------------
+# Every structure's mean-reversion trade, in one direction: rich (Z > 0) is expected to fall,
+# so the trade is the flattener / receive-belly position, which is the side carry1y_bps is
+# quoted for; cheap (Z < 0) is the opposite. Expected 1y P&L = the part of today's deviation
+# from the 1y mean an AR(1) fitted to the last year says reverts within a year, plus carry in
+# the trade direction; score = expected P&L / 3m realised vol. The checks say which signals
+# agree with the trade; the page filters on them.
+
+_CAND_BASES = ("neutral", "standard")
+_cand_cache: dict[tuple, tuple] = {}   # (ccy, as_of, universe, basis) -> (data stamp, payload)
+
+
+def _ar1_reversion(series: pd.Series, n: int) -> "tuple[float | None, float]":
+    """(half-life in days, share of a deviation expected to revert within a year) from an
+    AR(1) on the last n days' levels; no mean reversion gives (None, 0)."""
+    x = series.iloc[-n:].values
+    if len(x) < 20:
+        return None, 0.0
+    b = float(np.polyfit(x[:-1], x[1:], 1)[0])
+    if not 0 < b < 1:
+        return None, 0.0
+    return float(np.log(2) / -np.log(b)), float(1 - b ** 252)
+
+
+def compute_candidates(currency: str = "EUR", as_of_date: str | None = None,
+                       universe: str = "core", basis: str = "neutral") -> dict:
+    ccy = currency.upper()
+    if ccy not in _CCY_FILES:
+        raise ValueError(f"Unsupported currency: {currency}")
+    if basis not in _CAND_BASES:
+        raise ValueError(f"basis must be one of {_CAND_BASES}")
+
+    rv = compute_rv(ccy, as_of_date, universe=universe)
+    fetched = _load_bbg(ccy) if settings.data_source == "bloomberg" else None
+    stamp = fetched[0] if fetched is not None else "csv"
+    key = (ccy, as_of_date, universe, basis)
+    hit = _cand_cache.get(key)
+    if hit and hit[0] == stamp:
+        return hit[1]
+
+    fwd_df, _, swap_df, _, _ = _load_frames(ccy, as_of_date, fetched)
+    n = len(fwd_df)
+    win_1y, win_3m = min(252, n), min(63, n)
+    D = _build_discount_factors(swap_df.loc[swap_df.index <= fwd_df.index[-1]].iloc[-1].values.astype(float))
+    # Exact neutral weights (the monitor's are rounded, and a near-cancelling structure is sensitive to that)
+    pc_dates, pc_scores, _, _ = _curve_factors(swap_df, fwd_df.index[-win_1y:])
+    leg_exposure: dict[str, np.ndarray] = {}
+    resid_z = {b["label"]: b["residual_zscore"] for b in rv["beta_monitor"]}
+    bt = compute_carry_backtest(ccy, as_of_date, window="2y", universe=universe)
+    hit_rate = {s["label"]: s["hit_rate"] for s in bt["structures"]}
+
+    rows = []
+    for r in rv["rv_monitor"]:
+        group, legs, std_w = _expression(ccy, r["label"])
+        neutral = None
+        if basis == "neutral":
+            for leg in legs:
+                if leg not in leg_exposure:
+                    leg_exposure[leg] = _leg_exposure(fwd_df, leg, pc_dates, pc_scores)
+            neutral = _neutral_weights(group, np.column_stack([leg_exposure[leg] for leg in legs]))
+        use_neutral = neutral is not None
+        weights = neutral if use_neutral else std_w
+        series = sum(w * fwd_df[leg] for w, leg in zip(weights, legs)) * 100
+        window = series.iloc[-win_1y:]
+        value, mean, std = float(series.iloc[-1]), float(window.mean()), float(window.std())
+        z = (value - mean) / std if std > 0 else 0.0
+        down = z > 0                                    # rich: expect the structure to fall
+        sign = 1.0 if down else -1.0
+        carry = sign * float(sum(w * _carry_fwd_bps(leg, D) for w, leg in zip(weights, legs)))
+        vol = float(series.diff().iloc[-win_3m:].std()) * 252 ** 0.5
+        half_life, revert_share = _ar1_reversion(series, win_1y)
+        reversion = abs(value - mean) * revert_share
+        expected = reversion + carry
+        rz = resid_z.get(r["label"])
+        hr = hit_rate.get(r["label"])
+        checks = {
+            "carry": carry >= 0,
+            "residual": rz is not None and rz * z > 0 and abs(rz) >= 1,
+            "reversion": half_life is not None and half_life <= 252,
+            "delivered": hr is not None and hr >= 0.5,
+            "stable": not (use_neutral and _neutral_unstable(group, neutral)),
+        }
+        rows.append({
+            "label": r["label"],
+            "group": group,
+            "set": r["set"],
+            "basis": "neutral" if use_neutral else "standard",
+            "weights": [round(float(w), 3) for w in weights],
+            "trade": ("Flattener" if down else "Steepener") if group == "curve"
+                     else ("Receive belly" if down else "Pay belly"),
+            "zscore_1y": round(z, 2),
+            "residual_zscore": rz,
+            "deviation_bp": round(value - mean, 2),
+            "half_life_days": round(half_life, 1) if half_life is not None else None,
+            "expected_reversion_bp": round(reversion, 2),
+            "carry_bp": round(carry, 2),
+            "expected_bp": round(expected, 2),
+            "vol3m_bp": round(vol, 2),
+            "score": round(expected / vol, 2) if vol > 0 else None,
+            "factor_share": r["factor_share"],
+            "carry_hit_rate_2y": hr,
+            "checks": checks,
+            "n_agree": sum(checks[k] for k in ("carry", "residual", "reversion", "delivered")),
+        })
+
+    payload = {
+        "currency": ccy,
+        "as_of": rv["as_of"],
+        "data_source": rv["data_source"],
+        "universe": universe,
+        "basis": basis,
+        "candidates": rows,
+    }
+    _cand_cache[key] = (stamp, payload)
+    return payload
