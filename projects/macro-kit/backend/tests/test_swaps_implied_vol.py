@@ -8,6 +8,7 @@ from swaps_rv import (
     _implied_structure_vol,
     _leg_implied_vol,
     _vol_grid,
+    _vol_grid_tickers,
     compute_rv,
 )
 
@@ -24,9 +25,9 @@ def fake_fetched(days: int = 5, last: str = "2026-10-16", hole: bool = False) ->
     idx = pd.bdate_range(end=last, periods=days)
     cols = pd.MultiIndex.from_tuples([(e, t) for e in EXPS for t in TENS], names=["expiry", "tenor"])
     grid = pd.DataFrame([[vol_at(e, t) for e, t in cols] for _ in idx], index=idx, columns=cols)
-    if hole:
-        grid.iloc[-1, 0] = np.nan
-        grid.iloc[:, 0] = np.nan
+    if hole:   # no expiry prices the 1y tenor: unusable
+        for e in EXPS:
+            grid[(e, 1)] = np.nan
     return (0.0, (pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), grid))
 
 
@@ -53,6 +54,30 @@ def test_leg_vol_expiry_is_the_forward_start(grid):
     assert _leg_implied_vol(0, 10, grid) == pytest.approx(vol_at(1, 10))     # 10y spot: 1y (the carry horizon)
     assert _leg_implied_vol(15, 5, grid) == pytest.approx(vol_at(10, 5))     # beyond the grid: capped at 10y
     assert _leg_implied_vol(4, 4, grid) == pytest.approx(vol_at(4, 4))       # interpolated both ways
+
+
+def test_missing_corner_uses_the_longest_expiry_that_prices_the_tenor():
+    # GBP/USD: no 10y expiry on 10y+ tenors
+    fetched = fake_fetched()
+    grid_df = fetched[1][3]
+    for t in (10, 15, 20, 30):
+        grid_df[(10.0, t)] = np.nan
+    grid = _vol_grid(fetched, pd.Timestamp("2026-10-16"))
+    assert grid is not None
+    assert _leg_implied_vol(10, 10, grid) == pytest.approx(vol_at(5, 10))     # capped at 5y expiry
+    assert _leg_implied_vol(7, 20, grid) == pytest.approx(vol_at(5, 20))
+    assert _leg_implied_vol(10, 5, grid) == pytest.approx(vol_at(10, 5))      # short tenors keep 10y expiry
+    assert _leg_implied_vol(3, 10, grid) == pytest.approx(vol_at(3, 10))      # inside the grid: unchanged
+
+
+def test_ticker_layouts():
+    eur, gbp, usd = (_vol_grid_tickers(c) for c in ("EUR", "GBP", "USD"))
+    assert eur["ENPS0110 ICPL Curncy"] == (1.0, 10) and eur["ENPS0A10 ICPL Curncy"] == (1 / 12, 10)
+    assert gbp["GBNS0110 ICPL Curncy"] == (1.0, 10) and len(gbp) == 72
+    assert usd["USSNA110 ICPL Curncy"] == (1.0, 10) and usd["USSNAA10 ICPL Curncy"] == (1 / 12, 10)
+    assert usd["USSNA101 ICPL Curncy"] == (10.0, 1)
+    assert not any(e == 10.0 and t >= 10 for e, t in usd.values())                # ambiguous codes left out
+    assert len(set(usd)) == len(usd) == 68
 
 
 def test_structure_vol_combines_leg_vols_and_correlation():

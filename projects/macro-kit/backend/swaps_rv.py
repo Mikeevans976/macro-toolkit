@@ -166,14 +166,13 @@ _OIS_TICKERS: dict[str, dict[int, str]] = {
 }
 
 # Swaption normal vol tickers (bps): {currency: {label: bbg_ticker}}
-# EUR: ATMF normal vols priced by ICAP; the default BGN source returns nothing
-# on our Terminal, so the ICPL source must be explicit (checked 2026-10-16).
-# GBP/USD resolve but return no prices, so their Beta Monitors run on the
-# forward variables only.
+# ATMF normal vols priced by ICAP; the default BGN source returns nothing on our
+# Terminal, so the ICPL source must be explicit (EUR checked 2026-10-16, GBP/USD
+# 2026-10-18 from tickers the user found in VCUB: GBNS0110, USSNA110).
 _VOL_TICKERS: dict[str, dict[str, str]] = {
     "EUR": {"1m10y": "ENPS0A10 ICPL Curncy", "1y10y": "ENPS0110 ICPL Curncy"},
-    "GBP": {"1m10y": "BPSN0A10 Curncy", "1y10y": "BPSN0110 Curncy"},
-    "USD": {"1m10y": "USSN0A10 Curncy", "1y10y": "USSN0110 Curncy"},
+    "GBP": {"1m10y": "GBNS0A10 ICPL Curncy", "1y10y": "GBNS0110 ICPL Curncy"},
+    "USD": {"1m10y": "USSNAA10 ICPL Curncy", "1y10y": "USSNA110 ICPL Curncy"},
 }
 
 _BETA_VARS = ["1y10y_fwd", "2y1y_fwd", "1m10y_vol", "1y10y_vol"]
@@ -204,12 +203,29 @@ def _policy_meetings(ccy: str, first: str, as_of: str) -> "dict | None":
     return {"bank": bank, "dates": past, "next": upcoming[0] if upcoming else None}
 
 
-# ATM normal swaption vol grid (bp/yr) behind the implied carry/vol: ticker = prefix +
-# expiry code + 2-digit tenor + " ICPL Curncy". EUR only so far (checked 2026-10-18: the
-# full 8 × 9 grid prices from ICPL); GBP/USD use realised vol until tickers are found.
-_VOL_GRID_PREFIX = {"EUR": "ENPS"}
-_VOL_GRID_EXPIRIES = {"0A": 1 / 12, "0C": 0.25, "0F": 0.5, "01": 1.0, "02": 2.0, "03": 3.0, "05": 5.0, "10": 10.0}
+# ATM normal swaption vol grid (bp/yr) behind the implied carry/vol, from ICPL (checked
+# 2026-10-18). EUR/GBP: prefix + 2-char expiry code + 2-digit tenor (ENPS0110 = 1y10y).
+# USD: USSNA + expiry code + unpadded tenor (USSNA110 = 1y10y). Gaps: GBP prices no 10y
+# expiry on 10y+ tenors; for USD those tickers are ambiguous ("USSNA1010" returns the
+# 10y×1y vol), so they are not requested. Interpolation works around missing cells.
+_VOL_GRID_EXPIRY_YEARS = [1 / 12, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0]
 _VOL_GRID_TENORS = [1, 2, 3, 5, 7, 10, 15, 20, 30]
+_PADDED_EXPIRY_CODES = ["0A", "0C", "0F", "01", "02", "03", "05", "10"]
+
+
+def _vol_grid_tickers(ccy: str) -> "dict[str, tuple[float, int]]":
+    """{ticker: (expiry years, tenor years)} for the currency's swaption vol grid; empty if none."""
+    out: dict[str, tuple[float, int]] = {}
+    for code, (y, usd_code) in zip(_PADDED_EXPIRY_CODES,
+                                   zip(_VOL_GRID_EXPIRY_YEARS, ["A", "C", "F", "1", "2", "3", "5", "10"])):
+        for t in _VOL_GRID_TENORS:
+            if ccy == "EUR":
+                out[f"ENPS{code}{t:02d} ICPL Curncy"] = (y, t)
+            elif ccy == "GBP":
+                out[f"GBNS{code}{t:02d} ICPL Curncy"] = (y, t)
+            elif ccy == "USD" and not (y == 10.0 and t >= 10):
+                out[f"USSNA{usd_code}{t} ICPL Curncy"] = (y, t)
+    return out
 
 # ---------------------------------------------------------------------------
 # BBG helpers
@@ -335,10 +351,8 @@ def _fetch_from_bbg(
         # ── 5. Swaption vol grid for the implied carry/vol (optional) ───────
         #    Columns (expiry in years, tenor in years); empty when the currency has none
         grid_df = pd.DataFrame()
-        prefix = _VOL_GRID_PREFIX.get(ccy)
-        if prefix:
-            codes = {f"{prefix}{e}{t:02d} ICPL Curncy": (y, t)
-                     for e, y in _VOL_GRID_EXPIRIES.items() for t in _VOL_GRID_TENORS}
+        codes = _vol_grid_tickers(ccy)
+        if codes:
             raw_grid = blp.bdh(list(codes), "PX_LAST", start, end)
             if raw_grid is not None and not raw_grid.empty:
                 g = raw_grid.xs("PX_LAST", axis=1, level=1) if isinstance(raw_grid.columns, pd.MultiIndex) else raw_grid
@@ -546,8 +560,9 @@ def _factor_share(group: str, weights: tuple, E: np.ndarray, series: pd.Series, 
 # with their realised correlations over the last year: σ = √(wᵀ D C D), D = diag(leg vols).
 
 def _vol_grid(fetched: "tuple | None", as_of: pd.Timestamp) -> "tuple[np.ndarray, np.ndarray, np.ndarray, str] | None":
-    """(expiries, tenors, vols[expiry, tenor], grid date) on or before the as-of date; None when
-    the currency has no grid or it is incomplete or more than a week old."""
+    """(expiries, tenors, vols[expiry, tenor], grid date) on or before the as-of date; vols may
+    have gaps (NaN). None when the currency has no grid, it is more than a week old, or some
+    tenor has no vol at any expiry."""
     if fetched is None or len(fetched[1]) < 4 or fetched[1][3].empty:
         return None
     grid = fetched[1][3].loc[:as_of].ffill()
@@ -557,18 +572,24 @@ def _vol_grid(fetched: "tuple | None", as_of: pd.Timestamp) -> "tuple[np.ndarray
     exps = np.array(sorted({e for e, _ in row.index}))
     tens = np.array(sorted({t for _, t in row.index}))
     vols = np.array([[row.get((e, t), np.nan) for t in tens] for e in exps], dtype=float)
-    if np.isnan(vols).any():
+    if np.isnan(vols).all(axis=0).any():
         return None
     return exps, tens, vols, grid.index[-1].strftime("%Y-%m-%d")
 
 
 def _leg_implied_vol(s: int, t: int, grid: tuple) -> float:
-    """ATM normal vol (bp/yr) for a leg starting in s years with tenor t."""
+    """ATM normal vol (bp/yr) for a leg starting in s years with tenor t. Interpolates across
+    tenors within each expiry, using only expiries that price the leg's tenor range, then
+    across those expiries (flat beyond the last one, e.g. a GBP 10y10y leg uses 5y expiry)."""
     exps, tens, vols = grid[:3]
-    expiry = min(max(float(s), 1.0), float(exps[-1]))
     tenor = min(max(float(t), float(tens[0])), float(tens[-1]))
-    by_expiry = np.array([np.interp(tenor, tens, vols[i]) for i in range(len(exps))])
-    return float(np.interp(expiry, exps, by_expiry))
+    lo, hi = np.searchsorted(tens, tenor, side="right") - 1, np.searchsorted(tens, tenor, side="left")
+    rows = [i for i in range(len(exps)) if not np.isnan(vols[i, [lo, hi]]).any()] or \
+           [i for i in range(len(exps)) if not np.isnan(vols[i]).all()]
+    by_expiry = np.array([np.interp(tenor, tens[~np.isnan(vols[i])], vols[i][~np.isnan(vols[i])]) for i in rows])
+    usable = exps[rows]
+    expiry = min(max(float(s), 1.0), float(usable[-1]))
+    return float(np.interp(expiry, usable, by_expiry))
 
 
 def _implied_vol_setup(fwd_df: pd.DataFrame, legs: "set[str] | list[str]", grid: tuple,

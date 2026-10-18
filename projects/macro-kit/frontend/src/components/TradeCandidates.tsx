@@ -262,7 +262,7 @@ export default function TradeCandidates({ currencies, universe, asOf, dataStamp,
           <div style={{ color: '#77828f', fontSize: 11, marginTop: 8 }}>
             {rows.length} of {total} structures{asOfs.length ? ` · as of ${asOfs.join(' / ')}` : ''}. Very short half-lives (a few days) mean the deviation is mostly day-to-day
             noise, which the vol in the score already penalises. The residual and carry-history checks use the standard
-            structure.{volBasis === 'implied' && ' Implied vol needs a swaption vol grid, so far EUR only; other currencies show —.'} Not a recommendation: costs, liquidity and event risk are not included.
+            structure.{volBasis === 'implied' && ' Implied vol comes from ATM normal swaption vols; a currency without them shows —.'} Not a recommendation: costs, liquidity and event risk are not included.
           </div>
         </div>
       )}
