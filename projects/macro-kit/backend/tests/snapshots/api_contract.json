@@ -26647,6 +26647,7 @@
     "as_of",
     "bonds",
     "data_source",
+    "issuer_curves",
     "markets",
     "target_ccy",
     "target_rfr"
@@ -26803,6 +26804,47 @@
   "$.data_source": {
    "n_str": 1,
    "str_sha1": "ed95df93d5fc4f666d901c6234bbda7bc3f71e1c"
+  },
+  "$.issuer_curves": {
+   "n_items": 6
+  },
+  "$.issuer_curves[]": {
+   "keys": [
+    "ccy",
+    "issuer",
+    "points"
+   ]
+  },
+  "$.issuer_curves[].ccy": {
+   "n_str": 6,
+   "str_sha1": "d7bc8bd84f465fe787ba66abf8328e361b224f76"
+  },
+  "$.issuer_curves[].issuer": {
+   "n_str": 6,
+   "str_sha1": "141544b0745cee4aa8cd815e2a3a807e136e872b"
+  },
+  "$.issuer_curves[].points": {
+   "n_items": 180
+  },
+  "$.issuer_curves[].points[]": {
+   "keys": [
+    "bp",
+    "tenor"
+   ]
+  },
+  "$.issuer_curves[].points[].bp": {
+   "max": 167.74,
+   "min": 4.31,
+   "n_num": 180,
+   "sum": 10607.249999999998,
+   "sumsq": 900096.1341000005
+  },
+  "$.issuer_curves[].points[].tenor": {
+   "max": 30.0014,
+   "min": 1.5852,
+   "n_num": 180,
+   "sum": 1839.0318000000002,
+   "sumsq": 30207.50492856001
   },
   "$.markets": {
    "n_items": 4
@@ -27288,6 +27330,7 @@
     "as_of",
     "bonds",
     "data_source",
+    "issuer_curves",
     "markets",
     "target_ccy",
     "target_rfr"
@@ -27444,6 +27487,47 @@
   "$.data_source": {
    "n_str": 1,
    "str_sha1": "ed95df93d5fc4f666d901c6234bbda7bc3f71e1c"
+  },
+  "$.issuer_curves": {
+   "n_items": 6
+  },
+  "$.issuer_curves[]": {
+   "keys": [
+    "ccy",
+    "issuer",
+    "points"
+   ]
+  },
+  "$.issuer_curves[].ccy": {
+   "n_str": 6,
+   "str_sha1": "d7bc8bd84f465fe787ba66abf8328e361b224f76"
+  },
+  "$.issuer_curves[].issuer": {
+   "n_str": 6,
+   "str_sha1": "141544b0745cee4aa8cd815e2a3a807e136e872b"
+  },
+  "$.issuer_curves[].points": {
+   "n_items": 180
+  },
+  "$.issuer_curves[].points[]": {
+   "keys": [
+    "bp",
+    "tenor"
+   ]
+  },
+  "$.issuer_curves[].points[].bp": {
+   "max": 67.91,
+   "min": -45.4,
+   "n_num": 180,
+   "sum": -821.0700000000007,
+   "sumsq": 159964.33089999997
+  },
+  "$.issuer_curves[].points[].tenor": {
+   "max": 30.0014,
+   "min": 1.5852,
+   "n_num": 180,
+   "sum": 1839.0318000000002,
+   "sumsq": 30207.50492856001
   },
   "$.markets": {
    "n_items": 4

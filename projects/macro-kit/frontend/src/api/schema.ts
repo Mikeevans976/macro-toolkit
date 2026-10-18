@@ -1817,6 +1817,15 @@ export interface components {
             /** Raw Values */
             raw_values: boolean;
         };
+        /** IssuerCurve */
+        IssuerCurve: {
+            /** Ccy */
+            ccy: string;
+            /** Issuer */
+            issuer: string;
+            /** Points */
+            points: components["schemas"]["SpreadPoint"][];
+        };
         /** MarketReactionPayload */
         MarketReactionPayload: {
             /** Market Ticker */
@@ -1978,6 +1987,13 @@ export interface components {
              */
             question: string;
         };
+        /** SpreadPoint */
+        SpreadPoint: {
+            /** Bp */
+            bp: number;
+            /** Tenor */
+            tenor: number;
+        };
         /** StantonRequest */
         StantonRequest: {
             /** End Date */
@@ -2012,6 +2028,8 @@ export interface components {
              * @enum {string}
              */
             data_source: "live" | "simulation";
+            /** Issuer Curves */
+            issuer_curves: components["schemas"]["IssuerCurve"][];
             /** Markets */
             markets: components["schemas"]["MarketRow"][];
             /** Target Ccy */

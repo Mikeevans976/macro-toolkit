@@ -49,6 +49,17 @@ class BondRow(BaseModel):
     bpv: float
 
 
+class SpreadPoint(BaseModel):
+    tenor: float
+    bp: float
+
+
+class IssuerCurve(BaseModel):
+    issuer: str
+    ccy: str
+    points: list[SpreadPoint]
+
+
 class SwapSpreads(BaseModel):
     as_of: str
     data_source: Source
@@ -56,6 +67,7 @@ class SwapSpreads(BaseModel):
     target_rfr: str
     markets: list[MarketRow]
     bonds: list[BondRow]
+    issuer_curves: list[IssuerCurve]
 
 
 class SwapSteps(BaseModel):

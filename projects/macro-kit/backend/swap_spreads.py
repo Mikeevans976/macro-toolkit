@@ -14,7 +14,7 @@ in live OIS / CCBS / bond prices later by replacing `_markets` and
 
 Entry points
 ------------
-  compute_swap_spreads(target)
+  compute_swap_spreads(target)   bond table + fitted spread curve per issuer
   get_bond_breakdown(bond_id, target)
 """
 
@@ -192,6 +192,29 @@ def _bond_row(b: SimBond, res: dict) -> dict:
     }
 
 
+def issuer_curves(rows: list[dict], n_points: int = 30) -> list[dict]:
+    """
+    Smooth line per issuer through its bonds' target-currency spreads
+    (H&S Fig 16.1): least squares on s = a + b·ln T + c·(ln T)², drawn
+    between the issuer's shortest and longest bond.
+    """
+    out = []
+    for issuer in dict.fromkeys(r['issuer'] for r in rows):
+        pts = [r for r in rows if r['issuer'] == issuer]
+        x = np.log([r['ttm'] for r in pts])
+        y = np.array([r['target_spread_bp'] for r in pts])
+        deg = min(2, len(pts) - 1)
+        coef = np.polyfit(x, y, deg)
+        grid = np.exp(np.linspace(x.min(), x.max(), n_points))
+        out.append({
+            'issuer': issuer,
+            'ccy': pts[0]['ccy'],
+            'points': [{'tenor': round(float(T), 4), 'bp': round(float(np.polyval(coef, np.log(T))), 2)}
+                       for T in grid],
+        })
+    return out
+
+
 def _run(b: SimBond, markets: dict, target: str) -> dict:
     return asset_and_basis_swap(b.times, b.amounts, b.dirty, b.ttm,
                                 markets[b.ccy][0], markets[target][0], bond_freq=b.coupon_freq)
@@ -200,14 +223,15 @@ def _run(b: SimBond, markets: dict, target: str) -> dict:
 def compute_swap_spreads(target: str = 'USD') -> dict:
     markets = _markets()
     target = _check_target(target, markets)
-    bonds = build_bonds(markets)
+    rows = [_bond_row(b, _run(b, markets, target)) for b in build_bonds(markets)]
     return {
         'as_of': _today().strftime('%Y-%m-%d'),
         'data_source': 'simulation',
         'target_ccy': target,
         'target_rfr': markets[target][0].rfr,
         'markets': _market_rows(markets),
-        'bonds': [_bond_row(b, _run(b, markets, target)) for b in bonds],
+        'bonds': rows,
+        'issuer_curves': issuer_curves(rows),
     }
 
 

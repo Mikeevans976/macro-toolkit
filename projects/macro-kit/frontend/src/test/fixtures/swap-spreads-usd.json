@@ -1,0 +1,1600 @@
+{
+ "as_of": "2026-10-18",
+ "data_source": "simulation",
+ "target_ccy": "USD",
+ "target_rfr": "SOFR",
+ "markets": [
+  {
+   "ccy": "USD",
+   "rfr": "SOFR",
+   "float_freq": 1,
+   "fixed_freq": 1,
+   "par_curve": [
+    {
+     "tenor": 1,
+     "rate": 3.765
+    },
+    {
+     "tenor": 2,
+     "rate": 3.836
+    },
+    {
+     "tenor": 3,
+     "rate": 3.8878
+    },
+    {
+     "tenor": 5,
+     "rate": 3.9551
+    },
+    {
+     "tenor": 7,
+     "rate": 3.9947
+    },
+    {
+     "tenor": 10,
+     "rate": 4.0287
+    },
+    {
+     "tenor": 15,
+     "rate": 4.0564
+    },
+    {
+     "tenor": 20,
+     "rate": 4.0702
+    },
+    {
+     "tenor": 30,
+     "rate": 4.0835
+    }
+   ],
+   "ccbs": [
+    {
+     "tenor": 1,
+     "bp": 0.0
+    },
+    {
+     "tenor": 2,
+     "bp": 0.0
+    },
+    {
+     "tenor": 3,
+     "bp": 0.0
+    },
+    {
+     "tenor": 5,
+     "bp": 0.0
+    },
+    {
+     "tenor": 7,
+     "bp": 0.0
+    },
+    {
+     "tenor": 10,
+     "bp": 0.0
+    },
+    {
+     "tenor": 15,
+     "bp": 0.0
+    },
+    {
+     "tenor": 20,
+     "bp": 0.0
+    },
+    {
+     "tenor": 30,
+     "bp": 0.0
+    }
+   ]
+  },
+  {
+   "ccy": "EUR",
+   "rfr": "ESTR",
+   "float_freq": 1,
+   "fixed_freq": 1,
+   "par_curve": [
+    {
+     "tenor": 1,
+     "rate": 2.1839
+    },
+    {
+     "tenor": 2,
+     "rate": 2.299
+    },
+    {
+     "tenor": 3,
+     "rate": 2.3809
+    },
+    {
+     "tenor": 5,
+     "rate": 2.4828
+    },
+    {
+     "tenor": 7,
+     "rate": 2.5383
+    },
+    {
+     "tenor": 10,
+     "rate": 2.5818
+    },
+    {
+     "tenor": 15,
+     "rate": 2.6137
+    },
+    {
+     "tenor": 20,
+     "rate": 2.6285
+    },
+    {
+     "tenor": 30,
+     "rate": 2.6428
+    }
+   ],
+   "ccbs": [
+    {
+     "tenor": 1,
+     "bp": -9.0
+    },
+    {
+     "tenor": 2,
+     "bp": -11.0
+    },
+    {
+     "tenor": 3,
+     "bp": -12.0
+    },
+    {
+     "tenor": 5,
+     "bp": -14.0
+    },
+    {
+     "tenor": 7,
+     "bp": -13.6
+    },
+    {
+     "tenor": 10,
+     "bp": -13.0
+    },
+    {
+     "tenor": 15,
+     "bp": -11.25
+    },
+    {
+     "tenor": 20,
+     "bp": -9.5
+    },
+    {
+     "tenor": 30,
+     "bp": -6.0
+    }
+   ]
+  },
+  {
+   "ccy": "GBP",
+   "rfr": "SONIA",
+   "float_freq": 1,
+   "fixed_freq": 1,
+   "par_curve": [
+    {
+     "tenor": 1,
+     "rate": 4.0811
+    },
+    {
+     "tenor": 2,
+     "rate": 4.1456
+    },
+    {
+     "tenor": 3,
+     "rate": 4.1863
+    },
+    {
+     "tenor": 5,
+     "rate": 4.2296
+    },
+    {
+     "tenor": 7,
+     "rate": 4.2489
+    },
+    {
+     "tenor": 10,
+     "rate": 4.2615
+    },
+    {
+     "tenor": 15,
+     "rate": 4.2695
+    },
+    {
+     "tenor": 20,
+     "rate": 4.2731
+    },
+    {
+     "tenor": 30,
+     "rate": 4.2765
+    }
+   ],
+   "ccbs": [
+    {
+     "tenor": 1,
+     "bp": -4.0
+    },
+    {
+     "tenor": 2,
+     "bp": -7.0
+    },
+    {
+     "tenor": 3,
+     "bp": -8.67
+    },
+    {
+     "tenor": 5,
+     "bp": -12.0
+    },
+    {
+     "tenor": 7,
+     "bp": -14.8
+    },
+    {
+     "tenor": 10,
+     "bp": -19.0
+    },
+    {
+     "tenor": 15,
+     "bp": -17.75
+    },
+    {
+     "tenor": 20,
+     "bp": -16.5
+    },
+    {
+     "tenor": 30,
+     "bp": -14.0
+    }
+   ]
+  },
+  {
+   "ccy": "JPY",
+   "rfr": "TONA",
+   "float_freq": 1,
+   "fixed_freq": 1,
+   "par_curve": [
+    {
+     "tenor": 1,
+     "rate": 0.7381
+    },
+    {
+     "tenor": 2,
+     "rate": 0.8855
+    },
+    {
+     "tenor": 3,
+     "rate": 1.0028
+    },
+    {
+     "tenor": 5,
+     "rate": 1.1726
+    },
+    {
+     "tenor": 7,
+     "rate": 1.2851
+    },
+    {
+     "tenor": 10,
+     "rate": 1.3915
+    },
+    {
+     "tenor": 15,
+     "rate": 1.4865
+    },
+    {
+     "tenor": 20,
+     "rate": 1.5362
+    },
+    {
+     "tenor": 30,
+     "rate": 1.586
+    }
+   ],
+   "ccbs": [
+    {
+     "tenor": 1,
+     "bp": -28.0
+    },
+    {
+     "tenor": 2,
+     "bp": -38.0
+    },
+    {
+     "tenor": 3,
+     "bp": -43.67
+    },
+    {
+     "tenor": 5,
+     "bp": -55.0
+    },
+    {
+     "tenor": 7,
+     "bp": -58.8
+    },
+    {
+     "tenor": 10,
+     "bp": -64.5
+    },
+    {
+     "tenor": 15,
+     "bp": -61.38
+    },
+    {
+     "tenor": 20,
+     "bp": -58.25
+    },
+    {
+     "tenor": 30,
+     "bp": -52.0
+    }
+   ]
+  }
+ ],
+ "bonds": [
+  {
+   "bond_id": "UST-2Y",
+   "issuer": "UST",
+   "ccy": "USD",
+   "name": "UST 3.125% Oct-28",
+   "coupon": 3.125,
+   "coupon_freq": 2,
+   "maturity": "2028-10-18",
+   "ttm": 2.0014,
+   "dirty": 99.9843,
+   "clean": 98.4261,
+   "ytm": 3.9506,
+   "par_asw_bp": 15.06,
+   "market_value_asw_bp": 15.06,
+   "interpolated_asw_bp": 15.37,
+   "conversion_factor": 1.0,
+   "target_spread_bp": 15.06,
+   "synthetic_coupon": 3.9866,
+   "fw_duration": 1.925,
+   "bpv": 0.01924
+  },
+  {
+   "bond_id": "UST-5Y",
+   "issuer": "UST",
+   "ccy": "USD",
+   "name": "UST 3.875% Jul-31",
+   "coupon": 3.875,
+   "coupon_freq": 2,
+   "maturity": "2031-07-18",
+   "ttm": 4.7474,
+   "dirty": 99.718,
+   "clean": 98.7393,
+   "ytm": 4.1693,
+   "par_asw_bp": 25.94,
+   "market_value_asw_bp": 26.01,
+   "interpolated_asw_bp": 26.74,
+   "conversion_factor": 1.0,
+   "target_spread_bp": 25.94,
+   "synthetic_coupon": 4.2047,
+   "fw_duration": 4.336,
+   "bpv": 0.04324
+  },
+  {
+   "bond_id": "UST-10Y",
+   "issuer": "UST",
+   "ccy": "USD",
+   "name": "UST 4.125% Oct-36",
+   "coupon": 4.125,
+   "coupon_freq": 2,
+   "maturity": "2036-10-18",
+   "ttm": 10.0014,
+   "dirty": 100.4414,
+   "clean": 98.3846,
+   "ytm": 4.3257,
+   "par_asw_bp": 33.66,
+   "market_value_asw_bp": 33.51,
+   "interpolated_asw_bp": 34.38,
+   "conversion_factor": 1.0,
+   "target_spread_bp": 33.66,
+   "synthetic_coupon": 4.3652,
+   "fw_duration": 8.098,
+   "bpv": 0.08134
+  },
+  {
+   "bond_id": "UST-30Y",
+   "issuer": "UST",
+   "ccy": "USD",
+   "name": "UST 4.375% Oct-56",
+   "coupon": 4.375,
+   "coupon_freq": 2,
+   "maturity": "2056-10-18",
+   "ttm": 30.0014,
+   "dirty": 100.8301,
+   "clean": 98.6486,
+   "ytm": 4.4571,
+   "par_asw_bp": 41.46,
+   "market_value_asw_bp": 41.11,
+   "interpolated_asw_bp": 42.33,
+   "conversion_factor": 1.0,
+   "target_spread_bp": 41.46,
+   "synthetic_coupon": 4.498,
+   "fw_duration": 16.404,
+   "bpv": 0.16541
+  },
+  {
+   "bond_id": "Bund-2Y",
+   "issuer": "Bund",
+   "ccy": "EUR",
+   "name": "Bund 2% Aug-28",
+   "coupon": 2.0,
+   "coupon_freq": 1,
+   "maturity": "2028-08-18",
+   "ttm": 1.8344,
+   "dirty": 99.9304,
+   "clean": 99.5991,
+   "ytm": 2.2238,
+   "par_asw_bp": -5.86,
+   "market_value_asw_bp": -5.86,
+   "interpolated_asw_bp": -5.69,
+   "conversion_factor": 0.9795,
+   "target_spread_bp": 4.91,
+   "synthetic_coupon": 3.8693,
+   "fw_duration": 1.815,
+   "bpv": 0.01813
+  },
+  {
+   "bond_id": "Bund-5Y",
+   "issuer": "Bund",
+   "ccy": "EUR",
+   "name": "Bund 2.5% Oct-31",
+   "coupon": 2.5,
+   "coupon_freq": 1,
+   "maturity": "2031-10-18",
+   "ttm": 4.9993,
+   "dirty": 100.1757,
+   "clean": 100.174,
+   "ytm": 2.4626,
+   "par_asw_bp": -2.01,
+   "market_value_asw_bp": -2.0,
+   "interpolated_asw_bp": -2.01,
+   "conversion_factor": 0.9582,
+   "target_spread_bp": 12.51,
+   "synthetic_coupon": 4.0803,
+   "fw_duration": 4.761,
+   "bpv": 0.04769
+  },
+  {
+   "bond_id": "Bund-10Y",
+   "issuer": "Bund",
+   "ccy": "EUR",
+   "name": "Bund 2.6% Aug-36",
+   "coupon": 2.6,
+   "coupon_freq": 1,
+   "maturity": "2036-08-18",
+   "ttm": 9.8344,
+   "dirty": 100.0007,
+   "clean": 99.57,
+   "ytm": 2.6497,
+   "par_asw_bp": 6.94,
+   "market_value_asw_bp": 6.94,
+   "interpolated_asw_bp": 7.0,
+   "conversion_factor": 0.9294,
+   "target_spread_bp": 21.49,
+   "synthetic_coupon": 4.2409,
+   "fw_duration": 8.758,
+   "bpv": 0.08758
+  },
+  {
+   "bond_id": "Bund-30Y",
+   "issuer": "Bund",
+   "ccy": "EUR",
+   "name": "Bund 2.7% Jul-56",
+   "coupon": 2.7,
+   "coupon_freq": 1,
+   "maturity": "2056-07-18",
+   "ttm": 29.7495,
+   "dirty": 99.4729,
+   "clean": 98.7965,
+   "ytm": 2.7595,
+   "par_asw_bp": 11.59,
+   "market_value_asw_bp": 11.65,
+   "interpolated_asw_bp": 11.72,
+   "conversion_factor": 0.8339,
+   "target_spread_bp": 21.2,
+   "synthetic_coupon": 4.2945,
+   "fw_duration": 20.542,
+   "bpv": 0.20434
+  },
+  {
+   "bond_id": "OAT-2Y",
+   "issuer": "OAT",
+   "ccy": "EUR",
+   "name": "OAT 2% May-28",
+   "coupon": 2.0,
+   "coupon_freq": 1,
+   "maturity": "2028-05-18",
+   "ttm": 1.5825,
+   "dirty": 100.1383,
+   "clean": 99.3033,
+   "ytm": 2.4504,
+   "par_asw_bp": 19.37,
+   "market_value_asw_bp": 19.35,
+   "interpolated_asw_bp": 19.85,
+   "conversion_factor": 0.9819,
+   "target_spread_bp": 30.08,
+   "synthetic_coupon": 4.0988,
+   "fw_duration": 1.563,
+   "bpv": 0.01565
+  },
+  {
+   "bond_id": "OAT-5Y",
+   "issuer": "OAT",
+   "ccy": "EUR",
+   "name": "OAT 2.5% Feb-31",
+   "coupon": 2.5,
+   "coupon_freq": 1,
+   "maturity": "2031-02-18",
+   "ttm": 4.3368,
+   "dirty": 100.3185,
+   "clean": 98.6604,
+   "ytm": 2.8307,
+   "par_asw_bp": 37.14,
+   "market_value_asw_bp": 37.03,
+   "interpolated_asw_bp": 37.63,
+   "conversion_factor": 0.9628,
+   "target_spread_bp": 52.43,
+   "synthetic_coupon": 4.4571,
+   "fw_duration": 4.096,
+   "bpv": 0.04109
+  },
+  {
+   "bond_id": "OAT-10Y",
+   "issuer": "OAT",
+   "ccy": "EUR",
+   "name": "OAT 3% May-36",
+   "coupon": 3.0,
+   "coupon_freq": 1,
+   "maturity": "2036-05-18",
+   "ttm": 9.5825,
+   "dirty": 99.788,
+   "clean": 98.5354,
+   "ytm": 3.1783,
+   "par_asw_bp": 59.54,
+   "market_value_asw_bp": 59.67,
+   "interpolated_asw_bp": 60.17,
+   "conversion_factor": 0.931,
+   "target_spread_bp": 78.01,
+   "synthetic_coupon": 4.8029,
+   "fw_duration": 8.344,
+   "bpv": 0.08326
+  },
+  {
+   "bond_id": "OAT-30Y",
+   "issuer": "OAT",
+   "ccy": "EUR",
+   "name": "OAT 3.25% May-56",
+   "coupon": 3.25,
+   "coupon_freq": 1,
+   "maturity": "2056-05-18",
+   "ttm": 29.5825,
+   "dirty": 98.5912,
+   "clean": 97.2343,
+   "ytm": 3.399,
+   "par_asw_bp": 74.26,
+   "market_value_asw_bp": 75.32,
+   "interpolated_asw_bp": 75.69,
+   "conversion_factor": 0.8346,
+   "target_spread_bp": 96.35,
+   "synthetic_coupon": 5.0455,
+   "fw_duration": 18.849,
+   "bpv": 0.18584
+  },
+  {
+   "bond_id": "BTP-2Y",
+   "issuer": "BTP",
+   "ccy": "EUR",
+   "name": "BTP 2.45% Aug-28",
+   "coupon": 2.45,
+   "coupon_freq": 2,
+   "maturity": "2028-08-18",
+   "ttm": 1.8344,
+   "dirty": 100.0085,
+   "clean": 99.6027,
+   "ytm": 2.6724,
+   "par_asw_bp": 40.41,
+   "market_value_asw_bp": 40.41,
+   "interpolated_asw_bp": 40.96,
+   "conversion_factor": 0.9795,
+   "target_spread_bp": 52.15,
+   "synthetic_coupon": 4.3417,
+   "fw_duration": 1.798,
+   "bpv": 0.01798
+  },
+  {
+   "bond_id": "BTP-5Y",
+   "issuer": "BTP",
+   "ccy": "EUR",
+   "name": "BTP 3% Jun-31",
+   "coupon": 3.0,
+   "coupon_freq": 2,
+   "maturity": "2031-06-18",
+   "ttm": 4.6653,
+   "dirty": 100.0431,
+   "clean": 99.039,
+   "ytm": 3.2229,
+   "par_asw_bp": 76.82,
+   "market_value_asw_bp": 76.79,
+   "interpolated_asw_bp": 78.04,
+   "conversion_factor": 0.9607,
+   "target_spread_bp": 94.19,
+   "synthetic_coupon": 4.8844,
+   "fw_duration": 4.342,
+   "bpv": 0.04343
+  },
+  {
+   "bond_id": "BTP-10Y",
+   "issuer": "BTP",
+   "ccy": "EUR",
+   "name": "BTP 3.55% Jul-36",
+   "coupon": 3.5500000000000003,
+   "coupon_freq": 2,
+   "maturity": "2036-07-18",
+   "ttm": 9.7495,
+   "dirty": 99.8161,
+   "clean": 98.9267,
+   "ytm": 3.6815,
+   "par_asw_bp": 111.87,
+   "market_value_asw_bp": 112.07,
+   "interpolated_asw_bp": 113.68,
+   "conversion_factor": 0.93,
+   "target_spread_bp": 134.32,
+   "synthetic_coupon": 5.3681,
+   "fw_duration": 8.22,
+   "bpv": 0.08205
+  },
+  {
+   "bond_id": "BTP-30Y",
+   "issuer": "BTP",
+   "ccy": "EUR",
+   "name": "BTP 3.9% Jul-56",
+   "coupon": 3.9000000000000004,
+   "coupon_freq": 2,
+   "maturity": "2056-07-18",
+   "ttm": 29.7495,
+   "dirty": 100.017,
+   "clean": 99.04,
+   "ytm": 3.9549,
+   "par_asw_bp": 132.97,
+   "market_value_asw_bp": 132.95,
+   "interpolated_asw_bp": 135.17,
+   "conversion_factor": 0.8339,
+   "target_spread_bp": 166.76,
+   "synthetic_coupon": 5.7501,
+   "fw_duration": 17.369,
+   "bpv": 0.17372
+  },
+  {
+   "bond_id": "Gilt-2Y",
+   "issuer": "Gilt",
+   "ccy": "GBP",
+   "name": "Gilt 3.875% Aug-28",
+   "coupon": 3.875,
+   "coupon_freq": 2,
+   "maturity": "2028-08-18",
+   "ttm": 1.8344,
+   "dirty": 100.0725,
+   "clean": 99.4306,
+   "ytm": 4.1982,
+   "par_asw_bp": 10.42,
+   "market_value_asw_bp": 10.41,
+   "interpolated_asw_bp": 11.19,
+   "conversion_factor": 1.0041,
+   "target_spread_bp": 16.85,
+   "synthetic_coupon": 3.9888,
+   "fw_duration": 1.778,
+   "bpv": 0.01779
+  },
+  {
+   "bond_id": "Gilt-5Y",
+   "issuer": "Gilt",
+   "ccy": "GBP",
+   "name": "Gilt 4.5% Oct-31",
+   "coupon": 4.5,
+   "coupon_freq": 2,
+   "maturity": "2031-10-18",
+   "ttm": 4.9993,
+   "dirty": 100.2515,
+   "clean": 100.2484,
+   "ytm": 4.444,
+   "par_asw_bp": 26.16,
+   "market_value_asw_bp": 26.09,
+   "interpolated_asw_bp": 26.39,
+   "conversion_factor": 1.0082,
+   "target_spread_bp": 37.85,
+   "synthetic_coupon": 4.3336,
+   "fw_duration": 4.531,
+   "bpv": 0.04543
+  },
+  {
+   "bond_id": "Gilt-10Y",
+   "issuer": "Gilt",
+   "ccy": "GBP",
+   "name": "Gilt 4.5% May-36",
+   "coupon": 4.5,
+   "coupon_freq": 2,
+   "maturity": "2036-05-18",
+   "ttm": 9.5825,
+   "dirty": 100.3364,
+   "clean": 98.4575,
+   "ytm": 4.7013,
+   "par_asw_bp": 48.57,
+   "market_value_asw_bp": 48.41,
+   "interpolated_asw_bp": 49.89,
+   "conversion_factor": 1.0124,
+   "target_spread_bp": 66.17,
+   "synthetic_coupon": 4.6845,
+   "fw_duration": 7.713,
+   "bpv": 0.07739
+  },
+  {
+   "bond_id": "Gilt-30Y",
+   "issuer": "Gilt",
+   "ccy": "GBP",
+   "name": "Gilt 4.75% May-56",
+   "coupon": 4.75,
+   "coupon_freq": 2,
+   "maturity": "2056-05-18",
+   "ttm": 29.5825,
+   "dirty": 99.8875,
+   "clean": 97.9043,
+   "ytm": 4.8844,
+   "par_asw_bp": 64.96,
+   "market_value_asw_bp": 65.03,
+   "interpolated_asw_bp": 66.89,
+   "conversion_factor": 1.0248,
+   "target_spread_bp": 77.15,
+   "synthetic_coupon": 4.8536,
+   "fw_duration": 15.553,
+   "bpv": 0.15535
+  },
+  {
+   "bond_id": "JGB-2Y",
+   "issuer": "JGB",
+   "ccy": "JPY",
+   "name": "JGB 0.6% Oct-28",
+   "coupon": 0.6000000000000001,
+   "coupon_freq": 2,
+   "maturity": "2028-10-18",
+   "ttm": 2.0014,
+   "dirty": 99.9284,
+   "clean": 99.6292,
+   "ytm": 0.7871,
+   "par_asw_bp": -9.67,
+   "market_value_asw_bp": -9.67,
+   "interpolated_asw_bp": -9.71,
+   "conversion_factor": 0.9575,
+   "target_spread_bp": 29.6,
+   "synthetic_coupon": 4.132,
+   "fw_duration": 1.986,
+   "bpv": 0.01985
+  },
+  {
+   "bond_id": "JGB-5Y",
+   "issuer": "JGB",
+   "ccy": "JPY",
+   "name": "JGB 1.1% Aug-31",
+   "coupon": 1.1,
+   "coupon_freq": 2,
+   "maturity": "2031-08-18",
+   "ttm": 4.8323,
+   "dirty": 100.1081,
+   "clean": 99.9236,
+   "ytm": 1.1162,
+   "par_asw_bp": -4.14,
+   "market_value_asw_bp": -4.14,
+   "interpolated_asw_bp": -4.15,
+   "conversion_factor": 0.9234,
+   "target_spread_bp": 54.05,
+   "synthetic_coupon": 4.489,
+   "fw_duration": 4.71,
+   "bpv": 0.04716
+  },
+  {
+   "bond_id": "JGB-10Y",
+   "issuer": "JGB",
+   "ccy": "JPY",
+   "name": "JGB 1.4% Feb-36",
+   "coupon": 1.4000000000000001,
+   "coupon_freq": 2,
+   "maturity": "2036-02-18",
+   "ttm": 9.3361,
+   "dirty": 99.635,
+   "clean": 99.4055,
+   "ytm": 1.4683,
+   "par_asw_bp": 10.02,
+   "market_value_asw_bp": 10.05,
+   "interpolated_asw_bp": 10.13,
+   "conversion_factor": 0.8757,
+   "target_spread_bp": 83.65,
+   "synthetic_coupon": 4.8572,
+   "fw_duration": 8.756,
+   "bpv": 0.08724
+  },
+  {
+   "bond_id": "JGB-30Y",
+   "issuer": "JGB",
+   "ccy": "JPY",
+   "name": "JGB 1.9% Feb-56",
+   "coupon": 1.9000000000000001,
+   "coupon_freq": 2,
+   "maturity": "2056-02-18",
+   "ttm": 29.3361,
+   "dirty": 99.0489,
+   "clean": 98.7375,
+   "ytm": 1.9567,
+   "par_asw_bp": 37.73,
+   "market_value_asw_bp": 38.1,
+   "interpolated_asw_bp": 38.26,
+   "conversion_factor": 0.7198,
+   "target_spread_bp": 125.25,
+   "synthetic_coupon": 5.3344,
+   "fw_duration": 22.278,
+   "bpv": 0.22066
+  }
+ ],
+ "issuer_curves": [
+  {
+   "issuer": "UST",
+   "ccy": "USD",
+   "points": [
+    {
+     "tenor": 2.0014,
+     "bp": 15.03
+    },
+    {
+     "tenor": 2.1972,
+     "bp": 16.34
+    },
+    {
+     "tenor": 2.4123,
+     "bp": 17.61
+    },
+    {
+     "tenor": 2.6483,
+     "bp": 18.86
+    },
+    {
+     "tenor": 2.9075,
+     "bp": 20.08
+    },
+    {
+     "tenor": 3.192,
+     "bp": 21.27
+    },
+    {
+     "tenor": 3.5043,
+     "bp": 22.43
+    },
+    {
+     "tenor": 3.8472,
+     "bp": 23.57
+    },
+    {
+     "tenor": 4.2237,
+     "bp": 24.68
+    },
+    {
+     "tenor": 4.637,
+     "bp": 25.76
+    },
+    {
+     "tenor": 5.0908,
+     "bp": 26.81
+    },
+    {
+     "tenor": 5.5889,
+     "bp": 27.83
+    },
+    {
+     "tenor": 6.1359,
+     "bp": 28.83
+    },
+    {
+     "tenor": 6.7363,
+     "bp": 29.8
+    },
+    {
+     "tenor": 7.3955,
+     "bp": 30.74
+    },
+    {
+     "tenor": 8.1191,
+     "bp": 31.65
+    },
+    {
+     "tenor": 8.9136,
+     "bp": 32.53
+    },
+    {
+     "tenor": 9.7859,
+     "bp": 33.39
+    },
+    {
+     "tenor": 10.7435,
+     "bp": 34.22
+    },
+    {
+     "tenor": 11.7948,
+     "bp": 35.02
+    },
+    {
+     "tenor": 12.949,
+     "bp": 35.79
+    },
+    {
+     "tenor": 14.2161,
+     "bp": 36.53
+    },
+    {
+     "tenor": 15.6072,
+     "bp": 37.25
+    },
+    {
+     "tenor": 17.1345,
+     "bp": 37.94
+    },
+    {
+     "tenor": 18.8112,
+     "bp": 38.6
+    },
+    {
+     "tenor": 20.652,
+     "bp": 39.23
+    },
+    {
+     "tenor": 22.6729,
+     "bp": 39.83
+    },
+    {
+     "tenor": 24.8915,
+     "bp": 40.41
+    },
+    {
+     "tenor": 27.3273,
+     "bp": 40.96
+    },
+    {
+     "tenor": 30.0014,
+     "bp": 41.48
+    }
+   ]
+  },
+  {
+   "issuer": "Bund",
+   "ccy": "EUR",
+   "points": [
+    {
+     "tenor": 1.8344,
+     "bp": 4.31
+    },
+    {
+     "tenor": 2.0194,
+     "bp": 5.53
+    },
+    {
+     "tenor": 2.223,
+     "bp": 6.7
+    },
+    {
+     "tenor": 2.4472,
+     "bp": 7.83
+    },
+    {
+     "tenor": 2.6939,
+     "bp": 8.92
+    },
+    {
+     "tenor": 2.9656,
+     "bp": 9.96
+    },
+    {
+     "tenor": 3.2646,
+     "bp": 10.95
+    },
+    {
+     "tenor": 3.5938,
+     "bp": 11.91
+    },
+    {
+     "tenor": 3.9562,
+     "bp": 12.82
+    },
+    {
+     "tenor": 4.3552,
+     "bp": 13.68
+    },
+    {
+     "tenor": 4.7944,
+     "bp": 14.5
+    },
+    {
+     "tenor": 5.2778,
+     "bp": 15.28
+    },
+    {
+     "tenor": 5.81,
+     "bp": 16.01
+    },
+    {
+     "tenor": 6.3959,
+     "bp": 16.7
+    },
+    {
+     "tenor": 7.0408,
+     "bp": 17.34
+    },
+    {
+     "tenor": 7.7508,
+     "bp": 17.95
+    },
+    {
+     "tenor": 8.5324,
+     "bp": 18.5
+    },
+    {
+     "tenor": 9.3928,
+     "bp": 19.01
+    },
+    {
+     "tenor": 10.34,
+     "bp": 19.48
+    },
+    {
+     "tenor": 11.3826,
+     "bp": 19.9
+    },
+    {
+     "tenor": 12.5305,
+     "bp": 20.28
+    },
+    {
+     "tenor": 13.794,
+     "bp": 20.62
+    },
+    {
+     "tenor": 15.185,
+     "bp": 20.91
+    },
+    {
+     "tenor": 16.7162,
+     "bp": 21.16
+    },
+    {
+     "tenor": 18.4018,
+     "bp": 21.36
+    },
+    {
+     "tenor": 20.2575,
+     "bp": 21.52
+    },
+    {
+     "tenor": 22.3002,
+     "bp": 21.63
+    },
+    {
+     "tenor": 24.5489,
+     "bp": 21.71
+    },
+    {
+     "tenor": 27.0244,
+     "bp": 21.73
+    },
+    {
+     "tenor": 29.7495,
+     "bp": 21.71
+    }
+   ]
+  },
+  {
+   "issuer": "OAT",
+   "ccy": "EUR",
+   "points": [
+    {
+     "tenor": 1.5825,
+     "bp": 29.05
+    },
+    {
+     "tenor": 1.7506,
+     "bp": 31.91
+    },
+    {
+     "tenor": 1.9366,
+     "bp": 34.74
+    },
+    {
+     "tenor": 2.1424,
+     "bp": 37.53
+    },
+    {
+     "tenor": 2.37,
+     "bp": 40.28
+    },
+    {
+     "tenor": 2.6218,
+     "bp": 43.0
+    },
+    {
+     "tenor": 2.9004,
+     "bp": 45.68
+    },
+    {
+     "tenor": 3.2085,
+     "bp": 48.32
+    },
+    {
+     "tenor": 3.5494,
+     "bp": 50.93
+    },
+    {
+     "tenor": 3.9265,
+     "bp": 53.5
+    },
+    {
+     "tenor": 4.3437,
+     "bp": 56.03
+    },
+    {
+     "tenor": 4.8052,
+     "bp": 58.53
+    },
+    {
+     "tenor": 5.3157,
+     "bp": 60.99
+    },
+    {
+     "tenor": 5.8805,
+     "bp": 63.41
+    },
+    {
+     "tenor": 6.5052,
+     "bp": 65.8
+    },
+    {
+     "tenor": 7.1964,
+     "bp": 68.15
+    },
+    {
+     "tenor": 7.961,
+     "bp": 70.46
+    },
+    {
+     "tenor": 8.8068,
+     "bp": 72.74
+    },
+    {
+     "tenor": 9.7425,
+     "bp": 74.98
+    },
+    {
+     "tenor": 10.7776,
+     "bp": 77.18
+    },
+    {
+     "tenor": 11.9226,
+     "bp": 79.35
+    },
+    {
+     "tenor": 13.1894,
+     "bp": 81.48
+    },
+    {
+     "tenor": 14.5907,
+     "bp": 83.58
+    },
+    {
+     "tenor": 16.1408,
+     "bp": 85.63
+    },
+    {
+     "tenor": 17.8557,
+     "bp": 87.66
+    },
+    {
+     "tenor": 19.7528,
+     "bp": 89.64
+    },
+    {
+     "tenor": 21.8515,
+     "bp": 91.59
+    },
+    {
+     "tenor": 24.1731,
+     "bp": 93.5
+    },
+    {
+     "tenor": 26.7414,
+     "bp": 95.37
+    },
+    {
+     "tenor": 29.5825,
+     "bp": 97.21
+    }
+   ]
+  },
+  {
+   "issuer": "BTP",
+   "ccy": "EUR",
+   "points": [
+    {
+     "tenor": 1.8344,
+     "bp": 50.85
+    },
+    {
+     "tenor": 2.0194,
+     "bp": 56.17
+    },
+    {
+     "tenor": 2.223,
+     "bp": 61.39
+    },
+    {
+     "tenor": 2.4472,
+     "bp": 66.53
+    },
+    {
+     "tenor": 2.6939,
+     "bp": 71.57
+    },
+    {
+     "tenor": 2.9656,
+     "bp": 76.52
+    },
+    {
+     "tenor": 3.2646,
+     "bp": 81.37
+    },
+    {
+     "tenor": 3.5938,
+     "bp": 86.14
+    },
+    {
+     "tenor": 3.9562,
+     "bp": 90.81
+    },
+    {
+     "tenor": 4.3552,
+     "bp": 95.39
+    },
+    {
+     "tenor": 4.7944,
+     "bp": 99.88
+    },
+    {
+     "tenor": 5.2778,
+     "bp": 104.28
+    },
+    {
+     "tenor": 5.81,
+     "bp": 108.59
+    },
+    {
+     "tenor": 6.3959,
+     "bp": 112.8
+    },
+    {
+     "tenor": 7.0408,
+     "bp": 116.93
+    },
+    {
+     "tenor": 7.7508,
+     "bp": 120.96
+    },
+    {
+     "tenor": 8.5324,
+     "bp": 124.9
+    },
+    {
+     "tenor": 9.3928,
+     "bp": 128.74
+    },
+    {
+     "tenor": 10.34,
+     "bp": 132.5
+    },
+    {
+     "tenor": 11.3826,
+     "bp": 136.16
+    },
+    {
+     "tenor": 12.5305,
+     "bp": 139.73
+    },
+    {
+     "tenor": 13.794,
+     "bp": 143.21
+    },
+    {
+     "tenor": 15.185,
+     "bp": 146.6
+    },
+    {
+     "tenor": 16.7162,
+     "bp": 149.9
+    },
+    {
+     "tenor": 18.4018,
+     "bp": 153.1
+    },
+    {
+     "tenor": 20.2575,
+     "bp": 156.21
+    },
+    {
+     "tenor": 22.3002,
+     "bp": 159.23
+    },
+    {
+     "tenor": 24.5489,
+     "bp": 162.16
+    },
+    {
+     "tenor": 27.0244,
+     "bp": 165.0
+    },
+    {
+     "tenor": 29.7495,
+     "bp": 167.74
+    }
+   ]
+  },
+  {
+   "issuer": "Gilt",
+   "ccy": "GBP",
+   "points": [
+    {
+     "tenor": 1.8344,
+     "bp": 15.15
+    },
+    {
+     "tenor": 2.019,
+     "bp": 18.29
+    },
+    {
+     "tenor": 2.2221,
+     "bp": 21.36
+    },
+    {
+     "tenor": 2.4457,
+     "bp": 24.36
+    },
+    {
+     "tenor": 2.6919,
+     "bp": 27.29
+    },
+    {
+     "tenor": 2.9627,
+     "bp": 30.15
+    },
+    {
+     "tenor": 3.2608,
+     "bp": 32.95
+    },
+    {
+     "tenor": 3.589,
+     "bp": 35.68
+    },
+    {
+     "tenor": 3.9501,
+     "bp": 38.34
+    },
+    {
+     "tenor": 4.3476,
+     "bp": 40.93
+    },
+    {
+     "tenor": 4.7851,
+     "bp": 43.46
+    },
+    {
+     "tenor": 5.2666,
+     "bp": 45.92
+    },
+    {
+     "tenor": 5.7965,
+     "bp": 48.31
+    },
+    {
+     "tenor": 6.3798,
+     "bp": 50.63
+    },
+    {
+     "tenor": 7.0217,
+     "bp": 52.88
+    },
+    {
+     "tenor": 7.7283,
+     "bp": 55.07
+    },
+    {
+     "tenor": 8.506,
+     "bp": 57.19
+    },
+    {
+     "tenor": 9.3619,
+     "bp": 59.24
+    },
+    {
+     "tenor": 10.3039,
+     "bp": 61.22
+    },
+    {
+     "tenor": 11.3407,
+     "bp": 63.13
+    },
+    {
+     "tenor": 12.4819,
+     "bp": 64.98
+    },
+    {
+     "tenor": 13.7379,
+     "bp": 66.76
+    },
+    {
+     "tenor": 15.1203,
+     "bp": 68.47
+    },
+    {
+     "tenor": 16.6417,
+     "bp": 70.12
+    },
+    {
+     "tenor": 18.3163,
+     "bp": 71.69
+    },
+    {
+     "tenor": 20.1594,
+     "bp": 73.2
+    },
+    {
+     "tenor": 22.1879,
+     "bp": 74.64
+    },
+    {
+     "tenor": 24.4206,
+     "bp": 76.01
+    },
+    {
+     "tenor": 26.8779,
+     "bp": 77.32
+    },
+    {
+     "tenor": 29.5825,
+     "bp": 78.55
+    }
+   ]
+  },
+  {
+   "issuer": "JGB",
+   "ccy": "JPY",
+   "points": [
+    {
+     "tenor": 2.0014,
+     "bp": 28.67
+    },
+    {
+     "tenor": 2.1955,
+     "bp": 31.53
+    },
+    {
+     "tenor": 2.4085,
+     "bp": 34.41
+    },
+    {
+     "tenor": 2.6422,
+     "bp": 37.34
+    },
+    {
+     "tenor": 2.8985,
+     "bp": 40.29
+    },
+    {
+     "tenor": 3.1797,
+     "bp": 43.29
+    },
+    {
+     "tenor": 3.4881,
+     "bp": 46.32
+    },
+    {
+     "tenor": 3.8265,
+     "bp": 49.38
+    },
+    {
+     "tenor": 4.1977,
+     "bp": 52.49
+    },
+    {
+     "tenor": 4.6049,
+     "bp": 55.62
+    },
+    {
+     "tenor": 5.0516,
+     "bp": 58.8
+    },
+    {
+     "tenor": 5.5416,
+     "bp": 62.0
+    },
+    {
+     "tenor": 6.0792,
+     "bp": 65.25
+    },
+    {
+     "tenor": 6.6689,
+     "bp": 68.53
+    },
+    {
+     "tenor": 7.3158,
+     "bp": 71.84
+    },
+    {
+     "tenor": 8.0255,
+     "bp": 75.19
+    },
+    {
+     "tenor": 8.804,
+     "bp": 78.58
+    },
+    {
+     "tenor": 9.6581,
+     "bp": 82.0
+    },
+    {
+     "tenor": 10.595,
+     "bp": 85.46
+    },
+    {
+     "tenor": 11.6228,
+     "bp": 88.96
+    },
+    {
+     "tenor": 12.7503,
+     "bp": 92.49
+    },
+    {
+     "tenor": 13.9871,
+     "bp": 96.05
+    },
+    {
+     "tenor": 15.344,
+     "bp": 99.65
+    },
+    {
+     "tenor": 16.8324,
+     "bp": 103.29
+    },
+    {
+     "tenor": 18.4653,
+     "bp": 106.96
+    },
+    {
+     "tenor": 20.2565,
+     "bp": 110.67
+    },
+    {
+     "tenor": 22.2216,
+     "bp": 114.41
+    },
+    {
+     "tenor": 24.3772,
+     "bp": 118.19
+    },
+    {
+     "tenor": 26.742,
+     "bp": 122.01
+    },
+    {
+     "tenor": 29.3361,
+     "bp": 125.86
+    }
+   ]
+  }
+ ]
+}

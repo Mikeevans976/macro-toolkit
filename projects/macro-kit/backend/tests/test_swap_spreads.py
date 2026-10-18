@@ -44,3 +44,18 @@ def test_unknown_bond_is_404(client):
 
 def test_unknown_target_is_422(client):
     assert client.get("/api/tools/swap-spreads?target=CHF").status_code == 422
+
+
+def test_issuer_curves_fit_their_bonds(client):
+    d = client.get("/api/tools/swap-spreads?target=USD").json()
+    assert [c["issuer"] for c in d["issuer_curves"]] == ["UST", "Bund", "OAT", "BTP", "Gilt", "JGB"]
+    for c in d["issuer_curves"]:
+        bonds = [b for b in d["bonds"] if b["issuer"] == c["issuer"]]
+        tenors = [p["tenor"] for p in c["points"]]
+        assert tenors == sorted(tenors)
+        assert tenors[0] == pytest.approx(min(b["ttm"] for b in bonds), abs=1e-3)
+        assert tenors[-1] == pytest.approx(max(b["ttm"] for b in bonds), abs=1e-3)
+        # 3-parameter fit through 4 bonds: close to each bond, not through it
+        for b in bonds:
+            nearest = min(c["points"], key=lambda p: abs(p["tenor"] - b["ttm"]))
+            assert abs(nearest["bp"] - b["target_spread_bp"]) < 15

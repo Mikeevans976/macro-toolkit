@@ -1,0 +1,84 @@
+{
+ "as_of": "2026-10-18",
+ "data_source": "simulation",
+ "bond": {
+  "bond_id": "UST-2Y",
+  "issuer": "UST",
+  "ccy": "USD",
+  "name": "UST 3.125% Oct-28",
+  "coupon": 3.125,
+  "coupon_freq": 2,
+  "maturity": "2028-10-18",
+  "ttm": 2.0014,
+  "dirty": 99.9843,
+  "clean": 98.4261,
+  "ytm": 3.9506,
+  "par_asw_bp": 15.06,
+  "market_value_asw_bp": 15.06,
+  "interpolated_asw_bp": 15.37,
+  "conversion_factor": 1.0,
+  "target_spread_bp": 15.06,
+  "synthetic_coupon": 3.9866,
+  "fw_duration": 1.925,
+  "bpv": 0.01924
+ },
+ "home_rfr": "SOFR",
+ "target_ccy": "USD",
+ "target_rfr": "SOFR",
+ "steps": {
+  "home_ccy": "USD",
+  "target_ccy": "USD",
+  "maturity": 2.001369,
+  "dirty": 99.984285,
+  "ytm": 3.950646,
+  "upfront": 0.015715,
+  "pv_on_swap_curve": 100.269276,
+  "home_float_annuity": 1.892441,
+  "home_par_swap_rate": 3.836011,
+  "par_asw_bp": 15.059428,
+  "market_value_asw_bp": 15.061795,
+  "interpolated_asw_bp": 15.365412,
+  "home_icbs_bp": 0.0,
+  "home_ccbs_bp": 0.0,
+  "target_ccbs_bp": 0.0,
+  "home_rfr_spread_bp": 15.059428,
+  "conversion_factor": 1.0,
+  "target_float_annuity": 1.892441,
+  "target_spread_bp": 15.059428,
+  "target_fixed_annuity": 1.892441,
+  "target_par_swap_rate": 3.836011,
+  "synthetic_coupon": 3.986605
+ },
+ "cashflows": [
+  {
+   "time": 0.0014,
+   "amount": 1.5625,
+   "df": 0.999951,
+   "pv": 1.562423
+  },
+  {
+   "time": 0.5014,
+   "amount": 1.5625,
+   "df": 0.981857,
+   "pv": 1.534151
+  },
+  {
+   "time": 1.0014,
+   "amount": 1.5625,
+   "df": 0.963666,
+   "pv": 1.505728
+  },
+  {
+   "time": 1.5014,
+   "amount": 1.5625,
+   "df": 0.945488,
+   "pv": 1.477325
+  },
+  {
+   "time": 2.0014,
+   "amount": 101.5625,
+   "df": 0.927406,
+   "pv": 94.189648
+  }
+ ]
+}

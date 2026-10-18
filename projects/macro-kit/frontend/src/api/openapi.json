@@ -1439,6 +1439,32 @@
     "title": "Indicators",
     "type": "object"
    },
+   "IssuerCurve": {
+    "properties": {
+     "ccy": {
+      "title": "Ccy",
+      "type": "string"
+     },
+     "issuer": {
+      "title": "Issuer",
+      "type": "string"
+     },
+     "points": {
+      "items": {
+       "$ref": "#/components/schemas/SpreadPoint"
+      },
+      "title": "Points",
+      "type": "array"
+     }
+    },
+    "required": [
+     "issuer",
+     "ccy",
+     "points"
+    ],
+    "title": "IssuerCurve",
+    "type": "object"
+   },
    "MarketReactionPayload": {
     "properties": {
      "market_ticker": {
@@ -1901,6 +1927,24 @@
     "title": "SingleRunRequest",
     "type": "object"
    },
+   "SpreadPoint": {
+    "properties": {
+     "bp": {
+      "title": "Bp",
+      "type": "number"
+     },
+     "tenor": {
+      "title": "Tenor",
+      "type": "number"
+     }
+    },
+    "required": [
+     "tenor",
+     "bp"
+    ],
+    "title": "SpreadPoint",
+    "type": "object"
+   },
    "StantonRequest": {
     "properties": {
      "end_date": {
@@ -1998,6 +2042,13 @@
       "title": "Data Source",
       "type": "string"
      },
+     "issuer_curves": {
+      "items": {
+       "$ref": "#/components/schemas/IssuerCurve"
+      },
+      "title": "Issuer Curves",
+      "type": "array"
+     },
      "markets": {
       "items": {
        "$ref": "#/components/schemas/MarketRow"
@@ -2020,7 +2071,8 @@
      "target_ccy",
      "target_rfr",
      "markets",
-     "bonds"
+     "bonds",
+     "issuer_curves"
     ],
     "title": "SwapSpreads",
     "type": "object"

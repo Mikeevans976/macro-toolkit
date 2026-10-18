@@ -1,8 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
+import {
+  CartesianGrid,
+  ReferenceLine,
+  ResponsiveContainer,
+  Scatter,
+  ScatterChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+  ZAxis,
+} from 'recharts'
 import PageTitle, { headerBar } from '../components/PageTitle'
 import { authFetch } from '../api/client'
 import type { components } from '../api/schema'
-import { fg, fontNum, line, line2, accent, pos, neg, warn } from '../theme'
+import { chart, fg, fontNum, line, line2, accent, pos, neg, warn, series } from '../theme'
 
 // Swap Spreads & Basis — asset & basis-swap calculator (H&S Ch 16-17).
 // The backend does all the maths (asset_basis_swap.py); this page only renders it.
@@ -76,6 +87,34 @@ function TargetPicker({ value, onChange }: { value: Target; onChange: (t: Target
           }}
         >
           {t}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+const TABS = [
+  { id: 'calculator', label: 'Asset & basis-swap calculator' },
+  { id: 'curve', label: 'Global ASW curve' },
+] as const
+
+function Tabs({ value, onChange }: { value: 'calculator' | 'curve'; onChange: (t: 'calculator' | 'curve') => void }) {
+  return (
+    <div role="tablist" style={{ display: 'flex', gap: 4, borderBottom: `1px solid ${line}` }}>
+      {TABS.map(t => (
+        <button
+          key={t.id}
+          role="tab"
+          aria-selected={t.id === value}
+          onClick={() => onChange(t.id)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px', fontSize: 12,
+            color: t.id === value ? fg[1] : fg[3],
+            borderBottom: `2px solid ${t.id === value ? accent : 'transparent'}`,
+            marginBottom: -1,
+          }}
+        >
+          {t.label}
         </button>
       ))}
     </div>
@@ -267,6 +306,160 @@ function BreakdownPanel({ data }: { data: Breakdown }) {
   )
 }
 
+// ─── Global ASW curve (H&S Fig 16.1) ──────────────────────────────────────────
+
+// Issuer identity is colour + marker shape + an end-of-line label, never colour alone.
+type MarkerShape = 'circle' | 'square' | 'diamond' | 'triangle' | 'wye' | 'star'
+const SHAPES: MarkerShape[] = ['circle', 'square', 'diamond', 'triangle', 'wye', 'star']
+const LOG_TICKS = [2, 3, 5, 7, 10, 20, 30]
+
+function issuerStyle(issuers: string[], issuer: string) {
+  const i = issuers.indexOf(issuer)
+  return { color: series[i % series.length], shape: SHAPES[i % SHAPES.length] }
+}
+
+function LegendRow({ issuers }: { issuers: string[] }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 8 }}>
+      {issuers.map(iss => {
+        const { color, shape } = issuerStyle(issuers, iss)
+        return (
+          <span key={iss} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: fg[2] }}>
+            <svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><MarkerGlyph shape={shape} color={color} /></svg>
+            {iss}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
+function MarkerGlyph({ shape, color }: { shape: MarkerShape; color: string }) {
+  const p = { fill: color, stroke: BG, strokeWidth: 1 }
+  switch (shape) {
+    case 'square': return <rect x={-4} y={-4} width={8} height={8} {...p} />
+    case 'diamond': return <path d="M0 -5 5 0 0 5 -5 0z" {...p} />
+    case 'triangle': return <path d="M0 -5 5 4 -5 4z" {...p} />
+    case 'wye': return <path d="M-1 -5h2v3.5l3-1.7 1 1.7-3 1.8 3 1.7-1 1.7-3-1.7V6h-2V2.5l-3 1.7-1-1.7 3-1.7-3-1.8 1-1.7 3 1.7z" {...p} />
+    case 'star': return <path d="M0 -5.5 1.6 -1.7 5.5 -1.7 2.4 0.8 3.4 4.8 0 2.5 -3.4 4.8 -2.4 0.8 -5.5 -1.7 -1.6 -1.7z" {...p} />
+    default: return <circle r={4.5} {...p} />
+  }
+}
+
+interface BondPoint { tenor: number; bp: number; name: string; bond_id: string; issuer: string }
+
+function CurveTooltip({ active, payload, rfr }: { active?: boolean; payload?: { payload: BondPoint | { tenor: number; bp: number } }[]; rfr: string }) {
+  if (!active || !payload?.length) return null
+  const p = payload[0].payload
+  const isBond = 'name' in p
+  return (
+    <div style={{ ...chart.tooltip.contentStyle, padding: '8px 10px' }}>
+      <div style={{ color: fg[3], marginBottom: 4 }}>{isBond ? p.name : 'Fitted line'}</div>
+      <div>{fmt(p.tenor, 1)}y · {rfr} {fmtBp(p.bp)} bp</div>
+      {isBond && <div style={{ color: fg[4], marginTop: 4 }}>Click for the breakdown</div>}
+    </div>
+  )
+}
+
+function GlobalCurve({ data, onPick }: { data: Payload; onPick: (bondId: string) => void }) {
+  const issuers = data.issuer_curves.map(c => c.issuer)
+  const bondsBy = (iss: string): BondPoint[] => data.bonds
+    .filter(b => b.issuer === iss)
+    .map(b => ({ tenor: b.ttm, bp: b.target_spread_bp, name: b.name, bond_id: b.bond_id, issuer: b.issuer }))
+
+  return (
+    <div style={card}>
+      <div style={sectionLabel}>Spread over {data.target_ccy} {data.target_rfr} by maturity · all issuers basis-swapped into {data.target_ccy}</div>
+      <LegendRow issuers={issuers} />
+      <div style={{ height: 440 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ScatterChart margin={{ top: 10, right: 56, bottom: 24, left: 4 }}>
+            <CartesianGrid {...chart.grid} />
+            <XAxis
+              type="number" dataKey="tenor" scale="log" domain={[1.4, 34]} ticks={LOG_TICKS}
+              allowDataOverflow {...chart.axis} tickFormatter={(t: number) => `${t}y`}
+              label={{ value: 'Maturity (log scale)', position: 'insideBottom', offset: -14, fill: fg[4], fontSize: 10 }}
+            />
+            <YAxis
+              type="number" dataKey="bp" {...chart.axis} width={48} tickFormatter={(v: number) => `${v}`}
+              label={{ value: 'bp', angle: -90, position: 'insideLeft', fill: fg[4], fontSize: 10 }}
+            />
+            <ZAxis range={[90, 90]} />
+            <ReferenceLine y={0} stroke={line2} />
+            <Tooltip content={<CurveTooltip rfr={data.target_rfr} />} cursor={false} />
+            {data.issuer_curves.map(c => {
+              const { color } = issuerStyle(issuers, c.issuer)
+              const last = c.points[c.points.length - 1]
+              return (
+                <Scatter
+                  key={`${c.issuer}-line`}
+                  data={c.points}
+                  line={{ stroke: color, strokeWidth: 2 }}
+                  lineType="joint"
+                  isAnimationActive={false}
+                  shape={(props: { cx?: number; cy?: number; payload?: { tenor: number } }) =>
+                    props.payload?.tenor === last.tenor && props.cx != null && props.cy != null ? (
+                      <text x={props.cx + 8} y={props.cy + 4} fill={fg[2]} fontSize={11}>{c.issuer}</text>
+                    ) : <g />}
+                />
+              )
+            })}
+            {issuers.map(iss => {
+              const { color, shape } = issuerStyle(issuers, iss)
+              return (
+                <Scatter
+                  key={`${iss}-bonds`}
+                  name={iss}
+                  data={bondsBy(iss)}
+                  fill={color}
+                  shape={shape}
+                  stroke={BG}
+                  strokeWidth={2}
+                  isAnimationActive={false}
+                  cursor="pointer"
+                  onClick={(p: { payload?: BondPoint }) => p.payload && onPick(p.payload.bond_id)}
+                />
+              )
+            })}
+          </ScatterChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{ fontSize: 11, color: fg[4], marginTop: 6 }}>
+        Points are bonds; lines are a quadratic fit in log-maturity per issuer. A bond above its issuer's line is cheap to it.
+      </div>
+    </div>
+  )
+}
+
+function CurveTable({ data }: { data: Payload }) {
+  const issuers = data.issuer_curves.map(c => c.issuer)
+  const tenors = [...new Set(data.bonds.map(b => b.bond_id.split('-')[1]))]
+  return (
+    <div style={card}>
+      <div style={sectionLabel}>Spread over {data.target_rfr} (bp) · benchmark bonds</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: `1px solid ${line2}` }}>
+            <th style={{ ...th, textAlign: 'left' }}>Issuer</th>
+            {tenors.map(t => <th key={t} style={th}>{t}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {issuers.map(iss => (
+            <tr key={iss} style={{ borderBottom: `1px solid ${line}` }}>
+              <td style={{ ...td, textAlign: 'left', fontFamily: undefined, color: fg[1] }}>{iss}</td>
+              {tenors.map(t => {
+                const b = data.bonds.find(x => x.bond_id === `${iss}-${t}`)
+                return <td key={t} style={{ ...td, color: b ? bpColor(b.target_spread_bp) : fg[4] }}>{b ? fmtBp(b.target_spread_bp) : '–'}</td>
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ─── Market inputs ────────────────────────────────────────────────────────────
 
 function MarketInputs({ markets }: { markets: Payload['markets'] }) {
@@ -310,6 +503,7 @@ export default function SwapSpreads() {
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [detail, setDetail] = useState<Breakdown | null>(null)
+  const [tab, setTab] = useState<'calculator' | 'curve'>('calculator')
 
   useEffect(() => {
     let cancelled = false
@@ -359,10 +553,18 @@ export default function SwapSpreads() {
         {!data && !error && <div style={{ color: fg[3], fontSize: 13 }}>Loading…</div>}
         {data && (
           <div style={{ display: 'grid', gap: 16 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)', gap: 16, alignItems: 'start' }}>
-              <BondTable bonds={data.bonds} target={target} targetRfr={data.target_rfr} selected={selected} onSelect={setSelected} />
-              {detail ? <BreakdownPanel data={detail} /> : <div style={{ ...card, color: fg[3], fontSize: 13 }}>Select a bond.</div>}
-            </div>
+            <Tabs value={tab} onChange={setTab} />
+            {tab === 'calculator' ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)', gap: 16, alignItems: 'start' }}>
+                <BondTable bonds={data.bonds} target={target} targetRfr={data.target_rfr} selected={selected} onSelect={setSelected} />
+                {detail ? <BreakdownPanel data={detail} /> : <div style={{ ...card, color: fg[3], fontSize: 13 }}>Select a bond.</div>}
+              </div>
+            ) : (
+              <>
+                <GlobalCurve data={data} onPick={id => { setSelected(id); setTab('calculator') }} />
+                <CurveTable data={data} />
+              </>
+            )}
             <MarketInputs markets={data.markets} />
           </div>
         )}
