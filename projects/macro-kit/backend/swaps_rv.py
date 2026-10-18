@@ -178,6 +178,32 @@ _VOL_TICKERS: dict[str, dict[str, str]] = {
 
 _BETA_VARS = ["1y10y_fwd", "2y1y_fwd", "1m10y_vol", "1y10y_vol"]
 
+# Central-bank policy decision dates, marked on the detail chart. ECB 2025-2027 checked against
+# Bloomberg's EUORDEPO Index release calendar (2026-10-18); 2021-2024 from the ECB's published
+# calendars. Extend each December. GBP (BoE) and USD (FOMC) not yet listed.
+_POLICY_MEETINGS: dict[str, tuple[str, list[str]]] = {
+    "EUR": ("ECB", [
+        "2021-01-21", "2021-03-11", "2021-04-22", "2021-06-10", "2021-07-22", "2021-09-09", "2021-10-28", "2021-12-16",
+        "2022-02-03", "2022-03-10", "2022-04-14", "2022-06-09", "2022-07-21", "2022-09-08", "2022-10-27", "2022-12-15",
+        "2023-02-02", "2023-03-16", "2023-05-04", "2023-06-15", "2023-07-27", "2023-09-14", "2023-10-26", "2023-12-14",
+        "2024-01-25", "2024-03-07", "2024-04-11", "2024-06-06", "2024-07-18", "2024-09-12", "2024-10-17", "2024-12-12",
+        "2025-01-30", "2025-03-06", "2025-04-17", "2025-06-05", "2025-07-24", "2025-09-11", "2025-10-30", "2025-12-18",
+        "2026-02-05", "2026-03-19", "2026-04-30", "2026-06-11", "2026-07-23", "2026-09-10", "2026-10-29", "2026-12-17",
+        "2027-02-04", "2027-03-18", "2027-04-29", "2027-06-10", "2027-07-22", "2027-09-09", "2027-10-28", "2027-12-16",
+    ]),
+}
+
+
+def _policy_meetings(ccy: str, first: str, as_of: str) -> "dict | None":
+    """The currency's policy decisions from the first data date to the as-of date, plus the next one."""
+    if ccy not in _POLICY_MEETINGS:
+        return None
+    bank, dates = _POLICY_MEETINGS[ccy]
+    past = [d for d in dates if first <= d <= as_of]
+    upcoming = [d for d in dates if d > as_of]
+    return {"bank": bank, "dates": past, "next": upcoming[0] if upcoming else None}
+
+
 # ATM normal swaption vol grid (bp/yr) behind the implied carry/vol: ticker = prefix +
 # expiry code + 2-digit tenor + " ICPL Curncy". EUR only so far (checked 2026-10-18: the
 # full 8 × 9 grid prices from ICPL); GBP/USD use realised vol until tickers are found.
@@ -374,8 +400,17 @@ def warm_cache() -> None:
     """Fetch and compute every currency once (startup warm-up) so the first visitor doesn't wait."""
     if settings.data_source != "bloomberg":
         return
-    for ccy in _OIS_TICKERS:
-        compute_rv(ccy)
+    # The core views of every currency first (what a visitor opens), then the extended universe;
+    # a failed step is left to compute on first request.
+    steps = [(compute_rv, ccy, {}) for ccy in _OIS_TICKERS]
+    steps += [(compute_carry_backtest, ccy, {}) for ccy in _OIS_TICKERS]
+    steps += [(compute_candidates, ccy, {}) for ccy in _OIS_TICKERS]
+    steps += [(fn, ccy, {"universe": "extended"}) for fn in (compute_rv, compute_candidates) for ccy in _OIS_TICKERS]
+    for fn, ccy, kwargs in steps:
+        try:
+            fn(ccy, **kwargs)
+        except Exception as exc:  # noqa: BLE001
+            warnings.warn(f"[swaps_rv] warm-up {fn.__name__}({ccy}, {kwargs}) failed: {exc}")
 
 
 def _load_frames(ccy: str, as_of_date: str | None, fetched: "tuple | None"):
@@ -741,6 +776,7 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
         "universe": universe,
         # Where the implied vols come from; None when the currency has no swaption grid
         "implied_vol": {"source": "ATM normal swaption vols (ICAP)", "grid_date": grid[3]} if grid else None,
+        "policy_meetings": _policy_meetings(ccy, fwd_df.index[0].strftime("%Y-%m-%d"), as_of),
     }
     if fetched is not None:
         # Drop this currency's payloads built from older data, then remember this one

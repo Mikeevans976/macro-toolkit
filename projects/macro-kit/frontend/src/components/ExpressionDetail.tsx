@@ -265,11 +265,14 @@ function StatGroup({ title, items }: StatGroupDef) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+const NO_EVENTS: { date: string; label: string }[] = []
+
 export default function ExpressionDetail({
   history, header, extraGroups = [], footnote, lineColor = '#6aa9cc',
-  lookback: lookbackProp, onLookbackChange,
+  lookback: lookbackProp, onLookbackChange, events = NO_EVENTS,
 }: {
   history: SeriesPoint[]
+  events?: { date: string; label: string }[]   // vertical markers, e.g. central-bank meetings
   header?: ReactNode            // rendered left of the lookback toggle
   extraGroups?: StatGroupDef[]  // page-specific stats (carry, betas, …)
   footnote?: ReactNode
@@ -307,6 +310,17 @@ export default function ExpressionDetail({
     { y: s.mean - s.std,     color: '#58ad8e', tag: '-1σ' },
     { y: s.mean - 2 * s.std, color: '#6fc2a2', tag: '-2σ' },
   ]
+
+  // Events inside the window, each on the first data date on or after it (meetings can fall on holidays)
+  const eventMarks = useMemo(() => {
+    if (!events.length || !windowData.length) return []
+    const first = windowData[0].date, last = windowData[windowData.length - 1].date
+    return events
+      .filter(e => e.date >= first && e.date <= last)
+      .map(e => ({ ...e, x: windowData.find(p => p.date >= e.date)?.date }))
+      .filter((e): e is { date: string; label: string; x: string } => e.x !== undefined)
+  }, [events, windowData])
+  const labelEvents = windowData.length <= 520   // labels only up to ~2y, else they crowd
 
   const tickInterval = Math.max(1, Math.floor(windowData.length / 6))
   // Enough decimals that narrow ranges don't produce duplicate tick labels
@@ -392,6 +406,11 @@ export default function ExpressionDetail({
                 label={{ value: 'Level (bp)', angle: -90, position: 'insideLeft', offset: 4, fill: '#8995a2', fontSize: 11 }}
               />
               <Tooltip content={<LineTooltip />} />
+              {eventMarks.map(e => (
+                <ReferenceLine key={e.date} x={e.x} stroke="rgba(214,173,102,0.35)" strokeDasharray="2 3" strokeWidth={1}
+                  label={labelEvents ? { value: e.label, position: 'insideTopLeft', fill: 'rgba(214,173,102,0.7)', fontSize: 9 } : undefined}
+                />
+              ))}
               {refLines.map(({ y, color, tag }) => (
                 <ReferenceLine key={tag} y={y} stroke={color} strokeDasharray={tag === 'μ' ? '5 3' : '3 3'} strokeWidth={1.2}
                   label={{ value: tag, position: 'right', fill: color, fontSize: 9, fontWeight: 600 }}

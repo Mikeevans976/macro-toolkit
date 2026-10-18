@@ -27632,6 +27632,7 @@
     "implied_vol",
     "max_date",
     "min_date",
+    "policy_meetings",
     "rv_monitor",
     "universe"
    ]
@@ -28236,6 +28237,28 @@
   "$.min_date": {
    "n_str": 1,
    "str_sha1": "c5ec29ead9c6260143c60c069bd90e5f31a8ef36"
+  },
+  "$.policy_meetings": {
+   "keys": [
+    "bank",
+    "dates",
+    "next"
+   ]
+  },
+  "$.policy_meetings.bank": {
+   "n_str": 1,
+   "str_sha1": "02f2868f17528ad5fb3b02b5b6c017ae2adb5f04"
+  },
+  "$.policy_meetings.dates": {
+   "n_items": 8
+  },
+  "$.policy_meetings.dates[]": {
+   "n_str": 8,
+   "str_sha1": "2ee36aa0a6208881ce2fa1c72b65c2c46792f69a"
+  },
+  "$.policy_meetings.next": {
+   "n_str": 1,
+   "str_sha1": "cbe817cba6974a5673f8b9fdbcbb6e2669a49e44"
   },
   "$.rv_monitor": {
    "n_items": 68

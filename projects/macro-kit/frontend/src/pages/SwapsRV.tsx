@@ -80,6 +80,13 @@ interface SwapsRVData {
   beta_monitor: BetaRow[]
   universe?: Universe
   implied_vol?: { source: string; grid_date: string } | null   // null: no swaption grid for this currency
+  policy_meetings?: PolicyMeetings | null                       // null: none listed for this currency
+}
+
+interface PolicyMeetings {
+  bank: string          // e.g. "ECB"
+  dates: string[]       // decision dates within the data range
+  next: string | null   // the next scheduled decision
 }
 
 type Universe = 'core' | 'extended'
@@ -474,8 +481,9 @@ function StructureSelect({ rvMonitor, value, onChange, label = 'Focus on', inclu
 
 // ─── Expression Detail ────────────────────────────────────────────────────────
 
-function DetailChart({ label, history, rvRow, betaRow, rvMonitor, curve, asOf, currency, dataStamp, onBack, onSwitch }: {
+function DetailChart({ label, history, rvRow, betaRow, rvMonitor, curve, asOf, currency, dataStamp, meetings, onBack, onSwitch }: {
   label: string
+  meetings?: PolicyMeetings | null
   curve?: CurveData
   asOf: string
   currency: string
@@ -487,6 +495,15 @@ function DetailChart({ label, history, rvRow, betaRow, rvMonitor, curve, asOf, c
   onBack: () => void
   onSwitch: (label: string) => void
 }) {
+  // Policy meetings: on by default for short-end structures (every leg 2y tenor or less)
+  const shortEnd = (rvRow.legs ?? []).length > 0 && (rvRow.legs ?? []).every(l => l.tenor <= 2)
+  const [showMeetings, setShowMeetings] = useState(shortEnd)
+  useEffect(() => { setShowMeetings(shortEnd) }, [label, shortEnd])
+  const events = useMemo(
+    () => meetings && showMeetings ? meetings.dates.map(d => ({ date: d, label: meetings.bank })) : [],
+    [meetings, showMeetings],
+  )
+
   const carryGroup: StatGroupDef = {
     title: 'Carry & betas',
     items: [
@@ -509,6 +526,7 @@ function DetailChart({ label, history, rvRow, betaRow, rvMonitor, curve, asOf, c
     <>
       <ExpressionDetail
         history={history}
+        events={events}
         extraGroups={[carryGroup]}
         footnote="Level and mean-reversion stats use the selected lookback; carry, vols and betas are the monitor's fixed-window figures. Implied vol: legs' ATM normal swaption vols with their 1y realised correlations. Positive carry → receiver / flattener."
         header={<>
@@ -533,6 +551,20 @@ function DetailChart({ label, history, rvRow, betaRow, rvMonitor, curve, asOf, c
             borderRadius: 6, padding: '3px 10px',
           }}>{label}</span>
           <span style={{ color: '#8995a2', fontSize: 12 }}>{rvRow.group}</span>
+          {meetings && (
+            <button
+              onClick={() => setShowMeetings(v => !v)}
+              title={`${meetings.bank} policy decision dates as dashed lines${meetings.next ? ` · next: ${meetings.next}` : ''}`}
+              style={{
+                padding: '3px 10px', borderRadius: 5, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                border: `1px solid ${showMeetings ? 'rgba(214,173,102,0.4)' : 'rgba(200,220,240,0.09)'}`,
+                background: showMeetings ? 'rgba(214,173,102,0.12)' : 'transparent',
+                color: showMeetings ? '#dfbb78' : '#9aa5b1',
+              }}
+            >
+              {meetings.bank} meetings{meetings.next ? ` · next ${meetings.next.slice(5)}` : ''}
+            </button>
+          )}
         </>}
       />
       <RegressionDetail currency={currency} label={label} asOf={asOf} dataStamp={dataStamp} />
@@ -1208,6 +1240,7 @@ export default function SwapsRV() {
                   asOf={data.as_of}
                   currency={currency}
                   dataStamp={data.data_timestamp}
+                  meetings={data.policy_meetings}
                   onBack={() => setDetailLabel(null)}
                   onSwitch={(l) => { setDetailLabel(l); setFocusLabel(l) }}
                 />
