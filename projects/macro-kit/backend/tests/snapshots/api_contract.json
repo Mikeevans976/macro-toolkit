@@ -27629,6 +27629,7 @@
     "curve_snapshot",
     "data_source",
     "data_timestamp",
+    "implied_vol",
     "max_date",
     "min_date",
     "rv_monitor",
@@ -28225,6 +28226,9 @@
   "$.data_timestamp": {
    "n_null": 1
   },
+  "$.implied_vol": {
+   "n_null": 1
+  },
   "$.max_date": {
    "n_str": 1,
    "str_sha1": "a55022a74e853c8b66e5e168abe4ff942d717137"
@@ -28239,12 +28243,14 @@
   "$.rv_monitor[]": {
    "keys": [
     "carry1y_bps",
+    "carry_ivol_ratio",
     "carry_vol_ratio",
     "d1d_bps",
     "d1m_bps",
     "d1w_bps",
     "factor_share",
     "group",
+    "ivol_bps",
     "label",
     "legs",
     "neutral_unstable",
@@ -28263,6 +28269,9 @@
    "n_num": 68,
    "sum": -265.65999999999997,
    "sumsq": 2077.5374000000006
+  },
+  "$.rv_monitor[].carry_ivol_ratio": {
+   "n_null": 68
   },
   "$.rv_monitor[].carry_vol_ratio": {
    "max": 0.06,
@@ -28303,6 +28312,9 @@
    "n_str": 68,
    "str_sha1": "0e641dbc3c12a6bb9e823315126158f1efba8832"
   },
+  "$.rv_monitor[].ivol_bps": {
+   "n_null": 68
+  },
   "$.rv_monitor[].label": {
    "n_str": 68,
    "str_sha1": "c64462a2fc9db7a9aa34732f46d751846d3ad68d"
@@ -28313,6 +28325,7 @@
   "$.rv_monitor[].legs[]": {
    "keys": [
     "contribution_bps",
+    "ivol_bps",
     "label",
     "rate",
     "rolled_label",
@@ -28328,6 +28341,9 @@
    "n_num": 165,
    "sum": -265.65000000000015,
    "sumsq": 9178.555300000002
+  },
+  "$.rv_monitor[].legs[].ivol_bps": {
+   "n_null": 165
   },
   "$.rv_monitor[].legs[].label": {
    "n_str": 165,

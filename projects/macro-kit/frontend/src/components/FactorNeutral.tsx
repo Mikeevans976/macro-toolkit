@@ -15,7 +15,10 @@ interface StructureStats {
   zscore_1y: number
   pctile_1y: number
   vol3m_bps: number
+  ivol_bps: number | null          // null: no swaption vol grid for this currency
   carry1y_bps: number
+  carry_vol_ratio: number | null
+  carry_ivol_ratio: number | null
   exposure: Exposure   // bp per 1σ factor day
 }
 
@@ -209,7 +212,10 @@ export default function FactorNeutral({ currency, label, asOf, dataStamp }: {
                 <th style={th}>Z 1y</th>
                 <th style={th}>%ile</th>
                 <th style={th}>3m RVol</th>
+                <th style={th}>IVol</th>
                 <th style={th}>Carry 1y</th>
+                <th style={th}>C/RVol</th>
+                <th style={th}>C/IVol</th>
               </tr>
             </thead>
             <tbody>
@@ -220,9 +226,12 @@ export default function FactorNeutral({ currency, label, asOf, dataStamp }: {
                   <td style={{ ...td, color: zColor(st.zscore_1y) }}>{signed(st.zscore_1y)}</td>
                   <td style={td}>{st.pctile_1y.toFixed(0)}</td>
                   <td style={td}>{st.vol3m_bps.toFixed(1)}</td>
+                  <td style={td}>{st.ivol_bps == null ? '—' : st.ivol_bps.toFixed(1)}</td>
                   <td style={{ ...td, color: st.carry1y_bps > 0 ? '#6fc2a2' : st.carry1y_bps < 0 ? '#e2826f' : '#c6ced8' }}>
                     {signed(st.carry1y_bps, 1)}
                   </td>
+                  <td style={td}>{st.carry_vol_ratio == null ? '—' : signed(st.carry_vol_ratio, 2)}</td>
+                  <td style={td}>{st.carry_ivol_ratio == null ? '—' : signed(st.carry_ivol_ratio, 2)}</td>
                 </tr>
               ))}
             </tbody>

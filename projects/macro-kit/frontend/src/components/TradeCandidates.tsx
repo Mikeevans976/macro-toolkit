@@ -20,7 +20,9 @@ interface Candidate {
   carry_bp: number               // 1y carry in the trade direction
   expected_bp: number            // reversion + carry
   vol3m_bp: number               // annualised 3m realised vol
-  score: number | null           // expected / vol
+  score: number | null           // expected / realised vol
+  ivol_bp: number | null         // implied vol (null: no swaption grid for the currency)
+  score_implied: number | null   // expected / implied vol
   factor_share: number
   carry_hit_rate_2y: number | null
   checks: Record<CheckKey, boolean>
@@ -34,7 +36,9 @@ interface CandidatesData {
   candidates: Candidate[]
 }
 
-type Row = Candidate & { currency: string }
+type VolBasis = 'realised' | 'implied'
+// vol and sc: the vol and score on the selected vol basis
+type Row = Candidate & { currency: string; vol: number | null; sc: number | null }
 
 const MONO = "'Geist Mono', ui-monospace, monospace"
 const signed = (v: number, d = 1) => `${v > 0 ? '+' : ''}${v.toFixed(d)}`
@@ -90,6 +94,7 @@ export default function TradeCandidates({ currencies, universe, asOf, dataStamp,
   const [sortKey, setSortKey] = useState<SortKey>('score')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [ccyFilter, setCcyFilter] = useState<string>('all')
+  const [volBasis, setVolBasis] = useState<VolBasis>('realised')
   const [data, setData] = useState<CandidatesData[] | null>(null)
   const [failed, setFailed] = useState<string[]>([])
   const ccyKey = currencies.join(',')
@@ -120,19 +125,26 @@ export default function TradeCandidates({ currencies, universe, asOf, dataStamp,
   const rows = useMemo(() => {
     if (!data) return []
     const need = agreement === 'all' ? 4 : agreement === 'three' ? 3 : 0
-    const all: Row[] = data.flatMap(d => d.candidates.map(c => ({ ...c, currency: d.currency })))
+    const implied = volBasis === 'implied'
+    const all: Row[] = data.flatMap(d => d.candidates.map(c => ({
+      ...c,
+      currency: d.currency,
+      vol: implied ? c.ivol_bp : c.vol3m_bp,
+      sc: implied ? c.score_implied : c.score,
+    })))
     const kept = all.filter(c =>
       (ccyFilter === 'all' || c.currency === ccyFilter) &&
       Math.abs(c.zscore_1y) >= minZ && c.n_agree >= need && (agreement === 'any' || c.checks.stable))
     return kept.sort((a, b) => {
-      const av = sortKey === 'zscore_1y' ? Math.abs(a.zscore_1y) : a[sortKey]
-      const bv = sortKey === 'zscore_1y' ? Math.abs(b.zscore_1y) : b[sortKey]
+      const pick = (r: Row) => sortKey === 'zscore_1y' ? Math.abs(r.zscore_1y) : sortKey === 'score' ? r.sc : r[sortKey]
+      const av = pick(a)
+      const bv = pick(b)
       const cmp = typeof av === 'string'
         ? av.localeCompare(bv as string)
         : ((av as number | null) ?? -Infinity) - ((bv as number | null) ?? -Infinity)
       return sortDir === 'asc' ? cmp : -cmp
     })
-  }, [data, ccyFilter, minZ, agreement, sortKey, sortDir])
+  }, [data, ccyFilter, volBasis, minZ, agreement, sortKey, sortDir])
 
   function sortBy(k: SortKey) {
     if (sortKey === k) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -160,7 +172,7 @@ export default function TradeCandidates({ currencies, universe, asOf, dataStamp,
           <p style={{ color: '#8995a2', fontSize: 12, marginTop: 4, lineHeight: 1.5 }}>
             Mean-reversion trades where the signals agree. Rich (Z &gt; 0) is expected to fall, cheap to rise.
             Expected 1y P&amp;L = the part of today's deviation from the 1y mean that an AR(1) on the last year says reverts
-            within a year, plus carry in the trade direction; score = expected P&amp;L ÷ 3m realised vol (annualised).
+            within a year, plus carry in the trade direction; score = expected P&amp;L ÷ vol, either 3m realised (annualised) or implied.
             {basis === 'neutral' && ' Neutral basis: the factor-neutral version of each structure (unstable hedges need "Any").'}
           </p>
         </div>
@@ -169,6 +181,7 @@ export default function TradeCandidates({ currencies, universe, asOf, dataStamp,
             <Toggle<string> options={[['all', 'All'], ...currencies.map(c => [c, c] as [string, string])]} value={ccyFilter} onChange={setCcyFilter} />
           )}
           <Toggle<Basis> options={[['neutral', 'Neutral'], ['standard', 'Standard']]} value={basis} onChange={setBasis} />
+          <Toggle<VolBasis> options={[['realised', 'Realised vol'], ['implied', 'Implied vol']]} value={volBasis} onChange={setVolBasis} />
           <Toggle<number> options={MIN_Z.map(z => [z, `|Z| ≥ ${z}`])} value={minZ} onChange={setMinZ} />
           <Toggle<Agreement> options={AGREEMENT} value={agreement} onChange={setAgreement} />
         </div>
@@ -199,8 +212,11 @@ export default function TradeCandidates({ currencies, universe, asOf, dataStamp,
                 <th style={{ ...th, color: '#9aa5b1' }} title="Part of the deviation expected to revert within a year, bp">Reversion</th>
                 {sortTh('carry_bp', 'Carry', '1y carry in the trade direction, bp')}
                 {sortTh('expected_bp', 'Exp. 1y', 'Expected reversion + carry, bp')}
-                <th style={{ ...th, color: '#9aa5b1' }} title="3m realised vol, annualised bp">Vol</th>
-                {sortTh('score', 'Score', 'Expected 1y P&L ÷ vol')}
+                <th style={{ ...th, color: '#9aa5b1' }}
+                  title={volBasis === 'implied' ? "Implied vol of the structure traded, bp/yr (legs' ATM normal swaption vols, 1y realised correlations)" : '3m realised vol, annualised bp'}>
+                  {volBasis === 'implied' ? 'IVol' : 'RVol'}
+                </th>
+                {sortTh('score', 'Score', `Expected 1y P&L ÷ ${volBasis === 'implied' ? 'implied' : '3m realised'} vol`)}
                 <th style={{ ...th, color: '#9aa5b1' }} title="Carry backtest hit rate, last 2y">Carry hit</th>
                 {CHECKS.map(c => <th key={c.key} style={{ ...th, textAlign: 'center', color: '#9aa5b1' }} title={c.title}>{c.short}</th>)}
               </tr>
@@ -227,8 +243,8 @@ export default function TradeCandidates({ currencies, universe, asOf, dataStamp,
                   <td style={td}>{c.expected_reversion_bp.toFixed(1)}</td>
                   <td style={{ ...td, color: c.carry_bp >= 0 ? '#6fc2a2' : '#e2826f' }}>{signed(c.carry_bp)}</td>
                   <td style={{ ...td, color: '#e4eaf1' }}>{signed(c.expected_bp)}</td>
-                  <td style={td}>{c.vol3m_bp.toFixed(1)}</td>
-                  <td style={{ ...td, color: '#e4eaf1', fontWeight: 600 }}>{c.score === null ? '—' : c.score.toFixed(2)}</td>
+                  <td style={td}>{c.vol === null ? '—' : c.vol.toFixed(1)}</td>
+                  <td style={{ ...td, color: '#e4eaf1', fontWeight: 600 }}>{c.sc === null ? '—' : c.sc.toFixed(2)}</td>
                   <td style={td}>{c.carry_hit_rate_2y === null ? '—' : `${Math.round(c.carry_hit_rate_2y * 100)}%`}</td>
                   {CHECKS.map(k => (
                     <td key={k.key} style={{ ...td, textAlign: 'center' }} title={k.title}>
@@ -246,7 +262,7 @@ export default function TradeCandidates({ currencies, universe, asOf, dataStamp,
           <div style={{ color: '#77828f', fontSize: 11, marginTop: 8 }}>
             {rows.length} of {total} structures{asOfs.length ? ` · as of ${asOfs.join(' / ')}` : ''}. Very short half-lives (a few days) mean the deviation is mostly day-to-day
             noise, which the vol in the score already penalises. The residual and carry-history checks use the standard
-            structure. Not a recommendation: costs, liquidity and event risk are not included.
+            structure.{volBasis === 'implied' && ' Implied vol needs a swaption vol grid, so far EUR only; other currencies show —.'} Not a recommendation: costs, liquidity and event risk are not included.
           </div>
         </div>
       )}

@@ -44,7 +44,9 @@ interface RVRow {
   pctile_1y: number
   vol3m_bps: number
   carry1y_bps: number
-  carry_vol_ratio: number | null
+  carry_vol_ratio: number | null   // carry / 3m realised vol
+  ivol_bps?: number | null         // implied vol of the structure, bp/yr (null: no swaption grid)
+  carry_ivol_ratio?: number | null // carry / implied vol
   legs?: RollLeg[]     // per-leg roll-down behind carry1y_bps
   set?: 'core' | 'extended'
   // Factor-neutral version (curves level-neutral, flies level- and slope-neutral)
@@ -77,9 +79,11 @@ interface SwapsRVData {
   rv_monitor: RVRow[]
   beta_monitor: BetaRow[]
   universe?: Universe
+  implied_vol?: { source: string; grid_date: string } | null   // null: no swaption grid for this currency
 }
 
 type Universe = 'core' | 'extended'
+type VolBasis = 'realised' | 'implied'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -131,6 +135,9 @@ interface ChartDatum {
   value_bps: number
   carry1y_bps: number
   vol3m_bps: number
+  ivol_bps: number | null
+  cv_realised: number | null
+  cv_implied: number | null
 }
 
 function bubbleRadius(beta: number): number {
@@ -183,9 +190,11 @@ function makeCarryVolTooltip(betaVarLabel: string) {
       }}>
         <div style={{ color: '#e4eaf1', fontWeight: 600, marginBottom: 6, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{d.label}</div>
         <div style={{ color: '#9aa5b1' }}>Z-score (1y)&nbsp;&nbsp;<span style={{ color: '#eef2f6' }}>{d.x.toFixed(2)}</span></div>
-        <div style={{ color: '#9aa5b1' }}>C/V ratio&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: d.y > 0 ? '#6fc2a2' : '#e2826f' }}>{d.y.toFixed(2)}</span></div>
+        <div style={{ color: '#9aa5b1' }}>C/RVol&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: (d.cv_realised ?? 0) > 0 ? '#6fc2a2' : '#e2826f' }}>{d.cv_realised?.toFixed(2) ?? '—'}</span></div>
+        <div style={{ color: '#9aa5b1' }}>C/IVol&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: (d.cv_implied ?? 0) > 0 ? '#6fc2a2' : '#e2826f' }}>{d.cv_implied?.toFixed(2) ?? '—'}</span></div>
         <div style={{ color: '#9aa5b1' }}>Carry (1y)&nbsp;&nbsp;&nbsp;<span style={{ color: '#c3ccd6' }}>{d.carry1y_bps.toFixed(1)} bp</span></div>
         <div style={{ color: '#9aa5b1' }}>3m RVol&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#c3ccd6' }}>{d.vol3m_bps.toFixed(1)} bp</span></div>
+        <div style={{ color: '#9aa5b1' }}>Implied vol&nbsp;&nbsp;<span style={{ color: '#c3ccd6' }}>{d.ivol_bps === null ? '—' : `${d.ivol_bps.toFixed(1)} bp`}</span></div>
         <div style={{ color: '#9aa5b1' }}>Level&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#c3ccd6' }}>{d.value_bps.toFixed(1)} bp</span></div>
         <div style={{ color: '#9aa5b1' }}>{betaLbl}&nbsp;<span style={{ color: '#c3ccd6' }}>{d.beta.toFixed(3)}</span></div>
       </div>
@@ -196,19 +205,22 @@ function makeCarryVolTooltip(betaVarLabel: string) {
 const CHART_H = 440
 const CHART_MARGIN = { top: 16, right: 100, bottom: 44, left: 56 }
 
-function CarryVolChart({ rvMonitor, betaMonitor, focusLabel, onBubbleClick, betaVar, groupFilter }: {
+function CarryVolChart({ rvMonitor, betaMonitor, focusLabel, onBubbleClick, betaVar, groupFilter, volBasis }: {
   rvMonitor: RVRow[]
   betaMonitor: BetaRow[]
   focusLabel: string | null
   onBubbleClick: (label: string) => void
   betaVar: string
   groupFilter: 'all' | 'curve' | 'fly'
+  volBasis: VolBasis
 }) {
   const overlayRef = useRef<HTMLDivElement>(null)
   // drag stores pixel coords relative to the overlay div (= plot area)
   const [drag, setDrag] = useState<{ px1: number; py1: number; px2: number; py2: number } | null>(null)
   const [zoomDomain, setZoomDomain] = useState<{ x: [number, number]; y: [number, number] } | null>(null)
   const [zoomMode, setZoomMode] = useState(false)
+  // A different y measure has a different range, so drop any zoom
+  useEffect(() => { setZoomDomain(null) }, [volBasis])
 
   const betaByLabel = useMemo(
     () => Object.fromEntries(betaMonitor.map(b => [b.label, b])),
@@ -219,19 +231,22 @@ function CarryVolChart({ rvMonitor, betaMonitor, focusLabel, onBubbleClick, beta
 
   const allData = useMemo<ChartDatum[]>(() =>
     rvMonitor
-      .filter(r => r.carry_vol_ratio !== null)
+      .filter(r => (volBasis === 'implied' ? r.carry_ivol_ratio : r.carry_vol_ratio) != null)
       .filter(r => groupFilter === 'all' || r.group === groupFilter)
       .map(r => ({
         x: r.zscore_1y,
-        y: r.carry_vol_ratio as number,
+        y: (volBasis === 'implied' ? r.carry_ivol_ratio : r.carry_vol_ratio) as number,
         label: r.label,
         group: r.group,
         beta: (betaByLabel[r.label]?.[betaVar as keyof BetaRow] as number) ?? 0,
         value_bps: r.value_bps,
         carry1y_bps: r.carry1y_bps,
         vol3m_bps: r.vol3m_bps,
+        ivol_bps: r.ivol_bps ?? null,
+        cv_realised: r.carry_vol_ratio,
+        cv_implied: r.carry_ivol_ratio ?? null,
       })),
-    [rvMonitor, betaByLabel, betaVar, groupFilter],
+    [rvMonitor, betaByLabel, betaVar, groupFilter, volBasis],
   )
 
   const TooltipContent = useMemo(() => makeCarryVolTooltip(betaVarLabel), [betaVarLabel])
@@ -333,7 +348,7 @@ function CarryVolChart({ rvMonitor, betaMonitor, focusLabel, onBubbleClick, beta
               domain={[yLo, yHi]} allowDataOverflow
               stroke="#8995a2" tick={{ fill: '#9aa5b1', fontSize: 11 }}
               tickFormatter={(v: number) => v.toFixed(1)}
-              label={{ value: '1y carry / 3m realised vol', angle: -90, position: 'insideLeft', offset: -40, fill: '#8995a2', fontSize: 11 }}
+              label={{ value: volBasis === 'implied' ? '1y carry / implied vol' : '1y carry / 3m realised vol', angle: -90, position: 'insideLeft', offset: -40, fill: '#8995a2', fontSize: 11 }}
             />
             <Tooltip content={<TooltipContent />} cursor={false} />
             {/* quadrant shading */}
@@ -477,8 +492,11 @@ function DetailChart({ label, history, rvRow, betaRow, rvMonitor, curve, asOf, c
     items: [
       { label: 'Carry (1y)', value: fmtBp(rvRow.carry1y_bps), color: rvRow.carry1y_bps > 0 ? '#6fc2a2' : '#e2826f' },
       { label: '3m RVol',    value: fmtBp(rvRow.vol3m_bps), sub: 'ann.' },
-      { label: 'Carry / Vol', value: rvRow.carry_vol_ratio !== null ? rvRow.carry_vol_ratio.toFixed(2) : '—',
+      { label: 'Carry / RVol', value: rvRow.carry_vol_ratio !== null ? rvRow.carry_vol_ratio.toFixed(2) : '—',
         color: (rvRow.carry_vol_ratio ?? 0) > 0 ? '#6fc2a2' : '#e2826f' },
+      { label: 'Implied vol', value: rvRow.ivol_bps != null ? fmtBp(rvRow.ivol_bps) : '—', sub: 'ann.' },
+      { label: 'Carry / IVol', value: rvRow.carry_ivol_ratio != null ? rvRow.carry_ivol_ratio.toFixed(2) : '—',
+        color: (rvRow.carry_ivol_ratio ?? 0) > 0 ? '#6fc2a2' : '#e2826f' },
       ...(betaRow ? [
         { label: 'β 1y10y fwd', value: fmtBeta(betaRow.beta_1y10y_fwd) },
         { label: 'Beta R²',     value: `${Math.round(betaRow.r2 * 100)}%`, color: r2Color(betaRow.r2) },
@@ -492,7 +510,7 @@ function DetailChart({ label, history, rvRow, betaRow, rvMonitor, curve, asOf, c
       <ExpressionDetail
         history={history}
         extraGroups={[carryGroup]}
-        footnote="Level and mean-reversion stats use the selected lookback; carry, 3m RVol and betas are the monitor's fixed-window figures. Positive carry → receiver / flattener."
+        footnote="Level and mean-reversion stats use the selected lookback; carry, vols and betas are the monitor's fixed-window figures. Implied vol: legs' ATM normal swaption vols with their 1y realised correlations. Positive carry → receiver / flattener."
         header={<>
           <button
             onClick={onBack}
@@ -630,6 +648,15 @@ function RVMonitorTable({ rows, selected, onSelect }: {
               : row.carry_vol_ratio > 0 ? '#6fc2a2' : row.carry_vol_ratio < 0 ? '#e2826f' : '#c6ced8',
             fontWeight: row.carry_vol_ratio !== null && Math.abs(row.carry_vol_ratio) >= 0.5 ? 600 : 400,
           }}>{row.carry_vol_ratio === null ? '—' : row.carry_vol_ratio.toFixed(2)}</td>
+          <td style={{ ...tdBase, color: '#c6ced8', textAlign: 'right' }}>{row.ivol_bps == null ? '—' : row.ivol_bps.toFixed(1)}</td>
+          <td style={{
+            ...tdBase,
+            textAlign: 'right',
+            color: row.carry_ivol_ratio == null
+              ? '#8995a2'
+              : row.carry_ivol_ratio > 0 ? '#6fc2a2' : row.carry_ivol_ratio < 0 ? '#e2826f' : '#c6ced8',
+            fontWeight: row.carry_ivol_ratio != null && Math.abs(row.carry_ivol_ratio) >= 0.5 ? 600 : 400,
+          }}>{row.carry_ivol_ratio == null ? '—' : row.carry_ivol_ratio.toFixed(2)}</td>
           <td style={{ ...tdBase, ...zStyle, textAlign: 'right', borderRadius: 4 }}>{row.zscore_1y.toFixed(2)}</td>
           <td style={{ ...tdBase, textAlign: 'right' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
@@ -668,7 +695,12 @@ function RVMonitorTable({ rows, selected, onSelect }: {
     { label: 'Δ1m',         key: 'd1m_bps',          align: 'right' },
     { label: '3m RVol',     key: 'vol3m_bps',        align: 'right' },
     { label: 'Carry (bp)',  key: 'carry1y_bps',      align: 'right' },
-    { label: 'C/V',         key: 'carry_vol_ratio',  align: 'right' },
+    { label: 'C/RVol',      key: 'carry_vol_ratio',  align: 'right',
+      title: '1y carry ÷ 3m realised vol (annualised)' },
+    { label: 'IVol',        key: 'ivol_bps',         align: 'right',
+      title: "Implied vol of the structure (bp/yr): each leg's ATM normal swaption vol (expiry = the forward's start, 1y for spot legs; tenor = the leg's) combined with the legs' 1y realised correlations" },
+    { label: 'C/IVol',      key: 'carry_ivol_ratio', align: 'right',
+      title: '1y carry ÷ implied vol' },
     { label: 'Z-score',     key: 'zscore_1y',        align: 'right' },
     { label: '%ile',        key: 'pctile_1y',        align: 'right' },
     { label: 'Z neutral',   key: 'neutral_zscore_1y', align: 'right',
@@ -698,9 +730,9 @@ function RVMonitorTable({ rows, selected, onSelect }: {
           </tr>
         </thead>
         <tbody>
-          <tr><td colSpan={12} style={groupHeaderTd}>Curves</td></tr>
+          <tr><td colSpan={14} style={groupHeaderTd}>Curves</td></tr>
           {renderRows(curves)}
-          <tr><td colSpan={12} style={{ ...groupHeaderTd, paddingTop: 12 }}>Flies</td></tr>
+          <tr><td colSpan={14} style={{ ...groupHeaderTd, paddingTop: 12 }}>Flies</td></tr>
           {renderRows(flies)}
         </tbody>
       </table>
@@ -831,6 +863,8 @@ export default function SwapsRV() {
   // History of the structure open in the detail view, fetched on demand
   const [detailHistory, setDetailHistory] = useState<{ key: string; points: SeriesPoint[] } | null>(null)
   const [betaVar, setBetaVar] = useState<string>('beta_1y10y_fwd')
+  const [volBasis, setVolBasis] = useState<VolBasis>('realised')
+  const effectiveVolBasis: VolBasis = data?.implied_vol ? volBasis : 'realised'
   const detailRef = useRef<HTMLElement>(null)
   const navigate = useNavigate()
 
@@ -1196,6 +1230,24 @@ export default function SwapsRV() {
                             </p>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                              title={data.implied_vol ? `Implied vols: ${data.implied_vol.source}, ${data.implied_vol.grid_date}` : 'No swaption vol grid for this currency: realised vol only'}>
+                              <span style={{ color: '#8995a2', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Vol</span>
+                              <div style={{ display: 'flex', background: 'rgba(200,220,240,0.04)', border: '1px solid rgba(200,220,240,0.08)', borderRadius: 6, padding: 2, gap: 2 }}>
+                                {(['realised', 'implied'] as VolBasis[]).map(v => {
+                                  const on = effectiveVolBasis === v
+                                  const disabled = v === 'implied' && !data.implied_vol
+                                  return (
+                                    <button key={v} disabled={disabled} onClick={() => setVolBasis(v)} style={{
+                                      padding: '3px 10px', borderRadius: 5, fontSize: 11, fontWeight: 600, border: 'none',
+                                      cursor: disabled ? 'not-allowed' : on ? 'default' : 'pointer', opacity: disabled ? 0.4 : 1,
+                                      background: on ? 'rgba(106,169,204,0.25)' : 'transparent',
+                                      color: on ? '#a9d2e8' : '#9aa5b1',
+                                    }}>{v === 'realised' ? 'Realised' : 'Implied'}</button>
+                                  )
+                                })}
+                              </div>
+                            </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span style={{ color: '#8995a2', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Size by β</span>
                               <select value={betaVar} onChange={(e) => setBetaVar(e.target.value)} style={{
@@ -1223,6 +1275,7 @@ export default function SwapsRV() {
                           onBubbleClick={openDetail}
                           betaVar={betaVar}
                           groupFilter={chartGroupFilter}
+                          volBasis={effectiveVolBasis}
                         />
                       </>
                     )

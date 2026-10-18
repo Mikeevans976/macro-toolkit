@@ -178,6 +178,13 @@ _VOL_TICKERS: dict[str, dict[str, str]] = {
 
 _BETA_VARS = ["1y10y_fwd", "2y1y_fwd", "1m10y_vol", "1y10y_vol"]
 
+# ATM normal swaption vol grid (bp/yr) behind the implied carry/vol: ticker = prefix +
+# expiry code + 2-digit tenor + " ICPL Curncy". EUR only so far (checked 2026-10-18: the
+# full 8 × 9 grid prices from ICPL); GBP/USD use realised vol until tickers are found.
+_VOL_GRID_PREFIX = {"EUR": "ENPS"}
+_VOL_GRID_EXPIRIES = {"0A": 1 / 12, "0C": 0.25, "0F": 0.5, "01": 1.0, "02": 2.0, "03": 3.0, "05": 5.0, "10": 10.0}
+_VOL_GRID_TENORS = [1, 2, 3, 5, 7, 10, 15, 20, 30]
+
 # ---------------------------------------------------------------------------
 # BBG helpers
 # ---------------------------------------------------------------------------
@@ -224,15 +231,17 @@ def _forward_columns(par: pd.DataFrame, labels) -> pd.DataFrame:
 
 def _fetch_from_bbg(
     ccy: str, start: str, end: str
-) -> "tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame] | None":
+) -> "tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame] | None":
     """
     Fetch par OIS rates + swaption vols from Bloomberg; bootstrap all forward rates.
-    Returns (fwd_df, beta_df, swap_df) or None if the rates are unavailable.
+    Returns (fwd_df, beta_df, swap_df, grid_df) or None if the rates are unavailable.
 
     fwd_df  — columns = forward labels (e.g. "1y10y"), values in %
     beta_df — columns: 1y10y_fwd, 2y1y_fwd (%), plus 1m10y_vol, 1y10y_vol
               (bps normal vol) when Bloomberg returns them
     swap_df — columns = tenor ints in _SWAP_TENORS order, values = par rates in %
+    grid_df — ATM normal swaption vols (bp/yr), columns (expiry years, tenor years);
+              empty when the currency has no grid
     """
     try:
         from bbg import blp
@@ -297,7 +306,23 @@ def _fetch_from_bbg(
             warnings.warn(f"[swaps_rv] beta_df empty after join for {ccy}")
             return None
 
-        return fwd_df, beta_df, swap_df
+        # ── 5. Swaption vol grid for the implied carry/vol (optional) ───────
+        #    Columns (expiry in years, tenor in years); empty when the currency has none
+        grid_df = pd.DataFrame()
+        prefix = _VOL_GRID_PREFIX.get(ccy)
+        if prefix:
+            codes = {f"{prefix}{e}{t:02d} ICPL Curncy": (y, t)
+                     for e, y in _VOL_GRID_EXPIRIES.items() for t in _VOL_GRID_TENORS}
+            raw_grid = blp.bdh(list(codes), "PX_LAST", start, end)
+            if raw_grid is not None and not raw_grid.empty:
+                g = raw_grid.xs("PX_LAST", axis=1, level=1) if isinstance(raw_grid.columns, pd.MultiIndex) else raw_grid
+                g = g[[c for c in codes if c in g.columns]]
+                g.columns = pd.MultiIndex.from_tuples([codes[c] for c in g.columns], names=["expiry", "tenor"])
+                grid_df = g.sort_index(axis=1)
+            else:
+                warnings.warn(f"[swaps_rv] No swaption vol grid from BBG for {ccy}; implied carry/vol unavailable")
+
+        return fwd_df, beta_df, swap_df, grid_df
 
     except Exception as exc:
         warnings.warn(f"[swaps_rv] BBG fetch failed for {ccy}: {exc}")
@@ -357,7 +382,7 @@ def _load_frames(ccy: str, as_of_date: str | None, fetched: "tuple | None"):
     """(fwd_df, beta_df, swap_df, min_date, max_date): live frames when fetched, else the CSVs,
     aligned on common dates and sliced to the as-of date."""
     if fetched is not None:
-        fwd_df, beta_df, swap_df = fetched[1]
+        fwd_df, beta_df, swap_df = fetched[1][:3]
     else:
         files   = _CCY_FILES[ccy]
         fwd_df  = pd.read_csv(DATA_DIR / files["forwards"], parse_dates=["date"], index_col="date")
@@ -477,6 +502,58 @@ def _factor_share(group: str, weights: tuple, E: np.ndarray, series: pd.Series, 
     return min(float((e[:k] ** 2).sum()) / var, 1.0) if var > 0 else 0.0
 
 
+# ---------------------------------------------------------------------------
+# Implied vol of a structure
+# ---------------------------------------------------------------------------
+# A leg's implied vol is the ATM normal swaption vol at expiry = the forward's start (1y
+# for a spot leg, the carry horizon; capped at the grid's 10y) and tenor = the leg's tenor,
+# interpolated linearly on the grid. The structure's vol combines the legs' implied vols
+# with their realised correlations over the last year: σ = √(wᵀ D C D), D = diag(leg vols).
+
+def _vol_grid(fetched: "tuple | None", as_of: pd.Timestamp) -> "tuple[np.ndarray, np.ndarray, np.ndarray, str] | None":
+    """(expiries, tenors, vols[expiry, tenor], grid date) on or before the as-of date; None when
+    the currency has no grid or it is incomplete or more than a week old."""
+    if fetched is None or len(fetched[1]) < 4 or fetched[1][3].empty:
+        return None
+    grid = fetched[1][3].loc[:as_of].ffill()
+    if grid.empty or grid.index[-1] < as_of - pd.Timedelta(days=7):
+        return None
+    row = grid.iloc[-1]
+    exps = np.array(sorted({e for e, _ in row.index}))
+    tens = np.array(sorted({t for _, t in row.index}))
+    vols = np.array([[row.get((e, t), np.nan) for t in tens] for e in exps], dtype=float)
+    if np.isnan(vols).any():
+        return None
+    return exps, tens, vols, grid.index[-1].strftime("%Y-%m-%d")
+
+
+def _leg_implied_vol(s: int, t: int, grid: tuple) -> float:
+    """ATM normal vol (bp/yr) for a leg starting in s years with tenor t."""
+    exps, tens, vols = grid[:3]
+    expiry = min(max(float(s), 1.0), float(exps[-1]))
+    tenor = min(max(float(t), float(tens[0])), float(tens[-1]))
+    by_expiry = np.array([np.interp(tenor, tens, vols[i]) for i in range(len(exps))])
+    return float(np.interp(expiry, exps, by_expiry))
+
+
+def _implied_vol_setup(fwd_df: pd.DataFrame, legs: "set[str] | list[str]", grid: tuple,
+                       n: int) -> "tuple[dict[str, float], pd.DataFrame]":
+    """Each leg's implied vol and the legs' realised correlation matrix over the last n days."""
+    legs = sorted(set(legs))
+    leg_iv = {leg: _leg_implied_vol(*_parse_label(leg), grid) for leg in legs}
+    corr = fwd_df[legs].diff().iloc[-n:].corr()
+    return leg_iv, corr
+
+
+def _implied_structure_vol(legs: tuple, weights: tuple, leg_iv: dict, corr: pd.DataFrame) -> "float | None":
+    """Implied vol (bp/yr) of Σ w·leg."""
+    sig = np.array([leg_iv[leg] for leg in legs]) * np.asarray(weights, float)
+    C = corr.loc[list(legs), list(legs)].values
+    if np.isnan(C).any():
+        return None
+    return float(np.sqrt(max(sig @ C @ sig, 0.0)))
+
+
 def _zscore(series: pd.Series, n: int) -> float:
     window = series.iloc[-n:]
     std = float(window.std())
@@ -543,8 +620,12 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
 
     # Curve factors and every leg's exposure to them, for the factor-neutral versions
     pc_dates, pc_scores, _, _ = _curve_factors(swap_df, fwd_df.index[-win_1y:])
-    exposure = {leg: _leg_exposure(fwd_df, leg, pc_dates, pc_scores)
-                for leg in {leg for _, _, _, legs, _ in all_series for leg in legs}}
+    all_legs = {leg for _, _, _, legs, _ in all_series for leg in legs}
+    exposure = {leg: _leg_exposure(fwd_df, leg, pc_dates, pc_scores) for leg in all_legs}
+
+    # Implied vols from the swaption grid, when the currency has one
+    grid = _vol_grid(fetched, fwd_df.index[-1])
+    leg_iv, leg_corr = _implied_vol_setup(fwd_df, all_legs, grid, win_1y) if grid else ({}, None)
 
     rv_monitor = []
     for label, group, series, legs, weights in all_series:
@@ -566,6 +647,9 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
         vol3m_bps  = round(float(daily_changes_3m.std()) * (252 ** 0.5), 2)
         carry1y_bps = round(_carry_expr_bps(legs, weights, D), 2)
         carry_vol_ratio = round(carry1y_bps / vol3m_bps, 2) if vol3m_bps > 0 else None
+        ivol = _implied_structure_vol(legs, weights, leg_iv, leg_corr) if grid else None
+        ivol_bps = round(ivol, 2) if ivol is not None else None
+        carry_ivol_ratio = round(carry1y_bps / ivol, 2) if ivol else None
         # Per-leg roll-down: each forward slides one year down its own forward curve
         leg_detail = []
         for leg, w in zip(legs, weights):
@@ -579,6 +663,7 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
                 "rolled_label": _rolled_label(s, t),
                 "rolled_rate": round(float(_fwd_rate(*_rolled(s, t), D)), 4),
                 "contribution_bps": round(float(w * _carry_fwd_bps(leg, D)), 2),
+                "ivol_bps": round(leg_iv[leg], 2) if leg in leg_iv else None,
             })
         rv_monitor.append({
             "label": label,
@@ -592,6 +677,8 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
             "vol3m_bps": vol3m_bps,
             "carry1y_bps": carry1y_bps,
             "carry_vol_ratio": carry_vol_ratio,
+            "ivol_bps": ivol_bps,                    # implied vol of the structure, bp/yr (None: no grid)
+            "carry_ivol_ratio": carry_ivol_ratio,
             "legs": leg_detail,
             "set": set_of[label],
             # Factor-neutral version: curves level-neutral, flies level- and slope-neutral
@@ -652,6 +739,8 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
         "rv_monitor": rv_monitor,
         "beta_monitor": beta_monitor,
         "universe": universe,
+        # Where the implied vols come from; None when the currency has no swaption grid
+        "implied_vol": {"source": "ATM normal swaption vols (ICAP)", "grid_date": grid[3]} if grid else None,
     }
     if fetched is not None:
         # Drop this currency's payloads built from older data, then remember this one
@@ -821,6 +910,8 @@ def compute_neutral(currency: str, label: str, as_of_date: str | None = None) ->
     as_of_ts = fwd_df.index[-1]
     D = _build_discount_factors(swap_df.loc[swap_df.index <= as_of_ts].iloc[-1].values.astype(float))
     leg_carry = [_carry_fwd_bps(leg, D) for leg in legs]
+    grid = _vol_grid(fetched, as_of_ts)
+    leg_iv, leg_corr = _implied_vol_setup(fwd_df, legs, grid, win_1y) if grid else ({}, None)
 
     def build(w: tuple) -> pd.Series:
         return sum(wi * fwd_df[leg] for wi, leg in zip(w, legs)) * 100
@@ -828,12 +919,18 @@ def compute_neutral(currency: str, label: str, as_of_date: str | None = None) ->
     def stats_of(w: tuple, s: pd.Series) -> dict:
         window = s.iloc[-win_1y:]
         e = E @ np.asarray(w, float)
+        carry = float(sum(wi * c for wi, c in zip(w, leg_carry)))
+        vol = float(s.diff().iloc[-win_3m:].std()) * 252 ** 0.5
+        ivol = _implied_structure_vol(legs, w, leg_iv, leg_corr) if grid else None
         return {
             "value_bps": round(float(s.iloc[-1]), 2),
             "zscore_1y": round(_zscore(s, win_1y), 2),
             "pctile_1y": round(float(stats.percentileofscore(window.values, float(s.iloc[-1]))), 1),
-            "vol3m_bps": round(float(s.diff().iloc[-win_3m:].std()) * 252 ** 0.5, 2),
-            "carry1y_bps": round(float(sum(wi * c for wi, c in zip(w, leg_carry))), 2),
+            "vol3m_bps": round(vol, 2),
+            "ivol_bps": round(ivol, 2) if ivol is not None else None,
+            "carry1y_bps": round(carry, 2),
+            "carry_vol_ratio": round(carry / vol, 2) if vol > 0 else None,
+            "carry_ivol_ratio": round(carry / ivol, 2) if ivol else None,
             "exposure": {name: round(float(v), 3) for name, v in zip(_PC_NAMES, e)},
         }
 
@@ -1077,6 +1174,9 @@ def compute_candidates(currency: str = "EUR", as_of_date: str | None = None,
     # Exact neutral weights (the monitor's are rounded, and a near-cancelling structure is sensitive to that)
     pc_dates, pc_scores, _, _ = _curve_factors(swap_df, fwd_df.index[-win_1y:])
     leg_exposure: dict[str, np.ndarray] = {}
+    grid = _vol_grid(fetched, fwd_df.index[-1])
+    leg_iv, leg_corr = (_implied_vol_setup(fwd_df, {leg for r in rv["rv_monitor"] for leg in _expression(ccy, r["label"])[1]},
+                                           grid, win_1y) if grid else ({}, None))
     resid_z = {b["label"]: b["residual_zscore"] for b in rv["beta_monitor"]}
     bt = compute_carry_backtest(ccy, as_of_date, window="2y", universe=universe)
     hit_rate = {s["label"]: s["hit_rate"] for s in bt["structures"]}
@@ -1100,6 +1200,7 @@ def compute_candidates(currency: str = "EUR", as_of_date: str | None = None,
         sign = 1.0 if down else -1.0
         carry = sign * float(sum(w * _carry_fwd_bps(leg, D) for w, leg in zip(weights, legs)))
         vol = float(series.diff().iloc[-win_3m:].std()) * 252 ** 0.5
+        ivol = _implied_structure_vol(legs, weights, leg_iv, leg_corr) if grid else None
         half_life, revert_share = _ar1_reversion(series, win_1y)
         reversion = abs(value - mean) * revert_share
         expected = reversion + carry
@@ -1128,7 +1229,9 @@ def compute_candidates(currency: str = "EUR", as_of_date: str | None = None,
             "carry_bp": round(carry, 2),
             "expected_bp": round(expected, 2),
             "vol3m_bp": round(vol, 2),
-            "score": round(expected / vol, 2) if vol > 0 else None,
+            "score": round(expected / vol, 2) if vol > 0 else None,          # on 3m realised vol
+            "ivol_bp": round(ivol, 2) if ivol is not None else None,
+            "score_implied": round(expected / ivol, 2) if ivol else None,    # on implied vol
             "factor_share": r["factor_share"],
             "carry_hit_rate_2y": hr,
             "checks": checks,
