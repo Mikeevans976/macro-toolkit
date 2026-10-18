@@ -5440,6 +5440,75 @@
     "summary": "Get Swaps Rv History"
    }
   },
+  "/api/tools/swaps-rv/neutral": {
+   "get": {
+    "description": "One structure next to its factor-neutral version (curves level-neutral, flies level- and slope-neutral).",
+    "operationId": "get_swaps_rv_neutral_api_tools_swaps_rv_neutral_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "label",
+      "required": true,
+      "schema": {
+       "title": "Label",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "currency",
+      "required": false,
+      "schema": {
+       "default": "EUR",
+       "title": "Currency",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Date"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Swaps Rv Neutral"
+   }
+  },
   "/api/tools/swaps-rv/regression": {
    "get": {
     "description": "Beta Monitor regression for one structure: coefficients, rolling betas, residuals, attribution.",

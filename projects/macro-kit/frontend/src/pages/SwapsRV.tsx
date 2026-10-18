@@ -16,6 +16,7 @@ import {
 import ExpressionDetail, { fmtBp, type SeriesPoint, type StatGroupDef } from '../components/ExpressionDetail'
 import CurveRolldown, { type CurveData, type RollLeg } from '../components/CurveRolldown'
 import RegressionDetail from '../components/RegressionDetail'
+import FactorNeutral from '../components/FactorNeutral'
 import { CarryRealisationDetail, CarryRealisationSummary } from '../components/CarryBacktest'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -45,6 +46,11 @@ interface RVRow {
   carry_vol_ratio: number | null
   legs?: RollLeg[]     // per-leg roll-down behind carry1y_bps
   set?: 'core' | 'extended'
+  // Factor-neutral version (curves level-neutral, flies level- and slope-neutral)
+  neutral_weights?: number[] | null
+  neutral_zscore_1y?: number | null
+  neutral_unstable?: boolean | null
+  factor_share?: number   // share of daily variance from the hedged factors, 0–1
 }
 
 interface BetaRow {
@@ -511,6 +517,7 @@ function DetailChart({ label, history, rvRow, betaRow, rvMonitor, curve, asOf, c
         </>}
       />
       <RegressionDetail currency={currency} label={label} asOf={asOf} dataStamp={dataStamp} />
+      <FactorNeutral currency={currency} label={label} asOf={asOf} dataStamp={dataStamp} />
       {curve && rvRow.legs && (
         <CurveRolldown curve={curve} legs={rvRow.legs} carryBps={rvRow.carry1y_bps} asOf={asOf} />
       )}
@@ -631,11 +638,28 @@ function RVMonitorTable({ rows, selected, onSelect }: {
               </div>
             </div>
           </td>
+          {row.neutral_zscore_1y == null ? (
+            <td style={{ ...tdBase, color: '#8995a2', textAlign: 'right' }}>—</td>
+          ) : row.neutral_unstable ? (
+            <td
+              style={{ ...tdBase, color: '#8995a2', textAlign: 'right' }}
+              title={`Unstable hedge: weights ${row.neutral_weights?.map(w => w.toFixed(2)).join(' / ')} — the factors barely separate the legs, so the neutral version is close to an outright position`}
+            >{row.neutral_zscore_1y.toFixed(2)}*</td>
+          ) : (
+            <td
+              style={{ ...tdBase, ...zscoreStyle(row.neutral_zscore_1y), textAlign: 'right', borderRadius: 4 }}
+              title={`Neutral weights ${row.neutral_weights?.map(w => w.toFixed(2)).join(' / ')}`}
+            >{row.neutral_zscore_1y.toFixed(2)}</td>
+          )}
+          <td style={{
+            ...tdBase, textAlign: 'right',
+            color: (row.factor_share ?? 0) >= 0.3 ? '#dfbb78' : '#c6ced8',
+          }}>{row.factor_share == null ? '—' : `${Math.round(row.factor_share * 100)}%`}</td>
         </tr>
       )
     })
 
-  const columns: { label: string; key: SortKey; align: 'left' | 'right' }[] = [
+  const columns: { label: string; key: SortKey; align: 'left' | 'right'; title?: string }[] = [
     { label: 'Expression',  key: 'label',           align: 'left' },
     { label: 'Value (bp)',  key: 'value_bps',        align: 'right' },
     { label: 'Δ1d',         key: 'd1d_bps',          align: 'right' },
@@ -646,6 +670,10 @@ function RVMonitorTable({ rows, selected, onSelect }: {
     { label: 'C/V',         key: 'carry_vol_ratio',  align: 'right' },
     { label: 'Z-score',     key: 'zscore_1y',        align: 'right' },
     { label: '%ile',        key: 'pctile_1y',        align: 'right' },
+    { label: 'Z neutral',   key: 'neutral_zscore_1y', align: 'right',
+      title: '1y Z-score of the factor-neutral version: curves hedged for level, flies for level and slope (PCA of the par curve over the last year). * = unstable hedge' },
+    { label: 'Factor %',    key: 'factor_share',     align: 'right',
+      title: 'Share of the daily variance (last year) explained by the factors the neutral version hedges: how much of the standard structure is a level (and slope) bet' },
   ]
 
   return (
@@ -654,7 +682,7 @@ function RVMonitorTable({ rows, selected, onSelect }: {
         <thead>
           <tr>
             {columns.map(col => (
-              <th key={col.key} onClick={() => handleSort(col.key)}
+              <th key={col.key} onClick={() => handleSort(col.key)} title={col.title}
                 style={{
                   ...thStyle,
                   textAlign: col.align,
@@ -669,9 +697,9 @@ function RVMonitorTable({ rows, selected, onSelect }: {
           </tr>
         </thead>
         <tbody>
-          <tr><td colSpan={10} style={groupHeaderTd}>Curves</td></tr>
+          <tr><td colSpan={12} style={groupHeaderTd}>Curves</td></tr>
           {renderRows(curves)}
-          <tr><td colSpan={10} style={{ ...groupHeaderTd, paddingTop: 12 }}>Flies</td></tr>
+          <tr><td colSpan={12} style={{ ...groupHeaderTd, paddingTop: 12 }}>Flies</td></tr>
           {renderRows(flies)}
         </tbody>
       </table>

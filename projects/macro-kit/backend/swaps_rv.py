@@ -413,6 +413,76 @@ def _residual_zscore(resid: np.ndarray) -> float:
     return (float(cumresid[-1]) - float(cumresid.mean())) / cr_std if cr_std > 0 else 0.0
 
 
+# ---------------------------------------------------------------------------
+# Factor-neutral weights
+# ---------------------------------------------------------------------------
+# The curve factors are the first three principal components of daily par swap changes (bp)
+# over the 1y window: level, slope, curvature. A leg's exposure to them is its regression on
+# the standardised PC scores (bp per 1σ day), so spot and forward legs are treated alike.
+# Neutral weights keep a curve's back leg (+1) or a fly's belly (+2) and re-solve the others:
+# curves are made level-neutral, flies level- and slope-neutral. The weights are estimated on
+# the last year and applied to the whole history.
+
+_PC_NAMES = ("level", "slope", "curvature")
+
+
+def _curve_factors(swap_df: pd.DataFrame, dates: pd.Index):
+    """(dates, standardised scores n×3, loadings 3×tenors, variance shares) of the par curve's first 3 PCs."""
+    chg = (swap_df.sort_index().diff() * 100).reindex(dates).dropna()
+    X = chg.values - chg.values.mean(axis=0)
+    _, S, Vt = np.linalg.svd(X, full_matrices=False)
+    load = Vt[:3].copy()
+    # Signs: level = rates up, slope = long end up vs short end, curvature = belly up vs wings
+    mid = load.shape[1] // 2
+    signs = np.array([load[0].sum(), load[1][-1] - load[1][0], load[2][mid] - (load[2][0] + load[2][-1]) / 2])
+    load *= np.where(signs < 0, -1.0, 1.0)[:, None]
+    scores = X @ load.T
+    scores /= scores.std(axis=0, ddof=1)
+    return chg.index, scores, load, (S ** 2 / (S ** 2).sum())[:3]
+
+
+def _leg_exposure(fwd_df: pd.DataFrame, leg: str, dates: pd.Index, scores: np.ndarray) -> np.ndarray:
+    """A leg's exposure to each factor, bp per 1σ day (length 3)."""
+    y = (fwd_df[leg].diff() * 100).reindex(dates).values
+    ok = ~np.isnan(y)
+    A = np.hstack([np.ones((int(ok.sum()), 1)), scores[ok]])
+    return np.linalg.lstsq(A, y[ok], rcond=None)[0][1:]
+
+
+def _neutral_weights(group: str, E: np.ndarray) -> "tuple | None":
+    """Neutral weights from the legs' exposures E (3 × legs); None when they cannot be solved."""
+    if group == "curve":
+        if abs(E[0, 0]) < 1e-6:
+            return None
+        return (float(-E[0, 1] / E[0, 0]), 1.0)
+    M = E[:2][:, [0, 2]]
+    if np.linalg.cond(M) > 1e6:
+        return None
+    a, c = np.linalg.solve(M, 2 * E[:2, 1])
+    return (float(-a), 2.0, float(-c))
+
+
+def _neutral_unstable(group: str, neutral: tuple) -> bool:
+    """A hedge leg flips sign or scales outside 0.25–2.5× its standard size: the factors
+    barely separate the legs, so the 'neutral' structure is close to an outright position."""
+    hedge_legs = [neutral[0]] if group == "curve" else [neutral[0], neutral[2]]
+    return any(not (-2.5 <= w <= -0.25) for w in hedge_legs)
+
+
+def _factor_share(group: str, weights: tuple, E: np.ndarray, series: pd.Series, dates: pd.Index) -> float:
+    """Share of the structure's daily variance explained by the factors the neutral version hedges."""
+    k = 1 if group == "curve" else 2
+    e = E @ np.asarray(weights, float)
+    var = float(series.diff().reindex(dates).var(ddof=1))
+    return min(float((e[:k] ** 2).sum()) / var, 1.0) if var > 0 else 0.0
+
+
+def _zscore(series: pd.Series, n: int) -> float:
+    window = series.iloc[-n:]
+    std = float(window.std())
+    return (float(window.iloc[-1]) - float(window.mean())) / std if std > 0 else 0.0
+
+
 def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bool = False,
                universe: str = "core") -> dict:
     ccy = currency.upper()
@@ -471,8 +541,18 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
     win_1y = min(252, n)
     win_3m = min(63, n)
 
+    # Curve factors and every leg's exposure to them, for the factor-neutral versions
+    pc_dates, pc_scores, _, _ = _curve_factors(swap_df, fwd_df.index[-win_1y:])
+    exposure = {leg: _leg_exposure(fwd_df, leg, pc_dates, pc_scores)
+                for leg in {leg for _, _, _, legs, _ in all_series for leg in legs}}
+
     rv_monitor = []
     for label, group, series, legs, weights in all_series:
+        E = np.column_stack([exposure[leg] for leg in legs])
+        neutral = _neutral_weights(group, E)
+        if neutral is not None:
+            neutral_series = sum(w * fwd_df[leg] for w, leg in zip(neutral, legs)) * 100
+            neutral_z = round(_zscore(neutral_series, win_1y), 2)
         current = float(series.iloc[-1])
         d1d = round(float(series.iloc[-1] - series.iloc[-2]), 2) if n >= 2 else None
         d1w = round(float(series.iloc[-1] - series.iloc[-6]), 2) if n >= 6 else None
@@ -514,6 +594,11 @@ def compute_rv(currency: str = "EUR", as_of_date: str | None = None, refresh: bo
             "carry_vol_ratio": carry_vol_ratio,
             "legs": leg_detail,
             "set": set_of[label],
+            # Factor-neutral version: curves level-neutral, flies level- and slope-neutral
+            "neutral_weights": [round(w, 3) for w in neutral] if neutral else None,
+            "neutral_zscore_1y": neutral_z if neutral else None,
+            "neutral_unstable": _neutral_unstable(group, neutral) if neutral else None,
+            "factor_share": round(_factor_share(group, weights, E, series, pc_dates), 3),
         })
 
     # Curve the carry is computed on: par quotes, the fitted par curve, and a forward
@@ -709,6 +794,82 @@ def compute_regression(currency: str, label: str, as_of_date: str | None = None,
         "rolling": rolling,
         "residuals": residuals,
         "attribution": attribution,
+    }
+
+
+def compute_neutral(currency: str, label: str, as_of_date: str | None = None) -> dict:
+    """
+    One structure next to its factor-neutral version: the curve factors, each leg's exposure,
+    the neutral weights, both structures' factor exposures and statistics, and both histories.
+    """
+    ccy = currency.upper()
+    if ccy not in _CCY_FILES:
+        raise ValueError(f"Unsupported currency: {currency}")
+    group, legs, weights = _expression(ccy, label)
+
+    fetched = _load_bbg(ccy) if settings.data_source == "bloomberg" else None
+    fwd_df, _, swap_df, _, _ = _load_frames(ccy, as_of_date, fetched)
+    if any(leg not in fwd_df.columns for leg in legs):
+        raise KeyError(f"No forward data for {label}")
+
+    n = len(fwd_df)
+    win_1y, win_3m = min(252, n), min(63, n)
+    dates, scores, load, share = _curve_factors(swap_df, fwd_df.index[-win_1y:])
+    E = np.column_stack([_leg_exposure(fwd_df, leg, dates, scores) for leg in legs])
+    neutral = _neutral_weights(group, E)
+
+    as_of_ts = fwd_df.index[-1]
+    D = _build_discount_factors(swap_df.loc[swap_df.index <= as_of_ts].iloc[-1].values.astype(float))
+    leg_carry = [_carry_fwd_bps(leg, D) for leg in legs]
+
+    def build(w: tuple) -> pd.Series:
+        return sum(wi * fwd_df[leg] for wi, leg in zip(w, legs)) * 100
+
+    def stats_of(w: tuple, s: pd.Series) -> dict:
+        window = s.iloc[-win_1y:]
+        e = E @ np.asarray(w, float)
+        return {
+            "value_bps": round(float(s.iloc[-1]), 2),
+            "zscore_1y": round(_zscore(s, win_1y), 2),
+            "pctile_1y": round(float(stats.percentileofscore(window.values, float(s.iloc[-1]))), 1),
+            "vol3m_bps": round(float(s.diff().iloc[-win_3m:].std()) * 252 ** 0.5, 2),
+            "carry1y_bps": round(float(sum(wi * c for wi, c in zip(w, leg_carry))), 2),
+            "exposure": {name: round(float(v), 3) for name, v in zip(_PC_NAMES, e)},
+        }
+
+    standard = build(weights)
+    neutral_series = build(neutral) if neutral else None
+    hist = pd.DataFrame({"standard": standard, "neutral": neutral_series}).dropna(subset=["standard"]).round(2)
+
+    return {
+        "label": label,
+        "group": group,
+        "currency": ccy,
+        "as_of": as_of_ts.strftime("%Y-%m-%d"),
+        "data_source": "bloomberg" if fetched is not None else "csv",
+        "window_days": len(dates),
+        "hedged": list(_PC_NAMES[: 1 if group == "curve" else 2]),
+        "factors": [{
+            "name": name,
+            "variance_share": round(float(share[k]), 4),
+            "loadings": [{"tenor": int(str(t).rstrip("y")), "loading": round(float(v), 4)} for t, v in zip(swap_df.columns, load[k])],
+        } for k, name in enumerate(_PC_NAMES)],
+        "legs": [{
+            "label": leg,
+            "weight": weights[i],
+            "neutral_weight": round(neutral[i], 4) if neutral else None,
+            "carry1y_bps": round(float(leg_carry[i]), 2),
+            "exposure": {name: round(float(E[k, i]), 3) for k, name in enumerate(_PC_NAMES)},
+        } for i, leg in enumerate(legs)],
+        "factor_share": round(_factor_share(group, weights, E, standard, dates), 3),
+        "unstable": _neutral_unstable(group, neutral) if neutral else None,
+        "standard": stats_of(weights, standard),
+        "neutral": stats_of(neutral, neutral_series) if neutral else None,
+        "history": [{
+            "date": d.strftime("%Y-%m-%d"),
+            "standard": float(r.standard),
+            "neutral": None if pd.isna(r.neutral) else float(r.neutral),
+        } for d, r in hist.iterrows()],
     }
 
 

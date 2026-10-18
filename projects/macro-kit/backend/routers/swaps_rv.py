@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from auth import get_current_user
-from swaps_rv import compute_carry_backtest, compute_history, compute_regression, compute_rv
+from swaps_rv import compute_carry_backtest, compute_history, compute_neutral, compute_regression, compute_rv
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
@@ -37,6 +37,15 @@ def get_swaps_rv_regression(
     """Beta Monitor regression for one structure: coefficients, rolling betas, residuals, attribution."""
     try:
         return compute_regression(currency=currency, label=label, as_of_date=date, window=window)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
+
+
+@router.get("/api/tools/swaps-rv/neutral")
+def get_swaps_rv_neutral(label: str, currency: str = "EUR", date: str | None = None):
+    """One structure next to its factor-neutral version (curves level-neutral, flies level- and slope-neutral)."""
+    try:
+        return compute_neutral(currency=currency, label=label, as_of_date=date)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
 

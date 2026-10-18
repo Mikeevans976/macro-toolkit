@@ -27265,9 +27265,13 @@
     "d1d_bps",
     "d1m_bps",
     "d1w_bps",
+    "factor_share",
     "group",
     "label",
     "legs",
+    "neutral_unstable",
+    "neutral_weights",
+    "neutral_zscore_1y",
     "pctile_1y",
     "set",
     "value_bps",
@@ -27309,6 +27313,13 @@
    "n_num": 68,
    "sum": -2.699999999999999,
    "sumsq": 3.3012000000000015
+  },
+  "$.rv_monitor[].factor_share": {
+   "max": 0.99,
+   "min": 0.017,
+   "n_num": 68,
+   "sum": 30.606999999999992,
+   "sumsq": 19.269019000000004
   },
   "$.rv_monitor[].group": {
    "n_str": 68,
@@ -27382,6 +27393,27 @@
    "n_num": 165,
    "sum": 0.0,
    "sumsq": 252.0
+  },
+  "$.rv_monitor[].neutral_unstable": {
+   "n_bool": 68,
+   "n_true": 2
+  },
+  "$.rv_monitor[].neutral_weights": {
+   "n_items": 165
+  },
+  "$.rv_monitor[].neutral_weights[]": {
+   "max": 2.0,
+   "min": -1.904,
+   "n_num": 165,
+   "sum": 2.4090000000000025,
+   "sumsq": 258.0022510000001
+  },
+  "$.rv_monitor[].neutral_zscore_1y": {
+   "max": 1.42,
+   "min": -1.44,
+   "n_num": 68,
+   "sum": 35.629999999999995,
+   "sumsq": 81.24370000000003
   },
   "$.rv_monitor[].pctile_1y": {
    "max": 93.3,
