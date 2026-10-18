@@ -20,20 +20,15 @@ For ASW expressions:
   carry_bps = ASW_level_bps + roll_bond_bps
   where roll_bond_bps = (y(T) − y(T−1)) × 100
 
-ASW levels are a proxy when live: generic yield minus the €STR OIS par rate at
+ASW levels are a proxy when live: BVAL yield minus the €STR OIS par rate at
 the same tenor, in bps (cheap = positive). That is a spread to OIS, not a
 par-par asset swap; Bloomberg's ASW index tickers return nothing on our Terminal.
 
-Bloomberg tickers (checked on the Terminal 2026-10-18):
-  Bund        : GDBR{T} Index
-  OAT         : GFRN{T} Index
-  BTP         : GBTPGR{T} Index
-  Bonos       : GSPG{T}YR Index
-  Belgium     : GBGB{T}YR Index
-  Portugal    : GSPT{T}YR Index
-  Netherlands : GNTH{T}YR Index
-  Austria     : GAGB{T}YR Index
-  Finland     : GFIN{T}YR Index
+Bloomberg tickers (checked on the Terminal 2026-10-19):
+  Yields      : BVAL constant-maturity curves, BV{TT}{curve} BVLI Index, curve ids in
+                BVAL_CURVES (e.g. BV100910 = Bund 10y). Fitted daily from the issuer's
+                bonds, so unlike the generic G…YR tickers they don't jump when the
+                benchmark bond changes, and they quote every tenor (1y–30y).
   ESTR        : ESTRON Index
   €STR OIS    : EESWE{T} Curncy
   EUR 1m10y vol: ENPS0A10 ICPL Curncy
@@ -56,7 +51,7 @@ from scipy.interpolate import CubicSpline
 
 from egb_expressions_config import (
     ALL_EXPRESSIONS, GROUP_META,
-    REPO_BLOC, REPO_BLOCS, COUNTRY_TENORS, _lbl,
+    REPO_BLOC, REPO_BLOCS, COUNTRY_TENORS, CURVE_TENORS, _lbl,
 )
 from egb_bond_finder import build_egb_bond_map
 from settings import settings
@@ -72,16 +67,14 @@ ALL_TENORS = [2, 5, 7, 10, 15, 20, 30]   # union of all benchmark tenors
 
 # ─── Bloomberg ticker maps ────────────────────────────────────────────────────
 
+# Bloomberg BVAL sovereign yield curve ids (EUR government bond curves)
+BVAL_CURVES: dict[str, str] = {
+    "Bund": "0910", "OAT": "0915", "BTP": "0905", "Bonos": "0902", "Belgium": "0900",
+    "Portugal": "0917", "Netherlands": "0920", "Austria": "0908", "Finland": "0919",
+}
+
 _YIELD_TICKERS: dict[str, dict[int, str]] = {
-    "Bund":        {t: f"GDBR{t} Index"     for t in COUNTRY_TENORS["Bund"]},
-    "OAT":         {t: f"GFRN{t} Index"     for t in COUNTRY_TENORS["OAT"]},
-    "BTP":         {t: f"GBTPGR{t} Index"   for t in COUNTRY_TENORS["BTP"]},
-    "Bonos":       {t: f"GSPG{t}YR Index"   for t in COUNTRY_TENORS["Bonos"]},
-    "Belgium":     {t: f"GBGB{t}YR Index"   for t in COUNTRY_TENORS["Belgium"]},
-    "Portugal":    {t: f"GSPT{t}YR Index"   for t in COUNTRY_TENORS["Portugal"]},
-    "Netherlands": {t: f"GNTH{t}YR Index"   for t in COUNTRY_TENORS["Netherlands"]},
-    "Austria":     {t: f"GAGB{t}YR Index"   for t in COUNTRY_TENORS["Austria"]},
-    "Finland":     {t: f"GFIN{t}YR Index"   for t in COUNTRY_TENORS["Finland"]},
+    c: {t: f"BV{t:02d}{BVAL_CURVES[c]} BVLI Index" for t in CURVE_TENORS[c]} for c in COUNTRY_TENORS
 }
 
 _ESTR_TICKER = "ESTRON Index"
@@ -545,7 +538,7 @@ def _raw_frames(use_individual_bonds: bool, refresh: bool = False) -> tuple[tupl
     if live is not None:
         return live[:4], {
             "data_source": "bloomberg",
-            "yield_mode": "individual_bonds" if use_individual_bonds else "generic",
+            "yield_mode": "individual_bonds" if use_individual_bonds else "bval",
             "bond_map": live[4], "missing_series": live[5],
         }
     return _simulated(), {"data_source": "simulation", "yield_mode": "simulation",
@@ -583,7 +576,7 @@ def _latest_asw(asw_df: pd.DataFrame) -> dict[tuple, float]:
 def _splines_at(yield_row: pd.Series) -> dict[str, CubicSpline]:
     """One cubic spline per country through that day's yields (countries with ≥3 tenors)."""
     splines: dict[str, CubicSpline] = {}
-    for country, tenors in COUNTRY_TENORS.items():
+    for country, tenors in CURVE_TENORS.items():
         ys = np.array([float(yield_row.get((country, t), np.nan)) for t in tenors])
         valid = ~np.isnan(ys)
         if valid.sum() >= 3:
@@ -806,7 +799,7 @@ def _cached_result(as_of_date: Optional[str], use_individual_bonds: bool, refres
 
 
 def warm_cache() -> None:
-    """Fetch and compute the generic-ticker monitor once (startup) so the first visitor doesn't wait."""
+    """Fetch and compute the BVAL-curve monitor once (startup) so the first visitor doesn't wait."""
     if settings.data_source != "bloomberg":
         return
     compute_egb_rv()
@@ -1155,7 +1148,7 @@ def compute_rolldown(label: str, as_of_date: Optional[str] = None, use_individua
         "country": c,
         "label": _lbl(c),
         "quotes": [{"tenor": t, "yield_pct": round(float(row[(c, t)]), 4)}
-                   for t in COUNTRY_TENORS[c] if (c, t) in row.index and not np.isnan(row[(c, t)])],
+                   for t in CURVE_TENORS[c] if (c, t) in row.index and not np.isnan(row[(c, t)])],
         "fitted": [{"tenor": float(x), "yield_pct": round(float(splines[c](x)), 4)} for x in np.arange(1.0, 30.5, 0.5)],
     } for c in countries]
 
@@ -1190,7 +1183,7 @@ def _bt_core(raw: tuple) -> dict:
 
     # Every country's curve on every day, read where each tenor rolls to (T−1)
     rolled: dict[tuple, np.ndarray] = {}
-    for country, tenors in COUNTRY_TENORS.items():
+    for country, tenors in CURVE_TENORS.items():
         ts = [t for t in tenors if (country, t) in yield_df.columns]
         if len(ts) < 3:
             continue

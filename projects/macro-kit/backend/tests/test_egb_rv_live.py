@@ -8,8 +8,8 @@ import bbg
 import egb_rv
 
 DATES = pd.bdate_range("2026-01-01", periods=40)
-STALE = {"GNTH30YR Index", "EESWE30 Curncy"}   # stop printing 20 days before the end
-DEAD = {"GFIN2YR Index"}                        # never returns anything
+STALE = {"BV300920 BVLI Index", "EESWE30 Curncy"}   # stop printing 20 days before the end
+DEAD = {"BV020919 BVLI Index"}                  # never returns anything
 
 
 def _value(ticker: str) -> float:

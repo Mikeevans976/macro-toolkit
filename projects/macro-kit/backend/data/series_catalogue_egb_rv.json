@@ -3,12 +3,13 @@
   "file": "backend/egb_rv.py",
   "bloomberg_fetch": "bdh",
   "fallback": "simulation",
-  "note": "Every ticker checked on the Terminal 2026-10-18. Live only when ANALYTICS_DATA_SOURCE=bloomberg. No Bloomberg ASW index tickers work; ASW expressions use yield − €STR OIS as a proxy. Tenors without a generic ticker (Spain 20y, Netherlands 15y/20y, Finland 20y) are not used.",
+  "note": "Every ticker checked on the Terminal 2026-10-19. Live only when ANALYTICS_DATA_SOURCE=bloomberg. Yields are BVAL constant-maturity curves (no benchmark-roll jumps, every tenor quoted). No Bloomberg ASW index tickers work; ASW expressions use yield − €STR OIS as a proxy.",
   "series": [
     {
       "id": "bund_yields",
-      "bloomberg_ticker": "GDBR{t} Index",
+      "bloomberg_ticker": "BV{t:02d}0910 BVLI Index",
       "tenors_or_expiries": [
+        1,
         2,
         5,
         7,
@@ -18,14 +19,15 @@
         30
       ],
       "field": "PX_LAST",
-      "description": "German Bund generic government bond yields",
+      "description": "Bund BVAL constant-maturity government yield curve (1y is a curve point only)",
       "unit": "%",
       "verified": true
     },
     {
       "id": "oat_yields",
-      "bloomberg_ticker": "GFRN{t} Index",
+      "bloomberg_ticker": "BV{t:02d}0915 BVLI Index",
       "tenors_or_expiries": [
+        1,
         2,
         5,
         7,
@@ -35,14 +37,15 @@
         30
       ],
       "field": "PX_LAST",
-      "description": "French OAT generic government bond yields",
+      "description": "OAT BVAL constant-maturity government yield curve (1y is a curve point only)",
       "unit": "%",
       "verified": true
     },
     {
       "id": "btp_yields",
-      "bloomberg_ticker": "GBTPGR{t} Index",
+      "bloomberg_ticker": "BV{t:02d}0905 BVLI Index",
       "tenors_or_expiries": [
+        1,
         2,
         5,
         7,
@@ -52,30 +55,33 @@
         30
       ],
       "field": "PX_LAST",
-      "description": "Italian BTP generic government bond yields",
+      "description": "BTP BVAL constant-maturity government yield curve (1y is a curve point only)",
       "unit": "%",
       "verified": true
     },
     {
       "id": "bonos_yields",
-      "bloomberg_ticker": "GSPG{t}YR Index",
+      "bloomberg_ticker": "BV{t:02d}0902 BVLI Index",
       "tenors_or_expiries": [
+        1,
         2,
         5,
         7,
         10,
         15,
+        20,
         30
       ],
       "field": "PX_LAST",
-      "description": "Spanish Bonos generic government bond yields",
+      "description": "Bonos BVAL constant-maturity government yield curve (1y is a curve point only)",
       "unit": "%",
       "verified": true
     },
     {
       "id": "belgium_yields",
-      "bloomberg_ticker": "GBGB{t}YR Index",
+      "bloomberg_ticker": "BV{t:02d}0900 BVLI Index",
       "tenors_or_expiries": [
+        1,
         2,
         5,
         10,
@@ -84,14 +90,15 @@
         30
       ],
       "field": "PX_LAST",
-      "description": "Belgian government bond generic yields",
+      "description": "Belgium BVAL constant-maturity government yield curve (1y is a curve point only)",
       "unit": "%",
       "verified": true
     },
     {
       "id": "portugal_yields",
-      "bloomberg_ticker": "GSPT{t}YR Index",
+      "bloomberg_ticker": "BV{t:02d}0917 BVLI Index",
       "tenors_or_expiries": [
+        1,
         2,
         5,
         10,
@@ -99,28 +106,15 @@
         30
       ],
       "field": "PX_LAST",
-      "description": "Portuguese government bond generic yields",
+      "description": "Portugal BVAL constant-maturity government yield curve (1y is a curve point only)",
       "unit": "%",
       "verified": true
     },
     {
       "id": "netherlands_yields",
-      "bloomberg_ticker": "GNTH{t}YR Index",
+      "bloomberg_ticker": "BV{t:02d}0920 BVLI Index",
       "tenors_or_expiries": [
-        2,
-        5,
-        10,
-        30
-      ],
-      "field": "PX_LAST",
-      "description": "Dutch government bond generic yields",
-      "unit": "%",
-      "verified": true
-    },
-    {
-      "id": "austria_yields",
-      "bloomberg_ticker": "GAGB{t}YR Index",
-      "tenors_or_expiries": [
+        1,
         2,
         5,
         10,
@@ -129,21 +123,40 @@
         30
       ],
       "field": "PX_LAST",
-      "description": "Austrian government bond generic yields",
+      "description": "Netherlands BVAL constant-maturity government yield curve (1y is a curve point only)",
+      "unit": "%",
+      "verified": true
+    },
+    {
+      "id": "austria_yields",
+      "bloomberg_ticker": "BV{t:02d}0908 BVLI Index",
+      "tenors_or_expiries": [
+        1,
+        2,
+        5,
+        10,
+        15,
+        20,
+        30
+      ],
+      "field": "PX_LAST",
+      "description": "Austria BVAL constant-maturity government yield curve (1y is a curve point only)",
       "unit": "%",
       "verified": true
     },
     {
       "id": "finland_yields",
-      "bloomberg_ticker": "GFIN{t}YR Index",
+      "bloomberg_ticker": "BV{t:02d}0919 BVLI Index",
       "tenors_or_expiries": [
+        1,
         2,
         5,
         10,
+        20,
         30
       ],
       "field": "PX_LAST",
-      "description": "Finnish government bond generic yields",
+      "description": "Finland BVAL constant-maturity government yield curve (1y is a curve point only)",
       "unit": "%",
       "verified": true
     },

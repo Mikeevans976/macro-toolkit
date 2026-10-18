@@ -18,16 +18,8 @@ Repo blocs:
   "BTP"   — Italy
   "Bonos" — Spain, Portugal (peripheral GC proxy)
 
-Bloomberg tickers (all checked on the Terminal 2026-10-18):
-  Bund        : GDBR{T} Index
-  OAT         : GFRN{T} Index
-  BTP         : GBTPGR{T} Index
-  Bonos       : GSPG{T}YR Index
-  Belgium     : GBGB{T}YR Index
-  Portugal    : GSPT{T}YR Index
-  Netherlands : GNTH{T}YR Index
-  Austria     : GAGB{T}YR Index
-  Finland     : GFIN{T}YR Index
+Yields are Bloomberg BVAL constant-maturity curves, BV{TT}{curve} BVLI Index
+(e.g. BV100910 = Bund 10y); curve ids are in egb_rv.BVAL_CURVES.
 """
 
 from itertools import combinations as _comb
@@ -51,19 +43,22 @@ REPO_BLOCS = ["Bund", "OAT", "BTP", "Bonos"]
 
 # ─── Benchmark tenors per country ────────────────────────────────────────────
 
-# Only tenors with a live generic ticker: Bloomberg has none for Spain 20y,
-# Netherlands 15y/20y or Finland 20y (checked 2026-10-18).
+# Tenors the expressions are built on
 COUNTRY_TENORS: dict[str, list[int]] = {
     "Bund":        [2, 5, 7, 10, 15, 20, 30],
     "OAT":         [2, 5, 7, 10, 15, 20, 30],
     "BTP":         [2, 5, 7, 10, 15, 20, 30],
-    "Bonos":       [2, 5, 7, 10, 15, 30],
+    "Bonos":       [2, 5, 7, 10, 15, 20, 30],
     "Belgium":     [2, 5, 10, 15, 20, 30],
     "Portugal":    [2, 5, 10, 15, 30],
-    "Netherlands": [2, 5, 10, 30],
+    "Netherlands": [2, 5, 10, 15, 20, 30],
     "Austria":     [2, 5, 10, 15, 20, 30],
-    "Finland":     [2, 5, 10, 30],
+    "Finland":     [2, 5, 10, 20, 30],
 }
+
+# Tenors each country's curve is fitted through: the expression tenors plus 1y, so
+# a 2y leg rolls to a quoted point instead of an extrapolated one. No expression uses 1y.
+CURVE_TENORS: dict[str, list[int]] = {c: [1] + ts for c, ts in COUNTRY_TENORS.items()}
 
 # All tenors used (union) — for simulation
 ALL_TENORS = [2, 5, 7, 10, 15, 20, 30]

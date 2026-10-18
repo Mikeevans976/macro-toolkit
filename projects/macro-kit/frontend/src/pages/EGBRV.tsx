@@ -1085,14 +1085,14 @@ export default function EGBRV() {
         {/* Individual bonds toggle */}
         <button
           onClick={() => setUseIndividualBonds(v => !v)}
-          title={useIndividualBonds ? 'Using individual bonds (click to switch to generic)' : 'Using generic BBG tickers (click to switch to individual bonds)'}
+          title={useIndividualBonds ? 'Using individual bonds (click to switch to BVAL curves)' : 'Using BVAL constant-maturity curves (click to switch to individual bonds)'}
           style={{
             fontSize: 11, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
             border: `1px solid ${useIndividualBonds ? 'rgba(139,143,216,0.5)' : 'rgba(200,220,240,0.15)'}`,
             background: useIndividualBonds ? 'rgba(139,143,216,0.15)' : 'rgba(200,220,240,0.05)',
             color: useIndividualBonds ? '#b9bdea' : '#9aa5b1',
           }}>
-          {useIndividualBonds ? 'Individual bonds' : 'Generic tickers'}
+          {useIndividualBonds ? 'Individual bonds' : 'BVAL curves'}
         </button>
         <button
           onClick={() => setRefreshKey(k => k + 1)}
@@ -1118,7 +1118,7 @@ export default function EGBRV() {
             border: `1px solid ${data.data_source === 'bloomberg' ? 'rgba(88,173,142,0.3)' : 'rgba(214,173,102,0.3)'}`,
           }}>
             {data.data_source === 'bloomberg'
-              ? (data.yield_mode === 'individual_bonds' ? 'Live · Individual bonds' : 'Live · Generic tickers')
+              ? (data.yield_mode === 'individual_bonds' ? 'Live · Individual bonds' : 'Live · BVAL curves')
               : 'Simulated data'}
             {data.missing_series?.length ? ` · ${data.missing_series.length} missing` : ''}
           </span>

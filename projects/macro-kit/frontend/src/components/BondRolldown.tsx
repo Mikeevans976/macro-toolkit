@@ -109,7 +109,7 @@ export default function BondRolldown({ label, asOf, query = '', dataStamp }: {
     <>
       <div style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Curve &amp; roll-down</div>
       <div style={{ color: '#8995a2', fontSize: 12, marginBottom: 12 }}>
-        Each country's yield curve on {data?.as_of ?? asOf} (cubic spline through the generic yields). Carry assumes the
+        Each country's yield curve on {data?.as_of ?? asOf} (cubic spline through the 1y–30y yields). Carry assumes the
         curves stay unchanged for a year: each bond earns its yield over repo per unit of duration, and rolls down its own
         curve as its maturity shortens by a year (T → T−1).
       </div>
@@ -138,7 +138,7 @@ export default function BondRolldown({ label, asOf, query = '', dataStamp }: {
           Yield curves · roll-down
         </div>
         <div style={{ color: '#77828f', fontSize: 11, marginTop: 2, marginBottom: 8 }}>
-          Dots: generic yields · line: spline fit · filled marker: leg today · arrow: where it sits in 1y on an unchanged curve
+          Dots: quoted yields · line: spline fit · filled marker: leg today · arrow: where it sits in 1y on an unchanged curve
         </div>
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={rows} margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>

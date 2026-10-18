@@ -10,28 +10,38 @@ Backend file: `backend/egb_rv.py` · API route: `GET /api/tools/egb-rv?date={YYY
 ### 1.1 The catalogue is documentation, not runtime config
 
 **This catalogue is not read at runtime.** Tickers are hardcoded in `egb_rv.py`
-(`_YIELD_TICKERS`, `_ESTR_TICKER`, `_OIS_TICKERS`, `_VOL_TICKER`), built from
-`COUNTRY_TENORS` in `egb_expressions_config.py`. To change a ticker, edit
+(`BVAL_CURVES`, `_YIELD_TICKERS`, `_ESTR_TICKER`, `_OIS_TICKERS`, `_VOL_TICKER`),
+built from `CURVE_TENORS` in `egb_expressions_config.py`. To change a ticker, edit
 `egb_rv.py` and update this catalogue to match. Every ticker below was checked
-on the Terminal on 2026-10-18 (about 1,557 daily observations each over 6 years).
+on the Terminal on 2026-10-19 (about 1,535 daily observations each over 6 years).
 
-### 1.2 Yield tickers and tenors
+### 1.2 Yield tickers and tenors: BVAL constant-maturity curves
 
-| Country | Tenors | Ticker pattern |
-|---------|--------|----------------|
-| Bund (Germany) | 2, 5, 7, 10, 15, 20, 30y | `GDBR{t} Index` |
-| OAT (France) | 2, 5, 7, 10, 15, 20, 30y | `GFRN{t} Index` |
-| BTP (Italy) | 2, 5, 7, 10, 15, 20, 30y | `GBTPGR{t} Index` |
-| Bonos (Spain) | 2, 5, 7, 10, 15, 30y | `GSPG{t}YR Index` |
-| Belgium | 2, 5, 10, 15, 20, 30y | `GBGB{t}YR Index` |
-| Portugal | 2, 5, 10, 15, 30y | `GSPT{t}YR Index` |
-| Netherlands | 2, 5, 10, 30y | `GNTH{t}YR Index` |
-| Austria | 2, 5, 10, 15, 20, 30y | `GAGB{t}YR Index` |
-| Finland | 2, 5, 10, 30y | `GFIN{t}YR Index` |
+Yields come from Bloomberg's BVAL sovereign curves, `BV{TT}{curve} BVLI Index`
+with a two-digit tenor (`BV100910 BVLI Index` = Bund 10y). BVAL fits each tenor
+daily from the issuer's bonds, so unlike the generic `G…YR` tickers the series
+don't jump when the benchmark bond changes, and every tenor is quoted.
 
-Bloomberg has no generic ticker for Spain 20y, Netherlands 15y/20y or Finland
-20y, so those tenors are not used (that removed 195 of 1,087 expressions). The old
-patterns `GPTIT{t}YR`, `GNETH{t}YR` and `GFINGB{t}` return nothing.
+| Country | BVAL curve | Expression tenors | Curve points |
+|---------|-----------|-------------------|--------------|
+| Bund (Germany) | 0910 | 2, 5, 7, 10, 15, 20, 30y | + 1y |
+| OAT (France) | 0915 | 2, 5, 7, 10, 15, 20, 30y | + 1y |
+| BTP (Italy) | 0905 | 2, 5, 7, 10, 15, 20, 30y | + 1y |
+| Bonos (Spain) | 0902 | 2, 5, 7, 10, 15, 20, 30y | + 1y |
+| Belgium | 0900 | 2, 5, 10, 15, 20, 30y | + 1y |
+| Portugal | 0917 | 2, 5, 10, 15, 30y | + 1y |
+| Netherlands | 0920 | 2, 5, 10, 15, 20, 30y | + 1y |
+| Austria | 0908 | 2, 5, 10, 15, 20, 30y | + 1y |
+| Finland | 0919 | 2, 5, 10, 20, 30y | + 1y |
+
+The 1y point is only used to fit each curve, so a 2y leg rolls to a quoted 1y
+yield instead of an extrapolated one; no expression has a 1y leg. 65 yield tickers
+in all; a full 6-year pull takes about 20 s.
+
+History: until 2026-10-19 the tool used generic tickers (`GDBR{t}`, `GFRN{t}`,
+`GBTPGR{t}`, `GSPG{t}YR`, `GBGB{t}YR`, `GSPT{t}YR`, `GNTH{t}YR`, `GAGB{t}YR`,
+`GFIN{t}YR`). They have no Spain 20y, Netherlands 15y/20y or Finland 20y, and the
+older `GPTIT`/`GNETH`/`GFINGB` patterns return nothing.
 
 ### 1.3 Other market data
 
@@ -46,7 +56,7 @@ patterns `GPTIT{t}YR`, `GNETH{t}YR` and `GFINGB{t}` return nothing.
 No Bloomberg ASW index ticker works on our Terminal (`DASW…`, `FOASW…`, `ITASW…`,
 `SPASW…`, `BEASW…`, `NLASW…` all return nothing). When live, each ASW leg is
 
-    ASW(country, T) = (generic yield(T) − €STR OIS par rate(T)) × 100   [bps]
+    ASW(country, T) = (BVAL yield(T) − €STR OIS par rate(T)) × 100   [bps]
 
 with cheap = positive. This is a spread to OIS, not a par-par asset swap: it
 ignores the bond's coupon and price relative to par. Coverage: Bund and OAT 2, 5,
@@ -62,9 +72,9 @@ keeps its own synthetic ASW paths.
 | Italy | BTP |
 | Spain, Portugal | Bonos (peripheral GC proxy) |
 
-### 1.6 Two yield modes: generic tickers vs individual bonds
+### 1.6 Two yield modes: BVAL curves vs individual bonds
 
-**Generic mode (default, live)** uses the constant-maturity tickers in §1.2,
+**BVAL mode (default, live)** uses the constant-maturity curves in §1.2,
 field `PX_LAST`.
 
 **Individual bonds mode** (`?use_individual_bonds=true`) picks, for each
@@ -79,7 +89,7 @@ the mode falls back to simulation (§3.1).
   tool runs on the deterministic simulation (`_simulate_data()`).
 - Live data cover the last 6 years and are cached in-process: one full fetch,
   then every 15 minutes (or on Refresh) only the last 14 days are refetched and
-  spliced on. A full fetch takes about 75 s and is warmed at startup.
+  spliced on. A full fetch takes about 20 s and is warmed at startup.
 - A ticker that returns nothing, or whose last print is more than 7 days older
   than the latest yield date, is dropped and listed in the payload's
   `missing_series`. The page badge then reads "Live · … · N missing", and its
