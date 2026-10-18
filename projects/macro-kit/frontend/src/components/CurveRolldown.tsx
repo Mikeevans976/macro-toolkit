@@ -37,7 +37,7 @@ function fitDomain(values: number[]): [number, number] {
 }
 
 // Line from today's point to the rolled point, with an arrowhead at the rolled end
-function RollArrow(color: string) {
+export function RollArrow(color: string) {
   return function Arrow(props: { x1?: number; y1?: number; x2?: number; y2?: number }) {
     const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = props
     const dx = x2 - x1, dy = y2 - y1

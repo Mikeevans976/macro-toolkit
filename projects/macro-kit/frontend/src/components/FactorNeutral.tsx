@@ -25,6 +25,8 @@ interface StructureStats {
 interface NeutralData {
   label: string
   group: 'curve' | 'fly'
+  rule?: string    // how the weights are re-solved, when the tool's structures aren't plain curves/flies
+  basis?: string   // what the factors are estimated on, e.g. "daily Bund yield changes (2y–30y)"
   as_of: string
   window_days: number
   hedged: FactorName[]
@@ -67,11 +69,13 @@ const LOOKBACKS = [[252, '1Y'], [504, '2Y'], [0, 'All']] as const
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function FactorNeutral({ currency, label, asOf, dataStamp }: {
-  currency: string
+export default function FactorNeutral({ currency, label, asOf, dataStamp, apiBase = '/api/tools/swaps-rv', query = '' }: {
+  currency?: string
   label: string
   asOf: string
   dataStamp?: string | null
+  apiBase?: string   // tool whose /neutral route serves the payload
+  query?: string     // extra query parameters
 }) {
   const [data, setData] = useState<NeutralData | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -81,9 +85,12 @@ export default function FactorNeutral({ currency, label, asOf, dataStamp }: {
     let cancelled = false
     setData(null)
     setError(null)
-    const params = new URLSearchParams({ currency, label, date: asOf })
+    const params = new URLSearchParams(query)
+    if (currency) params.set('currency', currency)
+    params.set('label', label)
+    params.set('date', asOf)
     axios
-      .get<NeutralData>(`/api/tools/swaps-rv/neutral?${params}`, {
+      .get<NeutralData>(`${apiBase}/neutral?${params}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('access_token') ?? ''}` },
       })
       .then(res => {
@@ -99,7 +106,7 @@ export default function FactorNeutral({ currency, label, asOf, dataStamp }: {
         setError(typeof detail === 'string' ? detail : 'Could not load the factor-neutral version.')
       })
     return () => { cancelled = true }
-  }, [currency, label, asOf, dataStamp])
+  }, [currency, label, asOf, dataStamp, apiBase, query])
 
   // Both structures relative to their own mean over the estimation year, so they share one axis
   const chartData = useMemo(() => {
@@ -119,14 +126,15 @@ export default function FactorNeutral({ currency, label, asOf, dataStamp }: {
   }, [data, lookback])
 
   const isFly = data?.group === 'fly'
+  const basis = data?.basis ?? 'daily par swap changes (1y–30y)'
   const header = (
     <>
       <div style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Factor-neutral version</div>
       <div style={{ color: '#8995a2', fontSize: 12, marginBottom: 12 }}>
-        {isFly ? 'Belly kept at 2; wings re-weighted so the fly has no level or slope exposure.'
+        {data?.rule ?? (isFly ? 'Belly kept at 2; wings re-weighted so the fly has no level or slope exposure.'
                : data ? 'Back leg kept at 1; front leg re-weighted so the curve has no level exposure.'
-               : 'Curves hedged for level, flies for level and slope.'}
-        {' '}Factors are the first three principal components of daily par swap changes (1y–30y) over the last year;
+               : 'Curves hedged for level, flies for level and slope.')}
+        {' '}Factors are the first three principal components of {basis} over the last year;
         the weights are estimated on that year and applied to the whole history.
       </div>
     </>
@@ -136,6 +144,7 @@ export default function FactorNeutral({ currency, label, asOf, dataStamp }: {
   if (!data) return <div style={{ marginTop: 20 }}>{header}<div style={{ color: '#8995a2', fontSize: 12 }}>Loading factor-neutral version…</div></div>
 
   const { standard: s, neutral: n } = data
+  const hasIvol = s.ivol_bps != null || n?.ivol_bps != null
   const hedgedTxt = data.hedged.join(' and ')
   const th: React.CSSProperties = { textAlign: 'right', padding: '6px 10px', fontWeight: 600, whiteSpace: 'nowrap' }
   const td: React.CSSProperties = { textAlign: 'right', padding: '6px 10px', fontFamily: MONO, color: '#c6ced8' }
@@ -212,10 +221,10 @@ export default function FactorNeutral({ currency, label, asOf, dataStamp }: {
                 <th style={th}>Z 1y</th>
                 <th style={th}>%ile</th>
                 <th style={th}>3m RVol</th>
-                <th style={th}>IVol</th>
+                {hasIvol && <th style={th}>IVol</th>}
                 <th style={th}>Carry 1y</th>
                 <th style={th}>C/RVol</th>
-                <th style={th}>C/IVol</th>
+                {hasIvol && <th style={th}>C/IVol</th>}
               </tr>
             </thead>
             <tbody>
@@ -226,12 +235,12 @@ export default function FactorNeutral({ currency, label, asOf, dataStamp }: {
                   <td style={{ ...td, color: zColor(st.zscore_1y) }}>{signed(st.zscore_1y)}</td>
                   <td style={td}>{st.pctile_1y.toFixed(0)}</td>
                   <td style={td}>{st.vol3m_bps.toFixed(1)}</td>
-                  <td style={td}>{st.ivol_bps == null ? '—' : st.ivol_bps.toFixed(1)}</td>
+                  {hasIvol && <td style={td}>{st.ivol_bps == null ? '—' : st.ivol_bps.toFixed(1)}</td>}
                   <td style={{ ...td, color: st.carry1y_bps > 0 ? '#6fc2a2' : st.carry1y_bps < 0 ? '#e2826f' : '#c6ced8' }}>
                     {signed(st.carry1y_bps, 1)}
                   </td>
                   <td style={td}>{st.carry_vol_ratio == null ? '—' : signed(st.carry_vol_ratio, 2)}</td>
-                  <td style={td}>{st.carry_ivol_ratio == null ? '—' : signed(st.carry_ivol_ratio, 2)}</td>
+                  {hasIvol && <td style={td}>{st.carry_ivol_ratio == null ? '—' : signed(st.carry_ivol_ratio, 2)}</td>}
                 </tr>
               ))}
             </tbody>
@@ -275,7 +284,7 @@ export default function FactorNeutral({ currency, label, asOf, dataStamp }: {
           </ResponsiveContainer>
         </Panel>
 
-        <Panel title="Curve factors · loadings by tenor" sub="First three principal components of daily par swap changes, last year; share of variance in brackets">
+        <Panel title="Curve factors · loadings by tenor" sub={`First three principal components of ${basis}, last year; share of variance in brackets`}>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid {...chart.grid} />

@@ -1074,6 +1074,8 @@
     "groups",
     "max_date",
     "min_date",
+    "missing_series",
+    "policy_meetings",
     "rv_monitor",
     "yield_mode"
    ]
@@ -1083,7 +1085,7 @@
    "str_sha1": "aae08e5de1a994359477f92d1d3a3090001c9c4f"
   },
   "$.beta_monitor": {
-   "n_items": 1087
+   "n_items": 892
   },
   "$.beta_monitor[]": {
    "keys": [
@@ -1098,54 +1100,54 @@
    ]
   },
   "$.beta_monitor[].beta_bund10y": {
-   "max": 0.002,
-   "min": -0.003,
-   "n_num": 1087,
-   "sum": 0.046000000000000055,
-   "sumsq": 0.0007160000000000044
+   "max": 0.486,
+   "min": -0.416,
+   "n_num": 892,
+   "sum": 8.763000000000005,
+   "sumsq": 17.00133699999998
   },
   "$.beta_monitor[].beta_slope": {
-   "max": 0.046,
-   "min": -0.031,
-   "n_num": 1087,
-   "sum": 4.758999999999988,
-   "sumsq": 0.1403890000000006
+   "max": 1.172,
+   "min": -0.196,
+   "n_num": 892,
+   "sum": 140.50799999999995,
+   "sumsq": 100.27418399999976
   },
   "$.beta_monitor[].beta_spread10y": {
-   "max": 0.019,
-   "min": -0.015,
-   "n_num": 1087,
-   "sum": -1.635999999999989,
-   "sumsq": 0.0188380000000001
+   "max": 1.08,
+   "min": -1.133,
+   "n_num": 892,
+   "sum": -1.04199999999999,
+   "sumsq": 46.43702200000008
   },
   "$.beta_monitor[].beta_vol1m10y": {
-   "max": 0.001,
-   "min": -0.001,
-   "n_num": 1087,
-   "sum": -0.11400000000000009,
-   "sumsq": 0.0001439999999999997
+   "max": 0.01,
+   "min": -0.015,
+   "n_num": 892,
+   "sum": 0.008999999999999932,
+   "sumsq": 0.005711000000000019
   },
   "$.beta_monitor[].group": {
-   "n_str": 1087,
-   "str_sha1": "2ec017f35653a5ff7393e033a822361e28357b93"
+   "n_str": 892,
+   "str_sha1": "589081411db4e5670b11f75c9d694bc93abfbca9"
   },
   "$.beta_monitor[].label": {
-   "n_str": 1087,
-   "str_sha1": "cb1b86200039110536d2eb0ab5affc0de64bbc0c"
+   "n_str": 892,
+   "str_sha1": "7756e9940e3e15a0c7ed7c138aea8bf5b027e230"
   },
   "$.beta_monitor[].r2": {
-   "max": 0.067,
-   "min": 0.0,
-   "n_num": 1087,
-   "sum": 9.866999999999956,
-   "sumsq": 0.18737700000000104
+   "max": 1.0,
+   "min": 0.001,
+   "n_num": 892,
+   "sum": 211.46099999999927,
+   "sumsq": 142.04070899999937
   },
   "$.beta_monitor[].residual_zscore": {
-   "max": 1.0,
-   "min": -0.96,
-   "n_num": 1087,
-   "sum": 146.7899999999996,
-   "sumsq": 243.14210000000003
+   "max": 2.75,
+   "min": -2.7,
+   "n_num": 892,
+   "sum": -31.730000000000008,
+   "sumsq": 1031.4156999999977
   },
   "$.bond_map": {
    "keys": []
@@ -1391,8 +1393,33 @@
    "n_str": 1,
    "str_sha1": "5a1d5aa66e00eda842c9247b52e2abbb08da656f"
   },
+  "$.missing_series": {
+   "n_items": 0
+  },
+  "$.policy_meetings": {
+   "keys": [
+    "bank",
+    "dates",
+    "next"
+   ]
+  },
+  "$.policy_meetings.bank": {
+   "n_str": 1,
+   "str_sha1": "02f2868f17528ad5fb3b02b5b6c017ae2adb5f04"
+  },
+  "$.policy_meetings.dates": {
+   "n_items": 36
+  },
+  "$.policy_meetings.dates[]": {
+   "n_str": 36,
+   "str_sha1": "8e6eae7e84e73929fc997be5ede16600350829eb"
+  },
+  "$.policy_meetings.next": {
+   "n_str": 1,
+   "str_sha1": "9b026013fc4af87d1810ed8123b017c94ccfb39c"
+  },
   "$.rv_monitor": {
-   "n_items": 1087
+   "n_items": 892
   },
   "$.rv_monitor[]": {
    "keys": [
@@ -1407,6 +1434,7 @@
     "group",
     "income_carry_bps",
     "label",
+    "legs",
     "oat_repo_sens",
     "pctile_1y",
     "roll_bps",
@@ -1418,115 +1446,143 @@
   "$.rv_monitor[].bonos_repo_sens": {
    "max": 50.5757,
    "min": -50.5757,
-   "n_num": 1087,
-   "sum": 2760.5573,
-   "sumsq": 202455.26286706992
+   "n_num": 892,
+   "sum": 2031.800600000001,
+   "sumsq": 172596.0333305399
   },
   "$.rv_monitor[].btp_repo_sens": {
    "max": 47.2736,
    "min": -50.685,
-   "n_num": 1087,
-   "sum": 2424.5575000000003,
-   "sumsq": 129935.34844083003
+   "n_num": 892,
+   "sum": 2166.8383000000003,
+   "sumsq": 120571.11537852998
   },
   "$.rv_monitor[].bund_repo_sens": {
    "max": 50.3722,
    "min": -46.9918,
-   "n_num": 1087,
-   "sum": -707.3330000000001,
-   "sumsq": 128395.50769857994
+   "n_num": 892,
+   "sum": -451.1874999999999,
+   "sumsq": 119143.61817996993
   },
   "$.rv_monitor[].carry1y_bps": {
    "max": 62.74,
    "min": -55.21,
-   "n_num": 1087,
-   "sum": 1494.4900000000002,
-   "sumsq": 399263.1654999996
+   "n_num": 892,
+   "sum": 1671.819999999998,
+   "sumsq": 353185.27120000037
   },
   "$.rv_monitor[].carry_vol_ratio": {
-   "max": 50.73,
-   "min": -140.78,
-   "n_num": 1087,
-   "sum": -3671.4200000000005,
-   "sumsq": 339839.9032000003
+   "max": 42.45,
+   "min": -158.0,
+   "n_num": 892,
+   "sum": -2708.57,
+   "sumsq": 294771.37030000024
   },
   "$.rv_monitor[].d1d_bps": {
    "max": 0.25,
    "min": -0.33,
-   "n_num": 1087,
-   "sum": -28.040000000000003,
-   "sumsq": 8.18079999999995
+   "n_num": 892,
+   "sum": -23.64,
+   "sumsq": 7.176399999999961
   },
   "$.rv_monitor[].d1m_bps": {
    "max": 1.35,
    "min": -1.49,
-   "n_num": 1087,
-   "sum": -24.17999999999997,
-   "sumsq": 192.2678000000004
+   "n_num": 892,
+   "sum": -20.549999999999994,
+   "sumsq": 167.5855000000002
   },
   "$.rv_monitor[].d1w_bps": {
    "max": 0.59,
    "min": -0.95,
-   "n_num": 1087,
-   "sum": -96.36999999999995,
-   "sumsq": 56.54430000000021
+   "n_num": 892,
+   "sum": -81.23000000000017,
+   "sumsq": 48.37170000000016
   },
   "$.rv_monitor[].group": {
-   "n_str": 1087,
-   "str_sha1": "2ec017f35653a5ff7393e033a822361e28357b93"
+   "n_str": 892,
+   "str_sha1": "589081411db4e5670b11f75c9d694bc93abfbca9"
   },
   "$.rv_monitor[].income_carry_bps": {
    "max": 61.77,
    "min": -55.65,
-   "n_num": 1087,
-   "sum": 2485.969999999999,
-   "sumsq": 354335.8628999993
+   "n_num": 892,
+   "sum": 2342.0599999999986,
+   "sumsq": 301906.32519999956
   },
   "$.rv_monitor[].label": {
-   "n_str": 1087,
-   "str_sha1": "cb1b86200039110536d2eb0ab5affc0de64bbc0c"
+   "n_str": 892,
+   "str_sha1": "7756e9940e3e15a0c7ed7c138aea8bf5b027e230"
+  },
+  "$.rv_monitor[].legs": {
+   "n_items": 2718
+  },
+  "$.rv_monitor[].legs[]": {
+   "keys": [
+    "country",
+    "tenor",
+    "weight"
+   ]
+  },
+  "$.rv_monitor[].legs[].country": {
+   "n_str": 2718,
+   "str_sha1": "9b5b55b7218d05bb4f8e975ac548d79da9cd6972"
+  },
+  "$.rv_monitor[].legs[].tenor": {
+   "max": 30.0,
+   "min": 2.0,
+   "n_num": 2718,
+   "sum": 34170.0,
+   "sumsq": 685920.0
+  },
+  "$.rv_monitor[].legs[].weight": {
+   "max": 2.0,
+   "min": -1.0,
+   "n_num": 2718,
+   "sum": 15.0,
+   "sumsq": 3267.0
   },
   "$.rv_monitor[].oat_repo_sens": {
    "max": 50.5104,
    "min": -50.5104,
-   "n_num": 1087,
-   "sum": 1663.9095999999913,
-   "sumsq": 339353.06765452033
+   "n_num": 892,
+   "sum": 1507.0101999999954,
+   "sumsq": 290373.0653824201
   },
   "$.rv_monitor[].pctile_1y": {
    "max": 100.0,
    "min": 0.4,
-   "n_num": 1087,
-   "sum": 60563.49999999999,
-   "sumsq": 4478546.710000008
+   "n_num": 892,
+   "sum": 50025.5,
+   "sumsq": 3704311.1500000074
   },
   "$.rv_monitor[].roll_bps": {
    "max": 42.1,
    "min": -33.26,
-   "n_num": 1087,
-   "sum": -991.4800000000012,
-   "sumsq": 97972.09739999996
+   "n_num": 892,
+   "sum": -670.240000000001,
+   "sumsq": 85923.97200000007
   },
   "$.rv_monitor[].value_bps": {
    "max": 187.51,
    "min": -47.24,
-   "n_num": 1087,
-   "sum": 35459.35000000001,
-   "sumsq": 3052935.273099998
+   "n_num": 892,
+   "sum": 30311.519999999957,
+   "sumsq": 2616735.8843999985
   },
   "$.rv_monitor[].vol3m_bps": {
    "max": 4.36,
    "min": 0.09,
-   "n_num": 1087,
-   "sum": 1401.7199999999998,
-   "sumsq": 2642.801400000005
+   "n_num": 892,
+   "sum": 1198.1199999999994,
+   "sumsq": 2285.0024000000003
   },
   "$.rv_monitor[].zscore_1y": {
    "max": 3.75,
    "min": -3.7,
-   "n_num": 1087,
-   "sum": 215.20999999999935,
-   "sumsq": 1701.4362999999998
+   "n_num": 892,
+   "sum": 187.13999999999987,
+   "sumsq": 1413.3582000000001
   },
   "$.yield_mode": {
    "n_str": 1,

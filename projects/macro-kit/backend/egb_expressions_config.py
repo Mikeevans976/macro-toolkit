@@ -18,16 +18,16 @@ Repo blocs:
   "BTP"   — Italy
   "Bonos" — Spain, Portugal (peripheral GC proxy)
 
-Bloomberg tickers (⚠️ = verify before live use):
+Bloomberg tickers (all checked on the Terminal 2026-10-18):
   Bund        : GDBR{T} Index
   OAT         : GFRN{T} Index
   BTP         : GBTPGR{T} Index
   Bonos       : GSPG{T}YR Index
-  Belgium     : GBGB{T}YR Index      ⚠️
-  Portugal    : GPTIT{T}YR Index     ⚠️
-  Netherlands : GNETH{T}YR Index     ⚠️
-  Austria     : GAGB{T}YR Index      ⚠️
-  Finland     : GFINGB{T} Index      ⚠️
+  Belgium     : GBGB{T}YR Index
+  Portugal    : GSPT{T}YR Index
+  Netherlands : GNTH{T}YR Index
+  Austria     : GAGB{T}YR Index
+  Finland     : GFIN{T}YR Index
 """
 
 from itertools import combinations as _comb
@@ -51,16 +51,18 @@ REPO_BLOCS = ["Bund", "OAT", "BTP", "Bonos"]
 
 # ─── Benchmark tenors per country ────────────────────────────────────────────
 
+# Only tenors with a live generic ticker: Bloomberg has none for Spain 20y,
+# Netherlands 15y/20y or Finland 20y (checked 2026-10-18).
 COUNTRY_TENORS: dict[str, list[int]] = {
     "Bund":        [2, 5, 7, 10, 15, 20, 30],
     "OAT":         [2, 5, 7, 10, 15, 20, 30],
     "BTP":         [2, 5, 7, 10, 15, 20, 30],
-    "Bonos":       [2, 5, 7, 10, 15, 20, 30],
+    "Bonos":       [2, 5, 7, 10, 15, 30],
     "Belgium":     [2, 5, 10, 15, 20, 30],
     "Portugal":    [2, 5, 10, 15, 30],
-    "Netherlands": [2, 5, 10, 15, 20, 30],
+    "Netherlands": [2, 5, 10, 30],
     "Austria":     [2, 5, 10, 15, 20, 30],
-    "Finland":     [2, 5, 10, 20, 30],
+    "Finland":     [2, 5, 10, 30],
 }
 
 # All tenors used (union) — for simulation

@@ -3,6 +3,10 @@ import PageTitle, { headerBar } from '../components/PageTitle'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import ExpressionDetail, { fmtBp, fmtSignedBp, type SeriesPoint, type StatGroupDef } from '../components/ExpressionDetail'
+import RegressionDetail from '../components/RegressionDetail'
+import FactorNeutral from '../components/FactorNeutral'
+import BondRolldown from '../components/BondRolldown'
+import { CarryRealisationDetail } from '../components/CarryBacktest'
 import {
   ScatterChart,
   Scatter,
@@ -34,9 +38,14 @@ interface RVRow {
   oat_repo_sens: number
   btp_repo_sens: number
   bonos_repo_sens: number
+  legs?: { country: string; tenor: number; weight: number }[]   // country ends in "_ASW" for ASW legs
 }
 
 type CarryMode = 'total' | 'income' | 'roll'
+
+// RV Monitor column sort; carry and C/V sort on the repo-adjusted values the table shows
+type RVSortKey = 'label' | 'value_bps' | 'd1d_bps' | 'd1w_bps' | 'd1m_bps' | 'zscore_1y' | 'pctile_1y' | 'vol3m_bps' | 'carry' | 'cv'
+type RVSort = { key: RVSortKey; dir: 'asc' | 'desc' } | null
 
 // Repo adjustment only affects income carry, not roll
 function repoAdj(
@@ -106,10 +115,12 @@ interface EGBRVData {
   max_date: string
   data_source: string
   yield_mode: string
+  missing_series?: string[]
   bond_map: Record<string, Record<string, BondInfo | null>>
   rv_monitor: RVRow[]
   beta_monitor: BetaRow[]
   groups: Record<string, GroupMeta>
+  policy_meetings?: { bank: string; dates: string[]; next: string | null } | null
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -383,6 +394,7 @@ const CARRY_MODE_LABEL: Record<CarryMode, string> = {
 function DetailModal({
   label, row, betaRow, series, groups, siblings, onSwitch, onClose,
   bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode,
+  asOf, query, dataStamp, meetings,
 }: {
   label: string
   row: RVRow
@@ -397,8 +409,24 @@ function DetailModal({
   btpSpreadBps: number
   bonosSpreadBps: number
   carryMode: CarryMode
+  asOf: string
+  query: string                    // yield mode, passed to every detail request
+  dataStamp: number                // bumps on Refresh so the analyses reload
+  meetings?: EGBRVData['policy_meetings']
 }) {
   const [lookback, setLookback] = useState('1Y')
+  const legs = row.legs ?? []
+  const hasAsw = legs.some(l => l.country.endsWith('_ASW'))
+
+  // ECB meetings: on by default for short-end expressions (every leg 2y or less)
+  const shortEnd = legs.length > 0 && legs.every(l => l.tenor <= 2)
+  const [showMeetings, setShowMeetings] = useState(shortEnd)
+  useEffect(() => { setShowMeetings(shortEnd) }, [label, shortEnd])
+  const events = useMemo(
+    () => meetings && showMeetings ? meetings.dates.map(d => ({ date: d, label: meetings.bank })) : [],
+    [meetings, showMeetings],
+  )
+
   const idx  = siblings.indexOf(label)
   const prev = idx > 0 ? siblings[idx - 1] : null
   const next = idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : null
@@ -477,6 +505,7 @@ function DetailModal({
         ) : (
           <ExpressionDetail
             history={series}
+            events={events}
             lookback={lookback}
             onLookbackChange={setLookback}
             lineColor={col}
@@ -493,9 +522,43 @@ function DetailModal({
                 background: `${col}1f`, border: `1px solid ${col}55`, borderRadius: 6, padding: '3px 10px',
               }}>{label}</span>
               <span style={{ color: col, fontSize: 12 }}>{groups[row.group]?.label ?? row.group}</span>
+              {meetings && (
+                <button
+                  onClick={() => setShowMeetings(v => !v)}
+                  title={`${meetings.bank} policy decision dates as dashed lines${meetings.next ? ` · next: ${meetings.next}` : ''}`}
+                  style={{
+                    padding: '3px 10px', borderRadius: 5, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    border: `1px solid ${showMeetings ? 'rgba(214,173,102,0.4)' : 'rgba(200,220,240,0.09)'}`,
+                    background: showMeetings ? 'rgba(214,173,102,0.12)' : 'transparent',
+                    color: showMeetings ? '#dfbb78' : '#9aa5b1',
+                  }}
+                >
+                  {meetings.bank} meetings{meetings.next ? ` · next ${meetings.next.slice(5)}` : ''}
+                </button>
+              )}
             </>}
           />
         )}
+        {/* The Swaps RV detail analyses, on bond yields; keyed so a new expression starts clean */}
+        <div key={label}>
+          <RegressionDetail label={label} asOf={asOf} dataStamp={String(dataStamp)}
+            apiBase="/api/tools/egb-rv" query={query} />
+          {legs.length > 1 && (
+            <FactorNeutral label={label} asOf={asOf} dataStamp={String(dataStamp)}
+              apiBase="/api/tools/egb-rv" query={query} />
+          )}
+          <BondRolldown label={label} asOf={asOf} query={query} dataStamp={dataStamp} />
+          {!hasAsw && (
+            <CarryRealisationDetail label={label} asOf={asOf} dataStamp={String(dataStamp)}
+              apiBase="/api/tools/egb-rv" query={query}
+              title="Roll-down realisation · 1y horizon"
+              description={<>
+                On each entry date: the roll-down that day's curves promised (each leg's yield at T minus the curve at T−1)
+                vs what holding the expression for a year delivered (yield at T on entry minus the curve at T−1 a year later),
+                in bp, long the +weight bonds. Income carry is left out: it accrues whatever the curve does.
+              </>} />
+          )}
+        </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
           <button onClick={onClose} style={navBtn(true)}>Close · Esc</button>
         </div>
@@ -506,9 +569,28 @@ function DetailModal({
 
 // ─── RV Monitor table ─────────────────────────────────────────────────────────
 
+function sortRVRows(rows: RVRow[], sort: RVSort, value: (r: RVRow, key: RVSortKey) => number | string | null): RVRow[] {
+  if (!sort) return rows
+  const sign = sort.dir === 'asc' ? 1 : -1
+  return [...rows].sort((a, b) => {
+    const av = value(a, sort.key), bv = value(b, sort.key)
+    if (av === null) return bv === null ? 0 : 1    // missing values last either way
+    if (bv === null) return -1
+    return sign * (typeof av === 'string' ? av.localeCompare(bv as string) : (av as number) - (bv as number))
+  })
+}
+
+// Click cycles a column: first direction (labels A→Z, numbers high→low), the other, then back to the default order
+function nextRVSort(sort: RVSort, key: RVSortKey): RVSort {
+  const first = key === 'label' ? 'asc' : 'desc'
+  if (!sort || sort.key !== key) return { key, dir: first }
+  return sort.dir === first ? { key, dir: first === 'asc' ? 'desc' : 'asc' } : null
+}
+
 function RVTable({
   rows, focusLabel, onRowClick, groups,
   bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode,
+  sort, onSort,
 }: {
   rows: RVRow[]
   focusLabel: string | null
@@ -519,13 +601,24 @@ function RVTable({
   btpSpreadBps: number
   bonosSpreadBps: number
   carryMode: CarryMode
+  sort: RVSort
+  onSort: (key: RVSortKey) => void
 }) {
   const th: React.CSSProperties = {
     padding: '8px 10px', textAlign: 'right', fontSize: 11, color: '#8995a2',
     fontWeight: 500, whiteSpace: 'nowrap', borderBottom: '1px solid rgba(200,220,240,0.07)',
     position: 'sticky', top: 0, background: '#0b0f14', zIndex: 1,
   }
-  const thL: React.CSSProperties = { ...th, textAlign: 'left' }
+  const sortTh = (key: RVSortKey, text: string, left = false) => {
+    const active = sort?.key === key
+    return (
+      <th onClick={() => onSort(key)} title="Click to sort; click again to reverse, a third time for the default order"
+        style={{ ...th, textAlign: left ? 'left' : 'right', cursor: 'pointer', userSelect: 'none',
+          color: active ? '#e4eaf1' : th.color }}>
+        {text}{active ? (sort?.dir === 'desc' ? ' ↓' : ' ↑') : ''}
+      </th>
+    )
+  }
   const td: React.CSSProperties = {
     padding: '6px 10px', textAlign: 'right', fontSize: 12,
     fontFamily: "'Geist Mono', ui-monospace, monospace", borderBottom: '1px solid rgba(200,220,240,0.04)',
@@ -538,16 +631,16 @@ function RVTable({
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
         <thead>
           <tr>
-            <th style={thL}>Expression</th>
-            <th style={th}>Level</th>
-            <th style={th}>1d</th>
-            <th style={th}>1w</th>
-            <th style={th}>1m</th>
-            <th style={th}>Z (1y)</th>
-            <th style={th}>Pctile</th>
-            <th style={th}>3m RVol</th>
-            <th style={th}>{carryMode === 'total' ? 'Carry+Roll' : carryMode === 'income' ? 'Carry only' : 'Roll only'}/yr</th>
-            <th style={th}>C/V</th>
+            {sortTh('label', 'Expression', true)}
+            {sortTh('value_bps', 'Level')}
+            {sortTh('d1d_bps', '1d')}
+            {sortTh('d1w_bps', '1w')}
+            {sortTh('d1m_bps', '1m')}
+            {sortTh('zscore_1y', 'Z (1y)')}
+            {sortTh('pctile_1y', 'Pctile')}
+            {sortTh('vol3m_bps', '3m RVol')}
+            {sortTh('carry', `${carryMode === 'total' ? 'Carry+Roll' : carryMode === 'income' ? 'Carry only' : 'Roll only'}/yr`)}
+            {sortTh('cv', 'C/V')}
           </tr>
         </thead>
         <tbody>
@@ -880,6 +973,14 @@ export default function EGBRV() {
     data ? (groupFilter === 'all' ? data.beta_monitor : data.beta_monitor.filter(r => r.group === groupFilter))
          : [], [data, groupFilter])
 
+  // RV Monitor rows in the clicked column's order (default: the backend's group order)
+  const [rvSort, setRvSort] = useState<RVSort>(null)
+  const sortedRV = useMemo(() => sortRVRows(filteredRV, rvSort, (r, key) => {
+    if (key === 'carry') return adjCarry(r, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode)
+    if (key === 'cv') return adjCarryVolRatio(r, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode)
+    return r[key]
+  }), [filteredRV, rvSort, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode])
+
   const [refreshKey, setRefreshKey] = useState(0)
   const [detailLabel, setDetailLabel] = useState<string | null>(null)
   const [detailSeries, setDetailSeries] = useState<SeriesPoint[] | null>(null)
@@ -938,8 +1039,8 @@ export default function EGBRV() {
       const cvOf = (r: RVRow) => adjCarryVolRatio(r, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode) ?? 0
       return filteredRV.filter(r => r.carry_vol_ratio !== null).sort((a, b) => cvOf(b) - cvOf(a)).map(r => r.label)
     }
-    return filteredRV.map(r => r.label)
-  }, [tab, filteredRV, filteredBeta, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode])
+    return sortedRV.map(r => r.label)
+  }, [tab, filteredRV, sortedRV, filteredBeta, bundSpreadBps, oatSpreadBps, btpSpreadBps, bonosSpreadBps, carryMode])
 
   const detailRow = detailLabel && data ? data.rv_monitor.find(r => r.label === detailLabel) ?? null : null
 
@@ -1002,7 +1103,11 @@ export default function EGBRV() {
           ↻ Refresh
         </button>
         {data && (
-          <span style={{
+          <span
+            title={data.missing_series?.length
+              ? `No live data (dropped): ${data.missing_series.join(', ')}`
+              : undefined}
+            style={{
             fontSize: 11, padding: '3px 10px', borderRadius: 6,
             background: data.data_source === 'bloomberg' ? 'rgba(88,173,142,0.15)' : 'rgba(214,173,102,0.15)',
             color:      data.data_source === 'bloomberg' ? '#6fc2a2' : '#dfbb78',
@@ -1011,6 +1116,7 @@ export default function EGBRV() {
             {data.data_source === 'bloomberg'
               ? (data.yield_mode === 'individual_bonds' ? 'Live · Individual bonds' : 'Live · Generic tickers')
               : 'Simulated data'}
+            {data.missing_series?.length ? ` · ${data.missing_series.length} missing` : ''}
           </span>
         )}
       </div>
@@ -1133,12 +1239,14 @@ export default function EGBRV() {
             {tab === 'rv' && (
               <div style={cardStyle}>
                 <div style={{ fontSize: 14, color: '#c6ced8', marginBottom: 16 }}>
-                  Click any row (here, in Carry Rank or Beta) or a scatter bubble for its history and summary stats.
+                  Click a column name to rank by it. Click any row (here, in Carry Rank or Beta) or a scatter bubble for its
+                  full analysis: history and stats, factor regression, factor-neutral version, curve roll-down and roll-down realisation.
                   Carry = coupon carry + roll-down per unit DV01, annualised (bps/yr).
                 </div>
-                <RVTable rows={filteredRV} focusLabel={focusLabel} onRowClick={handleRowClick}
+                <RVTable rows={sortedRV} focusLabel={focusLabel} onRowClick={handleRowClick}
                   groups={data.groups} bundSpreadBps={bundSpreadBps} oatSpreadBps={oatSpreadBps}
-                  btpSpreadBps={btpSpreadBps} bonosSpreadBps={bonosSpreadBps} carryMode={carryMode} />
+                  btpSpreadBps={btpSpreadBps} bonosSpreadBps={bonosSpreadBps} carryMode={carryMode}
+                  sort={rvSort} onSort={key => setRvSort(s => nextRVSort(s, key))} />
               </div>
             )}
 
@@ -1214,6 +1322,10 @@ export default function EGBRV() {
           bundSpreadBps={bundSpreadBps} oatSpreadBps={oatSpreadBps}
           btpSpreadBps={btpSpreadBps} bonosSpreadBps={bonosSpreadBps}
           carryMode={carryMode}
+          asOf={data.as_of}
+          query={`use_individual_bonds=${useIndividualBonds}`}
+          dataStamp={refreshKey}
+          meetings={data.policy_meetings}
         />
       )}
     </div>

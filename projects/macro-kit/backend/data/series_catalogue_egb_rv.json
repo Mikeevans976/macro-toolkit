@@ -3,12 +3,20 @@
   "file": "backend/egb_rv.py",
   "bloomberg_fetch": "bdh",
   "fallback": "simulation",
-  "note": "Yield and ESTR tickers verified. ASW tickers marked verified:false — confirm in Bloomberg Terminal before going live.",
+  "note": "Every ticker checked on the Terminal 2026-10-18. Live only when ANALYTICS_DATA_SOURCE=bloomberg. No Bloomberg ASW index tickers work; ASW expressions use yield − €STR OIS as a proxy. Tenors without a generic ticker (Spain 20y, Netherlands 15y/20y, Finland 20y) are not used.",
   "series": [
     {
       "id": "bund_yields",
       "bloomberg_ticker": "GDBR{t} Index",
-      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "tenors_or_expiries": [
+        2,
+        5,
+        7,
+        10,
+        15,
+        20,
+        30
+      ],
       "field": "PX_LAST",
       "description": "German Bund generic government bond yields",
       "unit": "%",
@@ -17,7 +25,15 @@
     {
       "id": "oat_yields",
       "bloomberg_ticker": "GFRN{t} Index",
-      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "tenors_or_expiries": [
+        2,
+        5,
+        7,
+        10,
+        15,
+        20,
+        30
+      ],
       "field": "PX_LAST",
       "description": "French OAT generic government bond yields",
       "unit": "%",
@@ -26,7 +42,15 @@
     {
       "id": "btp_yields",
       "bloomberg_ticker": "GBTPGR{t} Index",
-      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "tenors_or_expiries": [
+        2,
+        5,
+        7,
+        10,
+        15,
+        20,
+        30
+      ],
       "field": "PX_LAST",
       "description": "Italian BTP generic government bond yields",
       "unit": "%",
@@ -35,7 +59,14 @@
     {
       "id": "bonos_yields",
       "bloomberg_ticker": "GSPG{t}YR Index",
-      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "tenors_or_expiries": [
+        2,
+        5,
+        7,
+        10,
+        15,
+        30
+      ],
       "field": "PX_LAST",
       "description": "Spanish Bonos generic government bond yields",
       "unit": "%",
@@ -44,7 +75,14 @@
     {
       "id": "belgium_yields",
       "bloomberg_ticker": "GBGB{t}YR Index",
-      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "tenors_or_expiries": [
+        2,
+        5,
+        10,
+        15,
+        20,
+        30
+      ],
       "field": "PX_LAST",
       "description": "Belgian government bond generic yields",
       "unit": "%",
@@ -52,8 +90,14 @@
     },
     {
       "id": "portugal_yields",
-      "bloomberg_ticker": "GPTIT{t}YR Index",
-      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "bloomberg_ticker": "GSPT{t}YR Index",
+      "tenors_or_expiries": [
+        2,
+        5,
+        10,
+        15,
+        30
+      ],
       "field": "PX_LAST",
       "description": "Portuguese government bond generic yields",
       "unit": "%",
@@ -61,8 +105,13 @@
     },
     {
       "id": "netherlands_yields",
-      "bloomberg_ticker": "GNETH{t}YR Index",
-      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "bloomberg_ticker": "GNTH{t}YR Index",
+      "tenors_or_expiries": [
+        2,
+        5,
+        10,
+        30
+      ],
       "field": "PX_LAST",
       "description": "Dutch government bond generic yields",
       "unit": "%",
@@ -71,7 +120,14 @@
     {
       "id": "austria_yields",
       "bloomberg_ticker": "GAGB{t}YR Index",
-      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "tenors_or_expiries": [
+        2,
+        5,
+        10,
+        15,
+        20,
+        30
+      ],
       "field": "PX_LAST",
       "description": "Austrian government bond generic yields",
       "unit": "%",
@@ -79,8 +135,13 @@
     },
     {
       "id": "finland_yields",
-      "bloomberg_ticker": "GFINGB{t} Index",
-      "tenors_or_expiries": [2, 5, 7, 10, 15, 20, 30],
+      "bloomberg_ticker": "GFIN{t}YR Index",
+      "tenors_or_expiries": [
+        2,
+        5,
+        10,
+        30
+      ],
       "field": "PX_LAST",
       "description": "Finnish government bond generic yields",
       "unit": "%",
@@ -95,64 +156,24 @@
       "verified": true
     },
     {
-      "id": "bund_asw",
-      "bloomberg_ticker": "DASW{t} Index",
-      "tenors_or_expiries": [2, 5, 10, 30],
+      "id": "eur_estr_ois",
+      "bloomberg_ticker": "EESWE{t} Curncy",
+      "tenors_or_expiries": [
+        2,
+        5,
+        10,
+        30
+      ],
       "field": "PX_LAST",
-      "description": "Bund asset swap spreads vs ESTR",
-      "unit": "bps",
-      "verified": false
-    },
-    {
-      "id": "oat_asw",
-      "bloomberg_ticker": "FOASW{t} Index",
-      "tenors_or_expiries": [2, 5, 10, 30],
-      "field": "PX_LAST",
-      "description": "OAT asset swap spreads vs ESTR",
-      "unit": "bps",
-      "verified": false
-    },
-    {
-      "id": "btp_asw",
-      "bloomberg_ticker": "ITASW{t} Index",
-      "tenors_or_expiries": [5, 10, 30],
-      "field": "PX_LAST",
-      "description": "BTP asset swap spreads vs ESTR",
-      "unit": "bps",
-      "verified": false
-    },
-    {
-      "id": "bonos_asw",
-      "bloomberg_ticker": "SPASW{t} Index",
-      "tenors_or_expiries": [5, 10],
-      "field": "PX_LAST",
-      "description": "Bonos asset swap spreads vs ESTR",
-      "unit": "bps",
-      "verified": false
-    },
-    {
-      "id": "belgium_asw",
-      "bloomberg_ticker": "BEASW{t} Index",
-      "tenors_or_expiries": [10],
-      "field": "PX_LAST",
-      "description": "Belgian government bond asset swap spread vs ESTR",
-      "unit": "bps",
-      "verified": false
-    },
-    {
-      "id": "netherlands_asw",
-      "bloomberg_ticker": "NLASW{t} Index",
-      "tenors_or_expiries": [10],
-      "field": "PX_LAST",
-      "description": "Dutch government bond asset swap spread vs ESTR",
-      "unit": "bps",
-      "verified": false
+      "description": "EUR €STR OIS par swap rates; ASW proxy = generic yield − OIS at the same tenor (bps)",
+      "unit": "%",
+      "verified": true
     },
     {
       "id": "eur_swaption_vol_1m10y",
-      "bloomberg_ticker": "EUSV0001 Index",
+      "bloomberg_ticker": "ENPS0A10 ICPL Curncy",
       "field": "PX_LAST",
-      "description": "EUR swaption ATM normal vol, 1m expiry 10y tail — used as vol regime indicator",
+      "description": "EUR 1m10y ATM normal swaption vol (ICAP source); beta-monitor regressor",
       "unit": "bps",
       "verified": true
     }

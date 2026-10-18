@@ -76,11 +76,13 @@ const zColor = (z: number) => Math.abs(z) >= 2 ? (z > 0 ? '#e2826f' : '#6fc2a2')
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function RegressionDetail({ currency, label, asOf, dataStamp }: {
-  currency: string
+export default function RegressionDetail({ currency, label, asOf, dataStamp, apiBase = '/api/tools/swaps-rv', query = '' }: {
+  currency?: string
   label: string
   asOf: string
   dataStamp?: string | null   // changes on a data refresh, so the regression reloads too
+  apiBase?: string            // tool whose /regression route serves the payload
+  query?: string              // extra query parameters, e.g. "use_individual_bonds=false"
 }) {
   const [data, setData] = useState<RegressionData | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -92,19 +94,29 @@ export default function RegressionDetail({ currency, label, asOf, dataStamp }: {
   useEffect(() => {
     let cancelled = false
     setError(null)
-    const params = new URLSearchParams({ currency, label, date: asOf, window: String(rollWindow) })
+    const params = new URLSearchParams(query)
+    if (currency) params.set('currency', currency)
+    params.set('label', label)
+    params.set('date', asOf)
+    params.set('window', String(rollWindow))
     axios
-      .get<RegressionData>(`/api/tools/swaps-rv/regression?${params}`, {
+      .get<RegressionData>(`${apiBase}/regression?${params}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('access_token') ?? ''}` },
       })
-      .then(res => { if (!cancelled) setData(res.data) })
+      .then(res => {
+        if (cancelled) return
+        // Anything but the expected JSON (e.g. the SPA's index.html from an older server) is an error, not data
+        const d = res.data as Partial<RegressionData> | undefined
+        if (d && typeof d === 'object' && Array.isArray(d.factors) && Array.isArray(d.residuals)) setData(d as RegressionData)
+        else setError('The regression is not available from this server.')
+      })
       .catch(err => {
         if (cancelled) return
         const detail = axios.isAxiosError(err) ? (err.response?.data as { detail?: unknown } | undefined)?.detail : undefined
         setError(typeof detail === 'string' ? detail : 'Could not load the regression.')
       })
     return () => { cancelled = true }
-  }, [currency, label, asOf, dataStamp, rollWindow])
+  }, [currency, label, asOf, dataStamp, rollWindow, apiBase, query])
 
   const header = (
     <>

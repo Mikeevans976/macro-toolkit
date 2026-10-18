@@ -54,27 +54,38 @@ const fmtBp = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}`
 const deliveredColor = (v: number | null) =>
   v === null ? '#8995a2' : v >= 0.75 ? '#6fc2a2' : v >= 0.25 ? '#dfbb78' : '#e2826f'
 
-function useCarryBacktest(currency: string, asOf: string, dataStamp: string | null | undefined, window: Window,
-                          label?: string, universe: string = 'core') {
+function useCarryBacktest(currency: string | undefined, asOf: string, dataStamp: string | null | undefined, window: Window,
+                          label?: string, universe: string = 'core',
+                          apiBase: string = '/api/tools/swaps-rv', query: string = '') {
   const [data, setData] = useState<BacktestData | null>(null)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
     setError(null)
-    const params = new URLSearchParams({ currency, date: asOf, window, universe })
+    const params = new URLSearchParams(query)
+    if (currency) params.set('currency', currency)
+    params.set('date', asOf)
+    params.set('window', window)
+    params.set('universe', universe)
     if (label) params.set('label', label)
     axios
-      .get<BacktestData>(`/api/tools/swaps-rv/carry-backtest?${params}`, {
+      .get<BacktestData>(`${apiBase}/carry-backtest?${params}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('access_token') ?? ''}` },
       })
-      .then(res => { if (!cancelled) setData(res.data) })
+      .then(res => {
+        if (cancelled) return
+        // Anything but the expected JSON (e.g. the SPA's index.html from an older server) is an error, not data
+        const d = res.data as Partial<BacktestData> | undefined
+        if (d && typeof d === 'object' && Array.isArray(d.structures)) setData(d as BacktestData)
+        else setError('The carry backtest is not available from this server.')
+      })
       .catch(err => {
         if (cancelled) return
         const detail = axios.isAxiosError(err) ? (err.response?.data as { detail?: unknown } | undefined)?.detail : undefined
         setError(typeof detail === 'string' ? detail : 'Could not load the carry backtest.')
       })
     return () => { cancelled = true }
-  }, [currency, asOf, dataStamp, window, label, universe])
+  }, [currency, asOf, dataStamp, window, label, universe, apiBase, query])
   return { data, error }
 }
 
@@ -217,14 +228,18 @@ export function CarryRealisationSummary({ currency, universe, asOf, dataStamp, s
 
 // ─── One structure (detail view) ──────────────────────────────────────────────
 
-export function CarryRealisationDetail({ currency, label, asOf, dataStamp }: {
-  currency: string
+export function CarryRealisationDetail({ currency, label, asOf, dataStamp, apiBase, query, title, description }: {
+  currency?: string
   label: string
   asOf: string
   dataStamp?: string | null
+  apiBase?: string                 // tool whose /carry-backtest route serves the payload
+  query?: string                   // extra query parameters
+  title?: string
+  description?: React.ReactNode    // replaces the swap-specific explanation
 }) {
   const [win, setWin] = useState<Window>('1y')
-  const { data, error } = useCarryBacktest(currency, asOf, dataStamp, win, label)
+  const { data, error } = useCarryBacktest(currency, asOf, dataStamp, win, label, 'core', apiBase, query)
   const row = data?.structures.find(r => r.label === label)
   const series = useMemo(() => data?.series ?? [], [data])
 
@@ -240,10 +255,12 @@ export function CarryRealisationDetail({ currency, label, asOf, dataStamp }: {
     <div style={{ marginTop: 20 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
         <div>
-          <div style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Carry realisation · 1y horizon</div>
+          <div style={{ color: '#e4eaf1', fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{title ?? 'Carry realisation · 1y horizon'}</div>
           <div style={{ color: '#8995a2', fontSize: 12 }}>
-            On each entry date: the carry that day's curve promised vs the P&L of holding the structure for a year
-            (receiver of the structure; bp). The gap is how far the rolled forwards moved from where the curve put them.
+            {description ?? <>
+              On each entry date: the carry that day's curve promised vs the P&L of holding the structure for a year
+              (receiver of the structure; bp). The gap is how far the rolled forwards moved from where the curve put them.
+            </>}
           </div>
         </div>
         <WindowToggle value={win} onChange={setWin} />

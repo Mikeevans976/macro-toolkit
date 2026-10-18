@@ -638,6 +638,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/egb-rv/carry-backtest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Egb Rv Carry Backtest
+         * @description How much predicted 1y roll-down was delivered: all expressions, per expression, and one expression's history.
+         */
+        get: operations["get_egb_rv_carry_backtest_api_tools_egb_rv_carry_backtest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/egb-rv/neutral": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Egb Rv Neutral
+         * @description One expression next to its level- (or level- and slope-) neutral version.
+         */
+        get: operations["get_egb_rv_neutral_api_tools_egb_rv_neutral_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/egb-rv/regression": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Egb Rv Regression
+         * @description Beta Monitor regression for one expression: coefficients, rolling betas, residuals, attribution.
+         */
+        get: operations["get_egb_rv_regression_api_tools_egb_rv_regression_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/egb-rv/rolldown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Egb Rv Rolldown
+         * @description Each leg's income carry and roll-down along its country's curve on the as-of date.
+         */
+        get: operations["get_egb_rv_rolldown_api_tools_egb_rv_rolldown_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tools/egb-rv/series": {
         parameters: {
             query?: never;
@@ -3370,6 +3450,140 @@ export interface operations {
                 date?: string | null;
                 use_individual_bonds?: boolean;
                 refresh?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_egb_rv_carry_backtest_api_tools_egb_rv_carry_backtest_get: {
+        parameters: {
+            query?: {
+                date?: string | null;
+                label?: string | null;
+                window?: string;
+                use_individual_bonds?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_egb_rv_neutral_api_tools_egb_rv_neutral_get: {
+        parameters: {
+            query: {
+                label: string;
+                date?: string | null;
+                use_individual_bonds?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_egb_rv_regression_api_tools_egb_rv_regression_get: {
+        parameters: {
+            query: {
+                label: string;
+                date?: string | null;
+                use_individual_bonds?: boolean;
+                window?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_egb_rv_rolldown_api_tools_egb_rv_rolldown_get: {
+        parameters: {
+            query: {
+                label: string;
+                date?: string | null;
+                use_individual_bonds?: boolean;
             };
             header?: never;
             path?: never;

@@ -20,20 +20,30 @@ For ASW expressions:
   carry_bps = ASW_level_bps + roll_bond_bps
   where roll_bond_bps = (y(T) − y(T−1)) × 100
 
-Bloomberg tickers (⚠️ verify ASW tickers before live use):
+ASW levels are a proxy when live: generic yield minus the €STR OIS par rate at
+the same tenor, in bps (cheap = positive). That is a spread to OIS, not a
+par-par asset swap; Bloomberg's ASW index tickers return nothing on our Terminal.
+
+Bloomberg tickers (checked on the Terminal 2026-10-18):
   Bund        : GDBR{T} Index
   OAT         : GFRN{T} Index
   BTP         : GBTPGR{T} Index
   Bonos       : GSPG{T}YR Index
-  Belgium     : GBGB{T}YR Index      ⚠️
-  Portugal    : GPTIT{T}YR Index     ⚠️
-  Netherlands : GNETH{T}YR Index     ⚠️
-  Austria     : GAGB{T}YR Index      ⚠️
-  Finland     : GFINGB{T} Index      ⚠️
+  Belgium     : GBGB{T}YR Index
+  Portugal    : GSPT{T}YR Index
+  Netherlands : GNTH{T}YR Index
+  Austria     : GAGB{T}YR Index
+  Finland     : GFIN{T}YR Index
   ESTR        : ESTRON Index
-  EUR 1m10y vol: EUSV0001 Index
+  €STR OIS    : EESWE{T} Curncy
+  EUR 1m10y vol: ENPS0A10 ICPL Curncy
+
+Live data only when ANALYTICS_DATA_SOURCE=bloomberg; otherwise simulated.
+Series that return nothing (or stop updating) are dropped and listed in the
+payload's missing_series.
 """
 
+import functools
 import threading
 import time
 import warnings
@@ -41,13 +51,20 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 from scipy.interpolate import CubicSpline
 
 from egb_expressions_config import (
     ALL_EXPRESSIONS, GROUP_META,
-    REPO_BLOC, REPO_BLOCS, COUNTRY_TENORS,
+    REPO_BLOC, REPO_BLOCS, COUNTRY_TENORS, _lbl,
 )
 from egb_bond_finder import build_egb_bond_map
+from settings import settings
+# The detail view reuses Swaps RV's statistics so both tools report them the same way
+from swaps_rv import (
+    _BT_WINDOWS, _PC_NAMES, _bt_stats, _curve_factors, _ols, _policy_meetings,
+    _residual_zscore, _row_rank_corr, _zscore,
+)
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -61,25 +78,32 @@ _YIELD_TICKERS: dict[str, dict[int, str]] = {
     "BTP":         {t: f"GBTPGR{t} Index"   for t in COUNTRY_TENORS["BTP"]},
     "Bonos":       {t: f"GSPG{t}YR Index"   for t in COUNTRY_TENORS["Bonos"]},
     "Belgium":     {t: f"GBGB{t}YR Index"   for t in COUNTRY_TENORS["Belgium"]},
-    "Portugal":    {t: f"GPTIT{t}YR Index"  for t in COUNTRY_TENORS["Portugal"]},
-    "Netherlands": {t: f"GNETH{t}YR Index"  for t in COUNTRY_TENORS["Netherlands"]},
+    "Portugal":    {t: f"GSPT{t}YR Index"   for t in COUNTRY_TENORS["Portugal"]},
+    "Netherlands": {t: f"GNTH{t}YR Index"   for t in COUNTRY_TENORS["Netherlands"]},
     "Austria":     {t: f"GAGB{t}YR Index"   for t in COUNTRY_TENORS["Austria"]},
-    "Finland":     {t: f"GFINGB{t} Index"   for t in COUNTRY_TENORS["Finland"]},
+    "Finland":     {t: f"GFIN{t}YR Index"   for t in COUNTRY_TENORS["Finland"]},
 }
 
 _ESTR_TICKER = "ESTRON Index"
 
-# ⚠️ Verify these before live use
-_ASW_TICKERS: dict[str, dict[int, str]] = {
-    "Bund":        {t: f"DASW{t} Index"   for t in [2, 5, 10, 30]},
-    "OAT":         {t: f"FOASW{t} Index"  for t in [2, 5, 10, 30]},
-    "BTP":         {t: f"ITASW{t} Index"  for t in [5, 10, 30]},
-    "Bonos":       {t: f"SPASW{t} Index"  for t in [5, 10]},
-    "Belgium":     {t: f"BEASW{t} Index"  for t in [10]},
-    "Netherlands": {t: f"NLASW{t} Index"  for t in [10]},
+# ASW proxy legs: yield − €STR OIS at the same tenor (see module docstring)
+_ASW_TENORS: dict[str, list[int]] = {
+    "Bund":        [2, 5, 10, 30],
+    "OAT":         [2, 5, 10, 30],
+    "BTP":         [5, 10, 30],
+    "Bonos":       [5, 10],
+    "Belgium":     [10],
+    "Netherlands": [10],
+}
+_OIS_TICKERS: dict[int, str] = {
+    t: f"EESWE{t} Curncy" for t in sorted({t for ts in _ASW_TENORS.values() for t in ts})
 }
 
-_VOL_TICKER = "EUSV0001 Index"   # EUR 1m10y swaption normal vol (bps)
+# EUR 1m10y ATM normal swaption vol (bps); ICAP source, as in swaps_rv
+_VOL_TICKER = "ENPS0A10 ICPL Curncy"
+
+_LIVE_YEARS = 6
+_STALE_DAYS = 7   # a series whose last print is older than this vs the yields is dropped
 
 # ─── Carry helpers ────────────────────────────────────────────────────────────
 
@@ -176,6 +200,21 @@ def _expression_carry_components(
     return total_income, total_roll
 
 
+BETA_FACTORS = ["Bund 10y", "OAT-Bund 10y", "Bund 2s10s", "1m10y vol"]
+
+
+def _beta_factors(yield_df: pd.DataFrame, vol_s: pd.Series) -> pd.DataFrame:
+    """The Beta Monitor's explanatory variables as levels in bp, on the yield dates."""
+    def col(c: str, t: int) -> pd.Series:
+        return yield_df[(c, t)] * 100.0 if (c, t) in yield_df.columns else pd.Series(np.nan, index=yield_df.index)
+    return pd.DataFrame({
+        "Bund 10y":     col("Bund", 10),
+        "OAT-Bund 10y": col("OAT", 10) - col("Bund", 10),
+        "Bund 2s10s":   col("Bund", 10) - col("Bund", 2),
+        "1m10y vol":    vol_s.reindex(yield_df.index),
+    }, index=yield_df.index)
+
+
 def _expression_level(legs: list, yield_row: dict, asw_row: dict) -> float:
     """Level of an expression in bps."""
     total = 0.0
@@ -192,15 +231,41 @@ def _expression_level(legs: list, yield_row: dict, asw_row: dict) -> float:
 
 # ─── Bloomberg fetch ──────────────────────────────────────────────────────────
 
+def _field_frame(raw: Optional[pd.DataFrame], field: str) -> pd.DataFrame:
+    """bdh output as one column per ticker for `field`; empty frame when nothing came back."""
+    if raw is None or raw.empty:
+        return pd.DataFrame()
+    df = raw.xs(field, axis=1, level=1) if isinstance(raw.columns, pd.MultiIndex) else raw
+    df = df.copy()
+    df.index = pd.to_datetime(df.index)
+    return df.sort_index()
+
+
+def _live_series(df: pd.DataFrame, tickers: list[str], last: pd.Timestamp,
+                 missing: list[str]) -> dict[str, pd.Series]:
+    """Tickers with a print within _STALE_DAYS of `last`; the others are appended to `missing`."""
+    out = {}
+    for t in tickers:
+        s = df[t].dropna() if t in df.columns else pd.Series(dtype=float)
+        if s.empty or s.index.max() < last - pd.Timedelta(days=_STALE_DAYS):
+            missing.append(t)
+        else:
+            out[t] = s
+    return out
+
+
 def _fetch_from_bbg(start: str, end: str, use_individual_bonds: bool = False):
     """
-    Fetch EGB yields (all 9 countries), ESTR, ASW spreads, EUR 1m10y vol from Bloomberg.
-    Returns (yield_df, estr_s, asw_df, vol_s) or None on failure.
+    Fetch EGB yields (all 9 countries), ESTR, €STR OIS and EUR 1m10y vol from Bloomberg.
+    Returns (yield_df, estr_s, asw_df, vol_s, bond_map, missing) or None when no
+    yields come back.
 
     yield_df : DatetimeIndex, MultiIndex columns (country, tenor), values in %
     estr_s   : Series, ESTR in %
     asw_df   : DatetimeIndex, MultiIndex columns (country, tenor), values in bps
+               (yield − OIS proxy)
     vol_s    : Series, 1m10y vol in bps normal
+    missing  : tickers that returned nothing or went stale, sorted
     """
     try:
         from bbg import blp
@@ -229,73 +294,46 @@ def _fetch_from_bbg(start: str, end: str, use_individual_bonds: bool = False):
             warnings.warn("[egb_rv] yield_ticker_map is empty — no bonds found")
             return None
 
-        raw_y = blp.bdh(list(yield_ticker_map), bbg_yield_field, start, end)
-        if raw_y is None or raw_y.empty:
+        missing: list[str] = []
+        raw_y = _field_frame(blp.bdh(list(yield_ticker_map), bbg_yield_field, start, end), bbg_yield_field)
+        if raw_y.empty:
             warnings.warn("[egb_rv] No yield data from BBG")
             return None
-        if isinstance(raw_y.columns, pd.MultiIndex):
-            raw_y = raw_y.xs(bbg_yield_field, axis=1, level=1)
+        live_y = _live_series(raw_y, list(yield_ticker_map), raw_y.index.max(), missing)
+        if not live_y:
+            warnings.warn("[egb_rv] Every yield series is empty or stale")
+            return None
+        ydf = pd.DataFrame({yield_ticker_map[t]: s for t, s in live_y.items()}).sort_index().sort_index(axis=1)
+        last = ydf.index.max()
 
-        records: list[tuple] = []
-        for ticker, (country, tenor) in yield_ticker_map.items():
-            if ticker in raw_y.columns:
-                s = raw_y[ticker].dropna()
-                for date, val in s.items():
-                    records.append((date, country, tenor, val))
-        ydf = (
-            pd.DataFrame(records, columns=["date", "country", "tenor", "yield"])
-            .pivot_table(index="date", columns=["country", "tenor"], values="yield")
-        )
-        ydf.index = pd.to_datetime(ydf.index)
+        # ── ESTR, €STR OIS, vol: one request ─────────────────────────────────
+        mkt_tickers = [_ESTR_TICKER, _VOL_TICKER, *_OIS_TICKERS.values()]
+        raw_m = _field_frame(blp.bdh(mkt_tickers, "PX_LAST", start, end), "PX_LAST")
+        live_m = _live_series(raw_m, mkt_tickers, last, missing) if not raw_m.empty else {}
+        if raw_m.empty:
+            missing.extend(mkt_tickers)
 
-        # ── ESTR ──────────────────────────────────────────────────────────────
-        raw_estr = blp.bdh([_ESTR_TICKER], "PX_LAST", start, end)
-        if raw_estr is None or raw_estr.empty:
+        def on_yield_dates(ticker: str) -> pd.Series:
+            s = live_m.get(ticker)
+            return s.reindex(ydf.index, method="ffill") if s is not None else pd.Series(np.nan, index=ydf.index)
+
+        if _ESTR_TICKER in live_m:
+            estr_s = on_yield_dates(_ESTR_TICKER)
+        else:
             warnings.warn("[egb_rv] No ESTR data; defaulting to 0%")
             estr_s = pd.Series(0.0, index=ydf.index)
-        else:
-            if isinstance(raw_estr.columns, pd.MultiIndex):
-                raw_estr = raw_estr.xs("PX_LAST", axis=1, level=1)
-            estr_s = raw_estr.iloc[:, 0].reindex(ydf.index, method="ffill")
+        vol_s = on_yield_dates(_VOL_TICKER)
 
-        # ── ASW ───────────────────────────────────────────────────────────────
-        asw_ticker_map: dict[str, tuple[str, int]] = {}
-        for country, tmap in _ASW_TICKERS.items():
-            for tenor, ticker in tmap.items():
-                asw_ticker_map[ticker] = (country, tenor)
+        # ── ASW proxy: yield − €STR OIS, bps ─────────────────────────────────
+        asw_cols = {}
+        for country, tenors in _ASW_TENORS.items():
+            for tenor in tenors:
+                ois = _OIS_TICKERS[tenor]
+                if (country, tenor) in ydf.columns and ois in live_m:
+                    asw_cols[(country, tenor)] = (ydf[(country, tenor)] - on_yield_dates(ois)) * 100.0
+        asw_df = pd.DataFrame(asw_cols, index=ydf.index) if asw_cols else pd.DataFrame(index=ydf.index)
 
-        raw_asw = blp.bdh(list(asw_ticker_map), "PX_LAST", start, end)
-        if raw_asw is None or raw_asw.empty:
-            warnings.warn("[egb_rv] No ASW data from BBG; ASW expressions will be skipped")
-            asw_df = pd.DataFrame(index=ydf.index)
-        else:
-            if isinstance(raw_asw.columns, pd.MultiIndex):
-                raw_asw = raw_asw.xs("PX_LAST", axis=1, level=1)
-            arecs: list[tuple] = []
-            for ticker, (country, tenor) in asw_ticker_map.items():
-                if ticker in raw_asw.columns:
-                    for date, val in raw_asw[ticker].dropna().items():
-                        arecs.append((date, country, tenor, val))
-            if arecs:
-                asw_df = (
-                    pd.DataFrame(arecs, columns=["date", "country", "tenor", "asw"])
-                    .pivot_table(index="date", columns=["country", "tenor"], values="asw")
-                )
-                asw_df.index = pd.to_datetime(asw_df.index)
-                asw_df = asw_df.reindex(ydf.index, method="ffill")
-            else:
-                asw_df = pd.DataFrame(index=ydf.index)
-
-        # ── Vol ───────────────────────────────────────────────────────────────
-        raw_vol = blp.bdh([_VOL_TICKER], "PX_LAST", start, end)
-        if raw_vol is None or raw_vol.empty:
-            vol_s = pd.Series(np.nan, index=ydf.index)
-        else:
-            if isinstance(raw_vol.columns, pd.MultiIndex):
-                raw_vol = raw_vol.xs("PX_LAST", axis=1, level=1)
-            vol_s = raw_vol.iloc[:, 0].reindex(ydf.index, method="ffill")
-
-        return ydf, estr_s, asw_df, vol_s, bond_map
+        return ydf, estr_s, asw_df, vol_s, bond_map, sorted(set(missing))
 
     except Exception as exc:
         warnings.warn(f"[egb_rv] BBG fetch failed: {exc}")
@@ -440,33 +478,70 @@ def _simulate_data(n_days: int = 1260, seed: int = 42) -> tuple:
 
 # ─── Main compute function ────────────────────────────────────────────────────
 
-def _compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool = False) -> dict:
-    """
-    Compute EGB RV monitor for Bund, OAT, BTP, Bonos, Belgium, Portugal,
-    Netherlands, Austria, Finland.
+# Six years of ~70 tickers is one slow pull, so live data are cached in-process
+# (as in swaps_rv): the full fetch happens once; after that a refresh or an
+# expired entry refetches only the last _TOPUP_DAYS and splices them on.
+_BBG_CACHE_TTL_S = 15 * 60
+_TOPUP_DAYS = 14
+_bbg_cache: dict[bool, tuple[float, tuple]] = {}   # use_individual_bonds -> (fetched_at, frames)
+_bbg_lock = threading.Lock()
 
-    Returns:
-      as_of, min_date, max_date, data_source,
-      rv_monitor   : list of RV rows (level, changes, z-score, pctile, vol, carry, repo sensitivities)
-      beta_monitor : list of beta regression rows
-      series       : full daily history per expression, as (dates, values) arrays
-      groups       : group metadata for display
-    """
-    _end   = (pd.Timestamp(as_of_date) if as_of_date else pd.Timestamp.today()).strftime("%Y-%m-%d")
-    _start = (pd.Timestamp(_end) - pd.DateOffset(years=6)).strftime("%Y-%m-%d")
 
-    bbg_result = _fetch_from_bbg(_start, _end, use_individual_bonds=use_individual_bonds)
-    if bbg_result is not None:
-        yield_df, estr_s, asw_df, vol_s, bond_map = bbg_result
-        data_source = "bloomberg"
-        yield_mode = "individual_bonds" if use_individual_bonds else "generic"
-    else:
-        yield_df, estr_s, asw_df, vol_s = _simulate_data()
-        bond_map = {}
-        data_source = "simulation"
-        yield_mode = "simulation"
+def _splice(old: tuple, new: tuple) -> tuple:
+    """Replace the overlapping tail of each cached frame with the freshly fetched rows."""
+    cut = new[0].index.min()
+    frames = tuple(pd.concat([o.loc[o.index < cut], n]) for o, n in zip(old[:4], new[:4]))
+    return frames + new[4:]
 
-    # ── Align and trim ────────────────────────────────────────────────────
+
+def _load_bbg(use_individual_bonds: bool, refresh: bool = False) -> Optional[tuple]:
+    """Live frames for the last _LIVE_YEARS to today, from the cache when fresh."""
+    with _bbg_lock:   # concurrent requests share a single fetch
+        hit = _bbg_cache.get(use_individual_bonds)
+        if hit and not refresh and time.monotonic() - hit[0] < _BBG_CACHE_TTL_S:
+            return hit[1]
+        end = pd.Timestamp.today()
+        if hit:
+            new = _fetch_from_bbg((end - pd.Timedelta(days=_TOPUP_DAYS)).strftime("%Y-%m-%d"),
+                                  end.strftime("%Y-%m-%d"), use_individual_bonds)
+            if new is None:
+                return hit[1]   # Bloomberg hiccup: keep serving the cached history
+            # Only splice like-for-like; if a series appeared or dropped out, refetch in full
+            if all(list(n.columns) == list(o.columns) for n, o in ((new[0], hit[1][0]), (new[2], hit[1][2]))) \
+                    and new[5] == hit[1][5]:
+                _bbg_cache[use_individual_bonds] = (time.monotonic(), _splice(hit[1], new))
+                return _bbg_cache[use_individual_bonds][1]
+        result = _fetch_from_bbg((end - pd.DateOffset(years=_LIVE_YEARS)).strftime("%Y-%m-%d"),
+                                 end.strftime("%Y-%m-%d"), use_individual_bonds)
+        if result is None:
+            return hit[1] if hit else None
+        _bbg_cache[use_individual_bonds] = (time.monotonic(), result)
+        return result
+
+
+@functools.lru_cache(maxsize=1)
+def _simulated() -> tuple:
+    """The simulated frames, built once: deterministic, and the backtest cache keys on their identity."""
+    return _simulate_data()
+
+
+def _raw_frames(use_individual_bonds: bool, refresh: bool = False) -> tuple[tuple, dict]:
+    """(yield_df, estr_s, asw_df, vol_s) for the whole history, plus where they came from.
+    The tuple is the cached object itself, so its identity changes only when the data do."""
+    live = _load_bbg(use_individual_bonds, refresh) if settings.data_source == "bloomberg" else None
+    if live is not None:
+        return live[:4], {
+            "data_source": "bloomberg",
+            "yield_mode": "individual_bonds" if use_individual_bonds else "generic",
+            "bond_map": live[4], "missing_series": live[5],
+        }
+    return _simulated(), {"data_source": "simulation", "yield_mode": "simulation",
+                          "bond_map": {}, "missing_series": []}
+
+
+def _aligned(raw: tuple, as_of_date: Optional[str] = None) -> tuple:
+    """Frames on the yield dates, cut at the as-of date."""
+    yield_df, estr_s, asw_df, vol_s = raw
     yield_df = yield_df.sort_index().dropna(how="all")
     estr_s   = estr_s.reindex(yield_df.index, method="ffill").fillna(0.0)
     asw_df   = asw_df.reindex(yield_df.index, method="ffill") if not asw_df.empty else asw_df
@@ -482,6 +557,44 @@ def _compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool
 
     if yield_df.empty:
         raise ValueError("No data available")
+    return yield_df, estr_s, asw_df, vol_s
+
+
+def _latest_asw(asw_df: pd.DataFrame) -> dict[tuple, float]:
+    if asw_df.empty:
+        return {}
+    last = asw_df.iloc[-1]
+    return {tuple(c): float(v) for c, v in last.items() if not np.isnan(v)}
+
+
+def _splines_at(yield_row: pd.Series) -> dict[str, CubicSpline]:
+    """One cubic spline per country through that day's yields (countries with ≥3 tenors)."""
+    splines: dict[str, CubicSpline] = {}
+    for country, tenors in COUNTRY_TENORS.items():
+        ys = np.array([float(yield_row.get((country, t), np.nan)) for t in tenors])
+        valid = ~np.isnan(ys)
+        if valid.sum() >= 3:
+            splines[country] = _build_spline(list(np.array(tenors)[valid]), ys[valid])
+    return splines
+
+
+def _compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool = False,
+                    refresh: bool = False) -> dict:
+    """
+    Compute EGB RV monitor for Bund, OAT, BTP, Bonos, Belgium, Portugal,
+    Netherlands, Austria, Finland.
+
+    Returns:
+      as_of, min_date, max_date, data_source,
+      rv_monitor   : list of RV rows (level, changes, z-score, pctile, vol, carry, repo sensitivities)
+      beta_monitor : list of beta regression rows
+      series       : full daily history per expression, as (dates, values) arrays
+      groups       : group metadata for display
+    """
+    raw, meta = _raw_frames(use_individual_bonds, refresh)
+    yield_df, estr_s, asw_df, vol_s = _aligned(raw, as_of_date)
+    data_source, yield_mode = meta["data_source"], meta["yield_mode"]
+    bond_map, missing_series = meta["bond_map"], meta["missing_series"]
 
     min_date = yield_df.index[0].strftime("%Y-%m-%d")
     max_date = yield_df.index[-1].strftime("%Y-%m-%d")
@@ -492,23 +605,9 @@ def _compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool
     win_3m  = min(63, n)
 
     # ── Build cubic splines for the as-of date (for carry) ───────────────
-    latest_yields = yield_df.iloc[-1]
-    latest_repo   = float(estr_s.iloc[-1])
-    latest_asw: dict[tuple, float] = {}
-    if not asw_df.empty:
-        for col in asw_df.columns:
-            val = float(asw_df.iloc[-1].get(col, np.nan))
-            if not np.isnan(val):
-                latest_asw[tuple(col)] = val
-
-    splines: dict[str, CubicSpline] = {}
-    for country, tenors in COUNTRY_TENORS.items():
-        ys = np.array([float(latest_yields.get((country, t), np.nan)) for t in tenors])
-        valid = ~np.isnan(ys)
-        if valid.sum() >= 3:
-            ts_valid = np.array(tenors)[valid]
-            ys_valid = ys[valid]
-            splines[country] = _build_spline(list(ts_valid), ys_valid)
+    latest_repo = float(estr_s.iloc[-1])
+    latest_asw  = _latest_asw(asw_df)
+    splines     = _splines_at(yield_df.iloc[-1])
 
     # ── Build expression time series — one matrix product ─────────────────
     # Stack yield legs (bps) and ASW legs (bps) into one panel M (n_days × n_cols);
@@ -545,17 +644,8 @@ def _compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool
     S = np.nan_to_num(M) @ W
     S[(nan_M.astype(np.int32) @ used.astype(np.int32)) > 0] = np.nan   # any NaN leg → NaN
 
-    # ── Beta explanatory variables ─────────────────────────────────────────
-    def _col(c, t):
-        return yield_df[(c, t)].to_numpy(dtype=float) * 100.0 if (c, t) in yield_df.columns else np.full(n, np.nan)
-
-    beta_X = np.column_stack([
-        _col("Bund", 10),
-        _col("OAT", 10) - _col("Bund", 10),
-        _col("Bund", 10) - _col("Bund", 2),
-        vol_s.to_numpy(dtype=float),
-    ])
-    beta_ok = ~np.isnan(beta_X).any(axis=1)
+    # ── Beta explanatory variables (levels in bp; regressions use their daily changes)
+    beta_X = _beta_factors(yield_df, vol_s).to_numpy(dtype=float)
 
     # ── RV + carry + beta ─────────────────────────────────────────────────
     rv_monitor   = []
@@ -630,25 +720,20 @@ def _compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool
             "oat_repo_sens":     repo_sens["OAT"],
             "btp_repo_sens":     repo_sens["BTP"],
             "bonos_repo_sens":   repo_sens["Bonos"],
+            "legs":              [{"country": c, "tenor": t, "weight": w} for c, t, w in legs],
         })
 
         # Full history — kept as arrays; serialised only when requested
         series_out[label] = (dates_str[pos], np.round(v, 2))
 
-        # Beta regression on daily changes (diff over the series' own valid dates)
-        sel = beta_ok[pos[1:]]
-        if sel.sum() < 30:
+        # Beta regression: daily changes on the factors' daily changes over the same days
+        # (the series' own valid dates), last 1y — the regression the detail view expands
+        dX  = beta_X[pos[1:]] - beta_X[pos[:-1]]
+        sel = ~np.isnan(dX).any(axis=1)
+        y, Xc = dv[sel][-win_1y:], dX[sel][-win_1y:]
+        if len(y) < 30:
             continue
-        y  = dv[sel]
-        X  = np.hstack([np.ones((len(y), 1)), beta_X[pos[1:]][sel]])
-        coeffs, _, _, _ = np.linalg.lstsq(X, y, rcond=None)
-        resid  = y - X @ coeffs
-        ss_res = float(np.sum(resid ** 2))
-        ss_tot = float(np.sum((y - y.mean()) ** 2))
-        r2     = round(1.0 - ss_res / ss_tot, 3) if ss_tot > 0 else 0.0
-        cum_r  = np.cumsum(resid)
-        cr_std = float(cum_r.std())
-        res_z  = round((float(cum_r[-1]) - float(cum_r.mean())) / cr_std, 2) if cr_std > 0 else 0.0
+        coeffs, resid, r2 = _ols(y, Xc)
 
         beta_monitor.append({
             "label":             label,
@@ -657,8 +742,8 @@ def _compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool
             "beta_spread10y":    round(float(coeffs[2]), 3),
             "beta_slope":        round(float(coeffs[3]), 3),
             "beta_vol1m10y":     round(float(coeffs[4]), 3),
-            "r2":                r2,
-            "residual_zscore":   res_z,
+            "r2":                round(r2, 3),
+            "residual_zscore":   round(_residual_zscore(resid), 2),
         })
 
     return {
@@ -667,11 +752,13 @@ def _compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool
         "max_date":     max_date,
         "data_source":  data_source,
         "yield_mode":   yield_mode,
+        "missing_series": missing_series,
         "bond_map":     bond_map,
         "rv_monitor":   rv_monitor,
         "beta_monitor": beta_monitor,
         "series":       series_out,
         "groups":       GROUP_META,
+        "policy_meetings": _policy_meetings("EUR", min_date, as_of),
     }
 
 
@@ -694,9 +781,17 @@ def _cached_result(as_of_date: Optional[str], use_individual_bonds: bool, refres
         hit = _cache.get(key)
         if hit and not refresh and now - hit[0] < _CACHE_TTL_S:
             return hit[1]
-        result = _compute_egb_rv(as_of_date=as_of_date, use_individual_bonds=use_individual_bonds)
+        result = _compute_egb_rv(as_of_date=as_of_date, use_individual_bonds=use_individual_bonds,
+                                 refresh=refresh)
         _cache[key] = (now, result)
         return result
+
+
+def warm_cache() -> None:
+    """Fetch and compute the generic-ticker monitor once (startup) so the first visitor doesn't wait."""
+    if settings.data_source != "bloomberg":
+        return
+    compute_egb_rv()
 
 
 def compute_egb_rv(
@@ -720,3 +815,455 @@ def get_egb_series(
         raise KeyError(label)
     dates, values = result["series"][label]
     return [{"date": d, "value": float(v)} for d, v in zip(dates, values)]
+
+
+# ─── Detail view: one expression ──────────────────────────────────────────────
+#
+# Same analyses as the Swaps RV detail page, on bond yields: the Beta Monitor
+# regression in full, a factor-neutral version, the curve roll-down behind the
+# carry, and a backtest of how much predicted roll-down was delivered. Payloads
+# match the Swaps RV ones so the page reuses its components.
+
+_EXPRESSIONS = {label: (group, legs) for label, group, legs in ALL_EXPRESSIONS}
+
+
+def _expression(label: str) -> tuple[str, list]:
+    try:
+        return _EXPRESSIONS[label]
+    except KeyError:
+        raise KeyError(f"Unknown expression: {label}") from None
+
+
+def _leg_label(country: str, tenor: int) -> str:
+    if country.endswith("_ASW"):
+        return f"{_lbl(country[:-4])} ASW {tenor}y"
+    return f"{_lbl(country)} {tenor}y"
+
+
+def _leg_series(country: str, tenor: int, yield_df: pd.DataFrame, asw_df: pd.DataFrame) -> pd.Series:
+    """One leg in bp: the yield × 100, or the ASW level."""
+    if country.endswith("_ASW"):
+        key = (country[:-4], tenor)
+        if asw_df.empty or key not in asw_df.columns:
+            raise KeyError(f"No data for {_leg_label(country, tenor)}")
+        return asw_df[key].astype(float)
+    if (country, tenor) not in yield_df.columns:
+        raise KeyError(f"No data for {_leg_label(country, tenor)}")
+    return yield_df[(country, tenor)].astype(float) * 100.0
+
+
+def _detail_frames(label: str, as_of_date: Optional[str], use_individual_bonds: bool):
+    """(group, legs, aligned frames, leg series in bp, meta) for one expression."""
+    group, legs = _expression(label)
+    raw, meta = _raw_frames(use_individual_bonds)
+    frames = _aligned(raw, as_of_date)
+    return group, legs, frames, [_leg_series(c, t, frames[0], frames[2]) for c, t, _ in legs], meta
+
+
+def _combine(weights, leg_s: list[pd.Series]) -> pd.Series:
+    return sum(w * s for w, s in zip(weights, leg_s)).dropna()
+
+
+def compute_regression(label: str, as_of_date: Optional[str] = None, use_individual_bonds: bool = False,
+                       window: int = 63) -> dict:
+    """
+    The Beta Monitor regression for one expression, in detail: coefficients with standard
+    errors, t-stats and VIFs on the 1y window; rolling-window betas over the full history;
+    daily and cumulative residuals; and the 1y move attributed to each factor.
+    """
+    group, legs, (yield_df, _, _, vol_s), leg_s, meta = _detail_frames(label, as_of_date, use_individual_bonds)
+    series = _combine([w for _, _, w in legs], leg_s)
+    changes = _beta_factors(yield_df, vol_s).reindex(series.index).diff()
+    y_full = series.diff()
+    ok = y_full.notna() & changes.notna().all(axis=1)
+    y_full, changes = y_full[ok], changes[ok]
+    factors = BETA_FACTORS
+    common_all = y_full.index
+    common = common_all[-min(252, len(yield_df)):]   # same 1y window as the Beta Monitor
+    if len(common) < 30:
+        raise KeyError(f"Not enough history to regress {label}")
+
+    y = y_full.loc[common].values
+    Xf = changes.loc[common, factors].values
+    coeffs, resid, r2 = _ols(y, Xf)
+    n, k = len(y), len(factors)
+
+    # Classical OLS standard errors
+    X = np.hstack([np.ones((n, 1)), Xf])
+    dof = max(n - k - 1, 1)
+    sigma2 = float(resid @ resid) / dof
+    se = np.sqrt(np.diag(sigma2 * np.linalg.pinv(X.T @ X)))
+    tstat = np.divide(coeffs, se, out=np.zeros_like(coeffs), where=se > 0)
+
+    # VIF: how well each factor is explained by the others (1 = independent)
+    vif = []
+    for j in range(k):
+        _, _, r2_j = _ols(Xf[:, j], np.delete(Xf, j, axis=1))
+        vif.append(1.0 / (1.0 - r2_j) if r2_j < 1 else float("inf"))
+
+    factor_vol = Xf.std(axis=0, ddof=1)
+    factor_rows = [{
+        "name": f,
+        "beta": round(float(coeffs[j + 1]), 4),
+        "se": round(float(se[j + 1]), 4),
+        "t": round(float(tstat[j + 1]), 2),
+        "factor_vol_bp": round(float(factor_vol[j]), 3),
+        "beta_x_vol_bp": round(float(coeffs[j + 1] * factor_vol[j]), 3),
+        "vif": round(float(vif[j]), 2),
+    } for j, f in enumerate(factors)]
+
+    fitted = X @ coeffs
+    cum = np.cumsum(resid)
+    dates = [d.strftime("%Y-%m-%d") for d in common]
+    residuals = [{
+        "date": d, "actual": round(float(a), 3), "fitted": round(float(f), 3),
+        "resid": round(float(e), 3), "cum": round(float(c), 3),
+    } for d, a, f, e, c in zip(dates, y, fitted, resid, cum)]
+
+    # Attribution: cumulative move = Σ β·ΔX per factor + intercept drift + residual (exact)
+    cum_contrib = np.cumsum(Xf * coeffs[1:], axis=0)
+    cum_actual = np.cumsum(y)
+    attribution = []
+    for i, d in enumerate(dates):
+        row = {"date": d, "actual": round(float(cum_actual[i]), 3),
+               "intercept": round(float(coeffs[0] * (i + 1)), 3), "residual": round(float(cum[i]), 3)}
+        row.update({f: round(float(cum_contrib[i, j]), 3) for j, f in enumerate(factors)})
+        attribution.append(row)
+
+    # Rolling-window betas across the full history
+    y_all = y_full.values
+    X_all = changes[factors].values
+    rolling = []
+    for end in range(window, len(y_all) + 1):
+        c_w, _, r2_w = _ols(y_all[end - window:end], X_all[end - window:end])
+        row = {"date": common_all[end - 1].strftime("%Y-%m-%d"), "r2": round(r2_w, 3)}
+        row.update({f: round(float(c_w[j + 1]), 4) for j, f in enumerate(factors)})
+        rolling.append(row)
+
+    return {
+        "label": label,
+        "group": group,
+        "as_of": yield_df.index[-1].strftime("%Y-%m-%d"),
+        "data_source": meta["data_source"],
+        "factors": factor_rows,
+        "intercept": {"beta": round(float(coeffs[0]), 4), "se": round(float(se[0]), 4), "t": round(float(tstat[0]), 2)},
+        "n_obs": n,
+        "r2": round(r2, 3),
+        "adj_r2": round(1 - (1 - r2) * (n - 1) / dof, 3),
+        "resid_vol_bp": round(float(np.sqrt(sigma2)), 3),
+        "residual_zscore": round(_residual_zscore(resid), 2),
+        "cum_resid_mean": round(float(cum.mean()), 3),
+        "cum_resid_std": round(float(cum.std()), 3),
+        "rolling_window": window,
+        "rolling": rolling,
+        "residuals": residuals,
+        "attribution": attribution,
+    }
+
+
+# Factor-neutral weights. The factors are the first three principal components of
+# daily Bund curve changes (2y–30y) over the last year: level, slope, curvature. A
+# leg's exposure is its regression on the standardised PC scores (bp per 1σ day), so
+# legs from any country are treated alike. Kept legs hold their weights and the
+# hedge legs are re-solved: 2-leg spreads and curves become level-neutral; flies
+# (belly kept) and boxes (first country's curve kept) become level- and slope-neutral.
+
+def _neutral_plan(n_legs: int) -> Optional[tuple[list[int], list[int], int, str]]:
+    """(kept legs, hedge legs, factors hedged, description) for an expression's shape."""
+    if n_legs == 2:
+        return [0], [1], 1, "First leg kept at its weight; second leg re-weighted so the expression has no level exposure."
+    if n_legs == 3:
+        return [1], [0, 2], 2, "Belly kept at 2; wings re-weighted so the fly has no level or slope exposure."
+    if n_legs == 4:
+        return [0, 1], [2, 3], 2, ("First curve kept; second curve's legs re-weighted so the box has no "
+                                   "level or slope exposure.")
+    return None
+
+
+def _neutral_weights(weights: list[float], E: np.ndarray, plan) -> Optional[list[float]]:
+    """Solve the hedge legs' weights so the hedged factor exposures are zero; None if they can't be."""
+    kept, hedge, k, _ = plan
+    M = E[:k][:, hedge]
+    if np.linalg.cond(M) > 1e6:
+        return None
+    x = np.linalg.solve(M, -E[:k][:, kept] @ np.asarray([weights[i] for i in kept], float))
+    out = list(map(float, weights))
+    for i, w in zip(hedge, x):
+        out[i] = float(w)
+    return out
+
+
+def compute_neutral(label: str, as_of_date: Optional[str] = None, use_individual_bonds: bool = False) -> dict:
+    """One expression next to its factor-neutral version (see the comment above)."""
+    group, legs, (yield_df, estr_s, asw_df, _), leg_s, meta = _detail_frames(label, as_of_date, use_individual_bonds)
+    plan = _neutral_plan(len(legs))
+    if plan is None:
+        raise KeyError(f"No factor-neutral version for {label}: it has a single leg")
+    kept, hedge, k, rule = plan
+    weights = [float(w) for _, _, w in legs]
+
+    n = len(yield_df)
+    win_1y, win_3m = min(252, n), min(63, n)
+    bund = yield_df["Bund"].dropna(how="any")
+    dates, scores, load, share = _curve_factors(bund, yield_df.index[-win_1y:])
+
+    def exposure(s: pd.Series) -> np.ndarray:
+        y = s.diff().reindex(dates).values
+        ok = ~np.isnan(y)
+        A = np.hstack([np.ones((int(ok.sum()), 1)), scores[ok]])
+        return np.linalg.lstsq(A, y[ok], rcond=None)[0][1:]
+
+    E = np.column_stack([exposure(s) for s in leg_s])
+    neutral = _neutral_weights(weights, E, plan)
+
+    splines = _splines_at(yield_df.iloc[-1])
+    repo, latest = float(estr_s.iloc[-1]), _latest_asw(asw_df)
+    leg_carry = []
+    for c, t, _ in legs:
+        ic, roll = _expression_carry_components([(c, t, 1)], splines, latest, repo)
+        leg_carry.append(ic + roll)
+
+    def stats_of(w: list[float], s: pd.Series) -> dict:
+        window = s.iloc[-win_1y:]
+        e = E @ np.asarray(w, float)
+        carry = float(np.dot(w, leg_carry))
+        vol = float(s.diff().iloc[-win_3m:].std()) * 252 ** 0.5
+        return {
+            "value_bps": round(float(s.iloc[-1]), 2),
+            "zscore_1y": round(_zscore(s, win_1y), 2),
+            "pctile_1y": round(float(stats.percentileofscore(window.values, float(s.iloc[-1]))), 1),
+            "vol3m_bps": round(vol, 2),
+            "ivol_bps": None,          # no option vols on bonds
+            "carry1y_bps": round(carry, 2),
+            "carry_vol_ratio": round(carry / vol, 2) if vol > 0 else None,
+            "carry_ivol_ratio": None,
+            "exposure": {name: round(float(v), 3) for name, v in zip(_PC_NAMES, e)},
+        }
+
+    standard = _combine(weights, leg_s)
+    neutral_s = _combine(neutral, leg_s) if neutral else None
+    hist = pd.DataFrame({"standard": standard, "neutral": neutral_s}).dropna(subset=["standard"]).round(2)
+
+    var = float(standard.diff().reindex(dates).var(ddof=1))
+    e_std = E @ np.asarray(weights, float)
+    unstable = None
+    if neutral:
+        unstable = any(not (0.25 <= neutral[i] / weights[i] <= 2.5) for i in hedge)
+
+    return {
+        "label": label,
+        "group": "curve" if k == 1 else "fly",
+        "rule": rule,
+        "basis": "daily Bund yield changes (2y–30y)",
+        "as_of": yield_df.index[-1].strftime("%Y-%m-%d"),
+        "data_source": meta["data_source"],
+        "window_days": len(dates),
+        "hedged": list(_PC_NAMES[:k]),
+        "factors": [{
+            "name": name,
+            "variance_share": round(float(share[i]), 4),
+            "loadings": [{"tenor": int(t), "loading": round(float(v), 4)} for t, v in zip(bund.columns, load[i])],
+        } for i, name in enumerate(_PC_NAMES)],
+        "legs": [{
+            "label": _leg_label(c, t),
+            "weight": weights[i],
+            "neutral_weight": round(neutral[i], 4) if neutral else None,
+            "carry1y_bps": round(float(leg_carry[i]), 2),
+            "exposure": {name: round(float(E[j, i]), 3) for j, name in enumerate(_PC_NAMES)},
+        } for i, (c, t, _) in enumerate(legs)],
+        "factor_share": round(min(float((e_std[:k] ** 2).sum()) / var, 1.0), 3) if var > 0 else 0.0,
+        "unstable": unstable,
+        "standard": stats_of(weights, standard),
+        "neutral": stats_of(neutral, neutral_s) if neutral else None,
+        "history": [{
+            "date": d.strftime("%Y-%m-%d"),
+            "standard": float(r.standard),
+            "neutral": None if pd.isna(r.neutral) else float(r.neutral),
+        } for d, r in hist.iterrows()],
+    }
+
+
+def compute_rolldown(label: str, as_of_date: Optional[str] = None, use_individual_bonds: bool = False) -> dict:
+    """The curves behind one expression's carry: each leg's income carry and roll T → T−1
+    along its country's spline on the as-of date, with those curves for the chart."""
+    group, legs, (yield_df, estr_s, asw_df, _), _, meta = _detail_frames(label, as_of_date, use_individual_bonds)
+    row = yield_df.iloc[-1]
+    splines = _splines_at(row)
+    repo, latest = float(estr_s.iloc[-1]), _latest_asw(asw_df)
+
+    out_legs, countries = [], []
+    for c, t, w in legs:
+        is_asw = c.endswith("_ASW")
+        base = c[:-4] if is_asw else c
+        if base not in splines:
+            raise KeyError(f"No {base} curve on {row.name:%Y-%m-%d}")
+        cs = splines[base]
+        y, t1 = float(cs(t)), max(t - 1.0, 0.5)
+        y1 = float(cs(t1))
+        if is_asw:
+            dur, income = None, latest.get((base, t))
+            if income is None:
+                raise KeyError(f"No ASW level for {_leg_label(c, t)}")
+        else:
+            dur = _modified_duration(t, y)
+            income = (y - repo) / dur * 100.0
+        roll = (y - y1) * 100.0
+        out_legs.append({
+            "label": _leg_label(c, t), "country": base, "kind": "asw" if is_asw else "yield",
+            "tenor": t, "weight": w, "yield_pct": round(y, 4),
+            "rolled_tenor": t1, "rolled_yield_pct": round(y1, 4), "duration": round(dur, 2) if dur else None,
+            "income_bps": round(income, 2), "roll_bps": round(roll, 2),
+            "contribution_bps": round(w * (income + roll), 2),
+        })
+        if base not in countries:
+            countries.append(base)
+
+    curves = [{
+        "country": c,
+        "label": _lbl(c),
+        "quotes": [{"tenor": t, "yield_pct": round(float(row[(c, t)]), 4)}
+                   for t in COUNTRY_TENORS[c] if (c, t) in row.index and not np.isnan(row[(c, t)])],
+        "fitted": [{"tenor": float(x), "yield_pct": round(float(splines[c](x)), 4)} for x in np.arange(1.0, 30.5, 0.5)],
+    } for c in countries]
+
+    return {
+        "label": label,
+        "group": group,
+        "as_of": row.name.strftime("%Y-%m-%d"),
+        "data_source": meta["data_source"],
+        "repo_pct": round(repo, 4),
+        "legs": out_legs,
+        "curves": curves,
+        "carry1y_bps": round(sum(lg["contribution_bps"] for lg in out_legs), 2),
+    }
+
+
+# Roll-down realisation. For every past day t and yield expression: the roll-down an
+# unchanged curve promised (each leg's yield at T minus that day's curve at T−1) and
+# what holding it for a year delivered (yield at T on t minus the curve at T−1 a year
+# later). Income carry is left out: it accrues whatever the curve does. ASW
+# expressions are not covered. Computed for every day and expression at once and
+# cached until the data change.
+
+_bt_cache: dict[bool, tuple[tuple, dict]] = {}   # use_individual_bonds -> (raw frames, core)
+
+
+def _bt_core(raw: tuple) -> dict:
+    yield_df = _aligned(raw)[0]
+    dates = yield_df.index
+    targets = dates + pd.DateOffset(years=1)
+    has_end = np.asarray(targets <= dates[-1])
+    end_idx = np.clip(dates.searchsorted(targets, side="right") - 1, 0, len(dates) - 1)
+
+    # Every country's curve on every day, read where each tenor rolls to (T−1)
+    rolled: dict[tuple, np.ndarray] = {}
+    for country, tenors in COUNTRY_TENORS.items():
+        ts = [t for t in tenors if (country, t) in yield_df.columns]
+        if len(ts) < 3:
+            continue
+        Y = yield_df[[(country, t) for t in ts]].to_numpy(dtype=float)
+        ok = ~np.isnan(Y).any(axis=1)
+        cs = CubicSpline(ts, Y[ok], axis=1, bc_type="not-a-knot", extrapolate=True)
+        for t in ts:
+            r = np.full(len(dates), np.nan)
+            r[ok] = cs(max(t - 1.0, 0.5))
+            rolled[(country, t)] = r
+
+    labels, groups, carry_cols, real_cols = [], [], [], []
+    for label, group, legs in ALL_EXPRESSIONS:
+        if any((c, t) not in rolled for c, t, _ in legs):   # ASW legs and missing tenors
+            continue
+        carry = sum(w * (yield_df[(c, t)].to_numpy(float) - rolled[(c, t)]) for c, t, w in legs) * 100.0
+        realised = sum(w * (yield_df[(c, t)].to_numpy(float) - rolled[(c, t)][end_idx]) for c, t, w in legs) * 100.0
+        labels.append(label)
+        groups.append(group)
+        carry_cols.append(carry)
+        real_cols.append(np.where(has_end, realised, np.nan))
+    return {
+        "dates": dates, "end_dates": dates[end_idx], "has_end": has_end,
+        "labels": labels, "groups": groups,
+        "carry": np.column_stack(carry_cols), "realised": np.column_stack(real_cols),
+    }
+
+
+def _finite_stats(carry: np.ndarray, realised: np.ndarray) -> Optional[dict]:
+    ok = np.isfinite(carry) & np.isfinite(realised)
+    return _bt_stats(carry[ok], realised[ok]) if ok.sum() >= 2 else None
+
+
+def compute_carry_backtest(as_of_date: Optional[str] = None, label: Optional[str] = None,
+                           window: str = "1y", use_individual_bonds: bool = False) -> dict:
+    """
+    How much of the predicted 1y roll-down was delivered, for holding periods ending in
+    `window` before the as-of date: across all yield expressions and per expression; with
+    `label`, only that expression's row plus its full predicted-vs-realised history.
+    """
+    if window not in _BT_WINDOWS:
+        raise ValueError(f"window must be one of {list(_BT_WINDOWS)}")
+    raw, meta = _raw_frames(use_individual_bonds)
+    hit = _bt_cache.get(use_individual_bonds)
+    if hit and hit[0] is raw:
+        core = hit[1]
+    else:
+        core = _bt_core(raw)
+        _bt_cache[use_individual_bonds] = (raw, core)
+
+    labels = core["labels"]
+    if label is not None and label not in labels:
+        _expression(label)   # unknown label → KeyError naming it
+        raise KeyError(f"No roll-down backtest for {label} (ASW expressions are not covered)")
+
+    dates, end_dates = core["dates"], core["end_dates"]
+    as_of = min(pd.Timestamp(as_of_date), dates[-1]) if as_of_date else dates[-1]
+    known = core["has_end"] & np.asarray(end_dates <= as_of)
+    span = _BT_WINDOWS[window]
+    in_window = known & (np.asarray(end_dates > as_of - span) if span is not None else True)
+    carry, realised = core["carry"][in_window], core["realised"][in_window]
+    n_starts = int(in_window.sum())
+
+    result: dict = {
+        "as_of": as_of.strftime("%Y-%m-%d"),
+        "data_source": meta["data_source"],
+        "window": window,
+        "n_starts": n_starts,
+        "first_end": end_dates[in_window][0].strftime("%Y-%m-%d") if n_starts else None,
+        "last_end": end_dates[in_window][-1].strftime("%Y-%m-%d") if n_starts else None,
+        "summary": None,
+        "structures": [],
+    }
+    if n_starts >= 2:
+        pooled = _finite_stats(carry, realised)
+        rows_ok = np.isfinite(carry).all(axis=1) & np.isfinite(realised).all(axis=1)
+        if pooled and rows_ok.any():
+            result["summary"] = {**pooled, "rank_corr": round(float(np.nanmean(
+                _row_rank_corr(carry[rows_ok], realised[rows_ok]))), 3)}
+        cols = [labels.index(label)] if label is not None else range(len(labels))
+        for k in cols:
+            st = _finite_stats(carry[:, k], realised[:, k])
+            if st is None:
+                continue
+            result["structures"].append({
+                "label": labels[k], "group": core["groups"][k],
+                "avg_carry_bp": round(float(np.nanmean(carry[:, k])), 2),
+                "avg_realised_bp": round(float(np.nanmean(realised[:, k])), 2),
+                "hit_rate": st["hit_rate"], "delivered": st["delivered"], "slope": st["slope"],
+            })
+
+    if label is not None:
+        k = labels.index(label)
+        series = []
+        for i in np.flatnonzero(np.asarray(dates <= as_of)):
+            c = core["carry"][i, k]
+            if np.isnan(c):
+                continue
+            r = core["realised"][i, k] if known[i] else np.nan
+            done = not np.isnan(r)
+            series.append({
+                "start": dates[i].strftime("%Y-%m-%d"),
+                "end": end_dates[i].strftime("%Y-%m-%d") if done else None,
+                "carry": round(float(c), 2),
+                "realised": round(float(r), 2) if done else None,
+                "fwd_err": round(float(r - c), 2) if done else None,
+            })
+        result["series"] = series
+    return result
