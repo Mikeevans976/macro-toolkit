@@ -16,6 +16,7 @@ interface RollLeg {
   tenor: number
   weight: number
   yield_pct: number
+  repo_pct: number | null     // €STR + the repo bloc's assumed spread; null for ASW legs
   rolled_tenor: number        // T − 1 (0.5 at the short end)
   rolled_yield_pct: number    // read off today's curve
   duration: number | null     // null for ASW legs
@@ -27,7 +28,7 @@ interface RollLeg {
 interface RolldownData {
   label: string
   as_of: string
-  repo_pct: number
+  estr_pct: number
   legs: RollLeg[]
   curves: {
     country: string
@@ -181,6 +182,7 @@ export default function BondRolldown({ label, asOf, query = '', dataStamp }: {
               <th style={{ ...th, textAlign: 'left' }}>Leg</th>
               <th style={th}>Weight</th>
               <th style={th}>Yield today</th>
+              <th style={th}>Repo</th>
               <th style={th}>Duration</th>
               <th style={th}>Income (bp)</th>
               <th style={{ ...th, textAlign: 'left' }}>Rolls to</th>
@@ -198,6 +200,7 @@ export default function BondRolldown({ label, asOf, query = '', dataStamp }: {
                 </td>
                 <td style={td}>{signed(l.weight, 0)}</td>
                 <td style={td}>{l.yield_pct.toFixed(3)}%</td>
+                <td style={td}>{l.repo_pct === null ? '—' : `${l.repo_pct.toFixed(3)}%`}</td>
                 <td style={td}>{l.duration === null ? '—' : l.duration.toFixed(2)}</td>
                 <td style={td} title={l.kind === 'asw' ? 'ASW level' : undefined}>{signed(l.income_bps)}</td>
                 <td style={{ ...td, textAlign: 'left', color: '#9aa5b1' }}>{l.rolled_tenor}y</td>
@@ -207,8 +210,8 @@ export default function BondRolldown({ label, asOf, query = '', dataStamp }: {
               </tr>
             ))}
             <tr style={{ borderTop: '1px solid rgba(200,220,240,0.14)' }}>
-              <td colSpan={8} style={{ padding: '7px 10px', color: '#9aa5b1', fontFamily: 'inherit' }}>
-                Carry + roll (1y) = Σ contributions · repo at €STR {data.repo_pct.toFixed(3)}%
+              <td colSpan={9} style={{ padding: '7px 10px', color: '#9aa5b1', fontFamily: 'inherit' }}>
+                Carry + roll (1y) = Σ contributions · €STR {data.estr_pct.toFixed(3)}% plus your repo assumptions
               </td>
               <td style={{ ...td, color: signColor(data.carry1y_bps), fontWeight: 600 }}>{signed(data.carry1y_bps)}</td>
             </tr>
@@ -217,7 +220,7 @@ export default function BondRolldown({ label, asOf, query = '', dataStamp }: {
         <div style={{ color: '#77828f', fontSize: 11, marginTop: 6 }}>
           Income = (yield − repo) ÷ duration, the yield pick-up per unit of duration (ASW legs: the ASW level). Roll-down = yield today −
           yield one year shorter on today's curve. Contribution = weight × (income + roll-down); positive carry favours owning the
-          +weight bonds. Repo is €STR flat: your repo assumptions on the page are not applied here.
+          +weight bonds. Repo = €STR plus your assumption for the bond's repo bloc, so the total matches the monitor's carry.
         </div>
       </div>
     </div>

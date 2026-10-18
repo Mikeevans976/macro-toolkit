@@ -215,6 +215,19 @@ def _beta_factors(yield_df: pd.DataFrame, vol_s: pd.Series) -> pd.DataFrame:
     }, index=yield_df.index)
 
 
+def _non_self_factors(y: np.ndarray, X: np.ndarray) -> np.ndarray:
+    """Mask of the factors that are not the expression itself. OAT-Bund 10y and Bund
+    2s10s are both regressors and expressions; regressed on themselves they score
+    R² = 1 and say nothing, so a factor whose daily changes match the expression's
+    (|corr| > 0.999) is left out and the others explain what is left."""
+    keep = np.ones(X.shape[1], dtype=bool)
+    if np.std(y) > 0:
+        for j in range(X.shape[1]):
+            if np.std(X[:, j]) > 0 and abs(np.corrcoef(y, X[:, j])[0, 1]) > 0.999:
+                keep[j] = False
+    return keep
+
+
 def _expression_level(legs: list, yield_row: dict, asw_row: dict) -> float:
     """Level of an expression in bps."""
     total = 0.0
@@ -733,15 +746,20 @@ def _compute_egb_rv(as_of_date: Optional[str] = None, use_individual_bonds: bool
         y, Xc = dv[sel][-win_1y:], dX[sel][-win_1y:]
         if len(y) < 30:
             continue
-        coeffs, resid, r2 = _ols(y, Xc)
+        keep = _non_self_factors(y, Xc)
+        coeffs, resid, r2 = _ols(y, Xc[:, keep])
+        betas = dict(zip(np.flatnonzero(keep), coeffs[1:]))   # factor index -> β; the expression's own factor has none
+
+        def beta(j: int) -> Optional[float]:
+            return round(float(betas[j]), 3) if j in betas else None
 
         beta_monitor.append({
             "label":             label,
             "group":             group,
-            "beta_bund10y":      round(float(coeffs[1]), 3),
-            "beta_spread10y":    round(float(coeffs[2]), 3),
-            "beta_slope":        round(float(coeffs[3]), 3),
-            "beta_vol1m10y":     round(float(coeffs[4]), 3),
+            "beta_bund10y":      beta(0),
+            "beta_spread10y":    beta(1),
+            "beta_slope":        beta(2),
+            "beta_vol1m10y":     beta(3),
             "r2":                round(r2, 3),
             "residual_zscore":   round(_residual_zscore(resid), 2),
         })
@@ -860,6 +878,13 @@ def _detail_frames(label: str, as_of_date: Optional[str], use_individual_bonds: 
     return group, legs, frames, [_leg_series(c, t, frames[0], frames[2]) for c, t, _ in legs], meta
 
 
+def _leg_repo(country: str, estr_pct: float, repo_spreads_bp: Optional[dict[str, float]]) -> float:
+    """Repo (%) for a leg: €STR plus the user's spread for the country's repo bloc, as the
+    page applies it to the monitor's carry."""
+    bloc = REPO_BLOC.get(country)
+    return estr_pct + (repo_spreads_bp or {}).get(bloc, 0.0) / 100.0
+
+
 def _combine(weights, leg_s: list[pd.Series]) -> pd.Series:
     return sum(w * s for w, s in zip(weights, leg_s)).dropna()
 
@@ -877,11 +902,13 @@ def compute_regression(label: str, as_of_date: Optional[str] = None, use_individ
     y_full = series.diff()
     ok = y_full.notna() & changes.notna().all(axis=1)
     y_full, changes = y_full[ok], changes[ok]
-    factors = BETA_FACTORS
     common_all = y_full.index
     common = common_all[-min(252, len(yield_df)):]   # same 1y window as the Beta Monitor
     if len(common) < 30:
         raise KeyError(f"Not enough history to regress {label}")
+    keep = _non_self_factors(y_full.loc[common].values, changes.loc[common, BETA_FACTORS].values)
+    factors = [f for f, k in zip(BETA_FACTORS, keep) if k]
+    excluded = [f for f, k in zip(BETA_FACTORS, keep) if not k]
 
     y = y_full.loc[common].values
     Xf = changes.loc[common, factors].values
@@ -946,6 +973,7 @@ def compute_regression(label: str, as_of_date: Optional[str] = None, use_individ
         "as_of": yield_df.index[-1].strftime("%Y-%m-%d"),
         "data_source": meta["data_source"],
         "factors": factor_rows,
+        "excluded_factors": excluded,   # the expression itself, when it is one of the factors
         "intercept": {"beta": round(float(coeffs[0]), 4), "se": round(float(se[0]), 4), "t": round(float(tstat[0]), 2)},
         "n_obs": n,
         "r2": round(r2, 3),
@@ -993,8 +1021,10 @@ def _neutral_weights(weights: list[float], E: np.ndarray, plan) -> Optional[list
     return out
 
 
-def compute_neutral(label: str, as_of_date: Optional[str] = None, use_individual_bonds: bool = False) -> dict:
-    """One expression next to its factor-neutral version (see the comment above)."""
+def compute_neutral(label: str, as_of_date: Optional[str] = None, use_individual_bonds: bool = False,
+                    repo_spreads_bp: Optional[dict[str, float]] = None) -> dict:
+    """One expression next to its factor-neutral version (see the comment above).
+    repo_spreads_bp: {repo bloc: bp over €STR}, the page's repo assumptions, for the carry."""
     group, legs, (yield_df, estr_s, asw_df, _), leg_s, meta = _detail_frames(label, as_of_date, use_individual_bonds)
     plan = _neutral_plan(len(legs))
     if plan is None:
@@ -1017,10 +1047,10 @@ def compute_neutral(label: str, as_of_date: Optional[str] = None, use_individual
     neutral = _neutral_weights(weights, E, plan)
 
     splines = _splines_at(yield_df.iloc[-1])
-    repo, latest = float(estr_s.iloc[-1]), _latest_asw(asw_df)
+    estr, latest = float(estr_s.iloc[-1]), _latest_asw(asw_df)
     leg_carry = []
     for c, t, _ in legs:
-        ic, roll = _expression_carry_components([(c, t, 1)], splines, latest, repo)
+        ic, roll = _expression_carry_components([(c, t, 1)], splines, latest, _leg_repo(c, estr, repo_spreads_bp))
         leg_carry.append(ic + roll)
 
     def stats_of(w: list[float], s: pd.Series) -> dict:
@@ -1083,13 +1113,15 @@ def compute_neutral(label: str, as_of_date: Optional[str] = None, use_individual
     }
 
 
-def compute_rolldown(label: str, as_of_date: Optional[str] = None, use_individual_bonds: bool = False) -> dict:
+def compute_rolldown(label: str, as_of_date: Optional[str] = None, use_individual_bonds: bool = False,
+                     repo_spreads_bp: Optional[dict[str, float]] = None) -> dict:
     """The curves behind one expression's carry: each leg's income carry and roll T → T−1
-    along its country's spline on the as-of date, with those curves for the chart."""
+    along its country's spline on the as-of date, with those curves for the chart.
+    repo_spreads_bp: {repo bloc: bp over €STR}, the page's repo assumptions."""
     group, legs, (yield_df, estr_s, asw_df, _), _, meta = _detail_frames(label, as_of_date, use_individual_bonds)
     row = yield_df.iloc[-1]
     splines = _splines_at(row)
-    repo, latest = float(estr_s.iloc[-1]), _latest_asw(asw_df)
+    estr, latest = float(estr_s.iloc[-1]), _latest_asw(asw_df)
 
     out_legs, countries = [], []
     for c, t, w in legs:
@@ -1101,16 +1133,17 @@ def compute_rolldown(label: str, as_of_date: Optional[str] = None, use_individua
         y, t1 = float(cs(t)), max(t - 1.0, 0.5)
         y1 = float(cs(t1))
         if is_asw:
-            dur, income = None, latest.get((base, t))
+            dur, repo, income = None, None, latest.get((base, t))
             if income is None:
                 raise KeyError(f"No ASW level for {_leg_label(c, t)}")
         else:
-            dur = _modified_duration(t, y)
+            dur, repo = _modified_duration(t, y), _leg_repo(c, estr, repo_spreads_bp)
             income = (y - repo) / dur * 100.0
         roll = (y - y1) * 100.0
         out_legs.append({
             "label": _leg_label(c, t), "country": base, "kind": "asw" if is_asw else "yield",
             "tenor": t, "weight": w, "yield_pct": round(y, 4),
+            "repo_pct": round(repo, 4) if repo is not None else None,
             "rolled_tenor": t1, "rolled_yield_pct": round(y1, 4), "duration": round(dur, 2) if dur else None,
             "income_bps": round(income, 2), "roll_bps": round(roll, 2),
             "contribution_bps": round(w * (income + roll), 2),
@@ -1131,7 +1164,7 @@ def compute_rolldown(label: str, as_of_date: Optional[str] = None, use_individua
         "group": group,
         "as_of": row.name.strftime("%Y-%m-%d"),
         "data_source": meta["data_source"],
-        "repo_pct": round(repo, 4),
+        "estr_pct": round(estr, 4),
         "legs": out_legs,
         "curves": curves,
         "carry1y_bps": round(sum(lg["contribution_bps"] for lg in out_legs), 2),

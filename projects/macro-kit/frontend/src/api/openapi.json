@@ -4693,6 +4693,54 @@
        "title": "Use Individual Bonds",
        "type": "boolean"
       }
+     },
+     {
+      "in": "query",
+      "name": "repo_bund",
+      "required": false,
+      "schema": {
+       "default": 0.0,
+       "maximum": 500,
+       "minimum": -500,
+       "title": "Repo Bund",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "repo_oat",
+      "required": false,
+      "schema": {
+       "default": 0.0,
+       "maximum": 500,
+       "minimum": -500,
+       "title": "Repo Oat",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "repo_btp",
+      "required": false,
+      "schema": {
+       "default": 0.0,
+       "maximum": 500,
+       "minimum": -500,
+       "title": "Repo Btp",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "repo_bonos",
+      "required": false,
+      "schema": {
+       "default": 0.0,
+       "maximum": 500,
+       "minimum": -500,
+       "title": "Repo Bonos",
+       "type": "number"
+      }
      }
     ],
     "responses": {
@@ -4842,6 +4890,54 @@
        "default": false,
        "title": "Use Individual Bonds",
        "type": "boolean"
+      }
+     },
+     {
+      "in": "query",
+      "name": "repo_bund",
+      "required": false,
+      "schema": {
+       "default": 0.0,
+       "maximum": 500,
+       "minimum": -500,
+       "title": "Repo Bund",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "repo_oat",
+      "required": false,
+      "schema": {
+       "default": 0.0,
+       "maximum": 500,
+       "minimum": -500,
+       "title": "Repo Oat",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "repo_btp",
+      "required": false,
+      "schema": {
+       "default": 0.0,
+       "maximum": 500,
+       "minimum": -500,
+       "title": "Repo Btp",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "repo_bonos",
+      "required": false,
+      "schema": {
+       "default": 0.0,
+       "maximum": 500,
+       "minimum": -500,
+       "title": "Repo Bonos",
+       "type": "number"
       }
      }
     ],

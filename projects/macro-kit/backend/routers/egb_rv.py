@@ -51,20 +51,37 @@ def get_egb_rv_regression(
         raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
 
 
+class RepoSpreads:
+    """The page's repo assumptions: each repo bloc's repo in bp over €STR."""
+
+    def __init__(
+        self,
+        repo_bund: float = Query(0.0, ge=-500, le=500),
+        repo_oat: float = Query(0.0, ge=-500, le=500),
+        repo_btp: float = Query(0.0, ge=-500, le=500),
+        repo_bonos: float = Query(0.0, ge=-500, le=500),
+    ):
+        self.bp = {"Bund": repo_bund, "OAT": repo_oat, "BTP": repo_btp, "Bonos": repo_bonos}
+
+
 @router.get("/api/tools/egb-rv/neutral")
-def get_egb_rv_neutral(label: str, date: str | None = None, use_individual_bonds: bool = False):
+def get_egb_rv_neutral(label: str, date: str | None = None, use_individual_bonds: bool = False,
+                       repo: RepoSpreads = Depends()):
     """One expression next to its level- (or level- and slope-) neutral version."""
     try:
-        return compute_neutral(label, as_of_date=date, use_individual_bonds=use_individual_bonds)
+        return compute_neutral(label, as_of_date=date, use_individual_bonds=use_individual_bonds,
+                               repo_spreads_bp=repo.bp)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
 
 
 @router.get("/api/tools/egb-rv/rolldown")
-def get_egb_rv_rolldown(label: str, date: str | None = None, use_individual_bonds: bool = False):
+def get_egb_rv_rolldown(label: str, date: str | None = None, use_individual_bonds: bool = False,
+                        repo: RepoSpreads = Depends()):
     """Each leg's income carry and roll-down along its country's curve on the as-of date."""
     try:
-        return compute_rolldown(label, as_of_date=date, use_individual_bonds=use_individual_bonds)
+        return compute_rolldown(label, as_of_date=date, use_individual_bonds=use_individual_bonds,
+                                repo_spreads_bp=repo.bp)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
 

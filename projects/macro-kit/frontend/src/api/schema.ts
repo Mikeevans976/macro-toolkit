@@ -3517,6 +3517,10 @@ export interface operations {
                 label: string;
                 date?: string | null;
                 use_individual_bonds?: boolean;
+                repo_bund?: number;
+                repo_oat?: number;
+                repo_btp?: number;
+                repo_bonos?: number;
             };
             header?: never;
             path?: never;
@@ -3584,6 +3588,10 @@ export interface operations {
                 label: string;
                 date?: string | null;
                 use_individual_bonds?: boolean;
+                repo_bund?: number;
+                repo_oat?: number;
+                repo_btp?: number;
+                repo_bonos?: number;
             };
             header?: never;
             path?: never;

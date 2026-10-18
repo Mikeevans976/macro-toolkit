@@ -20,8 +20,24 @@ def test_regression_is_the_beta_monitor_regression(monitor, label):
     assert reg["factors"][0]["beta"] == pytest.approx(beta[label]["beta_bund10y"], abs=1e-3)
     # attribution adds up to the actual cumulative move
     last = reg["attribution"][-1]
-    parts = last["intercept"] + last["residual"] + sum(last[f] for f in egb_rv.BETA_FACTORS)
+    parts = last["intercept"] + last["residual"] + sum(last[f["name"]] for f in reg["factors"])
     assert parts == pytest.approx(last["actual"], abs=0.01)
+
+
+@pytest.mark.parametrize("label,factor,key", [
+    ("OAT-Bund 10y", "OAT-Bund 10y", "beta_spread10y"),
+    ("Bund 2s10s", "Bund 2s10s", "beta_slope"),
+])
+def test_expression_is_not_regressed_on_itself(monitor, label, factor, key):
+    _, beta, _ = monitor
+    assert beta[label][key] is None and beta[label]["r2"] < 0.999
+    reg = egb_rv.compute_regression(label)
+    assert reg["excluded_factors"] == [factor]
+    assert factor not in [f["name"] for f in reg["factors"]]
+    assert reg["r2"] == pytest.approx(beta[label]["r2"], abs=1e-3)
+    # every other expression keeps all four factors
+    assert all(v is not None for v in (beta["BTP-Bund 10y"][k] for k in
+               ("beta_bund10y", "beta_spread10y", "beta_slope", "beta_vol1m10y")))
 
 
 @pytest.mark.parametrize("label,hedged", [
@@ -51,6 +67,17 @@ def test_rolldown_carry_matches_monitor(monitor, label):
     out = egb_rv.compute_rolldown(label)
     assert out["carry1y_bps"] == pytest.approx(rv[label]["carry1y_bps"], abs=0.05)
     assert sum(lg["roll_bps"] * lg["weight"] for lg in out["legs"]) == pytest.approx(rv[label]["roll_bps"], abs=0.05)
+
+
+@pytest.mark.parametrize("label", ["OAT-Bund 10y", "Box BTP/Bund 2s10s", "Bonos-PGB 10y"])
+def test_repo_assumptions_match_the_tables_adjustment(monitor, label):
+    rv, _, _ = monitor
+    spreads = {"Bund": -30.0, "OAT": -5.0, "BTP": 10.0, "Bonos": 4.0}
+    row = rv[label]
+    # the page: carry + Σ bloc sensitivity × spread / 100
+    expected = row["carry1y_bps"] + sum(row[f"{b.lower()}_repo_sens"] * s / 100 for b, s in spreads.items())
+    assert egb_rv.compute_rolldown(label, repo_spreads_bp=spreads)["carry1y_bps"] == pytest.approx(expected, abs=0.05)
+    assert egb_rv.compute_neutral(label, repo_spreads_bp=spreads)["standard"]["carry1y_bps"] == pytest.approx(expected, abs=0.05)
 
 
 def test_backtest_promised_roll_is_todays_roll(monitor):

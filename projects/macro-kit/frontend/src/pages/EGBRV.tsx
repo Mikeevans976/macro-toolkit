@@ -84,10 +84,11 @@ function adjCarryVolRatio(
 interface BetaRow {
   label: string
   group: string
-  beta_bund10y: number
-  beta_spread10y: number
-  beta_slope: number
-  beta_vol1m10y: number
+  // null: the expression is that factor (OAT-Bund 10y, Bund 2s10s), so it is left out of its own regression
+  beta_bund10y: number | null
+  beta_spread10y: number | null
+  beta_slope: number | null
+  beta_vol1m10y: number | null
   r2: number
   residual_zscore: number
 }
@@ -156,7 +157,8 @@ function fmtChange(v: number | null): string {
   return `${sign}${v.toFixed(1)} bp`
 }
 
-function fmtBeta(v: number): string {
+function fmtBeta(v: number | null): string {
+  if (v === null) return 'self'
   const sign = v >= 0 ? '+' : ''
   return `${sign}${v.toFixed(3)}`
 }
@@ -416,6 +418,8 @@ function DetailModal({
 }) {
   const [lookback, setLookback] = useState('1Y')
   const legs = row.legs ?? []
+  // Carry in the roll-down and neutral sections uses the same repo assumptions as the table
+  const repoQuery = `${query}&repo_bund=${bundSpreadBps}&repo_oat=${oatSpreadBps}&repo_btp=${btpSpreadBps}&repo_bonos=${bonosSpreadBps}`
   const hasAsw = legs.some(l => l.country.endsWith('_ASW'))
 
   // ECB meetings: on by default for short-end expressions (every leg 2y or less)
@@ -545,9 +549,9 @@ function DetailModal({
             apiBase="/api/tools/egb-rv" query={query} />
           {legs.length > 1 && (
             <FactorNeutral label={label} asOf={asOf} dataStamp={String(dataStamp)}
-              apiBase="/api/tools/egb-rv" query={query} />
+              apiBase="/api/tools/egb-rv" query={repoQuery} />
           )}
-          <BondRolldown label={label} asOf={asOf} query={query} dataStamp={dataStamp} />
+          <BondRolldown label={label} asOf={asOf} query={repoQuery} dataStamp={dataStamp} />
           {!hasAsw && (
             <CarryRealisationDetail label={label} asOf={asOf} dataStamp={String(dataStamp)}
               apiBase="/api/tools/egb-rv" query={query}
@@ -706,7 +710,7 @@ function BetaTable({ rows, groups, focusLabel, onRowClick }: {
   }
   const tdL: React.CSSProperties = { ...td, textAlign: 'left', fontFamily: 'inherit' }
 
-  function betaColor(v: number) { return v > 0 ? '#a9d2e8' : '#e2bdd2' }
+  function betaColor(v: number | null) { return v === null ? '#77828f' : v > 0 ? '#a9d2e8' : '#e2bdd2' }
   function resZColor(z: number) { return Math.abs(z) > 1.5 ? '#dfbb78' : '#c6ced8' }
 
   return (

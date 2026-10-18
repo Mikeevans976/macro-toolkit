@@ -22,6 +22,7 @@ interface RegressionData {
   label: string
   as_of: string
   factors: FactorRow[]
+  excluded_factors?: string[]   // factors that are the structure itself, left out of its regression
   intercept: { beta: number; se: number; t: number }
   n_obs: number
   r2: number
@@ -193,6 +194,10 @@ export default function RegressionDetail({ currency, label, asOf, dataStamp, api
           </tbody>
         </table>
         <div style={{ color: '#77828f', fontSize: 11, marginTop: 6 }}>
+          {data.excluded_factors?.length ? <>
+            Left out: {data.excluded_factors.map(factorName).join(', ')}. That factor is this structure, so the regression
+            shows how much of it the other factors explain.{' '}
+          </> : null}
           β: bp move in the structure per 1 bp factor move, others held fixed. t-stat dimmed when |t| &lt; 2.
           β × σ puts rate and vol factors on one scale: the structure's move on a typical (1σ) day of that factor.
           VIF: how much a factor overlaps with the others (amber ≥ 2.5, red ≥ 5); high VIFs make the individual βs unstable.
