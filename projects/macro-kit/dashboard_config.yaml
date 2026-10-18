@@ -45,7 +45,10 @@ categories:
   - id: funding
     name: Funding
     color: "#8B5CF6"
-    tools: []
+    tools:
+      - id: swap-spreads
+        name: Swap Spreads & Basis
+        url: /tools/swap-spreads
 
   - id: futures-swaps-vol
     name: Futures / Swaps / Vol

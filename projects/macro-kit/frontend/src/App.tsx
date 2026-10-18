@@ -21,6 +21,7 @@ const MeanReversion = lazy(() => import('./pages/MeanReversion'))
 const PCAAnalysis = lazy(() => import('./pages/PCAAnalysis'))
 const CorrelationRegimes = lazy(() => import('./pages/CorrelationRegimes'))
 const FittedBondCurves = lazy(() => import('./pages/FittedBondCurves'))
+const SwapSpreads = lazy(() => import('./pages/SwapSpreads'))
 const AgentsPod = lazy(() => import('./pages/AgentsPod'))
 const AgentPage = lazy(() => import('./pages/AgentPage'))
 const MacroOptionsMonitor = lazy(() => import('./pages/MacroOptionsMonitor'))
@@ -76,6 +77,7 @@ export default function App() {
         <Route path="/tools/pca-analysis" element={<ProtectedRoute><PCAAnalysis /></ProtectedRoute>} />
         <Route path="/tools/correlation-regimes" element={<ProtectedRoute><CorrelationRegimes /></ProtectedRoute>} />
         <Route path="/tools/fitted-bond-curves" element={<ProtectedRoute><FittedBondCurves /></ProtectedRoute>} />
+        <Route path="/tools/swap-spreads" element={<ProtectedRoute><SwapSpreads /></ProtectedRoute>} />
         <Route path="/tools/agents/fixed-income-pod" element={<ProtectedRoute><AgentsPod /></ProtectedRoute>} />
         {/* Individual agent pages — specific pod route must come before the wildcard :agentId */}
         <Route path="/tools/agents/:agentId" element={<ProtectedRoute><AgentPage /></ProtectedRoute>} />

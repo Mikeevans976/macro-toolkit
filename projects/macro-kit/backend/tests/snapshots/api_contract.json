@@ -29,7 +29,7 @@
    "str_sha1": "89a5597eda263f517403289cfdd7b4d09a94eea6"
   },
   "$.categories[].tools": {
-   "n_items": 38
+   "n_items": 39
   },
   "$.categories[].tools[]": {
    "keys": [
@@ -44,16 +44,16 @@
    "str_sha1": "71ec93dddeafbdcd3e3454df329d03d0e22d1a9c"
   },
   "$.categories[].tools[].id": {
-   "n_str": 38,
-   "str_sha1": "eca76101267498af8649e0a58c39299a87ce0d9a"
+   "n_str": 39,
+   "str_sha1": "255facb4b3f3b4eb59dae52ce3f8954a90567014"
   },
   "$.categories[].tools[].name": {
-   "n_str": 38,
-   "str_sha1": "96da87f438c5deb6776abb4b4587523a1aff2b8e"
+   "n_str": 39,
+   "str_sha1": "c702c05e08ef476de4308171096a655a32845ea8"
   },
   "$.categories[].tools[].url": {
-   "n_str": 38,
-   "str_sha1": "1a42bd940e9c97dc5bd0660b89ad870df283b454"
+   "n_str": 39,
+   "str_sha1": "c5d7ca8ede9b4e111cbc2e2811002ac19056566d"
   }
  },
  "/api/tools/australia-heatmap/factors": {
@@ -26639,6 +26639,900 @@
   "$.ticker": {
    "n_str": 1,
    "str_sha1": "6b380d0a4ff0eb475fb4dcfc5696edeb55f4efa4"
+  }
+ },
+ "/api/tools/swap-spreads": {
+  "$": {
+   "keys": [
+    "as_of",
+    "bonds",
+    "data_source",
+    "markets",
+    "target_ccy",
+    "target_rfr"
+   ]
+  },
+  "$.as_of": {
+   "n_str": 1,
+   "str_sha1": "2d0387b91d6f65d0c043125bc3e5c8a3ebc9a88d"
+  },
+  "$.bonds": {
+   "n_items": 24
+  },
+  "$.bonds[]": {
+   "keys": [
+    "bond_id",
+    "bpv",
+    "ccy",
+    "clean",
+    "conversion_factor",
+    "coupon",
+    "coupon_freq",
+    "dirty",
+    "fw_duration",
+    "interpolated_asw_bp",
+    "issuer",
+    "market_value_asw_bp",
+    "maturity",
+    "name",
+    "par_asw_bp",
+    "synthetic_coupon",
+    "target_spread_bp",
+    "ttm",
+    "ytm"
+   ]
+  },
+  "$.bonds[].bond_id": {
+   "n_str": 24,
+   "str_sha1": "5411b65da9ef276e9513ef5b8ac78f6920478987"
+  },
+  "$.bonds[].bpv": {
+   "max": 0.22065,
+   "min": 0.01568,
+   "n_num": 24,
+   "sum": 1.9808900000000003,
+   "sumsq": 0.2621937627
+  },
+  "$.bonds[].ccy": {
+   "n_str": 24,
+   "str_sha1": "059c6dfe68aff3038cdd7ea08b058d8fb9ba21b0"
+  },
+  "$.bonds[].clean": {
+   "max": 100.2484,
+   "min": 97.2338,
+   "n_num": 24,
+   "sum": 2376.4154,
+   "sumsq": 235317.8898664799
+  },
+  "$.bonds[].conversion_factor": {
+   "max": 1.0248,
+   "min": 0.7198,
+   "n_num": 24,
+   "sum": 22.641299999999998,
+   "sumsq": 21.48809259
+  },
+  "$.bonds[].coupon": {
+   "max": 4.75,
+   "min": 0.6000000000000001,
+   "n_num": 24,
+   "sum": 71.57499999999999,
+   "sumsq": 243.08312500000005
+  },
+  "$.bonds[].coupon_freq": {
+   "max": 2.0,
+   "min": 1.0,
+   "n_num": 24,
+   "sum": 40.0,
+   "sumsq": 72.0
+  },
+  "$.bonds[].dirty": {
+   "max": 100.8301,
+   "min": 98.5818,
+   "n_num": 24,
+   "sum": 2398.5094,
+   "sumsq": 239706.60562965999
+  },
+  "$.bonds[].fw_duration": {
+   "max": 22.275,
+   "min": 1.566,
+   "n_num": 24,
+   "sum": 198.53000000000003,
+   "sumsq": 2641.530332
+  },
+  "$.bonds[].interpolated_asw_bp": {
+   "max": 135.17,
+   "min": -9.71,
+   "n_num": 24,
+   "sum": 879.92,
+   "sumsq": 63732.9114
+  },
+  "$.bonds[].issuer": {
+   "n_str": 24,
+   "str_sha1": "fd782e9f53b9822e907fc11a70b2795d64afffd6"
+  },
+  "$.bonds[].market_value_asw_bp": {
+   "max": 132.95,
+   "min": -9.67,
+   "n_num": 24,
+   "sum": 864.31,
+   "sumsq": 61711.2569
+  },
+  "$.bonds[].maturity": {
+   "n_str": 24,
+   "str_sha1": "1c778be0087564d9425d449d80c5803362a34498"
+  },
+  "$.bonds[].name": {
+   "n_str": 24,
+   "str_sha1": "fe06fedea12995142396b00151e693d76c8f7673"
+  },
+  "$.bonds[].par_asw_bp": {
+   "max": 132.97,
+   "min": -9.67,
+   "n_num": 24,
+   "sum": 863.2100000000002,
+   "sumsq": 61524.4095
+  },
+  "$.bonds[].synthetic_coupon": {
+   "max": 5.7501,
+   "min": 3.8693,
+   "n_num": 24,
+   "sum": 108.96150000000003,
+   "sumsq": 500.15439733
+  },
+  "$.bonds[].target_spread_bp": {
+   "max": 166.76,
+   "min": 4.91,
+   "n_num": 24,
+   "sum": 1371.0800000000002,
+   "sumsq": 119835.01
+  },
+  "$.bonds[].ttm": {
+   "max": 30.0014,
+   "min": 1.5852,
+   "n_num": 24,
+   "sum": 275.76189999999997,
+   "sumsq": 6000.861536130001
+  },
+  "$.bonds[].ytm": {
+   "max": 4.8844,
+   "min": 0.7871,
+   "n_num": 24,
+   "sum": 75.94470000000001,
+   "sumsq": 270.79342347
+  },
+  "$.data_source": {
+   "n_str": 1,
+   "str_sha1": "ed95df93d5fc4f666d901c6234bbda7bc3f71e1c"
+  },
+  "$.markets": {
+   "n_items": 4
+  },
+  "$.markets[]": {
+   "keys": [
+    "ccbs",
+    "ccy",
+    "fixed_freq",
+    "float_freq",
+    "par_curve",
+    "rfr"
+   ]
+  },
+  "$.markets[].ccbs": {
+   "n_items": 36
+  },
+  "$.markets[].ccbs[]": {
+   "keys": [
+    "bp",
+    "tenor"
+   ]
+  },
+  "$.markets[].ccbs[].bp": {
+   "max": 0.0,
+   "min": -64.5,
+   "n_num": 36,
+   "sum": -672.6700000000001,
+   "sumsq": 27438.6197
+  },
+  "$.markets[].ccbs[].tenor": {
+   "max": 30.0,
+   "min": 1.0,
+   "n_num": 36,
+   "sum": 372.0,
+   "sumsq": 6852.0
+  },
+  "$.markets[].ccy": {
+   "n_str": 4,
+   "str_sha1": "55cefcbbbfc0adc40d3a505bbcc0f5c9cb029e83"
+  },
+  "$.markets[].fixed_freq": {
+   "max": 1.0,
+   "min": 1.0,
+   "n_num": 4,
+   "sum": 4.0,
+   "sumsq": 4.0
+  },
+  "$.markets[].float_freq": {
+   "max": 1.0,
+   "min": 1.0,
+   "n_num": 4,
+   "sum": 4.0,
+   "sumsq": 4.0
+  },
+  "$.markets[].par_curve": {
+   "n_items": 36
+  },
+  "$.markets[].par_curve[]": {
+   "keys": [
+    "rate",
+    "tenor"
+   ]
+  },
+  "$.markets[].par_curve[].rate": {
+   "max": 4.2765,
+   "min": 0.7381,
+   "n_num": 36,
+   "sum": 107.08549999999998,
+   "sumsq": 371.88139305
+  },
+  "$.markets[].par_curve[].tenor": {
+   "max": 30.0,
+   "min": 1.0,
+   "n_num": 36,
+   "sum": 372.0,
+   "sumsq": 6852.0
+  },
+  "$.markets[].rfr": {
+   "n_str": 4,
+   "str_sha1": "b727972824802c244d53ba5458dc0cd40cdefd17"
+  },
+  "$.target_ccy": {
+   "n_str": 1,
+   "str_sha1": "47a66facfc598872e3110e060f3f552c45275f29"
+  },
+  "$.target_rfr": {
+   "n_str": 1,
+   "str_sha1": "a8879d512311610f47ee75378af938dbe3d5924d"
+  }
+ },
+ "/api/tools/swap-spreads/bond?bond_id=JGB-10Y&target=USD": {
+  "$": {
+   "keys": [
+    "as_of",
+    "bond",
+    "cashflows",
+    "data_source",
+    "home_rfr",
+    "steps",
+    "target_ccy",
+    "target_rfr"
+   ]
+  },
+  "$.as_of": {
+   "n_str": 1,
+   "str_sha1": "2d0387b91d6f65d0c043125bc3e5c8a3ebc9a88d"
+  },
+  "$.bond": {
+   "keys": [
+    "bond_id",
+    "bpv",
+    "ccy",
+    "clean",
+    "conversion_factor",
+    "coupon",
+    "coupon_freq",
+    "dirty",
+    "fw_duration",
+    "interpolated_asw_bp",
+    "issuer",
+    "market_value_asw_bp",
+    "maturity",
+    "name",
+    "par_asw_bp",
+    "synthetic_coupon",
+    "target_spread_bp",
+    "ttm",
+    "ytm"
+   ]
+  },
+  "$.bond.bond_id": {
+   "n_str": 1,
+   "str_sha1": "a211fc63e16f237c87b1e65586eec8b9d07cc17c"
+  },
+  "$.bond.bpv": {
+   "max": 0.08722,
+   "min": 0.08722,
+   "n_num": 1,
+   "sum": 0.08722,
+   "sumsq": 0.007607328400000001
+  },
+  "$.bond.ccy": {
+   "n_str": 1,
+   "str_sha1": "cb2bfbdaf52b510dbd44e4eac266ab0944d3f33b"
+  },
+  "$.bond.clean": {
+   "max": 99.4068,
+   "min": 99.4068,
+   "n_num": 1,
+   "sum": 99.4068,
+   "sumsq": 9881.71188624
+  },
+  "$.bond.conversion_factor": {
+   "max": 0.8758,
+   "min": 0.8758,
+   "n_num": 1,
+   "sum": 0.8758,
+   "sumsq": 0.7670256400000001
+  },
+  "$.bond.coupon": {
+   "max": 1.4000000000000001,
+   "min": 1.4000000000000001,
+   "n_num": 1,
+   "sum": 1.4000000000000001,
+   "sumsq": 1.9600000000000004
+  },
+  "$.bond.coupon_freq": {
+   "max": 2.0,
+   "min": 2.0,
+   "n_num": 1,
+   "sum": 2.0,
+   "sumsq": 4.0
+  },
+  "$.bond.dirty": {
+   "max": 99.6401,
+   "min": 99.6401,
+   "n_num": 1,
+   "sum": 99.6401,
+   "sumsq": 9928.14952801
+  },
+  "$.bond.fw_duration": {
+   "max": 8.754,
+   "min": 8.754,
+   "n_num": 1,
+   "sum": 8.754,
+   "sumsq": 76.632516
+  },
+  "$.bond.interpolated_asw_bp": {
+   "max": 10.13,
+   "min": 10.13,
+   "n_num": 1,
+   "sum": 10.13,
+   "sumsq": 102.61690000000002
+  },
+  "$.bond.issuer": {
+   "n_str": 1,
+   "str_sha1": "1c3f3f058e237117aba2822be146680209dbf590"
+  },
+  "$.bond.market_value_asw_bp": {
+   "max": 10.05,
+   "min": 10.05,
+   "n_num": 1,
+   "sum": 10.05,
+   "sumsq": 101.00250000000001
+  },
+  "$.bond.maturity": {
+   "n_str": 1,
+   "str_sha1": "f2668348c295a317d911eb7570cb1ed900e3e239"
+  },
+  "$.bond.name": {
+   "n_str": 1,
+   "str_sha1": "bf5a6167e3520ca1b9e7f2057e0c3b1c5581e4de"
+  },
+  "$.bond.par_asw_bp": {
+   "max": 10.01,
+   "min": 10.01,
+   "n_num": 1,
+   "sum": 10.01,
+   "sumsq": 100.20009999999999
+  },
+  "$.bond.synthetic_coupon": {
+   "max": 4.8571,
+   "min": 4.8571,
+   "n_num": 1,
+   "sum": 4.8571,
+   "sumsq": 23.59142041
+  },
+  "$.bond.target_spread_bp": {
+   "max": 83.64,
+   "min": 83.64,
+   "n_num": 1,
+   "sum": 83.64,
+   "sumsq": 6995.6496
+  },
+  "$.bond.ttm": {
+   "max": 9.3333,
+   "min": 9.3333,
+   "n_num": 1,
+   "sum": 9.3333,
+   "sumsq": 87.11048888999998
+  },
+  "$.bond.ytm": {
+   "max": 1.4682,
+   "min": 1.4682,
+   "n_num": 1,
+   "sum": 1.4682,
+   "sumsq": 2.15561124
+  },
+  "$.cashflows": {
+   "n_items": 19
+  },
+  "$.cashflows[]": {
+   "keys": [
+    "amount",
+    "df",
+    "pv",
+    "time"
+   ]
+  },
+  "$.cashflows[].amount": {
+   "max": 100.7,
+   "min": 0.7,
+   "n_num": 19,
+   "sum": 113.3,
+   "sumsq": 10149.31
+  },
+  "$.cashflows[].df": {
+   "max": 0.997946,
+   "min": 0.879718,
+   "n_num": 19,
+   "sum": 17.922880000000003,
+   "sumsq": 16.932958140876003
+  },
+  "$.cashflows[].pv": {
+   "max": 88.587572,
+   "min": 0.620931,
+   "n_num": 19,
+   "sum": 100.51778499999999,
+   "sumsq": 7855.675849043277
+  },
+  "$.cashflows[].time": {
+   "max": 9.3333,
+   "min": 0.3333,
+   "n_num": 19,
+   "sum": 91.83269999999999,
+   "sumsq": 586.35498891
+  },
+  "$.data_source": {
+   "n_str": 1,
+   "str_sha1": "ed95df93d5fc4f666d901c6234bbda7bc3f71e1c"
+  },
+  "$.home_rfr": {
+   "n_str": 1,
+   "str_sha1": "e32359e4a07d6e21680f76c3eebd855b02848435"
+  },
+  "$.steps": {
+   "keys": [
+    "conversion_factor",
+    "dirty",
+    "home_ccbs_bp",
+    "home_ccy",
+    "home_float_annuity",
+    "home_icbs_bp",
+    "home_par_swap_rate",
+    "home_rfr_spread_bp",
+    "interpolated_asw_bp",
+    "market_value_asw_bp",
+    "maturity",
+    "par_asw_bp",
+    "pv_on_swap_curve",
+    "synthetic_coupon",
+    "target_ccbs_bp",
+    "target_ccy",
+    "target_fixed_annuity",
+    "target_float_annuity",
+    "target_par_swap_rate",
+    "target_spread_bp",
+    "upfront",
+    "ytm"
+   ]
+  },
+  "$.steps.conversion_factor": {
+   "max": 0.875758,
+   "min": 0.875758,
+   "n_num": 1,
+   "sum": 0.875758,
+   "sumsq": 0.766952074564
+  },
+  "$.steps.dirty": {
+   "max": 99.640138,
+   "min": 99.640138,
+   "n_num": 1,
+   "sum": 99.640138,
+   "sumsq": 9928.157100659042
+  },
+  "$.steps.home_ccbs_bp": {
+   "max": -63.233333,
+   "min": -63.233333,
+   "n_num": 1,
+   "sum": -63.233333,
+   "sumsq": 3998.454402288889
+  },
+  "$.steps.home_ccy": {
+   "n_str": 1,
+   "str_sha1": "cb2bfbdaf52b510dbd44e4eac266ab0944d3f33b"
+  },
+  "$.steps.home_float_annuity": {
+   "max": 8.765071,
+   "min": 8.765071,
+   "n_num": 1,
+   "sum": 8.765071,
+   "sumsq": 76.82646963504101
+  },
+  "$.steps.home_icbs_bp": {
+   "max": 0.0,
+   "min": 0.0,
+   "n_num": 1,
+   "sum": 0.0,
+   "sumsq": 0.0
+  },
+  "$.steps.home_par_swap_rate": {
+   "max": 1.372291,
+   "min": 1.372291,
+   "n_num": 1,
+   "sum": 1.372291,
+   "sumsq": 1.8831825886809999
+  },
+  "$.steps.home_rfr_spread_bp": {
+   "max": 10.013023,
+   "min": 10.013023,
+   "n_num": 1,
+   "sum": 10.013023,
+   "sumsq": 100.26062959852901
+  },
+  "$.steps.interpolated_asw_bp": {
+   "max": 10.127554,
+   "min": 10.127554,
+   "n_num": 1,
+   "sum": 10.127554,
+   "sumsq": 102.567350022916
+  },
+  "$.steps.market_value_asw_bp": {
+   "max": 10.049187,
+   "min": 10.049187,
+   "n_num": 1,
+   "sum": 10.049187,
+   "sumsq": 100.986159360969
+  },
+  "$.steps.maturity": {
+   "max": 9.333333,
+   "min": 9.333333,
+   "n_num": 1,
+   "sum": 9.333333,
+   "sumsq": 87.11110488888899
+  },
+  "$.steps.par_asw_bp": {
+   "max": 10.013023,
+   "min": 10.013023,
+   "n_num": 1,
+   "sum": 10.013023,
+   "sumsq": 100.26062959852901
+  },
+  "$.steps.pv_on_swap_curve": {
+   "max": 100.517786,
+   "min": 100.517786,
+   "n_num": 1,
+   "sum": 100.517786,
+   "sumsq": 10103.825302341796
+  },
+  "$.steps.synthetic_coupon": {
+   "max": 4.857087,
+   "min": 4.857087,
+   "n_num": 1,
+   "sum": 4.857087,
+   "sumsq": 23.591294125569
+  },
+  "$.steps.target_ccbs_bp": {
+   "max": 0.0,
+   "min": 0.0,
+   "n_num": 1,
+   "sum": 0.0,
+   "sumsq": 0.0
+  },
+  "$.steps.target_ccy": {
+   "n_str": 1,
+   "str_sha1": "47a66facfc598872e3110e060f3f552c45275f29"
+  },
+  "$.steps.target_fixed_annuity": {
+   "max": 7.676084,
+   "min": 7.676084,
+   "n_num": 1,
+   "sum": 7.676084,
+   "sumsq": 58.922265575056
+  },
+  "$.steps.target_float_annuity": {
+   "max": 7.676084,
+   "min": 7.676084,
+   "n_num": 1,
+   "sum": 7.676084,
+   "sumsq": 58.922265575056
+  },
+  "$.steps.target_par_swap_rate": {
+   "max": 4.02071,
+   "min": 4.02071,
+   "n_num": 1,
+   "sum": 4.02071,
+   "sumsq": 16.166108904100003
+  },
+  "$.steps.target_spread_bp": {
+   "max": 83.637638,
+   "min": 83.637638,
+   "n_num": 1,
+   "sum": 83.637638,
+   "sumsq": 6995.254490219043
+  },
+  "$.steps.upfront": {
+   "max": 0.359862,
+   "min": 0.359862,
+   "n_num": 1,
+   "sum": 0.359862,
+   "sumsq": 0.12950065904400002
+  },
+  "$.steps.ytm": {
+   "max": 1.468178,
+   "min": 1.468178,
+   "n_num": 1,
+   "sum": 1.468178,
+   "sumsq": 2.1555466396839997
+  },
+  "$.target_ccy": {
+   "n_str": 1,
+   "str_sha1": "47a66facfc598872e3110e060f3f552c45275f29"
+  },
+  "$.target_rfr": {
+   "n_str": 1,
+   "str_sha1": "a8879d512311610f47ee75378af938dbe3d5924d"
+  }
+ },
+ "/api/tools/swap-spreads?target=JPY": {
+  "$": {
+   "keys": [
+    "as_of",
+    "bonds",
+    "data_source",
+    "markets",
+    "target_ccy",
+    "target_rfr"
+   ]
+  },
+  "$.as_of": {
+   "n_str": 1,
+   "str_sha1": "2d0387b91d6f65d0c043125bc3e5c8a3ebc9a88d"
+  },
+  "$.bonds": {
+   "n_items": 24
+  },
+  "$.bonds[]": {
+   "keys": [
+    "bond_id",
+    "bpv",
+    "ccy",
+    "clean",
+    "conversion_factor",
+    "coupon",
+    "coupon_freq",
+    "dirty",
+    "fw_duration",
+    "interpolated_asw_bp",
+    "issuer",
+    "market_value_asw_bp",
+    "maturity",
+    "name",
+    "par_asw_bp",
+    "synthetic_coupon",
+    "target_spread_bp",
+    "ttm",
+    "ytm"
+   ]
+  },
+  "$.bonds[].bond_id": {
+   "n_str": 24,
+   "str_sha1": "5411b65da9ef276e9513ef5b8ac78f6920478987"
+  },
+  "$.bonds[].bpv": {
+   "max": 0.22065,
+   "min": 0.01568,
+   "n_num": 24,
+   "sum": 1.9808900000000003,
+   "sumsq": 0.2621937627
+  },
+  "$.bonds[].ccy": {
+   "n_str": 24,
+   "str_sha1": "059c6dfe68aff3038cdd7ea08b058d8fb9ba21b0"
+  },
+  "$.bonds[].clean": {
+   "max": 100.2484,
+   "min": 97.2338,
+   "n_num": 24,
+   "sum": 2376.4154,
+   "sumsq": 235317.8898664799
+  },
+  "$.bonds[].conversion_factor": {
+   "max": 1.4269,
+   "min": 1.0,
+   "n_num": 24,
+   "sum": 26.258600000000005,
+   "sumsq": 29.02326964
+  },
+  "$.bonds[].coupon": {
+   "max": 4.75,
+   "min": 0.6000000000000001,
+   "n_num": 24,
+   "sum": 71.57499999999999,
+   "sumsq": 243.08312500000005
+  },
+  "$.bonds[].coupon_freq": {
+   "max": 2.0,
+   "min": 1.0,
+   "n_num": 24,
+   "sum": 40.0,
+   "sumsq": 72.0
+  },
+  "$.bonds[].dirty": {
+   "max": 100.8301,
+   "min": 98.5818,
+   "n_num": 24,
+   "sum": 2398.5094,
+   "sumsq": 239706.60562965999
+  },
+  "$.bonds[].fw_duration": {
+   "max": 22.275,
+   "min": 1.566,
+   "n_num": 24,
+   "sum": 198.53000000000003,
+   "sumsq": 2641.530332
+  },
+  "$.bonds[].interpolated_asw_bp": {
+   "max": 135.17,
+   "min": -9.71,
+   "n_num": 24,
+   "sum": 879.92,
+   "sumsq": 63732.9114
+  },
+  "$.bonds[].issuer": {
+   "n_str": 24,
+   "str_sha1": "fd782e9f53b9822e907fc11a70b2795d64afffd6"
+  },
+  "$.bonds[].market_value_asw_bp": {
+   "max": 132.95,
+   "min": -9.67,
+   "n_num": 24,
+   "sum": 864.31,
+   "sumsq": 61711.2569
+  },
+  "$.bonds[].maturity": {
+   "n_str": 24,
+   "str_sha1": "1c778be0087564d9425d449d80c5803362a34498"
+  },
+  "$.bonds[].name": {
+   "n_str": 24,
+   "str_sha1": "fe06fedea12995142396b00151e693d76c8f7673"
+  },
+  "$.bonds[].par_asw_bp": {
+   "max": 132.97,
+   "min": -9.67,
+   "n_num": 24,
+   "sum": 863.2100000000002,
+   "sumsq": 61524.4095
+  },
+  "$.bonds[].synthetic_coupon": {
+   "max": 2.2595,
+   "min": 0.5469,
+   "n_num": 24,
+   "sum": 28.975399999999993,
+   "sumsq": 39.82418182
+  },
+  "$.bonds[].target_spread_bp": {
+   "max": 67.44,
+   "min": -45.48,
+   "n_num": 24,
+   "sum": -95.04999999999998,
+   "sumsq": 21037.383699999995
+  },
+  "$.bonds[].ttm": {
+   "max": 30.0014,
+   "min": 1.5852,
+   "n_num": 24,
+   "sum": 275.76189999999997,
+   "sumsq": 6000.861536130001
+  },
+  "$.bonds[].ytm": {
+   "max": 4.8844,
+   "min": 0.7871,
+   "n_num": 24,
+   "sum": 75.94470000000001,
+   "sumsq": 270.79342347
+  },
+  "$.data_source": {
+   "n_str": 1,
+   "str_sha1": "ed95df93d5fc4f666d901c6234bbda7bc3f71e1c"
+  },
+  "$.markets": {
+   "n_items": 4
+  },
+  "$.markets[]": {
+   "keys": [
+    "ccbs",
+    "ccy",
+    "fixed_freq",
+    "float_freq",
+    "par_curve",
+    "rfr"
+   ]
+  },
+  "$.markets[].ccbs": {
+   "n_items": 36
+  },
+  "$.markets[].ccbs[]": {
+   "keys": [
+    "bp",
+    "tenor"
+   ]
+  },
+  "$.markets[].ccbs[].bp": {
+   "max": 0.0,
+   "min": -64.5,
+   "n_num": 36,
+   "sum": -672.6700000000001,
+   "sumsq": 27438.6197
+  },
+  "$.markets[].ccbs[].tenor": {
+   "max": 30.0,
+   "min": 1.0,
+   "n_num": 36,
+   "sum": 372.0,
+   "sumsq": 6852.0
+  },
+  "$.markets[].ccy": {
+   "n_str": 4,
+   "str_sha1": "55cefcbbbfc0adc40d3a505bbcc0f5c9cb029e83"
+  },
+  "$.markets[].fixed_freq": {
+   "max": 1.0,
+   "min": 1.0,
+   "n_num": 4,
+   "sum": 4.0,
+   "sumsq": 4.0
+  },
+  "$.markets[].float_freq": {
+   "max": 1.0,
+   "min": 1.0,
+   "n_num": 4,
+   "sum": 4.0,
+   "sumsq": 4.0
+  },
+  "$.markets[].par_curve": {
+   "n_items": 36
+  },
+  "$.markets[].par_curve[]": {
+   "keys": [
+    "rate",
+    "tenor"
+   ]
+  },
+  "$.markets[].par_curve[].rate": {
+   "max": 4.2765,
+   "min": 0.7381,
+   "n_num": 36,
+   "sum": 107.08549999999998,
+   "sumsq": 371.88139305
+  },
+  "$.markets[].par_curve[].tenor": {
+   "max": 30.0,
+   "min": 1.0,
+   "n_num": 36,
+   "sum": 372.0,
+   "sumsq": 6852.0
+  },
+  "$.markets[].rfr": {
+   "n_str": 4,
+   "str_sha1": "b727972824802c244d53ba5458dc0cd40cdefd17"
+  },
+  "$.target_ccy": {
+   "n_str": 1,
+   "str_sha1": "cb2bfbdaf52b510dbd44e4eac266ab0944d3f33b"
+  },
+  "$.target_rfr": {
+   "n_str": 1,
+   "str_sha1": "e32359e4a07d6e21680f76c3eebd855b02848435"
   }
  },
  "/api/tools/swaps-rv": {

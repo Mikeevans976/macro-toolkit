@@ -101,6 +101,7 @@ export const TOOL_GLYPH: Record<string, GlyphName> = {
   'correlation-regimes': 'link',
   'mean-reversion': 'ou',
   'fitted-bond-curves': 'curve',
+  'swap-spreads': 'swap',
   'global-yields': 'lattice',
   'option-derived-cdf': 'cdf',
   seasonality: 'calendar',

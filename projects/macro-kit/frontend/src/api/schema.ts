@@ -1158,6 +1158,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/swap-spreads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Swap Spreads
+         * @description Every benchmark bond asset-swapped and basis-swapped into the target currency.
+         */
+        get: operations["swap_spreads_api_tools_swap_spreads_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/swap-spreads/bond": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Swap Spreads Bond
+         * @description Step-by-step asset & basis-swap breakdown for one bond.
+         */
+        get: operations["swap_spreads_bond_api_tools_swap_spreads_bond_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tools/swaps-rv": {
         parameters: {
             query?: never;
@@ -1335,6 +1375,13 @@ export interface components {
              */
             type: "dow" | "month" | "dom_quintile" | "tom" | "quarter_end";
         };
+        /** BasisPoint */
+        BasisPoint: {
+            /** Bp */
+            bp: number;
+            /** Tenor */
+            tenor: number;
+        };
         /** Body_login_api_auth_login_post */
         Body_login_api_auth_login_post: {
             /** Client Id */
@@ -1363,6 +1410,67 @@ export interface components {
         Body_research_upload_api_pod_research_upload_post: {
             /** Files */
             files: string[];
+        };
+        /** BondBreakdown */
+        BondBreakdown: {
+            /** As Of */
+            as_of: string;
+            bond: components["schemas"]["BondRow"];
+            /** Cashflows */
+            cashflows: components["schemas"]["CashFlow"][];
+            /**
+             * Data Source
+             * @enum {string}
+             */
+            data_source: "live" | "simulation";
+            /** Home Rfr */
+            home_rfr: string;
+            steps: components["schemas"]["SwapSteps"];
+            /** Target Ccy */
+            target_ccy: string;
+            /** Target Rfr */
+            target_rfr: string;
+        };
+        /** BondRow */
+        BondRow: {
+            /** Bond Id */
+            bond_id: string;
+            /** Bpv */
+            bpv: number;
+            /** Ccy */
+            ccy: string;
+            /** Clean */
+            clean: number;
+            /** Conversion Factor */
+            conversion_factor: number;
+            /** Coupon */
+            coupon: number;
+            /** Coupon Freq */
+            coupon_freq: number;
+            /** Dirty */
+            dirty: number;
+            /** Fw Duration */
+            fw_duration: number;
+            /** Interpolated Asw Bp */
+            interpolated_asw_bp: number;
+            /** Issuer */
+            issuer: string;
+            /** Market Value Asw Bp */
+            market_value_asw_bp: number;
+            /** Maturity */
+            maturity: string;
+            /** Name */
+            name: string;
+            /** Par Asw Bp */
+            par_asw_bp: number;
+            /** Synthetic Coupon */
+            synthetic_coupon: number;
+            /** Target Spread Bp */
+            target_spread_bp: number;
+            /** Ttm */
+            ttm: number;
+            /** Ytm */
+            ytm: number;
         };
         /** Breakeven */
         Breakeven: {
@@ -1407,6 +1515,17 @@ export interface components {
             /** Stagflation */
             stagflation: number;
         };
+        /** CashFlow */
+        CashFlow: {
+            /** Amount */
+            amount: number;
+            /** Df */
+            df: number;
+            /** Pv */
+            pv: number;
+            /** Time */
+            time: number;
+        };
         /** CurrentScenarios */
         CurrentScenarios: {
             breakeven: components["schemas"]["ScenarioProbs"];
@@ -1443,6 +1562,13 @@ export interface components {
             dispersion: number;
             /** Horizon */
             horizon: string;
+        };
+        /** CurvePoint */
+        CurvePoint: {
+            /** Rate */
+            rate: number;
+            /** Tenor */
+            tenor: number;
         };
         /** CurveRegimes */
         CurveRegimes: {
@@ -1698,6 +1824,21 @@ export interface components {
             /** Releases */
             releases?: components["schemas"]["Release"][];
         };
+        /** MarketRow */
+        MarketRow: {
+            /** Ccbs */
+            ccbs: components["schemas"]["BasisPoint"][];
+            /** Ccy */
+            ccy: string;
+            /** Fixed Freq */
+            fixed_freq: number;
+            /** Float Freq */
+            float_freq: number;
+            /** Par Curve */
+            par_curve: components["schemas"]["CurvePoint"][];
+            /** Rfr */
+            rfr: string;
+        };
         /** Me */
         Me: {
             /** Full Name */
@@ -1859,6 +2000,71 @@ export interface components {
              * @default 2018-01-01
              */
             start_date: string;
+        };
+        /** SwapSpreads */
+        SwapSpreads: {
+            /** As Of */
+            as_of: string;
+            /** Bonds */
+            bonds: components["schemas"]["BondRow"][];
+            /**
+             * Data Source
+             * @enum {string}
+             */
+            data_source: "live" | "simulation";
+            /** Markets */
+            markets: components["schemas"]["MarketRow"][];
+            /** Target Ccy */
+            target_ccy: string;
+            /** Target Rfr */
+            target_rfr: string;
+        };
+        /** SwapSteps */
+        SwapSteps: {
+            /** Conversion Factor */
+            conversion_factor: number;
+            /** Dirty */
+            dirty: number;
+            /** Home Ccbs Bp */
+            home_ccbs_bp: number;
+            /** Home Ccy */
+            home_ccy: string;
+            /** Home Float Annuity */
+            home_float_annuity: number;
+            /** Home Icbs Bp */
+            home_icbs_bp: number;
+            /** Home Par Swap Rate */
+            home_par_swap_rate: number;
+            /** Home Rfr Spread Bp */
+            home_rfr_spread_bp: number;
+            /** Interpolated Asw Bp */
+            interpolated_asw_bp: number;
+            /** Market Value Asw Bp */
+            market_value_asw_bp: number;
+            /** Maturity */
+            maturity: number;
+            /** Par Asw Bp */
+            par_asw_bp: number;
+            /** Pv On Swap Curve */
+            pv_on_swap_curve: number;
+            /** Synthetic Coupon */
+            synthetic_coupon: number;
+            /** Target Ccbs Bp */
+            target_ccbs_bp: number;
+            /** Target Ccy */
+            target_ccy: string;
+            /** Target Fixed Annuity */
+            target_fixed_annuity: number;
+            /** Target Float Annuity */
+            target_float_annuity: number;
+            /** Target Par Swap Rate */
+            target_par_swap_rate: number;
+            /** Target Spread Bp */
+            target_spread_bp: number;
+            /** Upfront */
+            upfront: number;
+            /** Ytm */
+            ytm: number;
         };
         /** Token */
         Token: {
@@ -3812,6 +4018,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    swap_spreads_api_tools_swap_spreads_get: {
+        parameters: {
+            query?: {
+                target?: "USD" | "EUR" | "GBP" | "JPY";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwapSpreads"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    swap_spreads_bond_api_tools_swap_spreads_bond_get: {
+        parameters: {
+            query: {
+                bond_id: string;
+                target?: "USD" | "EUR" | "GBP" | "JPY";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BondBreakdown"];
                 };
             };
             /** @description Validation Error */

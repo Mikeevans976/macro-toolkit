@@ -59,6 +59,7 @@ from routers import (
     print_analysis,
     research,
     seasonality,
+    swap_spreads,
     swaps_rv,
 )
 
@@ -126,6 +127,7 @@ for _tool in (
     print_analysis,
     research,
     seasonality,
+    swap_spreads,
     swaps_rv,
 ):
     app.include_router(_tool.router)

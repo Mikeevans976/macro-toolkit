@@ -159,6 +159,24 @@
     "title": "BacktestRule",
     "type": "object"
    },
+   "BasisPoint": {
+    "properties": {
+     "bp": {
+      "title": "Bp",
+      "type": "number"
+     },
+     "tenor": {
+      "title": "Tenor",
+      "type": "number"
+     }
+    },
+    "required": [
+     "tenor",
+     "bp"
+    ],
+    "title": "BasisPoint",
+    "type": "object"
+   },
    "Body_login_api_auth_login_post": {
     "properties": {
      "client_id": {
@@ -233,6 +251,162 @@
      "files"
     ],
     "title": "Body_research_upload_api_pod_research_upload_post",
+    "type": "object"
+   },
+   "BondBreakdown": {
+    "properties": {
+     "as_of": {
+      "title": "As Of",
+      "type": "string"
+     },
+     "bond": {
+      "$ref": "#/components/schemas/BondRow"
+     },
+     "cashflows": {
+      "items": {
+       "$ref": "#/components/schemas/CashFlow"
+      },
+      "title": "Cashflows",
+      "type": "array"
+     },
+     "data_source": {
+      "enum": [
+       "live",
+       "simulation"
+      ],
+      "title": "Data Source",
+      "type": "string"
+     },
+     "home_rfr": {
+      "title": "Home Rfr",
+      "type": "string"
+     },
+     "steps": {
+      "$ref": "#/components/schemas/SwapSteps"
+     },
+     "target_ccy": {
+      "title": "Target Ccy",
+      "type": "string"
+     },
+     "target_rfr": {
+      "title": "Target Rfr",
+      "type": "string"
+     }
+    },
+    "required": [
+     "as_of",
+     "data_source",
+     "bond",
+     "home_rfr",
+     "target_ccy",
+     "target_rfr",
+     "steps",
+     "cashflows"
+    ],
+    "title": "BondBreakdown",
+    "type": "object"
+   },
+   "BondRow": {
+    "properties": {
+     "bond_id": {
+      "title": "Bond Id",
+      "type": "string"
+     },
+     "bpv": {
+      "title": "Bpv",
+      "type": "number"
+     },
+     "ccy": {
+      "title": "Ccy",
+      "type": "string"
+     },
+     "clean": {
+      "title": "Clean",
+      "type": "number"
+     },
+     "conversion_factor": {
+      "title": "Conversion Factor",
+      "type": "number"
+     },
+     "coupon": {
+      "title": "Coupon",
+      "type": "number"
+     },
+     "coupon_freq": {
+      "title": "Coupon Freq",
+      "type": "integer"
+     },
+     "dirty": {
+      "title": "Dirty",
+      "type": "number"
+     },
+     "fw_duration": {
+      "title": "Fw Duration",
+      "type": "number"
+     },
+     "interpolated_asw_bp": {
+      "title": "Interpolated Asw Bp",
+      "type": "number"
+     },
+     "issuer": {
+      "title": "Issuer",
+      "type": "string"
+     },
+     "market_value_asw_bp": {
+      "title": "Market Value Asw Bp",
+      "type": "number"
+     },
+     "maturity": {
+      "title": "Maturity",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "par_asw_bp": {
+      "title": "Par Asw Bp",
+      "type": "number"
+     },
+     "synthetic_coupon": {
+      "title": "Synthetic Coupon",
+      "type": "number"
+     },
+     "target_spread_bp": {
+      "title": "Target Spread Bp",
+      "type": "number"
+     },
+     "ttm": {
+      "title": "Ttm",
+      "type": "number"
+     },
+     "ytm": {
+      "title": "Ytm",
+      "type": "number"
+     }
+    },
+    "required": [
+     "bond_id",
+     "issuer",
+     "ccy",
+     "name",
+     "coupon",
+     "coupon_freq",
+     "maturity",
+     "ttm",
+     "dirty",
+     "clean",
+     "ytm",
+     "par_asw_bp",
+     "market_value_asw_bp",
+     "interpolated_asw_bp",
+     "conversion_factor",
+     "target_spread_bp",
+     "synthetic_coupon",
+     "fw_duration",
+     "bpv"
+    ],
+    "title": "BondRow",
     "type": "object"
    },
    "Breakeven": {
@@ -367,6 +541,34 @@
     "title": "BreakevenLookback",
     "type": "object"
    },
+   "CashFlow": {
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "number"
+     },
+     "df": {
+      "title": "Df",
+      "type": "number"
+     },
+     "pv": {
+      "title": "Pv",
+      "type": "number"
+     },
+     "time": {
+      "title": "Time",
+      "type": "number"
+     }
+    },
+    "required": [
+     "time",
+     "amount",
+     "df",
+     "pv"
+    ],
+    "title": "CashFlow",
+    "type": "object"
+   },
    "CurrentScenarios": {
     "properties": {
      "breakeven": {
@@ -462,6 +664,24 @@
      "dispersion"
     ],
     "title": "CurveLookback",
+    "type": "object"
+   },
+   "CurvePoint": {
+    "properties": {
+     "rate": {
+      "title": "Rate",
+      "type": "number"
+     },
+     "tenor": {
+      "title": "Tenor",
+      "type": "number"
+     }
+    },
+    "required": [
+     "tenor",
+     "rate"
+    ],
+    "title": "CurvePoint",
     "type": "object"
    },
    "CurveRegimes": {
@@ -1242,6 +1462,50 @@
     "title": "MarketReactionPayload",
     "type": "object"
    },
+   "MarketRow": {
+    "properties": {
+     "ccbs": {
+      "items": {
+       "$ref": "#/components/schemas/BasisPoint"
+      },
+      "title": "Ccbs",
+      "type": "array"
+     },
+     "ccy": {
+      "title": "Ccy",
+      "type": "string"
+     },
+     "fixed_freq": {
+      "title": "Fixed Freq",
+      "type": "integer"
+     },
+     "float_freq": {
+      "title": "Float Freq",
+      "type": "integer"
+     },
+     "par_curve": {
+      "items": {
+       "$ref": "#/components/schemas/CurvePoint"
+      },
+      "title": "Par Curve",
+      "type": "array"
+     },
+     "rfr": {
+      "title": "Rfr",
+      "type": "string"
+     }
+    },
+    "required": [
+     "ccy",
+     "rfr",
+     "float_freq",
+     "fixed_freq",
+     "par_curve",
+     "ccbs"
+    ],
+    "title": "MarketRow",
+    "type": "object"
+   },
    "Me": {
     "properties": {
      "full_name": {
@@ -1711,6 +1975,172 @@
      "expression"
     ],
     "title": "StantonRequest",
+    "type": "object"
+   },
+   "SwapSpreads": {
+    "properties": {
+     "as_of": {
+      "title": "As Of",
+      "type": "string"
+     },
+     "bonds": {
+      "items": {
+       "$ref": "#/components/schemas/BondRow"
+      },
+      "title": "Bonds",
+      "type": "array"
+     },
+     "data_source": {
+      "enum": [
+       "live",
+       "simulation"
+      ],
+      "title": "Data Source",
+      "type": "string"
+     },
+     "markets": {
+      "items": {
+       "$ref": "#/components/schemas/MarketRow"
+      },
+      "title": "Markets",
+      "type": "array"
+     },
+     "target_ccy": {
+      "title": "Target Ccy",
+      "type": "string"
+     },
+     "target_rfr": {
+      "title": "Target Rfr",
+      "type": "string"
+     }
+    },
+    "required": [
+     "as_of",
+     "data_source",
+     "target_ccy",
+     "target_rfr",
+     "markets",
+     "bonds"
+    ],
+    "title": "SwapSpreads",
+    "type": "object"
+   },
+   "SwapSteps": {
+    "properties": {
+     "conversion_factor": {
+      "title": "Conversion Factor",
+      "type": "number"
+     },
+     "dirty": {
+      "title": "Dirty",
+      "type": "number"
+     },
+     "home_ccbs_bp": {
+      "title": "Home Ccbs Bp",
+      "type": "number"
+     },
+     "home_ccy": {
+      "title": "Home Ccy",
+      "type": "string"
+     },
+     "home_float_annuity": {
+      "title": "Home Float Annuity",
+      "type": "number"
+     },
+     "home_icbs_bp": {
+      "title": "Home Icbs Bp",
+      "type": "number"
+     },
+     "home_par_swap_rate": {
+      "title": "Home Par Swap Rate",
+      "type": "number"
+     },
+     "home_rfr_spread_bp": {
+      "title": "Home Rfr Spread Bp",
+      "type": "number"
+     },
+     "interpolated_asw_bp": {
+      "title": "Interpolated Asw Bp",
+      "type": "number"
+     },
+     "market_value_asw_bp": {
+      "title": "Market Value Asw Bp",
+      "type": "number"
+     },
+     "maturity": {
+      "title": "Maturity",
+      "type": "number"
+     },
+     "par_asw_bp": {
+      "title": "Par Asw Bp",
+      "type": "number"
+     },
+     "pv_on_swap_curve": {
+      "title": "Pv On Swap Curve",
+      "type": "number"
+     },
+     "synthetic_coupon": {
+      "title": "Synthetic Coupon",
+      "type": "number"
+     },
+     "target_ccbs_bp": {
+      "title": "Target Ccbs Bp",
+      "type": "number"
+     },
+     "target_ccy": {
+      "title": "Target Ccy",
+      "type": "string"
+     },
+     "target_fixed_annuity": {
+      "title": "Target Fixed Annuity",
+      "type": "number"
+     },
+     "target_float_annuity": {
+      "title": "Target Float Annuity",
+      "type": "number"
+     },
+     "target_par_swap_rate": {
+      "title": "Target Par Swap Rate",
+      "type": "number"
+     },
+     "target_spread_bp": {
+      "title": "Target Spread Bp",
+      "type": "number"
+     },
+     "upfront": {
+      "title": "Upfront",
+      "type": "number"
+     },
+     "ytm": {
+      "title": "Ytm",
+      "type": "number"
+     }
+    },
+    "required": [
+     "home_ccy",
+     "target_ccy",
+     "maturity",
+     "dirty",
+     "ytm",
+     "upfront",
+     "pv_on_swap_curve",
+     "home_float_annuity",
+     "home_par_swap_rate",
+     "par_asw_bp",
+     "market_value_asw_bp",
+     "interpolated_asw_bp",
+     "home_icbs_bp",
+     "home_ccbs_bp",
+     "target_ccbs_bp",
+     "home_rfr_spread_bp",
+     "conversion_factor",
+     "target_float_annuity",
+     "target_spread_bp",
+     "target_fixed_annuity",
+     "target_par_swap_rate",
+     "synthetic_coupon"
+    ],
+    "title": "SwapSteps",
     "type": "object"
    },
    "Token": {
@@ -5191,6 +5621,119 @@
      }
     ],
     "summary": "Seasonality Stats"
+   }
+  },
+  "/api/tools/swap-spreads": {
+   "get": {
+    "description": "Every benchmark bond asset-swapped and basis-swapped into the target currency.",
+    "operationId": "swap_spreads_api_tools_swap_spreads_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "target",
+      "required": false,
+      "schema": {
+       "default": "USD",
+       "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "JPY"
+       ],
+       "title": "Target",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SwapSpreads"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Swap Spreads"
+   }
+  },
+  "/api/tools/swap-spreads/bond": {
+   "get": {
+    "description": "Step-by-step asset & basis-swap breakdown for one bond.",
+    "operationId": "swap_spreads_bond_api_tools_swap_spreads_bond_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "bond_id",
+      "required": true,
+      "schema": {
+       "title": "Bond Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "target",
+      "required": false,
+      "schema": {
+       "default": "USD",
+       "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "JPY"
+       ],
+       "title": "Target",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BondBreakdown"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Swap Spreads Bond"
    }
   },
   "/api/tools/swaps-rv": {
