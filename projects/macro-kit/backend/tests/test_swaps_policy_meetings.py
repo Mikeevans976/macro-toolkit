@@ -1,16 +1,24 @@
-"""Swaps RV central-bank meeting markers: the ECB list is well-formed and the payload carries it."""
+"""Swaps RV central-bank meeting markers: the calendars are well-formed and the payload carries them."""
 
 from collections import Counter
 from datetime import date
 
+import pytest
+
 from swaps_rv import _POLICY_MEETINGS, _policy_meetings, compute_rv
 
+# Decision weekday per bank, and the known exceptions
+WEEKDAY = {"EUR": ("ECB", 3, set()), "GBP": ("BoE", 3, set()), "USD": ("FOMC", 2, {"2024-11-07"})}
 
-def test_ecb_calendar_is_eight_thursdays_a_year():
-    bank, dates = _POLICY_MEETINGS["EUR"]
-    assert bank == "ECB"
+
+@pytest.mark.parametrize("ccy", ["EUR", "GBP", "USD"])
+def test_calendar_is_eight_decisions_a_year_on_the_right_weekday(ccy):
+    bank, dates = _POLICY_MEETINGS[ccy]
+    want_bank, weekday, exceptions = WEEKDAY[ccy]
+    assert bank == want_bank
     assert dates == sorted(set(dates))
-    assert all(date.fromisoformat(d).weekday() == 3 for d in dates), "ECB decisions are on Thursdays"
+    wrong = [d for d in dates if date.fromisoformat(d).weekday() != weekday and d not in exceptions]
+    assert not wrong, f"{bank} decisions off their usual weekday: {wrong}"
     assert set(Counter(d[:4] for d in dates).values()) == {8}
 
 
@@ -22,12 +30,10 @@ def test_payload_lists_meetings_in_the_data_range():
     assert pm["next"] is None or pm["next"] > rv["as_of"]
 
 
-def test_no_meetings_listed_for_other_currencies():
-    # (the GBP/USD sample CSVs are empty, so check the helper rather than compute_rv)
-    assert _policy_meetings("USD", "2021-01-01", "2026-10-16") is None
-    assert _policy_meetings("GBP", "2021-01-01", "2026-10-16") is None
-
-
 def test_window_and_next_meeting():
+    # (the GBP/USD sample CSVs are empty, so check the helper rather than compute_rv)
     pm = _policy_meetings("EUR", "2026-01-01", "2026-10-16")
     assert pm["dates"][0] == "2026-02-05" and pm["dates"][-1] == "2026-09-10" and pm["next"] == "2026-10-29"
+    assert _policy_meetings("USD", "2026-01-01", "2026-10-16")["next"] == "2026-10-28"
+    assert _policy_meetings("GBP", "2026-01-01", "2026-10-16")["next"] == "2026-11-05"
+    assert _policy_meetings("JPY", "2026-01-01", "2026-10-16") is None
