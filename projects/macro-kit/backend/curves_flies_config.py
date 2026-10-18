@@ -18,7 +18,7 @@ CURVES = [
     ("3y1y-2y1y",   "2y1y",  "3y1y"),
     ("4y1y-3y1y",   "3y1y",  "4y1y"),
     # Medium-term curves
-    ("10y2y-12y3y",  "10y2y", "12y3y"),
+    ("12y3y-10y2y",  "10y2y", "12y3y"),
     ("2y2y-1y1y",    "1y1y",  "2y2y"),
     ("1y10y-1y2y",   "1y2y",  "1y10y"),
     # 5y-tenor curves

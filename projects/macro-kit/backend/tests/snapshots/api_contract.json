@@ -26711,7 +26711,7 @@
   },
   "$.beta_monitor[].label": {
    "n_str": 68,
-   "str_sha1": "0e9d5f0f63599b4bf7d6dd3c11b2e5567753a779"
+   "str_sha1": "c64462a2fc9db7a9aa34732f46d751846d3ad68d"
   },
   "$.beta_monitor[].r2": {
    "max": 0.028,
@@ -27316,7 +27316,7 @@
   },
   "$.rv_monitor[].label": {
    "n_str": 68,
-   "str_sha1": "0e9d5f0f63599b4bf7d6dd3c11b2e5567753a779"
+   "str_sha1": "c64462a2fc9db7a9aa34732f46d751846d3ad68d"
   },
   "$.rv_monitor[].legs": {
    "n_items": 165

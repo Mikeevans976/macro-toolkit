@@ -238,7 +238,7 @@ export default function RegressionDetail({ currency, label, asOf, dataStamp }: {
           </ResponsiveContainer>
         </Panel>
 
-        <Panel title="Actual vs fitted · daily changes (bp)" sub="Each dot is one day; on the diagonal the factors explain the move fully">
+        <Panel title="Actual vs fitted · daily changes (bp)" sub={`Each dot is one day; on the diagonal the factors explain the move fully. Gold: latest day (${data.residuals[data.residuals.length - 1]?.date ?? '—'})`}>
           <ResponsiveContainer width="100%" height={240}>
             <ScatterChart margin={{ top: 4, right: 8, bottom: 8, left: 0 }}>
               <CartesianGrid {...chart.grid} vertical />
@@ -260,7 +260,15 @@ export default function RegressionDetail({ currency, label, asOf, dataStamp }: {
                 )
               }} />
               <ReferenceLine segment={[{ x: fitMin, y: fitMin }, { x: fitMax, y: fitMax }]} stroke="rgba(200,220,240,0.3)" strokeDasharray="3 3" />
-              <Scatter data={data.residuals} fill="#86c0de" fillOpacity={0.55} isAnimationActive={false} />
+              <Scatter data={data.residuals.slice(0, -1)} fill="#86c0de" fillOpacity={0.55} isAnimationActive={false} />
+              {/* Latest day, drawn last so it sits on top */}
+              <Scatter data={data.residuals.slice(-1)} isAnimationActive={false}
+                shape={({ cx, cy }: { cx?: number; cy?: number }) => (
+                  <g>
+                    <circle cx={cx} cy={cy} r={9} fill="none" stroke="#d6ad66" strokeOpacity={0.5} strokeWidth={1} />
+                    <circle cx={cx} cy={cy} r={5} fill="#d6ad66" stroke="#0f1419" strokeWidth={1.5} />
+                  </g>
+                )} />
             </ScatterChart>
           </ResponsiveContainer>
         </Panel>
