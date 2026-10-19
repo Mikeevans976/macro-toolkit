@@ -113,20 +113,6 @@ export const TOOL_GLYPH: Record<string, GlyphName> = {
   'inflation-fixings': 'pin',
 }
 
-// Country flags for the regional heatmaps
-export const TOOL_FLAG: Record<string, string> = {
-  'euro-area-heatmap': '🇪🇺',
-  'uk-heatmap': '🇬🇧',
-  'us-heatmap': '🇺🇸',
-  'japan-heatmap': '🇯🇵',
-  'canada-heatmap': '🇨🇦',
-  'sweden-heatmap': '🇸🇪',
-  'norway-heatmap': '🇳🇴',
-  'switzerland-heatmap': '🇨🇭',
-  'australia-heatmap': '🇦🇺',
-  'new-zealand-heatmap': '🇳🇿',
-}
-
 export function toolGlyph(toolId: string): GlyphName {
   if (TOOL_GLYPH[toolId]) return TOOL_GLYPH[toolId]
   if (toolId.endsWith('-heatmap')) return 'heatmap'

@@ -1,4 +1,4 @@
-/** 10y macro fair value (PCA inversion of the macro-fitted PCs) and the curve fair-value table. */
+/** Long-tenor (fv_tenor, usually 10y) macro fair value (PCA inversion of the macro-fitted PCs) and the curve fair-value table. */
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { HeatmapDashboard } from '../types'
 import { C, Card, Eyebrow, LegendRow, MONO, Stat, axisTick, dateAxis, signed, tooltipStyle, zipSeries } from '../ui'
@@ -7,7 +7,7 @@ export function FairValueSection({ data }: { data: HeatmapDashboard }) {
   const fv = data.fair_value
   const n = fv.dates.length - 1
   const rc = fv.rich_cheap_bps[n]
-  const bond = `10y ${data.bond_name}`
+  const bond = `${data.fv_tenor} ${data.bond_name}`
   const rows = zipSeries(fv.dates, { actual: fv.actual, pcaFitted: fv.pca_fitted, fairValue: fv.macro_fair_value, richCheap: fv.rich_cheap_bps })
   const gradId = `rc-${data.region}`
   return (

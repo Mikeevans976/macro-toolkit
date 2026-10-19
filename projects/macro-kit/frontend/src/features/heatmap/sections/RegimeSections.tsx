@@ -1,6 +1,7 @@
-/** Curve (2s10s/2s30s) and 10y breakeven regime analytics, and the scenario probabilities built on both. */
+/** Curve (e.g. 2s10s/2s30s) and long-tenor breakeven regime analytics, and the scenario probabilities built on them
+ *  (curve only where the region has no inflation-linked market and the payload's breakeven is null). */
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import type { CurveRegimes, HeatmapDashboard, LookbackRow, ScenarioKey } from '../types'
+import type { Breakeven, CurveRegimes, HeatmapDashboard, LookbackRow, ScenarioKey } from '../types'
 import { C, Card, Eyebrow, LegendRow, MONO, Note, Stat, axisTick, dateAxis, td, th, tooltipStyle, zipSeries } from '../ui'
 
 const CURVE = [
@@ -108,8 +109,8 @@ export function CurveRegimeSection({ data }: { data: HeatmapDashboard }) {
   )
 }
 
-export function BreakevenSection({ data }: { data: HeatmapDashboard }) {
-  const be = data.breakeven
+export function BreakevenSection({ data, breakeven: be }: { data: HeatmapDashboard; breakeven: Breakeven }) {
+  const t = data.fv_tenor
   const rows = zipSeries(be.regime_dates, {
     orthodox: be.regime_dates.map((_, i) => be.expansion[i] + be.slowdown[i]),
     nonOrthodox: be.regime_dates.map((_, i) => be.stagflation[i] + be.goldilocks[i]),
@@ -117,11 +118,11 @@ export function BreakevenSection({ data }: { data: HeatmapDashboard }) {
   })
   const last = be.regime_dates.length - 1
   return (
-    <Card title="10y Breakeven Dynamics"
-      subtitle={<>10y {data.bond_name} nominal yield vs breakeven &middot; four-regime classification &middot; 3m rolling{be.source === 'simulation' ? ' · simulated breakeven (no live real-yield series configured)' : ''}</>}
+    <Card title={`${t} Breakeven Dynamics`}
+      subtitle={<>{t} {data.bond_name} nominal yield vs breakeven &middot; four-regime classification &middot; 3m rolling{be.source === 'simulation' ? ' · simulated breakeven (no live real-yield series configured)' : ''}</>}
       right={
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Stat label="10y breakeven" value={`${be.breakeven[be.breakeven.length - 1].toFixed(2)}%`} />
+          <Stat label={`${t} breakeven`} value={`${be.breakeven[be.breakeven.length - 1].toFixed(2)}%`} />
           <Stat label="Expansion" value={pct(be.expansion[last])} color={C.green} />
           <Stat label="Slowdown" value={pct(be.slowdown[last])} color={C.blue} />
         </div>
@@ -181,16 +182,22 @@ function ProbBars({ title, probs }: { title: string; probs: Record<ScenarioKey, 
 
 export function ScenarioSection({ data }: { data: HeatmapDashboard }) {
   const sc = data.scenarios
+  const curve = data.curve_regimes[0].name
+  const be = `${data.fv_tenor} breakeven`
   const series = (src: Record<ScenarioKey, number[]>) => zipSeries(sc.dates, src)
+  const rolling = [{ title: 'Curve signal — rolling', src: sc.curve }]
+  if (sc.breakeven) rolling.push({ title: 'Breakeven signal — rolling', src: sc.breakeven })
   return (
     <Card title="Scenario Probabilities"
-      subtitle="Mapped from 3m regime frequencies · two independent signals: 2s10s curve and 10y breakeven">
+      subtitle={sc.current.breakeven
+        ? `Mapped from 3m regime frequencies · two independent signals: ${curve} curve and ${be}`
+        : `Mapped from 3m ${curve} curve regime frequencies · curve signal only (no inflation-linked market)`}>
       <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', marginBottom: 24 }}>
-        <ProbBars title="From 2s10s curve regimes" probs={sc.current.curve} />
-        <ProbBars title="From 10y breakeven regimes" probs={sc.current.breakeven} />
+        <ProbBars title={`From ${curve} curve regimes`} probs={sc.current.curve} />
+        {sc.current.breakeven && <ProbBars title={`From ${be} regimes`} probs={sc.current.breakeven} />}
       </div>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-        {[{ title: 'Curve signal — rolling', src: sc.curve }, { title: 'Breakeven signal — rolling', src: sc.breakeven }].map(p => (
+        {rolling.map(p => (
           <div key={p.title} style={{ flex: '1 1 420px', minWidth: 0 }}>
             <Eyebrow>{p.title}</Eyebrow>
             <ResponsiveContainer width="100%" height={180}>

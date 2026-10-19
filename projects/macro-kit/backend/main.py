@@ -52,6 +52,7 @@ from routers import (
     heatmaps,
     inflation_fixings,
     inflation_pca,
+    macro_options,
     mean_reversion,
     momentum,
     option_cdf,
@@ -96,6 +97,15 @@ async def lifespan(_app: FastAPI):
             except Exception:
                 logger.exception("EGB RV warm-up failed; will fetch on first request")
         threading.Thread(target=_warm_egb, name="egb-rv-warmup", daemon=True).start()
+
+        def _warm_options() -> None:
+            try:
+                from macro_options import warm_cache
+                warm_cache()
+                logger.info("Macro Options live snapshot warmed")
+            except Exception:
+                logger.exception("Macro Options warm-up failed; will fetch on first request")
+        threading.Thread(target=_warm_options, name="macro-options-warmup", daemon=True).start()
     # Bloomberg news subscriber (only when BBG_NEWS_AUTOSTART=1 and subscriptions are configured)
     from pod.bloomberg import start_news_subscriber_thread
     start_news_subscriber_thread()
@@ -129,6 +139,7 @@ for _tool in (
     heatmaps,
     inflation_fixings,
     inflation_pca,
+    macro_options,
     mean_reversion,
     momentum,
     option_cdf,

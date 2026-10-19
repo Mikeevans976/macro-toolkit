@@ -39,7 +39,10 @@ FROZEN_NOW = "2026-06-30T12:00:00+00:00"
 ABS_TOL = 1e-9
 
 _REGIONS = ["euro-area", "uk", "us", "japan", "canada", "sweden",
-            "norway", "switzerland", "australia", "new-zealand"]
+            "norway", "switzerland", "australia", "new-zealand",
+            "mexico", "china", "india", "brazil", "south-korea", "south-africa", "poland", "indonesia",
+            "hungary", "czech-republic", "romania", "turkey", "israel", "chile",
+            "colombia", "peru", "thailand", "malaysia", "philippines", "taiwan"]
 _VIEWS = ["factors", "yield-pca", "pc-regressions", "fair-value"]
 
 CASES: list[str] = (

@@ -9,7 +9,7 @@ interface Props {
   categoryId?: string
   title: React.ReactNode
   subtitle?: React.ReactNode
-  flag?: string
+  flag?: React.ReactNode       // e.g. <CountryFlag country="MX" />
 }
 
 export default function PageTitle({ category, categoryId, title, subtitle, flag }: Props) {
@@ -21,7 +21,7 @@ export default function PageTitle({ category, categoryId, title, subtitle, flag 
         {category}
       </div>
       <h1 style={{ margin: 0, fontSize: 17, fontWeight: 500, letterSpacing: '-0.02em', color: '#eef2f6', lineHeight: 1.2, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 9 }}>
-        {flag && <span style={{ fontSize: 18, lineHeight: 1 }} aria-hidden="true">{flag}</span>}
+        {flag}
         {title}
       </h1>
       {subtitle && (

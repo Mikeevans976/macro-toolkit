@@ -4,9 +4,9 @@
  */
 import { useEffect, useState } from 'react'
 import PageTitle, { headerBar } from '../../components/PageTitle'
-import { TOOL_FLAG } from '../../components/Glyph'
+import CountryFlag from '../../components/CountryFlag'
 import { authFetch } from '../../api/client'
-import { HEATMAP_REGIONS, type HeatmapRegion } from './regions'
+import { BLOC_CATEGORY, HEATMAP_REGIONS, type HeatmapRegion } from './regions'
 import type { HeatmapDashboard } from './types'
 import { cardStyle } from './styles'
 import { C, monthLabel } from './ui'
@@ -19,13 +19,15 @@ type State = { status: 'loading' } | { status: 'error'; message: string } | { st
 
 function sourceLabel(d: HeatmapDashboard): string {
   const s = d.data_source
-  if (s.macro === 'live' && s.yields === 'live') return 'Live data'
+  const missing = s.missing_series.length ? ` (${s.missing_series.length} series without data)` : ''
+  if (s.macro === 'live' && s.yields === 'live') return `Live data${missing}`
   if (s.macro === 'simulation' && s.yields === 'simulation') return 'Simulated data'
-  return `Macro: ${s.macro} · yields: ${s.yields}`
+  return `Macro: ${s.macro}${missing} · yields: ${s.yields}`
 }
 
 export default function RegionalHeatmapPage({ region }: { region: HeatmapRegion }) {
   const meta = HEATMAP_REGIONS.find(r => r.slug === region)!
+  const category = BLOC_CATEGORY[meta.bloc]
   const [state, setState] = useState<State>({ status: 'loading' })
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function RegionalHeatmapPage({ region }: { region: HeatmapRegion 
   return (
     <div style={{ minHeight: '100vh', background: '#07090c' }}>
       <header style={{ ...headerBar, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 24px', gap: 12 }}>
-        <PageTitle category="Macro Fundamentals" categoryId="macro-fundamentals" flag={TOOL_FLAG[`${region}-heatmap`]}
+        <PageTitle category={category.name} categoryId={category.id} flag={<CountryFlag country={meta.country} height={14} title={meta.name} />}
           title={<>{meta.name} — Macro Heatmap</>}
           subtitle={<>Dynamic Factor Model{data ? ` · ${sourceLabel(data)}` : ''}</>} />
         {data && (
@@ -70,7 +72,7 @@ export default function RegionalHeatmapPage({ region }: { region: HeatmapRegion 
             <RegressionSection data={data} />
             <FairValueSection data={data} />
             <CurveRegimeSection data={data} />
-            <BreakevenSection data={data} />
+            {data.breakeven && <BreakevenSection data={data} breakeven={data.breakeven} />}
             <ScenarioSection data={data} />
             <div style={cardStyle}><ZScoreLegend /></div>
             <IndicatorTable data={data} />

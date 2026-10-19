@@ -637,10 +637,63 @@
     "title": "CdsScenario",
     "type": "object"
    },
+   "ContractRow": {
+    "properties": {
+     "F": {
+      "title": "F",
+      "type": "number"
+     },
+     "expiries": {
+      "items": {
+       "$ref": "#/components/schemas/ExpiryChain"
+      },
+      "title": "Expiries",
+      "type": "array"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "ltd": {
+      "title": "Ltd",
+      "type": "string"
+     },
+     "month": {
+      "title": "Month",
+      "type": "integer"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     },
+     "year": {
+      "title": "Year",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "ticker",
+     "year",
+     "month",
+     "F",
+     "ltd",
+     "expiries"
+    ],
+    "title": "ContractRow",
+    "type": "object"
+   },
    "CurrentScenarios": {
     "properties": {
      "breakeven": {
-      "$ref": "#/components/schemas/ScenarioProbs"
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ScenarioProbs"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "curve": {
       "$ref": "#/components/schemas/ScenarioProbs"
@@ -983,7 +1036,8 @@
      "breakeven": {
       "enum": [
        "live",
-       "simulation"
+       "simulation",
+       "none"
       ],
       "title": "Breakeven",
       "type": "string"
@@ -995,6 +1049,13 @@
       ],
       "title": "Macro",
       "type": "string"
+     },
+     "missing_series": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Missing Series",
+      "type": "array"
      },
      "yields": {
       "enum": [
@@ -1008,9 +1069,101 @@
     "required": [
      "macro",
      "yields",
-     "breakeven"
+     "breakeven",
+     "missing_series"
     ],
     "title": "DataSources",
+    "type": "object"
+   },
+   "ExpiryChain": {
+    "properties": {
+     "F": {
+      "title": "F",
+      "type": "number"
+     },
+     "T": {
+      "title": "T",
+      "type": "number"
+     },
+     "atm_vol": {
+      "title": "Atm Vol",
+      "type": "number"
+     },
+     "calls": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Calls",
+      "type": "array"
+     },
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "expiry": {
+      "title": "Expiry",
+      "type": "string"
+     },
+     "fit_rmse_ticks": {
+      "title": "Fit Rmse Ticks",
+      "type": "number"
+     },
+     "flags": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Flags",
+      "type": "array"
+     },
+     "grid_h": {
+      "title": "Grid H",
+      "type": "number"
+     },
+     "grid_lo": {
+      "title": "Grid Lo",
+      "type": "number"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "standard",
+       "serial"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "n_fit": {
+      "title": "N Fit",
+      "type": "integer"
+     },
+     "quotes": {
+      "items": {
+       "$ref": "#/components/schemas/OptionQuote"
+      },
+      "title": "Quotes",
+      "type": "array"
+     }
+    },
+    "required": [
+     "id",
+     "code",
+     "kind",
+     "expiry",
+     "T",
+     "F",
+     "atm_vol",
+     "grid_lo",
+     "grid_h",
+     "calls",
+     "quotes",
+     "n_fit",
+     "fit_rmse_ticks",
+     "flags"
+    ],
+    "title": "ExpiryChain",
     "type": "object"
    },
    "FactorSummary": {
@@ -1546,12 +1699,35 @@
    },
    "HeatmapDashboard": {
     "properties": {
+     "bloc": {
+      "enum": [
+       "dm",
+       "em"
+      ],
+      "title": "Bloc",
+      "type": "string"
+     },
      "bond_name": {
       "title": "Bond Name",
       "type": "string"
      },
      "breakeven": {
-      "$ref": "#/components/schemas/Breakeven"
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Breakeven"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "curve_instrument": {
+      "enum": [
+       "govt",
+       "swap"
+      ],
+      "title": "Curve Instrument",
+      "type": "string"
      },
      "curve_regimes": {
       "items": {
@@ -1572,6 +1748,10 @@
      },
      "fair_value": {
       "$ref": "#/components/schemas/DashboardFairValue"
+     },
+     "fv_tenor": {
+      "title": "Fv Tenor",
+      "type": "string"
      },
      "indicators": {
       "$ref": "#/components/schemas/Indicators"
@@ -1604,7 +1784,10 @@
      "region",
      "display_name",
      "bond_name",
+     "curve_instrument",
+     "bloc",
      "tenors",
+     "fv_tenor",
      "period",
      "data_source",
      "factors",
@@ -1762,6 +1945,87 @@
     "title": "IssuerCurve",
     "type": "object"
    },
+   "MacroOptionsSnapshot": {
+    "properties": {
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of"
+     },
+     "contracts": {
+      "items": {
+       "$ref": "#/components/schemas/ContractRow"
+      },
+      "title": "Contracts",
+      "type": "array"
+     },
+     "data_source": {
+      "enum": [
+       "bloomberg",
+       "simulation"
+      ],
+      "title": "Data Source",
+      "type": "string"
+     },
+     "live": {
+      "title": "Live",
+      "type": "boolean"
+     },
+     "meetings": {
+      "items": {
+       "$ref": "#/components/schemas/Meeting"
+      },
+      "title": "Meetings",
+      "type": "array"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "ois_path": {
+      "items": {
+       "$ref": "#/components/schemas/PathMeeting"
+      },
+      "title": "Ois Path",
+      "type": "array"
+     },
+     "rates": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Rates"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "data_source",
+     "live",
+     "as_of",
+     "note",
+     "contracts",
+     "meetings",
+     "ois_path",
+     "rates"
+    ],
+    "title": "MacroOptionsSnapshot",
+    "type": "object"
+   },
    "MarketReactionPayload": {
     "properties": {
      "market_ticker": {
@@ -1847,6 +2111,29 @@
     "title": "Me",
     "type": "object"
    },
+   "Meeting": {
+    "properties": {
+     "decision": {
+      "title": "Decision",
+      "type": "string"
+     },
+     "effective": {
+      "title": "Effective",
+      "type": "string"
+     },
+     "estimated": {
+      "title": "Estimated",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "decision",
+     "effective",
+     "estimated"
+    ],
+    "title": "Meeting",
+    "type": "object"
+   },
    "ModelOverrideRequest": {
     "properties": {
      "model": {
@@ -1862,6 +2149,157 @@
      }
     },
     "title": "ModelOverrideRequest",
+    "type": "object"
+   },
+   "OisPoint": {
+    "properties": {
+     "rate": {
+      "title": "Rate",
+      "type": "number"
+     },
+     "tenor": {
+      "title": "Tenor",
+      "type": "number"
+     }
+    },
+    "required": [
+     "tenor",
+     "rate"
+    ],
+    "title": "OisPoint",
+    "type": "object"
+   },
+   "OpenInterest": {
+    "properties": {
+     "F": {
+      "items": {
+       "type": "number"
+      },
+      "title": "F",
+      "type": "array"
+     },
+     "calls": {
+      "items": {
+       "items": {
+        "type": "integer"
+       },
+       "type": "array"
+      },
+      "title": "Calls",
+      "type": "array"
+     },
+     "contract": {
+      "title": "Contract",
+      "type": "string"
+     },
+     "data_source": {
+      "enum": [
+       "bloomberg",
+       "simulation"
+      ],
+      "title": "Data Source",
+      "type": "string"
+     },
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "expiry": {
+      "title": "Expiry",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "puts": {
+      "items": {
+       "items": {
+        "type": "integer"
+       },
+       "type": "array"
+      },
+      "title": "Puts",
+      "type": "array"
+     },
+     "strikes": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Strikes",
+      "type": "array"
+     }
+    },
+    "required": [
+     "data_source",
+     "note",
+     "contract",
+     "expiry",
+     "dates",
+     "strikes",
+     "calls",
+     "puts",
+     "F"
+    ],
+    "title": "OpenInterest",
+    "type": "object"
+   },
+   "OptionQuote": {
+    "properties": {
+     "iv": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Iv"
+     },
+     "price": {
+      "title": "Price",
+      "type": "number"
+     },
+     "source": {
+      "enum": [
+       "mid",
+       "settle"
+      ],
+      "title": "Source",
+      "type": "string"
+     },
+     "strike": {
+      "title": "Strike",
+      "type": "number"
+     },
+     "type": {
+      "enum": [
+       "C",
+       "P"
+      ],
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "strike",
+     "type",
+     "price",
+     "iv",
+     "source"
+    ],
+    "title": "OptionQuote",
     "type": "object"
    },
    "PCRegressions": {
@@ -1888,6 +2326,44 @@
     "title": "PCRegressions",
     "type": "object"
    },
+   "PathMeeting": {
+    "properties": {
+     "cumulative_bp": {
+      "title": "Cumulative Bp",
+      "type": "number"
+     },
+     "decision": {
+      "title": "Decision",
+      "type": "string"
+     },
+     "effective": {
+      "title": "Effective",
+      "type": "string"
+     },
+     "estimated": {
+      "title": "Estimated",
+      "type": "boolean"
+     },
+     "exp_bp": {
+      "title": "Exp Bp",
+      "type": "number"
+     },
+     "rate": {
+      "title": "Rate",
+      "type": "number"
+     }
+    },
+    "required": [
+     "decision",
+     "effective",
+     "estimated",
+     "rate",
+     "exp_bp",
+     "cumulative_bp"
+    ],
+    "title": "PathMeeting",
+    "type": "object"
+   },
    "Period": {
     "properties": {
      "end": {
@@ -1906,6 +2382,46 @@
     "title": "Period",
     "type": "object"
    },
+   "Rates": {
+    "properties": {
+     "dfr": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dfr"
+     },
+     "estr": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Estr"
+     },
+     "ois": {
+      "items": {
+       "$ref": "#/components/schemas/OisPoint"
+      },
+      "title": "Ois",
+      "type": "array"
+     }
+    },
+    "required": [
+     "dfr",
+     "estr",
+     "ois"
+    ],
+    "title": "Rates",
+    "type": "object"
+   },
    "Region": {
     "enum": [
      "euro-area",
@@ -1917,7 +2433,27 @@
      "norway",
      "switzerland",
      "australia",
-     "new-zealand"
+     "new-zealand",
+     "mexico",
+     "china",
+     "india",
+     "brazil",
+     "south-korea",
+     "south-africa",
+     "poland",
+     "indonesia",
+     "hungary",
+     "czech-republic",
+     "romania",
+     "turkey",
+     "israel",
+     "chile",
+     "colombia",
+     "peru",
+     "thailand",
+     "malaysia",
+     "philippines",
+     "taiwan"
     ],
     "title": "Region",
     "type": "string"
@@ -2078,7 +2614,14 @@
    "Scenarios": {
     "properties": {
      "breakeven": {
-      "$ref": "#/components/schemas/ScenarioSeries"
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ScenarioSeries"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "current": {
       "$ref": "#/components/schemas/CurrentScenarios"
@@ -5785,6 +6328,142 @@
      }
     ],
     "summary": "Inflation Pca"
+   }
+  },
+  "/api/tools/macro-options/open-interest": {
+   "get": {
+    "description": "Daily per-strike call / put open interest of one option expiry.",
+    "operationId": "get_macro_options_open_interest_api_tools_macro_options_open_interest_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "contract",
+      "required": true,
+      "schema": {
+       "pattern": "^ER[HMUZ]\\d$",
+       "title": "Contract",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "expiry",
+      "required": true,
+      "schema": {
+       "pattern": "^\\d{4}-\\d{2}$",
+       "title": "Expiry",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "through",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Through"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OpenInterest"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Macro Options Open Interest"
+   }
+  },
+  "/api/tools/macro-options/snapshot": {
+   "get": {
+    "description": "Futures, option chains (fitted smile + call grid) and the OIS meeting path: live, or a past day's settlement.",
+    "operationId": "get_macro_options_snapshot_api_tools_macro_options_snapshot_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "date",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Date"
+      }
+     },
+     {
+      "in": "query",
+      "name": "refresh",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Refresh",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MacroOptionsSnapshot"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Get Macro Options Snapshot"
    }
   },
   "/api/tools/mean-reversion/analyse": {

@@ -75,12 +75,13 @@ cd frontend && npm run build && cd .. && python backend/main.py
 | `data_fetcher.py` | Data fetching utilities |
 | `global_yields.py` | Global yield curve data |
 | `swaps_rv.py` | Swap RV analytics (carry, roll, OIS pricing) |
+| `macro_options.py` | Euribor options for the Macro Options Monitor: chains, smile fit + call grid, €STR OIS meeting path, open interest |
 | `curves_flies_config.py` | Config for curves/flies tool |
 | `seasonality_backtester.py` | Seasonality backtest engine |
 | `data/series_catalogue_*.json` | Single source of truth for indicator tickers/lags per region |
 
 ### Frontend pages
-Each page in `frontend/src/pages/` corresponds to a tool tile in the dashboard. Most tool pages fetch from the backend (`/api/tools/...`); the ten regional heatmaps share one page driven entirely by the backend. MacroOptionsMonitor and parts of other pages still generate **deterministic synthetic data** in the browser.
+Each page in `frontend/src/pages/` corresponds to a tool tile in the dashboard. Most tool pages fetch from the backend (`/api/tools/...`); the 30 regional heatmaps (10 DM, 20 EM) share one page driven entirely by the backend. Parts of some pages still generate **deterministic synthetic data** in the browser. The Macro Options Monitor (`features/macro-options/`) reads Euribor option chains from `backend/macro_options.py` (live, or a past day's settlement) and only falls back to its in-browser simulation without Bloomberg.
 
 ### DFM (Dynamic Factor Model)
 `dfm.py` implements a mixed-frequency Kalman filter/smoother. Monthly macro series are observed on the last business day of each month (NaN otherwise); yield PCs are handled in a separate downstream pipeline to avoid circularity. The Euro Area model runs 5 factors × 60 series with block-PCA initialisation.
@@ -118,14 +119,23 @@ The backend is the single source of truth: `GET /api/tools/heatmap/{region}` ret
 | Page | `frontend/src/features/heatmap/RegionalHeatmapPage.tsx` | One shared page; sections in `features/heatmap/sections/` |
 | Routes | `frontend/src/features/heatmap/regions.ts` | Generates `/tools/{slug}-heatmap` routes in `App.tsx` |
 
+30 regions: 10 DM (`bloc="dm"`, "Macro Fundamentals") and 20 EM (`bloc="em"`, "EM Macro Fundamentals": Mexico, China, India, Brazil, South Korea, South Africa, Poland, Indonesia, Hungary, Czech Republic, Romania, Turkey, Israel, Chile, Colombia, Peru, Thailand, Malaysia, Philippines, Taiwan; see `docs/EM_HEATMAPS_PLAN.md`). The engine is generic over:
+- **Factor set** (`HeatmapConfig.factors`): "Global Macro" first, then one per catalogue `dfm_factor` group. DM uses Growth/Inflation/Employment/Wages; EM regions swap in `External` (trade, reserves, REER) or `Credit` (China) where labour data are thin. Every group needs exactly one `dfm_primary`.
+- **Curve legs** (`short_tenor`, `long_tenor` = fair-value tenor, `ultra_tenor` or None): regime names (`3s10s`…) and the fair-value table follow them.
+- **Breakeven** (`breakeven=False` → no section, scenarios from the curve only; else `breakeven_10y_series_id` (quoted) or `real_yield_10y_series_id` (nominal − real), falling back to simulated).
+- **Live window**: simulated data use the fixed 2023-06 → 2025-06 grid; live data the last `LIVE_YEARS` (5) years. Live macro needs every primary + 75% of series with data; dead series are dropped and listed in `data_source.missing_series`.
+- **Catalogue `transform`**: `yoy`, `diff_yoy`, `sum12` (monthly flows, e.g. net jobs), applied after fetching.
+
+EM curves use Bloomberg BVAL constant-maturity curves (`BV{tenor}{curve} BVLI Index`); EM "generic" tickers (`G…YR Index`) have multi-month gaps.
+
 ### Adding a region
 
-1. Create `backend/data/series_catalogue_<region>.json` (mirror an existing one: `dfm_col_index` 0..M-1, `dfm_factor`, `dfm_sign`, one `dfm_primary` per factor, `heatmap_group`)
-2. Add a `HeatmapConfig` to `REGIONS` in `backend/heatmap_regions.py` (set `real_yield_10y_series_id` if the catalogue has a 10y linker yield; otherwise the breakeven is simulated)
-3. Add the slug to `_REGIONS` in `backend/tests/test_api_contract.py` and run with `UPDATE_SNAPSHOTS=1`
-4. Add the slug to `frontend/src/features/heatmap/regions.ts`, a flag in `TOOL_FLAG` (`components/Glyph.tsx`) and a tile in `dashboard_config.yaml`
+1. Create `backend/data/series_catalogue_<region>.json` (mirror an existing one: `dfm_col_index` 0..M-1, `dfm_factor`, `dfm_sign`, one `dfm_primary` per factor, `heatmap_group`, optional `transform`). Check every ticker on the Terminal: `cd backend && python scripts/probe_catalogue.py data/series_catalogue_<region>.json`
+2. Add a `HeatmapConfig` to `REGIONS` in `backend/heatmap_regions.py` (EM regions: the `_em(...)` helper)
+3. Add the slug to `_REGIONS` in `backend/tests/test_api_contract.py` and run with `UPDATE_SNAPSHOTS=1` (add `-k heatmap` to refresh only heatmap entries; the updater merges per key)
+4. Add the slug, `bloc` and ISO `country` code to `frontend/src/features/heatmap/regions.ts` (and the flag import in `components/CountryFlag.tsx`), a tile in `dashboard_config.yaml` and the region code in `pod/tools/analytics.py`
 
-After an intentional change to the dashboard payload, regenerate the frontend test fixture: `cd backend && python scripts/make_heatmap_fixture.py`.
+After an intentional change to the dashboard payload, regenerate the frontend test fixtures (UK = DM shape, China = EM shape): `cd backend && python scripts/make_heatmap_fixture.py`.
 
 ---
 
@@ -140,5 +150,6 @@ The UI follows a graphite / glacier design system ("calm instrument"). Do not re
 | `frontend/tailwind.config.js` | `slate`/`gray` remapped to graphite, `blue`/`sky` to glacier; `ink`, `fg`, `accent`, `pos`, `neg`, `warn`, `hairline` |
 | `frontend/src/components/AppShell.tsx` | Fixed left rail (MM monogram, launchpad, ⌘K tool palette, recent tools, sign-out) wrapping every protected route |
 | `frontend/src/components/Glyph.tsx` | Monoline icon set; `TOOL_GLYPH` maps tool id → glyph (add new tools here, not emoji in YAML) |
+| `frontend/src/components/CountryFlag.tsx` | SVG country flags (`country-flag-icons`) for the regional heatmaps; never emoji flags (Windows renders them as letter pairs) |
 
 Rules: numbers use Geist Mono (`fontFamily: "'Geist Mono', ui-monospace, monospace"`), text uses Geist; no emoji, glows or scale-on-hover; panel radius 6; colour only where it carries meaning. Pages don't need their own back button — the rail handles navigation. Use hex (not `var()`) in page inline styles, since pages build colours like `` `${c}22` ``.

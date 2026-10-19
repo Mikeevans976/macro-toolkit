@@ -959,6 +959,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/macro-options/open-interest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Macro Options Open Interest
+         * @description Daily per-strike call / put open interest of one option expiry.
+         */
+        get: operations["get_macro_options_open_interest_api_tools_macro_options_open_interest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/macro-options/snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Macro Options Snapshot
+         * @description Futures, option chains (fitted smile + call grid) and the OIS meeting path: live, or a past day's settlement.
+         */
+        get: operations["get_macro_options_snapshot_api_tools_macro_options_snapshot_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tools/mean-reversion/analyse": {
         parameters: {
             query?: never;
@@ -1654,9 +1694,26 @@ export interface components {
             /** Factor */
             factor: number;
         };
+        /** ContractRow */
+        ContractRow: {
+            /** F */
+            F: number;
+            /** Expiries */
+            expiries: components["schemas"]["ExpiryChain"][];
+            /** Id */
+            id: string;
+            /** Ltd */
+            ltd: string;
+            /** Month */
+            month: number;
+            /** Ticker */
+            ticker: string;
+            /** Year */
+            year: number;
+        };
         /** CurrentScenarios */
         CurrentScenarios: {
-            breakeven: components["schemas"]["ScenarioProbs"];
+            breakeven: components["schemas"]["ScenarioProbs"] | null;
             curve: components["schemas"]["ScenarioProbs"];
         };
         /** CurveFVRow */
@@ -1779,17 +1836,53 @@ export interface components {
              * Breakeven
              * @enum {string}
              */
-            breakeven: "live" | "simulation";
+            breakeven: "live" | "simulation" | "none";
             /**
              * Macro
              * @enum {string}
              */
             macro: "live" | "simulation";
+            /** Missing Series */
+            missing_series: string[];
             /**
              * Yields
              * @enum {string}
              */
             yields: "live" | "simulation";
+        };
+        /** ExpiryChain */
+        ExpiryChain: {
+            /** F */
+            F: number;
+            /** T */
+            T: number;
+            /** Atm Vol */
+            atm_vol: number;
+            /** Calls */
+            calls: number[];
+            /** Code */
+            code: string;
+            /** Expiry */
+            expiry: string;
+            /** Fit Rmse Ticks */
+            fit_rmse_ticks: number;
+            /** Flags */
+            flags: string[];
+            /** Grid H */
+            grid_h: number;
+            /** Grid Lo */
+            grid_lo: number;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "standard" | "serial";
+            /** N Fit */
+            n_fit: number;
+            /** Quotes */
+            quotes: components["schemas"]["OptionQuote"][];
         };
         /** FactorSummary */
         FactorSummary: {
@@ -1978,9 +2071,19 @@ export interface components {
         };
         /** HeatmapDashboard */
         HeatmapDashboard: {
+            /**
+             * Bloc
+             * @enum {string}
+             */
+            bloc: "dm" | "em";
             /** Bond Name */
             bond_name: string;
-            breakeven: components["schemas"]["Breakeven"];
+            breakeven: components["schemas"]["Breakeven"] | null;
+            /**
+             * Curve Instrument
+             * @enum {string}
+             */
+            curve_instrument: "govt" | "swap";
             /** Curve Regimes */
             curve_regimes: components["schemas"]["CurveRegimes"][];
             data_source: components["schemas"]["DataSources"];
@@ -1988,6 +2091,8 @@ export interface components {
             display_name: string;
             factors: components["schemas"]["DashboardFactors"];
             fair_value: components["schemas"]["DashboardFairValue"];
+            /** Fv Tenor */
+            fv_tenor: string;
             indicators: components["schemas"]["Indicators"];
             period: components["schemas"]["Period"];
             /** Region */
@@ -2040,6 +2145,27 @@ export interface components {
             /** Points */
             points: components["schemas"]["SpreadPoint"][];
         };
+        /** MacroOptionsSnapshot */
+        MacroOptionsSnapshot: {
+            /** As Of */
+            as_of: string | null;
+            /** Contracts */
+            contracts: components["schemas"]["ContractRow"][];
+            /**
+             * Data Source
+             * @enum {string}
+             */
+            data_source: "bloomberg" | "simulation";
+            /** Live */
+            live: boolean;
+            /** Meetings */
+            meetings: components["schemas"]["Meeting"][];
+            /** Note */
+            note: string | null;
+            /** Ois Path */
+            ois_path: components["schemas"]["PathMeeting"][];
+            rates: components["schemas"]["Rates"] | null;
+        };
         /** MarketReactionPayload */
         MarketReactionPayload: {
             /** Market Ticker */
@@ -2069,10 +2195,69 @@ export interface components {
             /** Username */
             username: string;
         };
+        /** Meeting */
+        Meeting: {
+            /** Decision */
+            decision: string;
+            /** Effective */
+            effective: string;
+            /** Estimated */
+            estimated: boolean;
+        };
         /** ModelOverrideRequest */
         ModelOverrideRequest: {
             /** Model */
             model?: string | null;
+        };
+        /** OisPoint */
+        OisPoint: {
+            /** Rate */
+            rate: number;
+            /** Tenor */
+            tenor: number;
+        };
+        /** OpenInterest */
+        OpenInterest: {
+            /** F */
+            F: number[];
+            /** Calls */
+            calls: number[][];
+            /** Contract */
+            contract: string;
+            /**
+             * Data Source
+             * @enum {string}
+             */
+            data_source: "bloomberg" | "simulation";
+            /** Dates */
+            dates: string[];
+            /** Expiry */
+            expiry: string;
+            /** Note */
+            note: string | null;
+            /** Puts */
+            puts: number[][];
+            /** Strikes */
+            strikes: number[];
+        };
+        /** OptionQuote */
+        OptionQuote: {
+            /** Iv */
+            iv: number | null;
+            /** Price */
+            price: number;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "mid" | "settle";
+            /** Strike */
+            strike: number;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "C" | "P";
         };
         /** PCRegressions */
         PCRegressions: {
@@ -2081,6 +2266,21 @@ export interface components {
             pc1: components["schemas"]["RegressionStats"];
             pc2: components["schemas"]["RegressionStats"];
         };
+        /** PathMeeting */
+        PathMeeting: {
+            /** Cumulative Bp */
+            cumulative_bp: number;
+            /** Decision */
+            decision: string;
+            /** Effective */
+            effective: string;
+            /** Estimated */
+            estimated: boolean;
+            /** Exp Bp */
+            exp_bp: number;
+            /** Rate */
+            rate: number;
+        };
         /** Period */
         Period: {
             /** End */
@@ -2088,11 +2288,20 @@ export interface components {
             /** Start */
             start: string;
         };
+        /** Rates */
+        Rates: {
+            /** Dfr */
+            dfr: number | null;
+            /** Estr */
+            estr: number | null;
+            /** Ois */
+            ois: components["schemas"]["OisPoint"][];
+        };
         /**
          * Region
          * @enum {string}
          */
-        Region: "euro-area" | "uk" | "us" | "japan" | "canada" | "sweden" | "norway" | "switzerland" | "australia" | "new-zealand";
+        Region: "euro-area" | "uk" | "us" | "japan" | "canada" | "sweden" | "norway" | "switzerland" | "australia" | "new-zealand" | "mexico" | "china" | "india" | "brazil" | "south-korea" | "south-africa" | "poland" | "indonesia" | "hungary" | "czech-republic" | "romania" | "turkey" | "israel" | "chile" | "colombia" | "peru" | "thailand" | "malaysia" | "philippines" | "taiwan";
         /** RegressionStats */
         RegressionStats: {
             /** Adj R2 */
@@ -2152,7 +2361,7 @@ export interface components {
         };
         /** Scenarios */
         Scenarios: {
-            breakeven: components["schemas"]["ScenarioSeries"];
+            breakeven: components["schemas"]["ScenarioSeries"] | null;
             current: components["schemas"]["CurrentScenarios"];
             curve: components["schemas"]["ScenarioSeries"];
             /** Dates */
@@ -3986,6 +4195,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_macro_options_open_interest_api_tools_macro_options_open_interest_get: {
+        parameters: {
+            query: {
+                contract: string;
+                expiry: string;
+                through?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenInterest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_macro_options_snapshot_api_tools_macro_options_snapshot_get: {
+        parameters: {
+            query?: {
+                date?: string | null;
+                refresh?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MacroOptionsSnapshot"];
                 };
             };
             /** @description Validation Error */

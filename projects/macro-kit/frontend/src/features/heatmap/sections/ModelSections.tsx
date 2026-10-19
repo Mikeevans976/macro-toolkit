@@ -5,6 +5,7 @@ import { C, Card, Eyebrow, LegendRow, MONO, axisTick, dateAxis, signed, td, th, 
 
 export const FACTOR_COLORS: Record<string, string> = {
   'Global Macro': C.soft, Growth: C.green, Inflation: C.red, Employment: C.blue, Wages: C.violet,
+  External: C.gold, Credit: '#6fc0cb',
 }
 const PCS = [
   { key: 'PC1', label: 'PC1 — Level', color: C.gold },
@@ -57,7 +58,7 @@ export function FactorsSection({ data }: { data: HeatmapDashboard }) {
             </tbody>
           </table>
           <p style={{ color: C.muted, fontSize: 10, lineHeight: 1.5, marginTop: 12 }}>
-            Global Macro loads on every series; the other four on their catalogue group. Δ over 21/63/252 business days; Z vs the sample.
+            Global Macro loads on every series; the others on their catalogue group. Δ over 21/63/252 business days; Z vs the sample.
           </p>
         </div>
       </div>

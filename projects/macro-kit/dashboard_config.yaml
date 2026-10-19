@@ -163,6 +163,91 @@ categories:
         icon: "🇳🇿"
         url: /tools/new-zealand-heatmap
 
+  - id: em-macro-fundamentals
+    name: EM Macro Fundamentals
+    color: "#84CC16"
+    tools:
+      - id: mexico-heatmap
+        name: Mexico Heatmap
+        icon: "🇲🇽"
+        url: /tools/mexico-heatmap
+      - id: china-heatmap
+        name: China Heatmap
+        icon: "🇨🇳"
+        url: /tools/china-heatmap
+      - id: india-heatmap
+        name: India Heatmap
+        icon: "🇮🇳"
+        url: /tools/india-heatmap
+      - id: brazil-heatmap
+        name: Brazil Heatmap
+        icon: "🇧🇷"
+        url: /tools/brazil-heatmap
+      - id: south-korea-heatmap
+        name: South Korea Heatmap
+        icon: "🇰🇷"
+        url: /tools/south-korea-heatmap
+      - id: south-africa-heatmap
+        name: South Africa Heatmap
+        icon: "🇿🇦"
+        url: /tools/south-africa-heatmap
+      - id: poland-heatmap
+        name: Poland Heatmap
+        icon: "🇵🇱"
+        url: /tools/poland-heatmap
+      - id: indonesia-heatmap
+        name: Indonesia Heatmap
+        icon: "🇮🇩"
+        url: /tools/indonesia-heatmap
+      - id: hungary-heatmap
+        name: Hungary Heatmap
+        icon: "🇭🇺"
+        url: /tools/hungary-heatmap
+      - id: czech-republic-heatmap
+        name: Czech Republic Heatmap
+        icon: "🇨🇿"
+        url: /tools/czech-republic-heatmap
+      - id: romania-heatmap
+        name: Romania Heatmap
+        icon: "🇷🇴"
+        url: /tools/romania-heatmap
+      - id: turkey-heatmap
+        name: Turkey Heatmap
+        icon: "🇹🇷"
+        url: /tools/turkey-heatmap
+      - id: israel-heatmap
+        name: Israel Heatmap
+        icon: "🇮🇱"
+        url: /tools/israel-heatmap
+      - id: chile-heatmap
+        name: Chile Heatmap
+        icon: "🇨🇱"
+        url: /tools/chile-heatmap
+      - id: colombia-heatmap
+        name: Colombia Heatmap
+        icon: "🇨🇴"
+        url: /tools/colombia-heatmap
+      - id: peru-heatmap
+        name: Peru Heatmap
+        icon: "🇵🇪"
+        url: /tools/peru-heatmap
+      - id: thailand-heatmap
+        name: Thailand Heatmap
+        icon: "🇹🇭"
+        url: /tools/thailand-heatmap
+      - id: malaysia-heatmap
+        name: Malaysia Heatmap
+        icon: "🇲🇾"
+        url: /tools/malaysia-heatmap
+      - id: philippines-heatmap
+        name: Philippines Heatmap
+        icon: "🇵🇭"
+        url: /tools/philippines-heatmap
+      - id: taiwan-heatmap
+        name: Taiwan Heatmap
+        icon: "🇹🇼"
+        url: /tools/taiwan-heatmap
+
   - id: technicals
     name: Technicals
     color: "#6366F1"

@@ -156,18 +156,23 @@ def breakeven_section(dates: list[str], nominal: np.ndarray, breakeven: np.ndarr
     }
 
 
-def scenario_section(curve: dict, be: dict) -> dict:
-    """Current (3m look-back) and rolling scenario probabilities from both signals."""
+def scenario_section(curve: dict, be: dict | None) -> dict:
+    """Current (3m look-back) and rolling scenario probabilities from both signals
+    (the breakeven signal is None for regions without an inflation-linked market)."""
     c3 = next(r for r in curve["lookbacks"] if r["horizon"] == "3m")
-    b3 = next(r for r in be["lookbacks"] if r["horizon"] == "3m")
     rolling_curve = [curve_scenarios(*(curve[k][i] for k in CURVE_REGIMES)) for i in range(len(curve["dates"]))]
-    rolling_be = [be_scenarios(*(be[k][i] for k in BE_REGIMES)) for i in range(len(be["regime_dates"]))]
+    current_be = rolling = None
+    if be is not None:
+        b3 = next(r for r in be["lookbacks"] if r["horizon"] == "3m")
+        current_be = be_scenarios(*(b3[k] for k in BE_REGIMES))
+        rolling_be = [be_scenarios(*(be[k][i] for k in BE_REGIMES)) for i in range(len(be["regime_dates"]))]
+        rolling = {s: [p[s] for p in rolling_be] for s in SCENARIOS}
     return {
         "current": {"curve": curve_scenarios(*(c3[k] for k in CURVE_REGIMES)),
-                    "breakeven": be_scenarios(*(b3[k] for k in BE_REGIMES))},
+                    "breakeven": current_be},
         "dates": curve["dates"],
         "curve": {s: [p[s] for p in rolling_curve] for s in SCENARIOS},
-        "breakeven": {s: [p[s] for p in rolling_be] for s in SCENARIOS},
+        "breakeven": rolling,
     }
 
 

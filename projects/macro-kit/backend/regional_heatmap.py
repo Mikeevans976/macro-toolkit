@@ -10,7 +10,8 @@ Architecture (two-block model)
 -------------------------------
 Block 1 — Macro DFM (macro data only, no yields):
   Monthly macro indicators → Kalman smoother → daily factor estimates.
-  Factors: Global Macro, Growth, Inflation, Employment, Wages (K=5).
+  Factors: Global Macro plus one per catalogue group (default Growth,
+  Inflation, Employment, Wages; see HeatmapConfig.factors).
 
 Block 2 — Yield curve (daily, separate pipeline):
   Daily government bond yields → PCA → daily PC scores.
@@ -27,9 +28,9 @@ import os
 import warnings
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 from dfm import (
     kalman_filter,
     kalman_smoother,
@@ -40,29 +41,55 @@ from macro_data_loader import load_macro_data, MacroData, _load_dfm_meta
 from data_fetcher import get_fetcher
 
 # ---------------------------------------------------------------------------
-# Shared date grid (identical for all regions)
+# Date grid
 # ---------------------------------------------------------------------------
 
-DAILY_DATES: pd.DatetimeIndex = pd.bdate_range("2023-06-01", "2025-06-30")
-T_DAILY = len(DAILY_DATES)
+# Simulated data (csv/simulation source) uses a fixed window so snapshots and
+# the frontend fixture are stable; live data uses the last LIVE_YEARS years.
+SIM_START, SIM_END = "2023-06-01", "2025-06-30"
+LIVE_YEARS = 5
 
-MONTHLY_DATES: pd.DatetimeIndex = (
-    pd.Series(DAILY_DATES).groupby(DAILY_DATES.to_period("M")).last().values
-)
-MONTHLY_DATES = pd.DatetimeIndex(MONTHLY_DATES)
-T_MONTHLY = len(MONTHLY_DATES)
 
-MONTH_END_IDX: np.ndarray = np.array(
-    [np.searchsorted(DAILY_DATES, d) for d in MONTHLY_DATES]
-)
+def _data_source() -> str:
+    return os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower()
+
+
+@dataclass(frozen=True)
+class DateGrid:
+    daily: pd.DatetimeIndex          # business days
+    monthly: pd.DatetimeIndex        # last business day of each month
+    month_end_idx: np.ndarray        # position of each monthly date in `daily`
+
+    @classmethod
+    def between(cls, start, end) -> "DateGrid":
+        daily = pd.bdate_range(start, end)
+        monthly = pd.DatetimeIndex(pd.Series(daily).groupby(daily.to_period("M")).last().values)
+        return cls(daily, monthly, np.searchsorted(daily, monthly))
+
+
+def date_grid(source: str | None = None) -> DateGrid:
+    """Fixed simulation window, or the last LIVE_YEARS years up to the previous business day."""
+    if (source or _data_source()) in ("csv", "simulation"):
+        return DateGrid.between(SIM_START, SIM_END)
+    end = pd.Timestamp.today().normalize() - pd.offsets.BDay(1)
+    return DateGrid.between(end - pd.DateOffset(years=LIVE_YEARS), end)
+
 
 # ---------------------------------------------------------------------------
-# Shared factor constants (identical for all regions)
+# Factors
 # ---------------------------------------------------------------------------
 
+# Global Macro (full-panel PC) always comes first; the others are catalogue
+# groups (dfm_factor). Regions may drop or add groups via HeatmapConfig.factors.
 FACTOR_NAMES = ["Global Macro", "Growth", "Inflation", "Employment", "Wages"]
-_NAMED_FACTORS = FACTOR_NAMES[1:]  # the four group factors
-K = len(FACTOR_NAMES)  # 5
+# Daily AR(1) persistence of each simulated factor (half-lives of ~3-12 months).
+_SIM_AR = {"Global Macro": 0.997, "Growth": 0.995, "Inflation": 0.994,
+           "Employment": 0.996, "Wages": 0.993}
+_SIM_AR_DEFAULT = 0.995
+# Live DFM needs every factor's primary series plus this share of all series
+# to have at least _MIN_OBS observations; the rest are dropped and reported.
+LIVE_MIN_COVERAGE = 0.75
+_MIN_OBS = 3
 
 
 # ---------------------------------------------------------------------------
@@ -124,6 +151,32 @@ class HeatmapConfig:
     display_name: str = ""               # e.g. "United Kingdom"
     breakeven_mean: float = 2.2          # simulated 10y breakeven level (%)
     real_yield_10y_series_id: Optional[str] = None   # catalogue id of the 10y real (linker) yield, if any
+    breakeven_10y_series_id: Optional[str] = None    # catalogue id of a quoted 10y breakeven (used as is)
+    # Factor set: "Global Macro" then one per catalogue dfm_factor group.
+    factors: list[str] = field(default_factory=lambda: list(FACTOR_NAMES))
+    # Curve legs for the regime sections and fair-value table (long = fair-value tenor).
+    short_tenor: str = "2y"
+    long_tenor: str = "10y"
+    ultra_tenor: Optional[str] = "30y"
+    curve_instrument: Literal["govt", "swap"] = "govt"
+    # False: no breakeven section (no inflation-linked market); scenarios use the curve only.
+    # True: live breakeven if real_yield_10y_series_id resolves, otherwise simulated.
+    breakeven: bool = True
+    bloc: Literal["dm", "em"] = "dm"
+
+    def __post_init__(self) -> None:
+        if self.factors[0] != "Global Macro":
+            raise ValueError(f"[{self.region}] factors must start with 'Global Macro'")
+        n_tenors = len(self.yield_tenors)
+        if self.yield_factor_loadings.shape != (n_tenors, len(self.factors)):
+            raise ValueError(f"[{self.region}] yield_factor_loadings must be "
+                             f"[{n_tenors} tenors, {len(self.factors)} factors]")
+        legs = [self.short_tenor, self.long_tenor] + ([self.ultra_tenor] if self.ultra_tenor else [])
+        missing = [t for t in legs if t not in self.yield_tenors]
+        if missing:
+            raise ValueError(f"[{self.region}] curve legs {missing} not in yield_tenors")
+        if self.yield_tenors[self.pca_pc1_pivot] != self.long_tenor:
+            raise ValueError(f"[{self.region}] pca_pc1_pivot must point at long_tenor ({self.long_tenor})")
 
 
 # ---------------------------------------------------------------------------
@@ -187,6 +240,34 @@ def _fmt(reg: dict) -> dict:
     )
 
 
+def _apply_transforms(data: dict[str, pd.Series], meta: list[dict]) -> dict[str, pd.Series]:
+    """
+    Apply each catalogue entry's optional ``transform`` to its fetched series:
+    ``yoy`` (% change on a year earlier, for NSA levels), ``diff_yoy``
+    (change on a year earlier, for rates) or ``sum12`` (trailing-year sum, for
+    monthly flows such as net job creation). Periods are monthly or quarterly.
+    """
+    out = dict(data)
+    for e in meta:
+        how, s = e.get("transform"), out.get(e["id"])
+        if not how or how == "none" or s is None:
+            continue
+        lag = 4 if e.get("frequency") == "quarterly" else 12
+        s = s.sort_index()
+        if isinstance(s.index, pd.PeriodIndex):
+            s = s.reindex(pd.period_range(s.index[0], s.index[-1], freq=s.index.freq))
+        if how == "yoy":
+            s = (s / s.shift(lag) - 1) * 100
+        elif how == "diff_yoy":
+            s = s - s.shift(lag)
+        elif how == "sum12":
+            s = s.rolling(lag).sum()
+        else:
+            raise ValueError(f"unknown transform '{how}' for {e['id']}")
+        out[e["id"]] = s.dropna()
+    return out
+
+
 # ---------------------------------------------------------------------------
 # RegionalHeatmap class
 # ---------------------------------------------------------------------------
@@ -210,8 +291,14 @@ class RegionalHeatmap:
         cfg = self.cfg
         self._rng = np.random.default_rng(cfg.random_seed)
 
-        _fetch_start = (DAILY_DATES[0] - pd.DateOffset(years=2)).strftime("%Y-%m-%d")
-        _fetch_end = DAILY_DATES[-1].strftime("%Y-%m-%d")
+        self.grid = date_grid()
+        self.factor_names = list(cfg.factors)
+        self._named_factors = self.factor_names[1:]
+        self.K = len(self.factor_names)
+        self.T, self.T_monthly = len(self.grid.daily), len(self.grid.monthly)
+
+        _fetch_start = (self.grid.daily[0] - pd.DateOffset(years=2)).strftime("%Y-%m-%d")
+        _fetch_end = self.grid.daily[-1].strftime("%Y-%m-%d")
 
         # ── Load catalogue metadata ────────────────────────────────────────────
         catalogue_path_resolved: Optional[Path] = (
@@ -232,13 +319,20 @@ class RegionalHeatmap:
             fname: sorted(
                 e["dfm_col_index"] for e in self._dfm_meta if e["dfm_factor"] == fname
             )
-            for fname in _NAMED_FACTORS
+            for fname in self._named_factors
         }
+        unknown = {e["dfm_factor"] for e in self._dfm_meta} - set(self._named_factors)
+        if unknown:
+            raise ValueError(f"[{cfg.region}] catalogue factors {sorted(unknown)} are not in "
+                             f"HeatmapConfig.factors {self.factor_names}")
+        for fname in self._named_factors:
+            if fname not in self._primary_by_factor:
+                raise ValueError(f"[{cfg.region}] factor '{fname}' has no dfm_primary series in the catalogue")
         self._named_primary_col = [
-            self._primary_by_factor[f]["dfm_col_index"] for f in _NAMED_FACTORS
+            self._primary_by_factor[f]["dfm_col_index"] for f in self._named_factors
         ]
         self._named_primary_sign = [
-            int(self._primary_by_factor[f]["dfm_sign"]) for f in _NAMED_FACTORS
+            int(self._primary_by_factor[f]["dfm_sign"]) for f in self._named_factors
         ]
 
         # Global Macro sign anchor
@@ -253,7 +347,7 @@ class RegionalHeatmap:
         live_data = self._fetch_macro_data(_fetch_start, _fetch_end)
 
         load_kwargs: dict = dict(
-            daily_dates=DAILY_DATES,
+            daily_dates=self.grid.daily,
             m_macro=cfg.m_macro,
             data=live_data,
         )
@@ -265,34 +359,50 @@ class RegionalHeatmap:
         for w in macro_data.warnings:
             warnings.warn(f"[{cfg.region}] {w}", stacklevel=1)
 
-        _min_obs = 3
+        # Live if every primary series and LIVE_MIN_COVERAGE of all series have
+        # data; series below _MIN_OBS are dropped from the DFM and reported.
+        n_obs = macro_data.n_obs_per_series
+        keep = np.array([n_obs.get(sid, 0) >= _MIN_OBS for sid in self._macro_series_ids])
+        anchors = self._named_primary_col + [self._gm_primary_col]
         _sufficient = (
-            os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower() != "simulation"
+            _data_source() != "simulation"
             and macro_data.has_data
-            and all(v >= _min_obs for v in macro_data.n_obs_per_series.values())
+            and bool(keep[anchors].all())
+            and keep.mean() >= LIVE_MIN_COVERAGE
         )
+        if macro_data.has_data and not _sufficient:
+            warnings.warn(
+                f"[{cfg.region}] live macro data too sparse ({int(keep.sum())}/{cfg.m_macro} series, "
+                f"primaries {'ok' if keep[anchors].all() else 'missing'}); falling back to simulation.",
+                stacklevel=1,
+            )
 
         if _sufficient:
+            self.missing_series = [sid for sid, k in zip(self._macro_series_ids, keep) if not k]
+            if self.missing_series:
+                warnings.warn(f"[{cfg.region}] no live data for {self.missing_series}; "
+                              "dropped from the DFM.", stacklevel=1)
             self.FACTORS_SMOOTH, self.FACTORS_FILT = self._build_macro_dfm_from_data(
-                macro_data.Y_daily
+                macro_data.Y_daily, keep
             )
             _true_factors = None
             self.macro_source = "live"
             # Latest known value of each indicator at each month end (raw units).
             self._indicator_monthly = (
-                pd.DataFrame(macro_data.Y_daily).ffill().values[MONTH_END_IDX]
+                pd.DataFrame(macro_data.Y_daily).ffill().values[self.grid.month_end_idx]
             )
             self._indicator_raw = True
             observed = ~np.isnan(macro_data.Y_daily)
             self._indicator_last_obs = [
-                DAILY_DATES[np.flatnonzero(observed[:, m])[-1]].strftime("%Y-%m-%d")
+                self.grid.daily[np.flatnonzero(observed[:, m])[-1]].strftime("%Y-%m-%d")
                 if observed[:, m].any() else None
                 for m in range(cfg.m_macro)
             ]
         else:
+            self.missing_series = []
             _true_factors, _Lambda_sim, _Y_monthly = self._simulate_macro_block()
             self.FACTORS_SMOOTH, self.FACTORS_FILT = self._build_macro_dfm_sim(
-                _Lambda_sim, _Y_monthly, _true_factors[MONTH_END_IDX]
+                _Lambda_sim, _Y_monthly, _true_factors[self.grid.month_end_idx]
             )
             self.macro_source = "simulation"
             self._indicator_monthly = _Y_monthly      # standardised units only
@@ -339,13 +449,13 @@ class RegionalHeatmap:
         self,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
-        Simulate K=5 daily factors and M=m_macro macro observations.
+        Simulate K daily factors and M=m_macro macro observations.
 
         Returns
         -------
-        factors    : [T_DAILY, K]
+        factors    : [T, K]
         Lambda_sim : [m_macro, K]
-        Y_monthly  : [T_MONTHLY, m_macro]  observations at month-end
+        Y_monthly  : [T_monthly, m_macro]  observations at month-end
         """
         cfg = self.cfg
         rng = self._rng
@@ -353,19 +463,19 @@ class RegionalHeatmap:
 
         # Daily persistence: half-lives of roughly 3-12 months, as for macro
         # cycles (the previous 0.88-0.95 gave half-lives of a few days).
-        ar = np.array([0.997, 0.995, 0.994, 0.996, 0.993])
+        ar = np.array([_SIM_AR.get(f, _SIM_AR_DEFAULT) for f in self.factor_names])
         # Stationary std of each factor (σ units, as plotted). At 0.10-0.15 the
         # simulated yields moved only a few bp over two years.
-        innov_std = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
+        innov_std = np.ones(self.K)
 
-        factors = np.zeros((T_DAILY, K))
-        factors[0] = rng.standard_normal(K) * innov_std
-        for t in range(1, T_DAILY):
-            eta = rng.standard_normal(K) * innov_std * np.sqrt(1 - ar ** 2)
+        factors = np.zeros((self.T, self.K))
+        factors[0] = rng.standard_normal(self.K) * innov_std
+        for t in range(1, self.T):
+            eta = rng.standard_normal(self.K) * innov_std * np.sqrt(1 - ar ** 2)
             factors[t] = ar * factors[t - 1] + eta
 
-        Lambda_sim = np.zeros((m_macro, K))
-        group_factor_col = {"Growth": 1, "Inflation": 2, "Employment": 3, "Wages": 4}
+        Lambda_sim = np.zeros((m_macro, self.K))
+        group_factor_col = {f: k for k, f in enumerate(self.factor_names) if k}
         for entry in self._dfm_meta:
             m = entry["dfm_col_index"]
             gfc = group_factor_col[entry["dfm_factor"]]
@@ -374,8 +484,8 @@ class RegionalHeatmap:
 
         noise_std = np.full(m_macro, 0.3)
         Y_monthly = (
-            factors[MONTH_END_IDX] @ Lambda_sim.T
-            + rng.standard_normal((T_MONTHLY, m_macro)) * noise_std
+            factors[self.grid.month_end_idx] @ Lambda_sim.T
+            + rng.standard_normal((self.T_monthly, m_macro)) * noise_std
         )
         return factors, Lambda_sim, Y_monthly
 
@@ -396,7 +506,7 @@ class RegionalHeatmap:
         # the innovation variance to keep the stationary variance unchanged.
         # Using the monthly coefficient per day made the state decay to ~0
         # between month-end observations (spiky factors).
-        h = T_DAILY / T_MONTHLY
+        h = self.T / self.T_monthly
         ar_est = ar_monthly ** (1.0 / h)
         A_est = np.diag(ar_est)
         Q_est = np.diag(np.maximum(innov_var_m * (1 - ar_est ** 2) / np.maximum(1 - ar_monthly ** 2, 1e-6), 1e-8))
@@ -404,8 +514,8 @@ class RegionalHeatmap:
         resid = Y_monthly - f_monthly @ Lambda_est.T
         R_est = np.diag(np.maximum(np.var(resid, axis=0), 1e-6))
 
-        Y_daily_sim = np.full((T_DAILY, cfg.m_macro), np.nan)
-        Y_daily_sim[MONTH_END_IDX] = Y_monthly
+        Y_daily_sim = np.full((self.T, cfg.m_macro), np.nan)
+        Y_daily_sim[self.grid.month_end_idx] = Y_monthly
 
         f_filt, P_filt, f_pred, P_pred, _ = kalman_filter(
             Y=Y_daily_sim, Lambda=Lambda_est, A=A_est, Q=Q_est, R=R_est,
@@ -416,9 +526,13 @@ class RegionalHeatmap:
     def _build_macro_dfm_from_data(
         self,
         Y_daily: np.ndarray,
+        keep: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray]:
         """
-        Block-PCA initialisation + Kalman smoother for the 5-factor model.
+        Block-PCA initialisation + Kalman smoother for the K-factor model.
+
+        Only the columns flagged in ``keep`` enter the model (the caller has
+        checked that every factor's primary series is among them).
 
         Pipeline
         --------
@@ -426,11 +540,14 @@ class RegionalHeatmap:
         2.  Standardise each column using statistics from actual observations only.
         3.  Within-group PCA for each named factor → score [T] + sparse loading [M].
         4.  Full-panel PCA for Global Macro → score [T] + dense loading [M].
-        5.  Assemble F_init [T, 5] and Λ_std [M, 5].
+        5.  Assemble F_init [T, K] and Λ_std [M, K].
         6.  Un-standardise Λ to original units.
         7.  Estimate AR(1) coefficients and noise matrices from F_init scores.
         8.  Run Kalman filter + RTS smoother on raw Y_daily (with NaNs).
         """
+        kept = np.flatnonzero(keep)
+        pos = {int(c): i for i, c in enumerate(kept)}          # original column → model column
+        Y_daily = Y_daily[:, kept]
         T, M = Y_daily.shape
 
         # ── 1. Forward-fill ───────────────────────────────────────────────────
@@ -444,12 +561,12 @@ class RegionalHeatmap:
         Y_std = (Y_ffill - col_means[None, :]) / col_stds[None, :]
 
         # ── 3. Within-group PCA for each named factor ─────────────────────────
-        F_init    = np.zeros((T, K))
-        Lambda_std = np.zeros((M, K))
+        F_init    = np.zeros((T, self.K))
+        Lambda_std = np.zeros((M, self.K))
 
-        for k, fname in enumerate(_NAMED_FACTORS):
-            cols         = self._group_cols[fname]
-            primary_col  = self._named_primary_col[k]
+        for k, fname in enumerate(self._named_factors):
+            cols         = [pos[c] for c in self._group_cols[fname] if c in pos]
+            primary_col  = pos[self._named_primary_col[k]]
             primary_sign = self._named_primary_sign[k]
             score, loading = _block_pca_1(Y_std, cols, primary_col, primary_sign)
             F_init[:, k + 1]     = score
@@ -458,7 +575,7 @@ class RegionalHeatmap:
         # ── 4. Full-panel PCA for Global Macro ────────────────────────────────
         all_cols = list(range(M))
         gm_score, gm_loading = _block_pca_1(
-            Y_std, all_cols, self._gm_primary_col, self._gm_primary_sign
+            Y_std, all_cols, pos[self._gm_primary_col], self._gm_primary_sign
         )
         F_init[:, 0]     = gm_score
         Lambda_std[:, 0] = gm_loading
@@ -487,7 +604,7 @@ class RegionalHeatmap:
             Q=Q_est,
             R=R_est,
             f0=F_init[0],
-            P0=np.eye(K),
+            P0=np.eye(self.K),
         )
         f_smooth, _ = kalman_smoother(f_filt, P_filt, f_pred, P_pred, A_est)
         return f_smooth, f_filt
@@ -499,17 +616,17 @@ class RegionalHeatmap:
     def _simulate_yields(self, true_factors: np.ndarray) -> np.ndarray:
         """
         Simulate daily bond yields from latent factors.
-        Returns [T_DAILY, N_TENORS].
+        Returns [T, N_TENORS].
         """
         cfg = self.cfg
         n_tenors = len(cfg.yield_tenors)
-        shocks = self._rng.standard_normal((T_DAILY, n_tenors)) * cfg.yield_noise_factor
+        shocks = self._rng.standard_normal((self.T, n_tenors)) * cfg.yield_noise_factor
         # Persistent (AR(1)) idiosyncratic deviations with the same marginal
         # std as before: i.i.d. daily noise made the curve PCs mostly noise.
         phi = 0.97
         noise = np.empty_like(shocks)
         noise[0] = shocks[0]
-        for t in range(1, T_DAILY):
+        for t in range(1, self.T):
             noise[t] = phi * noise[t - 1] + np.sqrt(1 - phi ** 2) * shocks[t]
         return (
             cfg.yield_means[None, :]
@@ -565,7 +682,7 @@ class RegionalHeatmap:
         Returns dict[series_id, pd.Series] on success, or None to trigger fallback.
         """
         cfg = self.cfg
-        source = os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower()
+        source = _data_source()
 
         if source in ("csv", "simulation"):
             return None
@@ -588,7 +705,7 @@ class RegionalHeatmap:
                     stacklevel=1,
                 )
                 return None
-            return data
+            return _apply_transforms(data, self._dfm_meta)
         except Exception as exc:
             warnings.warn(
                 f"[{cfg.region}] Data fetcher failed ({exc}); falling back to simulation.",
@@ -600,19 +717,19 @@ class RegionalHeatmap:
         """
         Fetch daily bond yields from Bloomberg or Haver.
 
-        Returns [T_DAILY, N_TENORS] array aligned to DAILY_DATES, or None to simulate.
+        Returns [T, N_TENORS] array aligned to self.grid.daily, or None to simulate.
         """
         return self._fetch_daily_matrix(self.cfg.yield_series_ids, start, end)
 
     def _fetch_daily_matrix(self, series_ids: list[str], start: str, end: str) -> np.ndarray | None:
         """
-        Fetch daily series from Bloomberg or Haver, aligned to DAILY_DATES and
-        forward/back-filled. Returns [T_DAILY, len(series_ids)], or None (the
+        Fetch daily series from Bloomberg or Haver, aligned to self.grid.daily and
+        forward/back-filled. Returns [T, len(series_ids)], or None (the
         caller then simulates) when the source is csv/simulation or data is missing.
         """
         cfg = self.cfg
         n_tenors = len(series_ids)
-        source = os.environ.get("ANALYTICS_DATA_SOURCE", "csv").lower()
+        source = _data_source()
         if source in ("csv", "simulation"):
             return None
 
@@ -634,8 +751,8 @@ class RegionalHeatmap:
                 )
                 return None
 
-            daily_arr = np.array(DAILY_DATES, dtype="datetime64[D]")
-            yield_mat = np.full((T_DAILY, n_tenors), np.nan)
+            daily_arr = np.array(self.grid.daily, dtype="datetime64[D]")
+            yield_mat = np.full((self.T, n_tenors), np.nan)
 
             for k, sid in enumerate(series_ids):
                 series = data.get(sid)
@@ -646,7 +763,7 @@ class RegionalHeatmap:
                         continue
                     d = np.datetime64(pd.Timestamp(ts).date(), "D")
                     idx = int(np.searchsorted(daily_arr, d, side="left"))
-                    if 0 <= idx < T_DAILY:
+                    if 0 <= idx < self.T:
                         yield_mat[idx, k] = val
 
             yield_mat = pd.DataFrame(yield_mat).ffill().bfill().values
@@ -672,17 +789,17 @@ class RegionalHeatmap:
     # ------------------------------------------------------------------
 
     def get_daily_factors(self) -> DailyFactorsResponse:
-        dates = [d.strftime("%Y-%m-%d") for d in DAILY_DATES]
+        dates = [d.strftime("%Y-%m-%d") for d in self.grid.daily]
         factors = {
             name: self.FACTORS_SMOOTH[:, k].round(4).tolist()
-            for k, name in enumerate(FACTOR_NAMES)
+            for k, name in enumerate(self.factor_names)
         }
         return DailyFactorsResponse(dates=dates, factors=factors)
 
     def get_fair_value(self) -> FairValueResponse:
         cfg = self.cfg
         pc1_idx = cfg.pca_pc1_pivot
-        dates = [d.strftime("%Y-%m-%d") for d in DAILY_DATES]
+        dates = [d.strftime("%Y-%m-%d") for d in self.grid.daily]
         return FairValueResponse(
             dates=dates,
             actual=self.YIELDS[:, pc1_idx].round(4).tolist(),
@@ -692,7 +809,7 @@ class RegionalHeatmap:
         )
 
     def get_yield_pca(self) -> YieldPCAResponse:
-        dates = [d.strftime("%Y-%m-%d") for d in DAILY_DATES]
+        dates = [d.strftime("%Y-%m-%d") for d in self.grid.daily]
         pc_labels = ["PC1", "PC2", "PC3"]
         return YieldPCAResponse(
             dates=dates,
@@ -713,7 +830,7 @@ class RegionalHeatmap:
 
     def get_pc_regressions(self) -> PCRegressionResponse:
         return PCRegressionResponse(
-            factor_names=FACTOR_NAMES,
+            factor_names=self.factor_names,
             pc1=_fmt(self.PC1_REG),
             pc2=_fmt(self.PC2_REG),
         )
@@ -723,31 +840,37 @@ class RegionalHeatmap:
     # ------------------------------------------------------------------
 
     def _breakeven_10y(self) -> tuple[np.ndarray, str]:
-        """Daily 10y breakeven (%): nominal − real when a live real yield is
-        available, otherwise a seeded simulation tied to the Inflation factor."""
+        """Daily long-tenor breakeven (%): nominal − real when a live real yield
+        is available, otherwise a seeded simulation tied to the Inflation factor."""
         cfg = self.cfg
-        i10 = cfg.yield_tenors.index("10y")
+        i10 = cfg.yield_tenors.index(cfg.long_tenor)
+        start = (self.grid.daily[0] - pd.DateOffset(years=2)).strftime("%Y-%m-%d")
+        end = self.grid.daily[-1].strftime("%Y-%m-%d")
+        if cfg.breakeven_10y_series_id:
+            quoted = self._fetch_daily_matrix([cfg.breakeven_10y_series_id], start, end)
+            if quoted is not None:
+                return quoted[:, 0], "live"
         if cfg.real_yield_10y_series_id:
-            start = (DAILY_DATES[0] - pd.DateOffset(years=2)).strftime("%Y-%m-%d")
-            real = self._fetch_daily_matrix([cfg.real_yield_10y_series_id], start,
-                                            DAILY_DATES[-1].strftime("%Y-%m-%d"))
+            real = self._fetch_daily_matrix([cfg.real_yield_10y_series_id], start, end)
             if real is not None:
                 return self.YIELDS[:, i10] - real[:, 0], "live"
         # Own RNG stream, so adding this series leaves every other output unchanged.
         rng = np.random.default_rng([cfg.random_seed, 10])
-        infl = self.FACTORS_SMOOTH[:, FACTOR_NAMES.index("Inflation")]
+        infl = self.FACTORS_SMOOTH[:, self.factor_names.index("Inflation")]
         infl = (infl - infl.mean()) / (infl.std() or 1.0)
-        noise = np.zeros(T_DAILY)
-        for t in range(1, T_DAILY):
+        noise = np.zeros(self.T)
+        for t in range(1, self.T):
             noise[t] = 0.97 * noise[t - 1] + rng.standard_normal() * 0.012
         return cfg.breakeven_mean + 0.12 * infl + noise, "simulation"
 
     def _indicator_table(self) -> dict:
         """Indicators grouped by catalogue heatmap_group with monthly z-scores."""
-        X = self._indicator_monthly                     # [T_MONTHLY, M]
-        mu = np.nanmean(X, axis=0)
-        sd = np.nanstd(X, axis=0)
-        sd = np.where(sd < 1e-12, 1.0, sd)
+        X = self._indicator_monthly                     # [T_monthly, M]
+        with warnings.catch_warnings():                 # all-NaN columns: series with no live data
+            warnings.simplefilter("ignore", RuntimeWarning)
+            mu = np.nanmean(X, axis=0)
+            sd = np.nanstd(X, axis=0)
+        sd = np.where(np.isnan(sd) | (sd < 1e-12), 1.0, sd)
         Z = (X - mu) / sd
         groups: dict[str, list[dict]] = {}
         for e in self._dfm_meta:
@@ -763,7 +886,7 @@ class RegionalHeatmap:
                 "last_obs": self._indicator_last_obs[m],
             })
         return {
-            "months": [d.strftime("%Y-%m-%d") for d in MONTHLY_DATES],
+            "months": [d.strftime("%Y-%m-%d") for d in self.grid.monthly],
             "raw_values": self._indicator_raw,
             "groups": [{"name": g, "indicators": rows} for g, rows in groups.items()],
         }
@@ -778,21 +901,30 @@ class RegionalHeatmap:
         if getattr(self, "_dashboard", None) is not None:
             return self._dashboard
 
-        dates = [d.strftime("%Y-%m-%d") for d in DAILY_DATES]
+        dates = [d.strftime("%Y-%m-%d") for d in self.grid.daily]
         tenors = list(cfg.yield_tenors)
-        i2, i10 = tenors.index("2y"), tenors.index("10y")
+        short, long, ultra = cfg.short_tenor, cfg.long_tenor, cfg.ultra_tenor
+        i_s, i_l = tenors.index(short), tenors.index(long)
+
+        def leg(a: str, b: str) -> str:              # "2y", "10y" → "2s10s"
+            return f"{a[:-1]}s{b[:-1]}s"
 
         # Macro fair value for every tenor: μ + L1·PC1_fitted + L2·PC2_fitted
         fair = (self._yield_means[None, :]
                 + np.outer(self.PC1_REG["fitted"], self.PC_LOADINGS[0])
                 + np.outer(self.PC2_REG["fitted"], self.PC_LOADINGS[1]))
 
-        curve = [ha.curve_regime_section(dates, self.YIELDS[:, i10], self.YIELDS[:, i2], "2s10s")]
-        if "30y" in tenors:
-            curve.append(ha.curve_regime_section(dates, self.YIELDS[:, tenors.index("30y")],
-                                                 self.YIELDS[:, i2], "2s30s"))
-        be, be_source = self._breakeven_10y()
-        breakeven = ha.breakeven_section(dates, self.YIELDS[:, i10], be, be_source)
+        curve = [ha.curve_regime_section(dates, self.YIELDS[:, i_l], self.YIELDS[:, i_s], leg(short, long))]
+        if ultra:
+            curve.append(ha.curve_regime_section(dates, self.YIELDS[:, tenors.index(ultra)],
+                                                 self.YIELDS[:, i_s], leg(short, ultra)))
+        if cfg.breakeven:
+            be, be_source = self._breakeven_10y()
+            breakeven = ha.breakeven_section(dates, self.YIELDS[:, i_l], be, be_source)
+        else:
+            breakeven, be_source = None, "none"
+        outrights = tuple(t for t in (short, "5y", long, ultra) if t)
+        spreads = ((short, long),) + (((("5y", ultra),) if ultra else ()))
 
         regressions = asdict(self.get_pc_regressions())
         regressions["pc1"]["fitted"] = self.PC1_REG["fitted"].round(4).tolist()
@@ -801,19 +933,23 @@ class RegionalHeatmap:
         self._dashboard = {
             "display_name": cfg.display_name,
             "bond_name": cfg.bond_name,
+            "curve_instrument": cfg.curve_instrument,
+            "bloc": cfg.bloc,
             "tenors": tenors,
+            "fv_tenor": long,
             "period": {"start": dates[0], "end": dates[-1]},
-            "data_source": {"macro": self.macro_source, "yields": self.yield_source, "breakeven": be_source},
+            "data_source": {"macro": self.macro_source, "yields": self.yield_source, "breakeven": be_source,
+                            "missing_series": self.missing_series},
             "factors": {
                 **asdict(self.get_daily_factors()),
                 "summary": {name: ha.factor_summary(self.FACTORS_SMOOTH[:, k])
-                            for k, name in enumerate(FACTOR_NAMES)},
+                            for k, name in enumerate(self.factor_names)},
             },
             "yield_pca": asdict(self.get_yield_pca()),
             "regressions": regressions,
             "fair_value": {
                 **asdict(self.get_fair_value()),
-                "curve_table": ha.curve_fair_value_table(tenors, self.YIELDS, fair),
+                "curve_table": ha.curve_fair_value_table(tenors, self.YIELDS, fair, outrights, spreads),
             },
             "curve_regimes": curve,
             "breakeven": breakeven,

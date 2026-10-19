@@ -1,4 +1,6 @@
-import Glyph, { TOOL_FLAG, toolGlyph } from './Glyph'
+import Glyph, { toolGlyph } from './Glyph'
+import CountryFlag from './CountryFlag'
+import { TOOL_COUNTRY } from '../features/heatmap/regions'
 import { categoryColor } from '../theme'
 
 // Tool icon: country flag for regional heatmaps, otherwise a glyph tinted
@@ -18,12 +20,12 @@ function tint(hex: string, alpha: number): string {
 }
 
 export default function ToolIcon({ toolId, categoryId, size = 18, tile = true }: Props) {
-  const flag = TOOL_FLAG[toolId]
+  const country = TOOL_COUNTRY[toolId]
   const color = (categoryId && categoryColor[categoryId]) || '#86c0de'
   const box = size + 10
 
-  const inner = flag ? (
-    <span style={{ fontSize: size * 0.95, lineHeight: 1, filter: 'saturate(0.9)' }} aria-hidden="true">{flag}</span>
+  const inner = country ? (
+    <CountryFlag country={country} height={Math.round(size * 0.72)} />
   ) : (
     <Glyph name={toolGlyph(toolId)} size={size} style={{ color }} />
   )
@@ -39,8 +41,8 @@ export default function ToolIcon({ toolId, categoryId, size = 18, tile = true }:
         display: 'grid',
         placeItems: 'center',
         borderRadius: 6,
-        background: flag ? 'rgba(200,220,240,0.06)' : tint(color, 0.12),
-        border: `1px solid ${flag ? 'rgba(200,220,240,0.1)' : tint(color, 0.22)}`,
+        background: country ? 'rgba(200,220,240,0.06)' : tint(color, 0.12),
+        border: `1px solid ${country ? 'rgba(200,220,240,0.1)' : tint(color, 0.22)}`,
       }}
     >
       {inner}

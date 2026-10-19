@@ -41,6 +41,11 @@ def _source(data: dict) -> str:
 _REGIONS = {
     "EA": "euro-area", "UK": "uk", "US": "us", "JP": "japan", "CA": "canada",
     "SE": "sweden", "NO": "norway", "CH": "switzerland", "AU": "australia", "NZ": "new-zealand",
+    "MX": "mexico", "CN": "china", "IN": "india", "BR": "brazil", "KR": "south-korea",
+    "ZA": "south-africa", "PL": "poland", "ID": "indonesia",
+    "HU": "hungary", "CZ": "czech-republic", "RO": "romania", "TR": "turkey", "IL": "israel",
+    "CL": "chile", "CO": "colombia", "PE": "peru", "TH": "thailand", "MY": "malaysia",
+    "PH": "philippines", "TW": "taiwan",
 }
 _REGION_ENUM = list(_REGIONS)
 _ENGINES: dict = {}
@@ -62,7 +67,8 @@ def _region_fn(region: str, kind: str):
 def macro_factors(regions: list[str] | None = None) -> dict:
     out = {}
     for region in regions or _REGION_ENUM:
-        data = _region_fn(region, "daily_factors")()
+        get = _region_fn(region, "daily_factors")
+        data = get()
         dates = list(data.dates)
         snap = {}
         for name, vals in data.factors.items():
@@ -74,16 +80,18 @@ def macro_factors(regions: list[str] | None = None) -> dict:
                 "chg_1m": vals[-1] - vals[-22] if len(vals) > 22 else None,
                 "chg_3m": vals[-1] - vals[-64] if len(vals) > 64 else None,
             }
-        out[region] = {"as_of": dates[-1] if dates else None, "data_source": _source({}), "factors": snap}
+        out[region] = {"as_of": dates[-1] if dates else None, "data_source": get.__self__.macro_source,
+                       "factors": snap}
     return out
 
 
 register(Tool(
     name="macro_factors",
     description=(
-        "Latest dynamic-factor-model (DFM) macro factor scores (e.g. Growth, Inflation, "
-        "Employment, Wages) with 1m and 3m changes, per region. Regions: "
-        + ", ".join(_REGION_ENUM) + ". Omit `regions` for all ten."
+        "Latest dynamic-factor-model (DFM) macro factor scores with 1m and 3m changes, per region. "
+        "Every region has Global Macro, Growth and Inflation; DM regions add Employment and Wages; "
+        "EM regions add whichever of Employment, Wages, External (trade, reserves, FX) and Credit "
+        "(China) their data support. Regions: " + ", ".join(_REGION_ENUM) + ". Omit `regions` for all."
     ),
     input_schema=schema({
         "regions": {"type": "array", "items": {"type": "string", "enum": _REGION_ENUM}},

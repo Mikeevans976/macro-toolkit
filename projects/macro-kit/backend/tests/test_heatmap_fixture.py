@@ -1,11 +1,13 @@
-"""The frontend's heatmap test fixture must have the same shape as the live
+"""The frontend's heatmap test fixtures must have the same shape as the live
 dashboard payload, so the page is tested against what the API really sends.
-Regenerate the fixture if this fails after an intentional payload change:
+Regenerate the fixtures if this fails after an intentional payload change:
 `cd backend && python scripts/make_heatmap_fixture.py`."""
 import json
 from pathlib import Path
 
-FIXTURE = Path(__file__).resolve().parents[2] / "frontend" / "src" / "test" / "fixtures" / "heatmap-uk.json"
+import pytest
+
+FIXTURES = Path(__file__).resolve().parents[2] / "frontend" / "src" / "test" / "fixtures"
 
 
 def _shape(obj):
@@ -16,7 +18,9 @@ def _shape(obj):
     return type(obj).__name__ if obj is not None else "null"
 
 
-def test_fixture_matches_dashboard_payload_shape():
+@pytest.mark.parametrize("region", ["uk", "china"])
+def test_fixture_matches_dashboard_payload_shape(region):
     from routers.heatmaps import heatmap_dashboard, Region
-    live = heatmap_dashboard(Region("uk"))
-    assert _shape(json.loads(FIXTURE.read_text())) == _shape(json.loads(json.dumps(live)))
+    live = heatmap_dashboard(Region(region))
+    fixture = json.loads((FIXTURES / f"heatmap-{region}.json").read_text())
+    assert _shape(fixture) == _shape(json.loads(json.dumps(live)))

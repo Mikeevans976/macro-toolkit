@@ -16,7 +16,8 @@ class Period(BaseModel):
 class DataSources(BaseModel):
     macro: Source
     yields: Source
-    breakeven: Source
+    breakeven: Literal["live", "simulation", "none"]
+    missing_series: list[str]          # catalogue ids with no live data, dropped from the DFM
 
 
 class FactorSummary(BaseModel):
@@ -150,14 +151,14 @@ class ScenarioSeries(BaseModel):
 
 class CurrentScenarios(BaseModel):
     curve: ScenarioProbs
-    breakeven: ScenarioProbs
+    breakeven: Optional[ScenarioProbs]
 
 
 class Scenarios(BaseModel):
     current: CurrentScenarios
     dates: list[str]
     curve: ScenarioSeries
-    breakeven: ScenarioSeries
+    breakeven: Optional[ScenarioSeries]
 
 
 class Indicator(BaseModel):
@@ -185,7 +186,10 @@ class HeatmapDashboard(BaseModel):
     region: str
     display_name: str
     bond_name: str
+    curve_instrument: Literal["govt", "swap"]
+    bloc: Literal["dm", "em"]
     tenors: list[str]
+    fv_tenor: str                      # tenor of the fair-value and breakeven sections
     period: Period
     data_source: DataSources
     factors: DashboardFactors
@@ -193,6 +197,6 @@ class HeatmapDashboard(BaseModel):
     regressions: DashboardRegressions
     fair_value: DashboardFairValue
     curve_regimes: list[CurveRegimes]
-    breakeven: Breakeven
+    breakeven: Optional[Breakeven]     # None where there is no inflation-linked market
     scenarios: Scenarios
     indicators: Indicators
