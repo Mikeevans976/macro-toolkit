@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "description": "Bank of England staff estimates of quarterly GDP growth (% q/q), as published in the Monetary Policy Report and the MPC minutes. Maintained by hand: add a row after each Report / minutes. Values are quoted from the Bank's own pages (url); 'note' says when a value is implied rather than stated.",
+    "updated": "2026-10-19"
+  },
+  "institution": "Bank of England",
+  "label": "BoE staff",
+  "estimates": [
+    {"published": "2026-07-30", "source": "July 2026 Monetary Policy Report", "quarter": "2026Q2", "value": 0.3,
+     "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/september-2026",
+     "note": "Implied: the September minutes say Q2 GDP rose 0.4%, 0.1pp higher than expected in the July Report."},
+    {"published": "2026-07-30", "source": "July 2026 Monetary Policy Report", "quarter": "2026Q3", "value": 0.1,
+     "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/september-2026",
+     "note": "As quoted in the September 2026 minutes."},
+    {"published": "2026-09-17", "source": "MPC minutes, September 2026", "quarter": "2026Q3", "value": 0.4,
+     "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/september-2026",
+     "note": null}
+  ]
+}

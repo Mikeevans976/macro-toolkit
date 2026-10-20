@@ -818,6 +818,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/fx-ipca": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fx Ipca
+         * @description Model fit, Gamma_beta, factors, alpha test, current cross-section and OOS backtest.
+         */
+        get: operations["fx_ipca_api_tools_fx_ipca_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/fx-ipca/currency/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fx Ipca Currency
+         * @description Monthly conditional betas and realised vs fitted returns for one currency.
+         */
+        get: operations["fx_ipca_currency_api_tools_fx_ipca_currency__code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tools/global-yields": {
         parameters: {
             query?: never;
@@ -1103,8 +1143,31 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Cta Signals */
+        /**
+         * Cta Signals
+         * @description Signals for any ticker expression, e.g. 'TY1 Comdty' or 'USGG10YR Index - USGG2YR Index'.
+         */
         get: operations["cta_signals_api_tools_momentum_cta_signals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/momentum/monitor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Momentum Monitor
+         * @description Regime, model CTA position, triggers and flows for the default universe.
+         */
+        get: operations["momentum_monitor_api_tools_momentum_monitor_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1186,6 +1249,66 @@ export interface paths {
          *     ticker: Bloomberg ticker with yellow key, e.g. "UKPRIC YOY Index"
          */
         get: operations["print_vs_consensus_api_tools_print_analysis_print_vs_consensus_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Quant Macro Models
+         * @description Every nowcasting model in the Quant Macro section.
+         */
+        get: operations["quant_macro_models_api_tools_quant_macro_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro/{model}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Quant Macro Nowcast
+         * @description Nowcast, next print, news since the quarter began, catalysts and the central bank's estimates.
+         */
+        get: operations["quant_macro_nowcast_api_tools_quant_macro__model__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro/{model}/backtest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Quant Macro Backtest
+         * @description Pseudo-real-time nowcast errors at fixed days before each first estimate (slow on first call).
+         */
+        get: operations["quant_macro_backtest_api_tools_quant_macro__model__backtest_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2208,6 +2331,715 @@ export interface components {
         ModelOverrideRequest: {
             /** Model */
             model?: string | null;
+        };
+        /** MomCalibration */
+        MomCalibration: {
+            /** Corr */
+            corr?: number | null;
+            /** Index */
+            index?: string | null;
+            /** Index Vol */
+            index_vol?: number | null;
+            /** Ok */
+            ok: boolean;
+            /** R2 */
+            r2?: number | null;
+            /** R2 Oos */
+            r2_oos?: number | null;
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Tested
+             * @default []
+             */
+            tested: components["schemas"]["MomFitTested"][];
+            /** Tracking Error */
+            tracking_error?: number | null;
+            /** Weeks */
+            weeks?: number | null;
+        };
+        /** MomCurrent */
+        MomCurrent: {
+            /** Chg 1W */
+            chg_1w: number | null;
+            /** Date */
+            date: string;
+            /** Direction */
+            direction: number;
+            /** Er */
+            er: number | null;
+            /** Position */
+            position: number;
+            /** Position 1W Ago */
+            position_1w_ago: number | null;
+            /** Position Pctile */
+            position_pctile: number;
+            /**
+             * Regime
+             * @enum {string}
+             */
+            regime: "Strong momentum" | "Momentum" | "Fading" | "Reversal" | "Range" | "Mixed";
+            /** Responses */
+            responses: {
+                [key: string]: number | null;
+            };
+            /** Series Value */
+            series_value: number | null;
+            /** Signals */
+            signals: {
+                [key: string]: number | null;
+            };
+            /** Stretched */
+            stretched: boolean;
+            /** Vol Ann */
+            vol_ann: number | null;
+        };
+        /** MomFitTested */
+        MomFitTested: {
+            /** R2 */
+            r2: number;
+            /** R2 Oos */
+            r2_oos?: number | null;
+            /** Response */
+            response: string;
+        };
+        /** MomLevel */
+        MomLevel: {
+            /** Move */
+            move: number | null;
+            /** Price */
+            price: number | null;
+            /** Sigma */
+            sigma: number | null;
+        };
+        /** MomMissing */
+        MomMissing: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Reason */
+            reason: string;
+        };
+        /** MomModelInfo */
+        MomModelInfo: {
+            /** Aum Bn */
+            aum_bn: number;
+            /** Calibrated */
+            calibrated: boolean;
+            /** Leverage */
+            leverage?: number | null;
+            /** Response */
+            response: string;
+            /** Speed Weights */
+            speed_weights: {
+                [key: string]: number;
+            };
+        };
+        /** MomMonitorRow */
+        MomMonitorRow: {
+            /** Chg 1W */
+            chg_1w: number | null;
+            /** Contracts */
+            contracts: number | null;
+            /** Cta */
+            cta: boolean;
+            /** Direction */
+            direction: number;
+            /** Er */
+            er: number | null;
+            /** Flip Price */
+            flip_price: number | null;
+            /** Flip Sigma */
+            flip_sigma: number | null;
+            /** Flow Adv Pct */
+            flow_adv_pct: number | null;
+            /** Flow Flat 1W */
+            flow_flat_1w: number;
+            /** Flow Flat 1W Contracts */
+            flow_flat_1w_contracts: number | null;
+            /** Flow Flat 1W Usd */
+            flow_flat_1w_usd: number | null;
+            /** Group */
+            group: string;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "price" | "level";
+            /** Label */
+            label: string;
+            /** Last */
+            last: number | null;
+            /** Notional Usd */
+            notional_usd: number | null;
+            /** Position */
+            position: number;
+            /** Position Chg 1W */
+            position_chg_1w: number | null;
+            /**
+             * Regime
+             * @enum {string}
+             */
+            regime: "Strong momentum" | "Momentum" | "Fading" | "Reversal" | "Range" | "Mixed";
+            /** Risk Usd */
+            risk_usd: number | null;
+            /** Sector */
+            sector: string | null;
+            /** Signals */
+            signals: {
+                [key: string]: number | null;
+            };
+            /** Spark */
+            spark: (number | null)[];
+            /** Stretched */
+            stretched: boolean;
+            /** Ticker */
+            ticker: string;
+            /** Unit */
+            unit: string;
+        };
+        /** MomPnl */
+        MomPnl: {
+            /** Dates */
+            dates: string[];
+            /** Drawdown */
+            drawdown: (number | null)[];
+            /** Index */
+            index: (number | null)[] | null;
+            /** Model */
+            model: (number | null)[];
+            /** Model 1M */
+            model_1m: number | null;
+            /** Model 3M */
+            model_3m: number | null;
+        };
+        /** MomScenario */
+        MomScenario: {
+            /** Delta */
+            delta: number;
+            /** Delta Contracts */
+            delta_contracts?: number | null;
+            /** Delta Usd */
+            delta_usd?: number | null;
+            /** Horizon Days */
+            horizon_days: number;
+            /** Position */
+            position: number;
+            /** Price */
+            price: number;
+            /** Shock Sigma */
+            shock_sigma: number;
+        };
+        /** MomSectorFlows */
+        MomSectorFlows: {
+            /** Flows 1W */
+            flows_1w: {
+                [key: string]: number;
+            };
+            /** Gross Risk Usd */
+            gross_risk_usd: number;
+            /** Markets */
+            markets: number;
+            /** Net Notional Usd */
+            net_notional_usd: number;
+            /** Net Risk Usd */
+            net_risk_usd: number;
+            /** Position */
+            position: number;
+            /** Sector */
+            sector: string;
+        };
+        /** MomSizing */
+        MomSizing: {
+            /** Adv */
+            adv: number | null;
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "universe" | "typical";
+            /** Contract Usd */
+            contract_usd: number | null;
+            /** Contracts */
+            contracts: number | null;
+            /** Dv01 Usd */
+            dv01_usd: number | null;
+            /** Full Risk Usd */
+            full_risk_usd: number;
+            /** Notional Usd */
+            notional_usd: number | null;
+            /** Oi */
+            oi: number | null;
+            /** Risk Usd */
+            risk_usd: number;
+        };
+        /** MomSpeedLevel */
+        MomSpeedLevel: {
+            /** Move */
+            move: number | null;
+            /** Price */
+            price: number | null;
+            /** Sigma */
+            sigma: number | null;
+            /** Speed */
+            speed: string;
+        };
+        /** MomTriggers */
+        MomTriggers: {
+            composite: components["schemas"]["MomLevel"] | null;
+            /** Flat Days To Flip */
+            flat_days_to_flip: number | null;
+            /** Speeds */
+            speeds: components["schemas"]["MomSpeedLevel"][];
+        };
+        /** MomentumMonitor */
+        MomentumMonitor: {
+            /** As Of */
+            as_of: string;
+            calibration: components["schemas"]["MomCalibration"] | null;
+            /**
+             * Data Source
+             * @enum {string}
+             */
+            data_source: "bloomberg" | "simulation";
+            /** Groups */
+            groups: string[];
+            /** Missing */
+            missing: components["schemas"]["MomMissing"][];
+            model: components["schemas"]["MomModelInfo"];
+            /** Note */
+            note: string | null;
+            pnl: components["schemas"]["MomPnl"];
+            /** Roll Adjusted */
+            roll_adjusted: {
+                [key: string]: boolean | null;
+            };
+            /** Rows */
+            rows: components["schemas"]["MomMonitorRow"][];
+            /** Sectors */
+            sectors: components["schemas"]["MomSectorFlows"][];
+            /** Speeds */
+            speeds: string[];
+        };
+        /** MomentumSeries */
+        MomentumSeries: {
+            current: components["schemas"]["MomCurrent"];
+            /**
+             * Data Source
+             * @enum {string}
+             */
+            data_source: "bloomberg" | "simulation";
+            /** Dates */
+            dates: string[];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "price" | "level";
+            /** Label */
+            label: string;
+            model: components["schemas"]["MomModelInfo"];
+            /** Position */
+            position: (number | null)[];
+            /** Roll Adjusted */
+            roll_adjusted: boolean | null;
+            /** Scenarios */
+            scenarios: components["schemas"]["MomScenario"][];
+            /** Series */
+            series: (number | null)[];
+            /** Signals */
+            signals: {
+                [key: string]: (number | null)[];
+            };
+            sizing: components["schemas"]["MomSizing"] | null;
+            /** Speeds */
+            speeds: string[];
+            /** Ticker */
+            ticker: string;
+            triggers: components["schemas"]["MomTriggers"];
+            /** Unit */
+            unit: string;
+        };
+        /** Nowcast */
+        Nowcast: {
+            /** As Of */
+            as_of: string;
+            bridge: components["schemas"]["NowcastBridge"] | null;
+            central_bank: components["schemas"]["NowcastCentralBank"] | null;
+            /** Country */
+            country: string;
+            /**
+             * Data Source
+             * @enum {string}
+             */
+            data_source: "live" | "simulation";
+            /** Evolution */
+            evolution: components["schemas"]["NowcastStep"][];
+            /** Indicators */
+            indicators: components["schemas"]["NowcastIndicator"][];
+            /** Missing Series */
+            missing_series: string[];
+            model: components["schemas"]["NowcastModelInfo"];
+            /** Monthly Path */
+            monthly_path: components["schemas"]["NowcastPathPoint"][];
+            next_print: components["schemas"]["NowcastNextPrint"];
+            /** Quarters */
+            quarters: components["schemas"]["NowcastQuarter"][];
+            /** Slug */
+            slug: string;
+            /** Target Label */
+            target_label: string;
+            /** Title */
+            title: string;
+        };
+        /** NowcastBacktest */
+        NowcastBacktest: {
+            /** As Of */
+            as_of: string;
+            /**
+             * Data Source
+             * @enum {string}
+             */
+            data_source: "live" | "simulation";
+            /** Horizons */
+            horizons: number[];
+            /** Note */
+            note: string;
+            /** Rows */
+            rows: components["schemas"]["NowcastBacktestRow"][];
+            /** Slug */
+            slug: string;
+            /** Summary */
+            summary: components["schemas"]["NowcastBacktestSummary"][];
+        };
+        /** NowcastBacktestRow */
+        NowcastBacktestRow: {
+            /** Actual */
+            actual: number | null;
+            /** Bridge */
+            bridge: (number | null)[];
+            /** Dfm */
+            dfm: (number | null)[];
+            /** Naive */
+            naive: (number | null)[];
+            /** Quarter */
+            quarter: string;
+            /** Release Date */
+            release_date: string | null;
+        };
+        /** NowcastBacktestStats */
+        NowcastBacktestStats: {
+            /** Bias */
+            bias: number | null;
+            /** N */
+            n: number;
+            /** Rmse */
+            rmse: number | null;
+        };
+        /** NowcastBacktestSummary */
+        NowcastBacktestSummary: {
+            bridge: components["schemas"]["NowcastBacktestStats"];
+            dfm: components["schemas"]["NowcastBacktestStats"];
+            /** Horizon */
+            horizon: number;
+            naive: components["schemas"]["NowcastBacktestStats"];
+        };
+        /** NowcastBridge */
+        NowcastBridge: {
+            /** Alpha */
+            alpha: number | null;
+            /** Beta */
+            beta: number | null;
+            /** N */
+            n: number;
+            /** R2 */
+            r2: number | null;
+            /** Resid Sd */
+            resid_sd: number | null;
+            /** Series Id */
+            series_id: string;
+        };
+        /** NowcastCbComparison */
+        NowcastCbComparison: {
+            /** Cb Published */
+            cb_published: string;
+            /** Cb Source */
+            cb_source: string;
+            /** Cb Value */
+            cb_value: number;
+            /** Gap */
+            gap: number | null;
+            /** Model At Publication */
+            model_at_publication: number | null;
+            /** Model Now */
+            model_now: number | null;
+            /** News Since */
+            news_since: number | null;
+            /** Quarter */
+            quarter: string;
+        };
+        /** NowcastCbEstimate */
+        NowcastCbEstimate: {
+            /** Actual */
+            actual: number | null;
+            /** Note */
+            note: string | null;
+            /** Published */
+            published: string;
+            /** Quarter */
+            quarter: string;
+            /** Source */
+            source: string;
+            /** Url */
+            url: string | null;
+            /** Value */
+            value: number;
+        };
+        /** NowcastCentralBank */
+        NowcastCentralBank: {
+            /** Comparisons */
+            comparisons: components["schemas"]["NowcastCbComparison"][];
+            /** Estimates */
+            estimates: components["schemas"]["NowcastCbEstimate"][];
+            /** Institution */
+            institution: string;
+            /** Label */
+            label: string;
+        };
+        /** NowcastIndicator */
+        NowcastIndicator: {
+            /** Consensus */
+            consensus: number | null;
+            /** Global Loading */
+            global_loading: number | null;
+            /** Group */
+            group: string;
+            /** Id */
+            id: string;
+            /** Last Expected */
+            last_expected: number | null;
+            /** Last Impacts */
+            last_impacts: {
+                [key: string]: number | null;
+            };
+            /** Last News */
+            last_news: number | null;
+            /** Last Period */
+            last_period: string | null;
+            /** Last Release */
+            last_release: string | null;
+            /** Last Value */
+            last_value: number | null;
+            /** Name */
+            name: string;
+            /** Next Expected */
+            next_expected: number | null;
+            /** Next Period */
+            next_period: string | null;
+            /** Next Release */
+            next_release: string | null;
+            /** Next Sd */
+            next_sd: number | null;
+            /** Short */
+            short: string;
+            /** Ticker */
+            ticker: string;
+            /** Transform */
+            transform: string;
+            /** Typical Impacts */
+            typical_impacts: {
+                [key: string]: number | null;
+            };
+            /** Typical Surprise */
+            typical_surprise: number | null;
+            /** Units */
+            units: string;
+            /** Weights */
+            weights: {
+                [key: string]: number | null;
+            };
+        };
+        /** NowcastModelInfo */
+        NowcastModelInfo: {
+            /** Blocks */
+            blocks: string[];
+            /** Em Iterations */
+            em_iterations: number;
+            /** Excluded */
+            excluded: string[];
+            /** Factor Orders */
+            factor_orders: {
+                [key: string]: number;
+            };
+            /** Last Data */
+            last_data: string;
+            /** Loglik */
+            loglik: number | null;
+            /** N Series */
+            n_series: number;
+            /** Name */
+            name: string;
+            /** Sample Start */
+            sample_start: string;
+        };
+        /** NowcastModelSummary */
+        NowcastModelSummary: {
+            /** Country */
+            country: string;
+            /** Slug */
+            slug: string;
+            /** Target Label */
+            target_label: string;
+            /** Title */
+            title: string;
+        };
+        /** NowcastMonth */
+        NowcastMonth: {
+            /** Actual */
+            actual: number | null;
+            /** Model */
+            model: number | null;
+            /** Month */
+            month: string;
+            /** Sd */
+            sd: number | null;
+        };
+        /** NowcastNextPrint */
+        NowcastNextPrint: {
+            /** Consensus */
+            consensus: number | null;
+            /** Hi68 */
+            hi68: number | null;
+            /** Hi90 */
+            hi90: number | null;
+            /** Label */
+            label: string;
+            /** Lo68 */
+            lo68: number | null;
+            /** Lo90 */
+            lo90: number | null;
+            /** Model */
+            model: number | null;
+            /** Period */
+            period: string;
+            quarter: components["schemas"]["NowcastNextQuarter"] | null;
+            /** Release Date */
+            release_date: string | null;
+            /** Sd */
+            sd: number | null;
+            /** Series Id */
+            series_id: string;
+        };
+        /** NowcastNextQuarter */
+        NowcastNextQuarter: {
+            /** Consensus */
+            consensus: number | null;
+            /** Hi68 */
+            hi68: number | null;
+            /** Hi90 */
+            hi90: number | null;
+            /** Lo68 */
+            lo68: number | null;
+            /** Lo90 */
+            lo90: number | null;
+            /** Model */
+            model: number | null;
+            /** Quarter */
+            quarter: string;
+            /** Sd */
+            sd: number | null;
+        };
+        /** NowcastPathPoint */
+        NowcastPathPoint: {
+            /** Actual */
+            actual: number | null;
+            /** Hi68 */
+            hi68: number | null;
+            /** Hi90 */
+            hi90: number | null;
+            /** Lo68 */
+            lo68: number | null;
+            /** Lo90 */
+            lo90: number | null;
+            /** Model */
+            model: number | null;
+            /** Month */
+            month: string;
+        };
+        /** NowcastQuarter */
+        NowcastQuarter: {
+            /** Actual */
+            actual: number | null;
+            /** Bridge */
+            bridge: number | null;
+            /** Consensus */
+            consensus: number | null;
+            /** Hi68 */
+            hi68: number | null;
+            /** Hi90 */
+            hi90: number | null;
+            /** Lo68 */
+            lo68: number | null;
+            /** Lo90 */
+            lo90: number | null;
+            /** Months */
+            months: components["schemas"]["NowcastMonth"][];
+            /** Months Observed */
+            months_observed: number;
+            /** Nowcast */
+            nowcast: number | null;
+            /** Quarter */
+            quarter: string;
+            /** Release Date */
+            release_date: string | null;
+            /** Sd */
+            sd: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "released" | "backcast" | "nowcast" | "forecast";
+        };
+        /** NowcastRelease */
+        NowcastRelease: {
+            /** Expected */
+            expected: number | null;
+            /** Impacts */
+            impacts: {
+                [key: string]: number | null;
+            };
+            /** News */
+            news: number | null;
+            /** Observed */
+            observed: number | null;
+            /** Period */
+            period: string;
+            /** Series Id */
+            series_id: string;
+        };
+        /** NowcastStep */
+        NowcastStep: {
+            /** By Group */
+            by_group: {
+                [key: string]: {
+                    [key: string]: number | null;
+                };
+            };
+            /** Date */
+            date: string;
+            /** Nowcasts */
+            nowcasts: {
+                [key: string]: number | null;
+            };
+            /** Releases */
+            releases: components["schemas"]["NowcastRelease"][];
+            /** Sds */
+            sds: {
+                [key: string]: number | null;
+            };
         };
         /** OisPoint */
         OisPoint: {
@@ -4001,6 +4833,73 @@ export interface operations {
             };
         };
     };
+    fx_ipca_api_tools_fx_ipca_get: {
+        parameters: {
+            query?: {
+                k?: number;
+                n_boot?: number;
+                refresh?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fx_ipca_currency_api_tools_fx_ipca_currency__code__get: {
+        parameters: {
+            query?: {
+                k?: number;
+                n_boot?: number;
+            };
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     global_yields_api_tools_global_yields_get: {
         parameters: {
             query?: never;
@@ -4443,6 +5342,10 @@ export interface operations {
             query: {
                 ticker: string;
                 start?: string;
+                kind?: "auto" | "price" | "level";
+                aum_bn?: number;
+                pctile_years?: number;
+                refresh?: boolean;
             };
             header?: never;
             path?: never;
@@ -4456,7 +5359,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MomentumSeries"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    momentum_monitor_api_tools_momentum_monitor_get: {
+        parameters: {
+            query?: {
+                aum_bn?: number;
+                refresh?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentumMonitor"];
                 };
             };
             /** @description Validation Error */
@@ -4593,6 +5528,88 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    quant_macro_models_api_tools_quant_macro_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NowcastModelSummary"][];
+                };
+            };
+        };
+    };
+    quant_macro_nowcast_api_tools_quant_macro__model__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                model: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Nowcast"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    quant_macro_backtest_api_tools_quant_macro__model__backtest_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                model: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NowcastBacktest"];
                 };
             };
             /** @description Validation Error */

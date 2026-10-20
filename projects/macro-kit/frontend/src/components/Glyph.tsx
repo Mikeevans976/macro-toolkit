@@ -6,7 +6,7 @@ type GlyphName =
   | 'wave' | 'pca' | 'link' | 'ou' | 'curve' | 'lattice' | 'cdf' | 'calendar'
   | 'ledger' | 'heatmap' | 'candles' | 'trend' | 'balance' | 'pin'
   | 'agent' | 'home' | 'search' | 'logout' | 'arrow' | 'dot' | 'close'
-  | 'shield' | 'crown' | 'front' | 'send'
+  | 'shield' | 'crown' | 'front' | 'send' | 'nowcast'
 
 const PATHS: Record<GlyphName, JSX.Element> = {
   pod: (<><circle cx="10" cy="10" r="2.2" /><circle cx="4" cy="5" r="1.4" /><circle cx="16" cy="5" r="1.4" /><circle cx="4" cy="15" r="1.4" /><circle cx="16" cy="15" r="1.4" /><path d="M5.2 5.8 8.2 8.6M14.8 5.8l-3 2.8M5.2 14.2l3-2.8M14.8 14.2l-3-2.8" /></>),
@@ -26,6 +26,7 @@ const PATHS: Record<GlyphName, JSX.Element> = {
   cdf: (<><path d="M3 17h14M3 17V3" /><path d="M4 15.5c4 0 4-10 8-10.5h4" /><path d="M10 17v-7" strokeDasharray="1.5 2" /></>),
   calendar: (<><rect x="3" y="4" width="14" height="13" rx="1.5" /><path d="M3 8h14M7 2.5v3M13 2.5v3M6 11h2M9.5 11h2M13 11h1M6 14h2M9.5 14h2" /></>),
   ledger: (<><rect x="4" y="2.5" width="12" height="15" rx="1.5" /><path d="M7 6.5h6M7 9.5h6M7 12.5h4" /></>),
+  nowcast: (<><path d="M3 15.5 6.5 12l3 2 3.5-5" /><path d="m13 9 3-3.5" strokeDasharray="1.4 1.8" /><circle cx="16.5" cy="4.5" r="1.4" /><path d="M3 17.5h14" opacity=".45" /></>),
   heatmap: (<><rect x="3" y="3" width="14" height="14" rx="1.5" /><path d="M3 7.7h14M3 12.3h14M7.7 3v14M12.3 3v14" /><rect x="8.2" y="8.2" width="3.6" height="3.6" fill="currentColor" stroke="none" opacity=".55" /></>),
   candles: (<><path d="M5 3v14M10 5v12M15 2v12" /><rect x="3.5" y="6" width="3" height="6" rx=".5" /><rect x="8.5" y="8" width="3" height="5" rx=".5" /><rect x="13.5" y="4" width="3" height="6" rx=".5" /></>),
   trend: (<><path d="M3 15 8 10l3 3 6-6" /><path d="M13 7h4v4" /></>),
@@ -99,6 +100,7 @@ export const TOOL_GLYPH: Record<string, GlyphName> = {
   'euribor-positioning': 'radar',
   'pca-analysis': 'pca',
   'correlation-regimes': 'link',
+  'fx-ipca': 'pca',
   'mean-reversion': 'ou',
   'fitted-bond-curves': 'curve',
   'swap-spreads': 'swap',
@@ -116,6 +118,7 @@ export const TOOL_GLYPH: Record<string, GlyphName> = {
 export function toolGlyph(toolId: string): GlyphName {
   if (TOOL_GLYPH[toolId]) return TOOL_GLYPH[toolId]
   if (toolId.endsWith('-heatmap')) return 'heatmap'
+  if (toolId.endsWith('-nowcast')) return 'nowcast'
   return 'dot'
 }
 

@@ -1,599 +1,66 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import PageTitle from '../components/PageTitle'
-import axios from 'axios'
-import Glyph from '../components/Glyph'
-import {
-  LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine, ComposedChart, Area,
-  Label,
-} from 'recharts'
+import MonitorView from '../features/momentum/MonitorView'
+import SeriesView, { type SeriesRequest } from '../features/momentum/SeriesView'
+import { ACCENT, BG, FG3, MUTED, NUM } from '../features/momentum/format'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Current {
-  date: string
-  series_value: number
-  composite: number
-  composite_pctile: number
-  label: string
-  signals: Record<string, number | null>
-  position: number
-}
-
-interface MomentumData {
-  ticker: string
-  dates: string[]
-  series: (number | null)[]
-  composite: (number | null)[]
-  position: (number | null)[]
-  signals: Record<string, (number | null)[]>
-  current: Current
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const BG = '#07090c'
-const ACCENT = '#8b8fd8'
-const GREEN = '#5fb592'
-const RED = '#d9705e'
-const MUTED = '#8995a2'
-
-const cardStyle: React.CSSProperties = {
-  background: 'rgba(200,220,240,0.03)',
-  border: '1px solid rgba(200,220,240,0.07)',
-  borderRadius: 6,
-  padding: '16px 20px',
-}
-
-const stickyBg = '#07090c'
-
-type Tab = 'cta-momentum'
+type Tab = 'monitor' | 'series'
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'cta-momentum', label: 'CTA Momentum' },
+  { id: 'monitor', label: 'CTA Monitor' },
+  { id: 'series', label: 'Single Series' },
 ]
 
-const LOOKBACK_ORDER = ['1M', '3M', '6M', '12M']
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getLabel(composite: number | null, isYield: boolean): string {
-  if (composite == null) return 'Neutral'
-  const z = isYield ? -composite : composite
-  if (z > 1.5) return 'Strong Long'
-  if (z > 0.5) return 'Long'
-  if (z > -0.5) return 'Neutral'
-  if (z > -1.5) return 'Short'
-  return 'Strong Short'
-}
-
-function labelColor(label: string): string {
-  if (label === 'Strong Long') return GREEN
-  if (label === 'Long') return '#9dd6bd'
-  if (label === 'Neutral') return '#c6ced8'
-  if (label === 'Short') return '#ecaa9c'
-  if (label === 'Strong Short') return RED
-  return '#c6ced8'
-}
-
-function fmtZ(v: number | null): string {
-  if (v == null) return '—'
-  return (v >= 0 ? '+' : '') + v.toFixed(2) + 'σ'
-}
-
-function ordinalSuffix(n: number): string {
-  const abs = Math.round(n)
-  const s = ['th', 'st', 'nd', 'rd']
-  const v = abs % 100
-  return abs + (s[(v - 20) % 10] || s[v] || s[0])
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-interface TooltipProps {
-  active?: boolean
-  payload?: { name: string; value: number | null; color: string }[]
-  label?: string
-}
-
-function SimpleTooltip({ active, payload, label }: TooltipProps) {
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{ background: '#0b0f14', border: '1px solid rgba(200,220,240,0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 12 }}>
-      <div style={{ color: '#c6ced8', marginBottom: 4 }}>{label}</div>
-      {payload.map((p, i) => (
-        p.value != null && (
-          <div key={i} style={{ color: p.color || '#eef2f6' }}>
-            {p.name}: {typeof p.value === 'number' ? p.value.toFixed(4) : p.value}
-          </div>
-        )
-      ))}
-    </div>
-  )
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
-
 export default function Momentum() {
-  const [activeTab, setActiveTab] = useState<Tab>('cta-momentum')
-  const [ticker, setTicker] = useState('')
-  const [startYear, setStartYear] = useState(2010)
-  const [isYieldSeries, setIsYieldSeries] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [data, setData] = useState<MomentumData | null>(null)
+  const [tab, setTab] = useState<Tab>('monitor')
+  const [aumBn, setAumBn] = useState(300)
+  const [aumDraft, setAumDraft] = useState('300')
+  const [request, setRequest] = useState<SeriesRequest | null>(null)
 
-  const currentYear = new Date().getFullYear()
-  const years = Array.from({ length: currentYear - 1999 }, (_, i) => 2000 + i)
-
-  async function handleFetch() {
-    if (!ticker.trim()) return
-    setLoading(true)
-    setError(null)
-    try {
-      const token = localStorage.getItem('access_token')
-      const res = await axios.get('/api/tools/momentum/cta-signals', {
-        params: { ticker: ticker.trim(), start: `${startYear}-01-01` },
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      setData(res.data)
-    } catch (e: unknown) {
-      const msg = axios.isAxiosError(e) ? (e.response?.data?.detail ?? e.message) : String(e)
-      setError(String(msg))
-    } finally {
-      setLoading(false)
-    }
+  function commitAum() {
+    const v = Number(aumDraft)
+    if (Number.isFinite(v) && v > 0 && v <= 5000) setAumBn(v)
+    else setAumDraft(String(aumBn))
   }
-
-  // ── Chart data ──────────────────────────────────────────────────────────────
-  const chartData = useMemo(() => {
-    if (!data) return []
-    const flip = isYieldSeries ? -1 : 1
-    return data.dates.map((d, i) => ({
-      date: d.slice(0, 7),
-      series: data.series[i],
-      composite: data.composite[i],
-      above: data.composite[i] != null ? Math.max(0, data.composite[i]!) : null,
-      below: data.composite[i] != null ? Math.min(0, data.composite[i]!) : null,
-      position: data.position[i] != null
-        ? (isYieldSeries ? -(data.position[i]!) : data.position[i])
-        : null,
-      // Individual signals (flipped for yield series so positive = bond long)
-      ...Object.fromEntries(
-        LOOKBACK_ORDER.map(lb => [
-          lb,
-          data.signals[lb]?.[i] != null ? (data.signals[lb][i]! * flip) : null,
-        ])
-      ),
-    }))
-  }, [data, isYieldSeries])
-
-  // ── Effective current signal (respects isYieldSeries flip) ─────────────────
-  const effectiveCurrent = useMemo(() => {
-    if (!data) return null
-    const c = data.current
-    const flip = isYieldSeries ? -1 : 1
-    return {
-      ...c,
-      composite: c.composite * flip,
-      composite_pctile: isYieldSeries ? 100 - c.composite_pctile : c.composite_pctile,
-      position: c.position * flip,
-      signals: Object.fromEntries(
-        Object.entries(c.signals).map(([k, v]) => [k, v != null ? v * flip : null])
-      ),
-    }
-  }, [data, isYieldSeries])
-
-  // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div style={{ minHeight: '100vh', background: BG, color: '#eef2f6', fontFamily: "'Geist', system-ui, sans-serif", padding: '24px' }}>
-
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <PageTitle category="Technicals" categoryId="technicals" title={<>Momentum</>} subtitle={<>Technicals</>} />
+        <PageTitle category="Technicals" categoryId="technicals" title={<>Momentum</>} subtitle={<>CTA trend-following model</>} />
       </div>
 
-      {/* Tab bar */}
       <div style={{
-        display: 'flex', gap: 4, marginBottom: 20,
-        borderBottom: '1px solid rgba(200,220,240,0.07)',
-        position: 'sticky', top: 0, zIndex: 10, background: stickyBg, paddingBottom: 0,
+        display: 'flex', alignItems: 'center', gap: 4, marginBottom: 20, borderBottom: '1px solid rgba(200,220,240,0.07)',
+        position: 'sticky', top: 0, zIndex: 10, background: BG,
       }}>
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              padding: '8px 16px', fontSize: 13, fontWeight: 500,
-              color: activeTab === tab.id ? ACCENT : '#9aa5b1',
-              borderBottom: activeTab === tab.id ? `2px solid ${ACCENT}` : '2px solid transparent',
-              marginBottom: -1,
-              transition: 'color 0.15s',
-            }}
-          >
-            {tab.label}
-          </button>
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: 13, fontWeight: 500,
+            color: tab === t.id ? ACCENT : FG3, borderBottom: tab === t.id ? `2px solid ${ACCENT}` : '2px solid transparent',
+            marginBottom: -1,
+          }}>{t.label}</button>
         ))}
+        <label style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: MUTED,
+          textTransform: 'uppercase', letterSpacing: '0.05em', paddingBottom: 4 }}
+          title="Assets run by trend followers; scales every dollar figure">
+          Trend AUM $bn
+          <input value={aumDraft} onChange={e => setAumDraft(e.target.value)} onBlur={commitAum}
+            onKeyDown={e => e.key === 'Enter' && commitAum()} style={{
+              width: 64, background: 'rgba(200,220,240,0.06)', border: '1px solid rgba(200,220,240,0.12)', borderRadius: 4,
+              padding: '3px 6px', color: '#eef2f6', fontSize: 12, fontFamily: NUM, outline: 'none', textAlign: 'right',
+            }} />
+        </label>
       </div>
 
-      {/* Input row */}
-      <div style={{ ...cardStyle, marginBottom: 20 }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
-          {/* Ticker */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 11, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Bloomberg Ticker
-            </label>
-            <input
-              value={ticker}
-              onChange={e => setTicker(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleFetch()}
-              placeholder="e.g. GDBR10 Index"
-              style={{
-                background: 'rgba(200,220,240,0.06)',
-                border: '1px solid rgba(200,220,240,0.12)',
-                borderRadius: 6, padding: '6px 10px',
-                color: '#eef2f6', fontSize: 13, width: 200,
-                outline: 'none',
-              }}
-            />
-          </div>
-
-          {/* Start year */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 11, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Start Year
-            </label>
-            <select
-              value={startYear}
-              onChange={e => setStartYear(Number(e.target.value))}
-              style={{
-                background: '#0b0f14',
-                border: '1px solid rgba(200,220,240,0.12)',
-                borderRadius: 6, padding: '6px 10px',
-                color: '#eef2f6', fontSize: 13, cursor: 'pointer',
-                outline: 'none',
-              }}
-            >
-              {years.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </div>
-
-          {/* Yield series toggle */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignSelf: 'flex-end', paddingBottom: 2 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: '#c6ced8' }}>
-              <input
-                type="checkbox"
-                checked={isYieldSeries}
-                onChange={e => setIsYieldSeries(e.target.checked)}
-                style={{ width: 14, height: 14, accentColor: ACCENT, cursor: 'pointer' }}
-              />
-              Yield series
-            </label>
-          </div>
-
-          {/* Fetch button */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignSelf: 'flex-end' }}>
-            <button
-              onClick={handleFetch}
-              disabled={loading || !ticker.trim()}
-              style={{
-                background: loading || !ticker.trim() ? 'rgba(139,143,216,0.3)' : ACCENT,
-                border: 'none', borderRadius: 6, padding: '7px 18px',
-                color: '#f4f7fa', fontSize: 13, fontWeight: 600,
-                cursor: loading || !ticker.trim() ? 'not-allowed' : 'pointer',
-                transition: 'background 0.15s',
-              }}
-            >
-              {loading ? 'Loading…' : 'Fetch'}
-            </button>
-          </div>
-        </div>
-
-        {/* Yield series hint */}
-        {isYieldSeries && (
-          <div style={{ marginTop: 10, fontSize: 11, color: '#9aa5b1' }}>
-            Yield series mode: positive composite = yields trending UP = bonds SHORT. Direction labels and position are flipped for display.
-          </div>
-        )}
+      {/* Both stay mounted so switching tabs keeps their state */}
+      <div style={{ display: tab === 'monitor' ? 'block' : 'none' }}>
+        <MonitorView aumBn={aumBn} onOpen={row => {
+          setRequest({ ticker: row.ticker, kind: row.kind, nonce: Date.now() })
+          setTab('series')
+        }} />
       </div>
-
-      {/* Error */}
-      {error && (
-        <div style={{ ...cardStyle, borderColor: 'rgba(217,112,94,0.3)', background: 'rgba(217,112,94,0.05)', color: RED, marginBottom: 20, fontSize: 13 }}>
-          {error}
-        </div>
-      )}
-
-      {/* Results */}
-      {effectiveCurrent && data && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-          {/* ── A. Current State Panel ─────────────────────────────────────── */}
-          <div style={cardStyle}>
-            <div style={{ fontSize: 12, color: MUTED, marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Current State — {data.ticker}
-            </div>
-
-            {/* Top row: label, z-score, percentile */}
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 28, fontWeight: 600, color: labelColor(effectiveCurrent.label ?? '') }}>
-                {effectiveCurrent.label}
-              </span>
-              <span style={{ fontSize: 20, fontWeight: 600, color: '#c3ccd6' }}>
-                {fmtZ(effectiveCurrent.composite)}
-              </span>
-              <span style={{ fontSize: 14, color: MUTED }}>
-                {ordinalSuffix(effectiveCurrent.composite_pctile)} pctile
-              </span>
-              <span style={{ fontSize: 12, color: '#9aa5b1', marginLeft: 'auto' }}>
-                as of {effectiveCurrent.date}
-              </span>
-            </div>
-
-            {/* Percentile bar */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ height: 6, background: 'rgba(200,220,240,0.07)', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%',
-                  width: `${Math.max(0, Math.min(100, effectiveCurrent.composite_pctile))}%`,
-                  background: labelColor(effectiveCurrent.label ?? ''),
-                  borderRadius: 3,
-                  transition: 'width 0.4s ease',
-                }} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                <span style={{ fontSize: 10, color: '#77828f' }}>0</span>
-                <span style={{ fontSize: 10, color: '#77828f' }}>50</span>
-                <span style={{ fontSize: 10, color: '#77828f' }}>100</span>
-              </div>
-            </div>
-
-            {/* Four mini-cards: 1M / 3M / 6M / 12M */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
-              {LOOKBACK_ORDER.map(lb => {
-                const z = effectiveCurrent.signals[lb] as number | null
-                const lbl = z != null ? getLabel(z, false) : 'Neutral'
-                const col = labelColor(lbl)
-                const arrow = lbl.includes('Long') ? '↑' : lbl.includes('Short') ? '↓' : '→'
-                return (
-                  <div key={lb} style={{
-                    background: 'rgba(200,220,240,0.04)',
-                    border: `1px solid ${col}33`,
-                    borderRadius: 6, padding: '10px 12px',
-                  }}>
-                    <div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>{lb}</div>
-                    <div style={{ fontSize: 17, fontWeight: 600, color: col }}>{fmtZ(z)}</div>
-                    <div style={{ fontSize: 12, color: col, marginTop: 3 }}>
-                      {arrow} {lbl}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Position summary */}
-            <div style={{ marginTop: 14, fontSize: 12, color: '#9aa5b1' }}>
-              Vol-scaled position: <span style={{ color: effectiveCurrent.position >= 0 ? GREEN : RED, fontWeight: 600 }}>
-                {effectiveCurrent.position >= 0 ? '+' : ''}{effectiveCurrent.position.toFixed(2)}
-              </span>
-              <span style={{ marginLeft: 6 }}>(10% vol target, clipped ±8)</span>
-              {isYieldSeries && <span style={{ marginLeft: 6, color: '#8995a2' }}>[bond equivalent]</span>}
-            </div>
-          </div>
-
-          {/* ── B. Series chart ────────────────────────────────────────────── */}
-          <div style={cardStyle}>
-            <div style={{ fontSize: 12, color: MUTED, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              {data.ticker}
-            </div>
-            <ResponsiveContainer width="100%" height={180}>
-              <LineChart syncId="momentum" data={chartData} margin={{ top: 8, right: 80, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 10, fill: '#8995a2' }}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={Math.floor(chartData.length / 6)}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: '#8995a2' }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={50}
-                  tickFormatter={(v: number) => v.toFixed(2)}
-                />
-                <Tooltip content={<SimpleTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="series"
-                  stroke={ACCENT}
-                  strokeWidth={1.5}
-                  dot={false}
-                  connectNulls={false}
-                  name="Price"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* ── C. Composite signal chart ──────────────────────────────────── */}
-          <div style={cardStyle}>
-            <div style={{ fontSize: 12, color: MUTED, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              CTA Composite Signal
-            </div>
-            <ResponsiveContainer width="100%" height={220}>
-              <ComposedChart syncId="momentum" data={chartData} margin={{ top: 8, right: 80, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 10, fill: '#8995a2' }}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={Math.floor(chartData.length / 6)}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: '#8995a2' }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={50}
-                  tickFormatter={(v: number) => v.toFixed(1)}
-                />
-                <Tooltip content={<SimpleTooltip />} />
-
-                {/* Filled areas above/below zero */}
-                <Area
-                  type="monotone"
-                  dataKey="above"
-                  fill={GREEN}
-                  fillOpacity={0.2}
-                  stroke="none"
-                  connectNulls={false}
-                  name="Above 0"
-                  legendType="none"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="below"
-                  fill={RED}
-                  fillOpacity={0.2}
-                  stroke="none"
-                  connectNulls={false}
-                  name="Below 0"
-                  legendType="none"
-                />
-
-                {/* Composite line */}
-                <Line
-                  type="monotone"
-                  dataKey="composite"
-                  stroke={ACCENT}
-                  strokeWidth={1.5}
-                  dot={false}
-                  connectNulls={false}
-                  name="Composite"
-                />
-
-                {/* Reference lines */}
-                <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeWidth={1} />
-                <ReferenceLine y={1.5} stroke={GREEN} strokeDasharray="3 3" strokeOpacity={0.4}>
-                  <Label value="Strong Long" position="right" style={{ fontSize: 10, fill: GREEN, fillOpacity: 0.7 }} />
-                </ReferenceLine>
-                <ReferenceLine y={0.5} stroke={GREEN} strokeDasharray="3 3" strokeOpacity={0.4}>
-                  <Label value="Long" position="right" style={{ fontSize: 10, fill: GREEN, fillOpacity: 0.7 }} />
-                </ReferenceLine>
-                <ReferenceLine y={-0.5} stroke={RED} strokeDasharray="3 3" strokeOpacity={0.4}>
-                  <Label value="Short" position="right" style={{ fontSize: 10, fill: RED, fillOpacity: 0.7 }} />
-                </ReferenceLine>
-                <ReferenceLine y={-1.5} stroke={RED} strokeDasharray="3 3" strokeOpacity={0.4}>
-                  <Label value="Strong Short" position="right" style={{ fontSize: 10, fill: RED, fillOpacity: 0.7 }} />
-                </ReferenceLine>
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* ── D. Individual signals chart ───────────────────────────── */}
-          <div style={cardStyle}>
-            <div style={{ fontSize: 12, color: MUTED, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Individual Signals{isYieldSeries ? ' — Bond Equivalent' : ''}
-            </div>
-            <ResponsiveContainer width="100%" height={220}>
-              <ComposedChart syncId="momentum" data={chartData} margin={{ top: 8, right: 80, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 10, fill: '#8995a2' }}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={Math.floor(chartData.length / 6)}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: '#8995a2' }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={50}
-                  tickFormatter={(v: number) => v.toFixed(1)}
-                />
-                <Tooltip content={<SimpleTooltip />} />
-                <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeWidth={1} />
-                <ReferenceLine y={1.5} stroke={GREEN} strokeDasharray="3 3" strokeOpacity={0.4}>
-                  <Label value="Strong Long" position="right" style={{ fontSize: 10, fill: GREEN, fillOpacity: 0.7 }} />
-                </ReferenceLine>
-                <ReferenceLine y={0.5} stroke={GREEN} strokeDasharray="3 3" strokeOpacity={0.3} />
-                <ReferenceLine y={-0.5} stroke={RED} strokeDasharray="3 3" strokeOpacity={0.3} />
-                <ReferenceLine y={-1.5} stroke={RED} strokeDasharray="3 3" strokeOpacity={0.4}>
-                  <Label value="Strong Short" position="right" style={{ fontSize: 10, fill: RED, fillOpacity: 0.7 }} />
-                </ReferenceLine>
-                <Line type="monotone" dataKey="1M"  stroke="#d6ad66" strokeWidth={1.2} dot={false} connectNulls={false} name="1M"  />
-                <Line type="monotone" dataKey="3M"  stroke="#7cc3dc" strokeWidth={1.2} dot={false} connectNulls={false} name="3M"  />
-                <Line type="monotone" dataKey="6M"  stroke="#b49fdb" strokeWidth={1.2} dot={false} connectNulls={false} name="6M"  />
-                <Line type="monotone" dataKey="12M" stroke="#dd9562" strokeWidth={1.2} dot={false} connectNulls={false} name="12M" />
-              </ComposedChart>
-            </ResponsiveContainer>
-            <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
-              {([['1M', '#d6ad66'], ['3M', '#7cc3dc'], ['6M', '#b49fdb'], ['12M', '#dd9562']] as [string, string][]).map(([lb, col]) => (
-                <div key={lb} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <div style={{ width: 20, height: 2, background: col, borderRadius: 1 }} />
-                  <span style={{ fontSize: 11, color: '#9aa5b1' }}>{lb}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ── E. Position chart ─────────────────────────────────────────── */}
-          <div style={cardStyle}>
-            <div style={{ fontSize: 12, color: MUTED, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Vol-Scaled Position (10% vol target){isYieldSeries ? ' — Bond Equivalent' : ''}
-            </div>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart syncId="momentum" data={chartData} margin={{ top: 8, right: 80, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke="rgba(200,220,240,0.04)" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 10, fill: '#8995a2' }}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={Math.floor(chartData.length / 6)}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: '#8995a2' }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={50}
-                  tickFormatter={(v: number) => v.toFixed(1)}
-                  domain={[-8.2, 8.2]}
-                />
-                <Tooltip content={<SimpleTooltip />} />
-                <ReferenceLine y={0} stroke="rgba(200,220,240,0.15)" strokeWidth={1} />
-                <Bar dataKey="position" name="Position" maxBarSize={6}>
-                  {chartData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={(entry.position ?? 0) >= 0 ? GREEN : RED}
-                      fillOpacity={0.75}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-            <div style={{ fontSize: 11, color: '#77828f', marginTop: 8 }}>
-              Position clipped to ±8. Each bar = 5-business-day interval.
-            </div>
-          </div>
-
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!data && !loading && !error && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', gap: 12 }}>
-          <div style={{ color: '#77828f' }}><Glyph name="trend" size={32} /></div>
-          <div style={{ color: '#77828f', fontSize: 14 }}>Enter a Bloomberg ticker and click Fetch to compute CTA momentum signals.</div>
-        </div>
-      )}
-
+      <div style={{ display: tab === 'series' ? 'block' : 'none' }}>
+        <SeriesView aumBn={aumBn} request={request} />
+      </div>
     </div>
   )
 }

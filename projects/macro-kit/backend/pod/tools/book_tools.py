@@ -219,7 +219,7 @@ register(Tool(
 
 _HEALTH_CHECKS = {   # tool name → cheap arguments
     "swaps_rv": {"top_n": 1}, "egb_rv": {"top_n": 1}, "inflation_fixings": {"n_months": 1},
-    "macro_factors": {"regions": ["EA", "US", "UK", "JP"]}, "cta_momentum": {"tickers": ["USGG10YR"]},
+    "macro_factors": {"regions": ["EA", "US", "UK", "JP"]}, "cta_momentum": {"group": "Bond"},
     "correlation_regimes": {"top_n": 1}, "option_implied_cdf": {"ccy": "EUR", "tail": "10y"},
     "fitted_bond_curves": {}, "euribor_positioning": {},
 }

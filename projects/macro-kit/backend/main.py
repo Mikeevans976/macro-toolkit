@@ -48,6 +48,7 @@ from routers import (
     egb_rv,
     fair_value_models,
     fitted_bond_curves,
+    fx_ipca,
     global_yields,
     heatmaps,
     inflation_fixings,
@@ -58,6 +59,7 @@ from routers import (
     option_cdf,
     pca_analysis,
     print_analysis,
+    quant_macro,
     research,
     seasonality,
     swap_spreads,
@@ -106,6 +108,33 @@ async def lifespan(_app: FastAPI):
             except Exception:
                 logger.exception("Macro Options warm-up failed; will fetch on first request")
         threading.Thread(target=_warm_options, name="macro-options-warmup", daemon=True).start()
+
+        def _warm_momentum() -> None:
+            try:
+                from momentum import warm_cache
+                warm_cache()
+                logger.info("Momentum monitor warmed")
+            except Exception:
+                logger.exception("Momentum warm-up failed; will compute on first request")
+        threading.Thread(target=_warm_momentum, name="momentum-warmup", daemon=True).start()
+
+        def _warm_quant_macro() -> None:
+            try:
+                from quant_macro import warm_cache
+                warm_cache()
+                logger.info("Quant Macro nowcasts and backtests warmed")
+            except Exception:
+                logger.exception("Quant Macro warm-up failed; will compute on first request")
+        threading.Thread(target=_warm_quant_macro, name="quant-macro-warmup", daemon=True).start()
+
+        def _warm_fx_ipca() -> None:
+            try:
+                from fx_ipca import warm_cache
+                warm_cache()
+                logger.info("FX IPCA model warmed")
+            except Exception:
+                logger.exception("FX IPCA warm-up failed; will compute on first request")
+        threading.Thread(target=_warm_fx_ipca, name="fx-ipca-warmup", daemon=True).start()
     # Bloomberg news subscriber (only when BBG_NEWS_AUTOSTART=1 and subscriptions are configured)
     from pod.bloomberg import start_news_subscriber_thread
     start_news_subscriber_thread()
@@ -135,6 +164,7 @@ for _tool in (
     egb_rv,
     fair_value_models,
     fitted_bond_curves,
+    fx_ipca,
     global_yields,
     heatmaps,
     inflation_fixings,
@@ -145,6 +175,7 @@ for _tool in (
     option_cdf,
     pca_analysis,
     print_analysis,
+    quant_macro,
     research,
     seasonality,
     swap_spreads,

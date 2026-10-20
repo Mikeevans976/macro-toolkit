@@ -76,6 +76,8 @@ cd frontend && npm run build && cd .. && python backend/main.py
 | `global_yields.py` | Global yield curve data |
 | `swaps_rv.py` | Swap RV analytics (carry, roll, OIS pricing) |
 | `macro_options.py` | Euribor options for the Macro Options Monitor: chains, smile fit + call grid, €STR OIS meeting path, open interest |
+| `nowcast.py` | Quant Macro engine: mixed-frequency DFM (statsmodels `DynamicFactorMQ`), quarterly moments, news/weights, survey bridge |
+| `quant_macro.py` | Quant Macro models (`MODELS`), payload (quarters, next print, evolution, catalysts, central bank) and backtest |
 | `curves_flies_config.py` | Config for curves/flies tool |
 | `seasonality_backtester.py` | Seasonality backtest engine |
 | `data/series_catalogue_*.json` | Single source of truth for indicator tickers/lags per region |
@@ -136,6 +138,28 @@ EM curves use Bloomberg BVAL constant-maturity curves (`BV{tenor}{curve} BVLI In
 4. Add the slug, `bloc` and ISO `country` code to `frontend/src/features/heatmap/regions.ts` (and the flag import in `components/CountryFlag.tsx`), a tile in `dashboard_config.yaml` and the region code in `pod/tools/analytics.py`
 
 After an intentional change to the dashboard payload, regenerate the frontend test fixtures (UK = DM shape, China = EM shape): `cd backend && python scripts/make_heatmap_fixture.py`.
+
+---
+
+## Quant Macro
+
+Nowcasts and forecasts of growth, inflation and labour-market variables per G10 market: the next print, the current and next quarters, and the central bank's own staff estimates alongside. One page (`frontend/src/features/quant-macro/NowcastPage.tsx`) driven by `GET /api/tools/quant-macro/{model}`; the backtest is `.../{model}/backtest` (slow, warmed at startup with the payload).
+
+| Layer | File | Notes |
+|-------|------|-------|
+| Engine | `backend/nowcast.py` | Bańbura–Modugno DFM (Global + Soft/Real/Labour blocks, AR(1) idiosyncratics, EM). Quarterly growth = (g_t + 2g_t-1 + 3g_t-2 + 2g_t-3 + g_t-4)/3 of the monthly target; its variance uses smoothed cross-month covariances. News and weights from statsmodels `news()` |
+| Models | `backend/quant_macro.py` | `MODELS` (one `NowcastSpec` per market × variable); cached per day and data source |
+| Panel | `backend/data/series_catalogue_nowcast_<cc>.json` | id, blocks, group, transform (`none`/`diff`/`log_diff`), `release_lag_days`, simulation DGP |
+| Central bank | `backend/data/central_bank_nowcasts_<cc>.json` | Staff estimates entered by hand from the bank's publications, with URL; mark implied values in `note` |
+| Page | `frontend/src/features/quant-macro/` | `models.ts` generates `/tools/{toolId}` routes; fixtures from `backend/scripts/make_nowcast_fixture.py` |
+
+Vintages are pseudo-real-time: today's data masked by release date (Bloomberg `ECO_RELEASE_DT` when available, else the typical lag), so revisions are not modelled and parameters use the full sample. Live data need the target and 60% of the panel, else the payload falls back to simulation and lists `missing_series`. 2020-03 to 2021-06 is treated as missing.
+
+### Adding a model
+
+1. Catalogue + (optional) central-bank file in `backend/data/`; probe tickers with `python scripts/probe_catalogue.py data/series_catalogue_nowcast_<cc>.json`
+2. A `NowcastSpec` in `MODELS` (`backend/quant_macro.py`)
+3. An entry in `QUANT_MACRO_MODELS` (`frontend/src/features/quant-macro/models.ts`) and a tile under `quant-macro` in `dashboard_config.yaml`
 
 ---
 

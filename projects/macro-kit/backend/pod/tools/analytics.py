@@ -423,25 +423,48 @@ register(Tool(
 # Positioning / technicals / regimes
 # ---------------------------------------------------------------------------
 
-_DEFAULT_CTA_TICKERS = ["GTEEUR10Y", "GTGBP10Y", "GTDEM2Y", "USGG10YR", "USGG2YR"]
+_CTA_ROW_KEYS = ("id", "label", "group", "last", "chg_1w", "regime", "direction", "stretched",
+                 "position", "position_chg_1w", "flip_price", "flip_sigma", "flow_flat_1w",
+                 "notional_usd", "flow_flat_1w_usd", "flow_adv_pct")
 
 
-def cta_momentum(tickers: list[str] | None = None) -> dict:
-    from momentum import compute_cta_signals
-    out = {}
-    for t in tickers or _DEFAULT_CTA_TICKERS:
-        data = compute_cta_signals(t)
-        out[t] = {"data_source": _source(data), **(data.get("current") or {})}
-    return out
+def cta_momentum(tickers: list[str] | None = None, group: str | None = None) -> dict:
+    """Without tickers: the cross-asset monitor (model CTA positions, regimes,
+    flows, sector totals, calibration). With tickers: per-series detail."""
+    from momentum import compute_cta_signals, get_monitor
+    if tickers:
+        out = {}
+        for t in tickers:
+            try:
+                d = compute_cta_signals(t)
+            except (LookupError, ValueError) as e:
+                out[t] = {"error": str(e)}
+                continue
+            out[t] = {"data_source": d["data_source"], "kind": d["kind"], **d["current"],
+                      "triggers": d["triggers"],
+                      "scenarios_1w": [s for s in d["scenarios"] if s["horizon_days"] == 5]}
+        return out
+    mon = get_monitor()
+    rows = [{k: r[k] for k in _CTA_ROW_KEYS} for r in mon["rows"]
+            if group is None or r["group"].lower().startswith(group.lower())]
+    return {"data_source": mon["data_source"], "as_of": mon["as_of"], "note": mon["note"],
+            "model": mon["model"], "calibration": mon["calibration"], "sectors": mon["sectors"],
+            "model_pnl_1m_pct": mon["pnl"]["model_1m"], "rows": rows}
 
 
 register(Tool(
     name="cta_momentum",
     description=(
-        "CTA-style trend signals (1M/3M/6M/12M lookbacks, composite and label) for rates "
-        "tickers. Default: EUR 10y, GBP 10y, EUR 2y, USD 10y, USD 2y."
+        "CTA trend-following model. With no tickers: cross-asset monitor of ~70 markets (bond, "
+        "STIR, FX, equity, commodity futures plus yields and curves): trend regime (Strong "
+        "momentum / Momentum / Fading / Reversal / Range / Mixed), model CTA position (% of max), "
+        "1w change, next-day flip level, flat-price 1w flow and $ notional, sector totals and the "
+        "fit to the SG Trend Index. Optional group filter ('Bond', 'Equity', 'FX', 'Commodity', "
+        "'Yields', 'Curves', 'STIR'). With tickers (any Bloomberg expression, e.g. 'TY1 Comdty', "
+        "'USGG10YR Index - USGG2YR Index'): per-series signals, triggers and 1w scenarios."
     ),
-    input_schema=schema({"tickers": {"type": "array", "items": {"type": "string"}}}),
+    input_schema=schema({"tickers": {"type": "array", "items": {"type": "string"}},
+                         "group": {"type": "string"}}),
     handler=cta_momentum,
 ))
 

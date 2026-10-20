@@ -2151,6 +2151,2828 @@
     "title": "ModelOverrideRequest",
     "type": "object"
    },
+   "MomCalibration": {
+    "properties": {
+     "corr": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Corr"
+     },
+     "index": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Index"
+     },
+     "index_vol": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Index Vol"
+     },
+     "ok": {
+      "title": "Ok",
+      "type": "boolean"
+     },
+     "r2": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "R2"
+     },
+     "r2_oos": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "R2 Oos"
+     },
+     "reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reason"
+     },
+     "tested": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/MomFitTested"
+      },
+      "title": "Tested",
+      "type": "array"
+     },
+     "tracking_error": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tracking Error"
+     },
+     "weeks": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Weeks"
+     }
+    },
+    "required": [
+     "ok"
+    ],
+    "title": "MomCalibration",
+    "type": "object"
+   },
+   "MomCurrent": {
+    "properties": {
+     "chg_1w": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Chg 1W"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "direction": {
+      "title": "Direction",
+      "type": "integer"
+     },
+     "er": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Er"
+     },
+     "position": {
+      "title": "Position",
+      "type": "number"
+     },
+     "position_1w_ago": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Position 1W Ago"
+     },
+     "position_pctile": {
+      "title": "Position Pctile",
+      "type": "number"
+     },
+     "regime": {
+      "enum": [
+       "Strong momentum",
+       "Momentum",
+       "Fading",
+       "Reversal",
+       "Range",
+       "Mixed"
+      ],
+      "title": "Regime",
+      "type": "string"
+     },
+     "responses": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Responses",
+      "type": "object"
+     },
+     "series_value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Series Value"
+     },
+     "signals": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Signals",
+      "type": "object"
+     },
+     "stretched": {
+      "title": "Stretched",
+      "type": "boolean"
+     },
+     "vol_ann": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Vol Ann"
+     }
+    },
+    "required": [
+     "date",
+     "series_value",
+     "chg_1w",
+     "regime",
+     "direction",
+     "stretched",
+     "er",
+     "vol_ann",
+     "position",
+     "position_1w_ago",
+     "position_pctile",
+     "signals",
+     "responses"
+    ],
+    "title": "MomCurrent",
+    "type": "object"
+   },
+   "MomFitTested": {
+    "properties": {
+     "r2": {
+      "title": "R2",
+      "type": "number"
+     },
+     "r2_oos": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "R2 Oos"
+     },
+     "response": {
+      "title": "Response",
+      "type": "string"
+     }
+    },
+    "required": [
+     "response",
+     "r2"
+    ],
+    "title": "MomFitTested",
+    "type": "object"
+   },
+   "MomLevel": {
+    "properties": {
+     "move": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Move"
+     },
+     "price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Price"
+     },
+     "sigma": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sigma"
+     }
+    },
+    "required": [
+     "price",
+     "move",
+     "sigma"
+    ],
+    "title": "MomLevel",
+    "type": "object"
+   },
+   "MomMissing": {
+    "properties": {
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "reason": {
+      "title": "Reason",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "label",
+     "reason"
+    ],
+    "title": "MomMissing",
+    "type": "object"
+   },
+   "MomModelInfo": {
+    "properties": {
+     "aum_bn": {
+      "title": "Aum Bn",
+      "type": "number"
+     },
+     "calibrated": {
+      "title": "Calibrated",
+      "type": "boolean"
+     },
+     "leverage": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Leverage"
+     },
+     "response": {
+      "title": "Response",
+      "type": "string"
+     },
+     "speed_weights": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "title": "Speed Weights",
+      "type": "object"
+     }
+    },
+    "required": [
+     "response",
+     "speed_weights",
+     "calibrated",
+     "aum_bn"
+    ],
+    "title": "MomModelInfo",
+    "type": "object"
+   },
+   "MomMonitorRow": {
+    "properties": {
+     "chg_1w": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Chg 1W"
+     },
+     "contracts": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Contracts"
+     },
+     "cta": {
+      "title": "Cta",
+      "type": "boolean"
+     },
+     "direction": {
+      "title": "Direction",
+      "type": "integer"
+     },
+     "er": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Er"
+     },
+     "flip_price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flip Price"
+     },
+     "flip_sigma": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flip Sigma"
+     },
+     "flow_adv_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flow Adv Pct"
+     },
+     "flow_flat_1w": {
+      "title": "Flow Flat 1W",
+      "type": "number"
+     },
+     "flow_flat_1w_contracts": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flow Flat 1W Contracts"
+     },
+     "flow_flat_1w_usd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flow Flat 1W Usd"
+     },
+     "group": {
+      "title": "Group",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "price",
+       "level"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "last": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last"
+     },
+     "notional_usd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notional Usd"
+     },
+     "position": {
+      "title": "Position",
+      "type": "number"
+     },
+     "position_chg_1w": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Position Chg 1W"
+     },
+     "regime": {
+      "enum": [
+       "Strong momentum",
+       "Momentum",
+       "Fading",
+       "Reversal",
+       "Range",
+       "Mixed"
+      ],
+      "title": "Regime",
+      "type": "string"
+     },
+     "risk_usd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Risk Usd"
+     },
+     "sector": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sector"
+     },
+     "signals": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Signals",
+      "type": "object"
+     },
+     "spark": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Spark",
+      "type": "array"
+     },
+     "stretched": {
+      "title": "Stretched",
+      "type": "boolean"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     },
+     "unit": {
+      "title": "Unit",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "label",
+     "group",
+     "ticker",
+     "kind",
+     "unit",
+     "cta",
+     "sector",
+     "last",
+     "chg_1w",
+     "regime",
+     "direction",
+     "stretched",
+     "er",
+     "signals",
+     "position",
+     "position_chg_1w",
+     "flip_price",
+     "flip_sigma",
+     "flow_flat_1w",
+     "spark",
+     "risk_usd",
+     "notional_usd",
+     "contracts",
+     "flow_flat_1w_usd",
+     "flow_flat_1w_contracts",
+     "flow_adv_pct"
+    ],
+    "title": "MomMonitorRow",
+    "type": "object"
+   },
+   "MomPnl": {
+    "properties": {
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "drawdown": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Drawdown",
+      "type": "array"
+     },
+     "index": {
+      "anyOf": [
+       {
+        "items": {
+         "anyOf": [
+          {
+           "type": "number"
+          },
+          {
+           "type": "null"
+          }
+         ]
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Index"
+     },
+     "model": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Model",
+      "type": "array"
+     },
+     "model_1m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model 1M"
+     },
+     "model_3m": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model 3M"
+     }
+    },
+    "required": [
+     "dates",
+     "model",
+     "drawdown",
+     "index",
+     "model_1m",
+     "model_3m"
+    ],
+    "title": "MomPnl",
+    "type": "object"
+   },
+   "MomScenario": {
+    "properties": {
+     "delta": {
+      "title": "Delta",
+      "type": "number"
+     },
+     "delta_contracts": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delta Contracts"
+     },
+     "delta_usd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delta Usd"
+     },
+     "horizon_days": {
+      "title": "Horizon Days",
+      "type": "integer"
+     },
+     "position": {
+      "title": "Position",
+      "type": "number"
+     },
+     "price": {
+      "title": "Price",
+      "type": "number"
+     },
+     "shock_sigma": {
+      "title": "Shock Sigma",
+      "type": "number"
+     }
+    },
+    "required": [
+     "horizon_days",
+     "shock_sigma",
+     "price",
+     "position",
+     "delta"
+    ],
+    "title": "MomScenario",
+    "type": "object"
+   },
+   "MomSectorFlows": {
+    "properties": {
+     "flows_1w": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "title": "Flows 1W",
+      "type": "object"
+     },
+     "gross_risk_usd": {
+      "title": "Gross Risk Usd",
+      "type": "number"
+     },
+     "markets": {
+      "title": "Markets",
+      "type": "integer"
+     },
+     "net_notional_usd": {
+      "title": "Net Notional Usd",
+      "type": "number"
+     },
+     "net_risk_usd": {
+      "title": "Net Risk Usd",
+      "type": "number"
+     },
+     "position": {
+      "title": "Position",
+      "type": "number"
+     },
+     "sector": {
+      "title": "Sector",
+      "type": "string"
+     }
+    },
+    "required": [
+     "sector",
+     "markets",
+     "net_risk_usd",
+     "gross_risk_usd",
+     "net_notional_usd",
+     "position",
+     "flows_1w"
+    ],
+    "title": "MomSectorFlows",
+    "type": "object"
+   },
+   "MomSizing": {
+    "properties": {
+     "adv": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Adv"
+     },
+     "basis": {
+      "enum": [
+       "universe",
+       "typical"
+      ],
+      "title": "Basis",
+      "type": "string"
+     },
+     "contract_usd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Contract Usd"
+     },
+     "contracts": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Contracts"
+     },
+     "dv01_usd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dv01 Usd"
+     },
+     "full_risk_usd": {
+      "title": "Full Risk Usd",
+      "type": "number"
+     },
+     "notional_usd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notional Usd"
+     },
+     "oi": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Oi"
+     },
+     "risk_usd": {
+      "title": "Risk Usd",
+      "type": "number"
+     }
+    },
+    "required": [
+     "basis",
+     "risk_usd",
+     "full_risk_usd",
+     "notional_usd",
+     "dv01_usd",
+     "contracts",
+     "contract_usd",
+     "adv",
+     "oi"
+    ],
+    "title": "MomSizing",
+    "type": "object"
+   },
+   "MomSpeedLevel": {
+    "properties": {
+     "move": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Move"
+     },
+     "price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Price"
+     },
+     "sigma": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sigma"
+     },
+     "speed": {
+      "title": "Speed",
+      "type": "string"
+     }
+    },
+    "required": [
+     "price",
+     "move",
+     "sigma",
+     "speed"
+    ],
+    "title": "MomSpeedLevel",
+    "type": "object"
+   },
+   "MomTriggers": {
+    "properties": {
+     "composite": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/MomLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "flat_days_to_flip": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flat Days To Flip"
+     },
+     "speeds": {
+      "items": {
+       "$ref": "#/components/schemas/MomSpeedLevel"
+      },
+      "title": "Speeds",
+      "type": "array"
+     }
+    },
+    "required": [
+     "composite",
+     "speeds",
+     "flat_days_to_flip"
+    ],
+    "title": "MomTriggers",
+    "type": "object"
+   },
+   "MomentumMonitor": {
+    "properties": {
+     "as_of": {
+      "title": "As Of",
+      "type": "string"
+     },
+     "calibration": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/MomCalibration"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "data_source": {
+      "enum": [
+       "bloomberg",
+       "simulation"
+      ],
+      "title": "Data Source",
+      "type": "string"
+     },
+     "groups": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Groups",
+      "type": "array"
+     },
+     "missing": {
+      "items": {
+       "$ref": "#/components/schemas/MomMissing"
+      },
+      "title": "Missing",
+      "type": "array"
+     },
+     "model": {
+      "$ref": "#/components/schemas/MomModelInfo"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "pnl": {
+      "$ref": "#/components/schemas/MomPnl"
+     },
+     "roll_adjusted": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Roll Adjusted",
+      "type": "object"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/MomMonitorRow"
+      },
+      "title": "Rows",
+      "type": "array"
+     },
+     "sectors": {
+      "items": {
+       "$ref": "#/components/schemas/MomSectorFlows"
+      },
+      "title": "Sectors",
+      "type": "array"
+     },
+     "speeds": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Speeds",
+      "type": "array"
+     }
+    },
+    "required": [
+     "as_of",
+     "data_source",
+     "note",
+     "roll_adjusted",
+     "groups",
+     "speeds",
+     "model",
+     "calibration",
+     "rows",
+     "missing",
+     "sectors",
+     "pnl"
+    ],
+    "title": "MomentumMonitor",
+    "type": "object"
+   },
+   "MomentumSeries": {
+    "properties": {
+     "current": {
+      "$ref": "#/components/schemas/MomCurrent"
+     },
+     "data_source": {
+      "enum": [
+       "bloomberg",
+       "simulation"
+      ],
+      "title": "Data Source",
+      "type": "string"
+     },
+     "dates": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "kind": {
+      "enum": [
+       "price",
+       "level"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "model": {
+      "$ref": "#/components/schemas/MomModelInfo"
+     },
+     "position": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Position",
+      "type": "array"
+     },
+     "roll_adjusted": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Roll Adjusted"
+     },
+     "scenarios": {
+      "items": {
+       "$ref": "#/components/schemas/MomScenario"
+      },
+      "title": "Scenarios",
+      "type": "array"
+     },
+     "series": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Series",
+      "type": "array"
+     },
+     "signals": {
+      "additionalProperties": {
+       "items": {
+        "anyOf": [
+         {
+          "type": "number"
+         },
+         {
+          "type": "null"
+         }
+        ]
+       },
+       "type": "array"
+      },
+      "title": "Signals",
+      "type": "object"
+     },
+     "sizing": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/MomSizing"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "speeds": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Speeds",
+      "type": "array"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     },
+     "triggers": {
+      "$ref": "#/components/schemas/MomTriggers"
+     },
+     "unit": {
+      "title": "Unit",
+      "type": "string"
+     }
+    },
+    "required": [
+     "ticker",
+     "label",
+     "kind",
+     "unit",
+     "data_source",
+     "roll_adjusted",
+     "model",
+     "speeds",
+     "dates",
+     "series",
+     "position",
+     "signals",
+     "current",
+     "triggers",
+     "scenarios",
+     "sizing"
+    ],
+    "title": "MomentumSeries",
+    "type": "object"
+   },
+   "Nowcast": {
+    "properties": {
+     "as_of": {
+      "title": "As Of",
+      "type": "string"
+     },
+     "bridge": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/NowcastBridge"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "central_bank": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/NowcastCentralBank"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "country": {
+      "title": "Country",
+      "type": "string"
+     },
+     "data_source": {
+      "enum": [
+       "live",
+       "simulation"
+      ],
+      "title": "Data Source",
+      "type": "string"
+     },
+     "evolution": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastStep"
+      },
+      "title": "Evolution",
+      "type": "array"
+     },
+     "indicators": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastIndicator"
+      },
+      "title": "Indicators",
+      "type": "array"
+     },
+     "missing_series": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Missing Series",
+      "type": "array"
+     },
+     "model": {
+      "$ref": "#/components/schemas/NowcastModelInfo"
+     },
+     "monthly_path": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastPathPoint"
+      },
+      "title": "Monthly Path",
+      "type": "array"
+     },
+     "next_print": {
+      "$ref": "#/components/schemas/NowcastNextPrint"
+     },
+     "quarters": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastQuarter"
+      },
+      "title": "Quarters",
+      "type": "array"
+     },
+     "slug": {
+      "title": "Slug",
+      "type": "string"
+     },
+     "target_label": {
+      "title": "Target Label",
+      "type": "string"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     }
+    },
+    "required": [
+     "slug",
+     "title",
+     "country",
+     "target_label",
+     "as_of",
+     "data_source",
+     "missing_series",
+     "model",
+     "bridge",
+     "quarters",
+     "monthly_path",
+     "next_print",
+     "evolution",
+     "indicators",
+     "central_bank"
+    ],
+    "title": "Nowcast",
+    "type": "object"
+   },
+   "NowcastBacktest": {
+    "properties": {
+     "as_of": {
+      "title": "As Of",
+      "type": "string"
+     },
+     "data_source": {
+      "enum": [
+       "live",
+       "simulation"
+      ],
+      "title": "Data Source",
+      "type": "string"
+     },
+     "horizons": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Horizons",
+      "type": "array"
+     },
+     "note": {
+      "title": "Note",
+      "type": "string"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastBacktestRow"
+      },
+      "title": "Rows",
+      "type": "array"
+     },
+     "slug": {
+      "title": "Slug",
+      "type": "string"
+     },
+     "summary": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastBacktestSummary"
+      },
+      "title": "Summary",
+      "type": "array"
+     }
+    },
+    "required": [
+     "slug",
+     "as_of",
+     "data_source",
+     "horizons",
+     "rows",
+     "summary",
+     "note"
+    ],
+    "title": "NowcastBacktest",
+    "type": "object"
+   },
+   "NowcastBacktestRow": {
+    "properties": {
+     "actual": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Actual"
+     },
+     "bridge": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Bridge",
+      "type": "array"
+     },
+     "dfm": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Dfm",
+      "type": "array"
+     },
+     "naive": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Naive",
+      "type": "array"
+     },
+     "quarter": {
+      "title": "Quarter",
+      "type": "string"
+     },
+     "release_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Release Date"
+     }
+    },
+    "required": [
+     "quarter",
+     "release_date",
+     "actual",
+     "dfm",
+     "bridge",
+     "naive"
+    ],
+    "title": "NowcastBacktestRow",
+    "type": "object"
+   },
+   "NowcastBacktestStats": {
+    "properties": {
+     "bias": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Bias"
+     },
+     "n": {
+      "title": "N",
+      "type": "integer"
+     },
+     "rmse": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rmse"
+     }
+    },
+    "required": [
+     "rmse",
+     "bias",
+     "n"
+    ],
+    "title": "NowcastBacktestStats",
+    "type": "object"
+   },
+   "NowcastBacktestSummary": {
+    "properties": {
+     "bridge": {
+      "$ref": "#/components/schemas/NowcastBacktestStats"
+     },
+     "dfm": {
+      "$ref": "#/components/schemas/NowcastBacktestStats"
+     },
+     "horizon": {
+      "title": "Horizon",
+      "type": "integer"
+     },
+     "naive": {
+      "$ref": "#/components/schemas/NowcastBacktestStats"
+     }
+    },
+    "required": [
+     "horizon",
+     "dfm",
+     "bridge",
+     "naive"
+    ],
+    "title": "NowcastBacktestSummary",
+    "type": "object"
+   },
+   "NowcastBridge": {
+    "properties": {
+     "alpha": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Alpha"
+     },
+     "beta": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Beta"
+     },
+     "n": {
+      "title": "N",
+      "type": "integer"
+     },
+     "r2": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "R2"
+     },
+     "resid_sd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Resid Sd"
+     },
+     "series_id": {
+      "title": "Series Id",
+      "type": "string"
+     }
+    },
+    "required": [
+     "series_id",
+     "alpha",
+     "beta",
+     "r2",
+     "resid_sd",
+     "n"
+    ],
+    "title": "NowcastBridge",
+    "type": "object"
+   },
+   "NowcastCbComparison": {
+    "properties": {
+     "cb_published": {
+      "title": "Cb Published",
+      "type": "string"
+     },
+     "cb_source": {
+      "title": "Cb Source",
+      "type": "string"
+     },
+     "cb_value": {
+      "title": "Cb Value",
+      "type": "number"
+     },
+     "gap": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gap"
+     },
+     "model_at_publication": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model At Publication"
+     },
+     "model_now": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model Now"
+     },
+     "news_since": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "News Since"
+     },
+     "quarter": {
+      "title": "Quarter",
+      "type": "string"
+     }
+    },
+    "required": [
+     "quarter",
+     "cb_value",
+     "cb_published",
+     "cb_source",
+     "model_now",
+     "model_at_publication",
+     "news_since",
+     "gap"
+    ],
+    "title": "NowcastCbComparison",
+    "type": "object"
+   },
+   "NowcastCbEstimate": {
+    "properties": {
+     "actual": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Actual"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "published": {
+      "title": "Published",
+      "type": "string"
+     },
+     "quarter": {
+      "title": "Quarter",
+      "type": "string"
+     },
+     "source": {
+      "title": "Source",
+      "type": "string"
+     },
+     "url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Url"
+     },
+     "value": {
+      "title": "Value",
+      "type": "number"
+     }
+    },
+    "required": [
+     "published",
+     "source",
+     "quarter",
+     "value",
+     "url",
+     "note",
+     "actual"
+    ],
+    "title": "NowcastCbEstimate",
+    "type": "object"
+   },
+   "NowcastCentralBank": {
+    "properties": {
+     "comparisons": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastCbComparison"
+      },
+      "title": "Comparisons",
+      "type": "array"
+     },
+     "estimates": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastCbEstimate"
+      },
+      "title": "Estimates",
+      "type": "array"
+     },
+     "institution": {
+      "title": "Institution",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     }
+    },
+    "required": [
+     "institution",
+     "label",
+     "estimates",
+     "comparisons"
+    ],
+    "title": "NowcastCentralBank",
+    "type": "object"
+   },
+   "NowcastIndicator": {
+    "properties": {
+     "consensus": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Consensus"
+     },
+     "global_loading": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Global Loading"
+     },
+     "group": {
+      "title": "Group",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "last_expected": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Expected"
+     },
+     "last_impacts": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Last Impacts",
+      "type": "object"
+     },
+     "last_news": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last News"
+     },
+     "last_period": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Period"
+     },
+     "last_release": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Release"
+     },
+     "last_value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Value"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "next_expected": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Expected"
+     },
+     "next_period": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Period"
+     },
+     "next_release": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Release"
+     },
+     "next_sd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Sd"
+     },
+     "short": {
+      "title": "Short",
+      "type": "string"
+     },
+     "ticker": {
+      "title": "Ticker",
+      "type": "string"
+     },
+     "transform": {
+      "title": "Transform",
+      "type": "string"
+     },
+     "typical_impacts": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Typical Impacts",
+      "type": "object"
+     },
+     "typical_surprise": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Typical Surprise"
+     },
+     "units": {
+      "title": "Units",
+      "type": "string"
+     },
+     "weights": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Weights",
+      "type": "object"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "short",
+     "group",
+     "units",
+     "ticker",
+     "transform",
+     "global_loading",
+     "last_period",
+     "last_value",
+     "last_release",
+     "last_expected",
+     "last_news",
+     "last_impacts",
+     "next_period",
+     "next_release",
+     "next_expected",
+     "next_sd",
+     "consensus",
+     "weights",
+     "typical_surprise",
+     "typical_impacts"
+    ],
+    "title": "NowcastIndicator",
+    "type": "object"
+   },
+   "NowcastModelInfo": {
+    "properties": {
+     "blocks": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Blocks",
+      "type": "array"
+     },
+     "em_iterations": {
+      "title": "Em Iterations",
+      "type": "integer"
+     },
+     "excluded": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Excluded",
+      "type": "array"
+     },
+     "factor_orders": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Factor Orders",
+      "type": "object"
+     },
+     "last_data": {
+      "title": "Last Data",
+      "type": "string"
+     },
+     "loglik": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Loglik"
+     },
+     "n_series": {
+      "title": "N Series",
+      "type": "integer"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "sample_start": {
+      "title": "Sample Start",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "n_series",
+     "blocks",
+     "factor_orders",
+     "sample_start",
+     "last_data",
+     "excluded",
+     "loglik",
+     "em_iterations"
+    ],
+    "title": "NowcastModelInfo",
+    "type": "object"
+   },
+   "NowcastModelSummary": {
+    "properties": {
+     "country": {
+      "title": "Country",
+      "type": "string"
+     },
+     "slug": {
+      "title": "Slug",
+      "type": "string"
+     },
+     "target_label": {
+      "title": "Target Label",
+      "type": "string"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     }
+    },
+    "required": [
+     "slug",
+     "title",
+     "country",
+     "target_label"
+    ],
+    "title": "NowcastModelSummary",
+    "type": "object"
+   },
+   "NowcastMonth": {
+    "properties": {
+     "actual": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Actual"
+     },
+     "model": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model"
+     },
+     "month": {
+      "title": "Month",
+      "type": "string"
+     },
+     "sd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sd"
+     }
+    },
+    "required": [
+     "month",
+     "actual",
+     "model",
+     "sd"
+    ],
+    "title": "NowcastMonth",
+    "type": "object"
+   },
+   "NowcastNextPrint": {
+    "properties": {
+     "consensus": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Consensus"
+     },
+     "hi68": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi68"
+     },
+     "hi90": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi90"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "lo68": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo68"
+     },
+     "lo90": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo90"
+     },
+     "model": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model"
+     },
+     "period": {
+      "title": "Period",
+      "type": "string"
+     },
+     "quarter": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/NowcastNextQuarter"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "release_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Release Date"
+     },
+     "sd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sd"
+     },
+     "series_id": {
+      "title": "Series Id",
+      "type": "string"
+     }
+    },
+    "required": [
+     "series_id",
+     "label",
+     "period",
+     "release_date",
+     "model",
+     "sd",
+     "lo68",
+     "hi68",
+     "lo90",
+     "hi90",
+     "consensus",
+     "quarter"
+    ],
+    "title": "NowcastNextPrint",
+    "type": "object"
+   },
+   "NowcastNextQuarter": {
+    "properties": {
+     "consensus": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Consensus"
+     },
+     "hi68": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi68"
+     },
+     "hi90": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi90"
+     },
+     "lo68": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo68"
+     },
+     "lo90": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo90"
+     },
+     "model": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model"
+     },
+     "quarter": {
+      "title": "Quarter",
+      "type": "string"
+     },
+     "sd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sd"
+     }
+    },
+    "required": [
+     "quarter",
+     "model",
+     "sd",
+     "lo68",
+     "hi68",
+     "lo90",
+     "hi90",
+     "consensus"
+    ],
+    "title": "NowcastNextQuarter",
+    "type": "object"
+   },
+   "NowcastPathPoint": {
+    "properties": {
+     "actual": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Actual"
+     },
+     "hi68": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi68"
+     },
+     "hi90": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi90"
+     },
+     "lo68": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo68"
+     },
+     "lo90": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo90"
+     },
+     "model": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model"
+     },
+     "month": {
+      "title": "Month",
+      "type": "string"
+     }
+    },
+    "required": [
+     "month",
+     "actual",
+     "model",
+     "lo68",
+     "hi68",
+     "lo90",
+     "hi90"
+    ],
+    "title": "NowcastPathPoint",
+    "type": "object"
+   },
+   "NowcastQuarter": {
+    "properties": {
+     "actual": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Actual"
+     },
+     "bridge": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Bridge"
+     },
+     "consensus": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Consensus"
+     },
+     "hi68": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi68"
+     },
+     "hi90": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi90"
+     },
+     "lo68": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo68"
+     },
+     "lo90": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo90"
+     },
+     "months": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastMonth"
+      },
+      "title": "Months",
+      "type": "array"
+     },
+     "months_observed": {
+      "title": "Months Observed",
+      "type": "integer"
+     },
+     "nowcast": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nowcast"
+     },
+     "quarter": {
+      "title": "Quarter",
+      "type": "string"
+     },
+     "release_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Release Date"
+     },
+     "sd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sd"
+     },
+     "status": {
+      "enum": [
+       "released",
+       "backcast",
+       "nowcast",
+       "forecast"
+      ],
+      "title": "Status",
+      "type": "string"
+     }
+    },
+    "required": [
+     "quarter",
+     "status",
+     "actual",
+     "nowcast",
+     "sd",
+     "lo68",
+     "hi68",
+     "lo90",
+     "hi90",
+     "bridge",
+     "consensus",
+     "release_date",
+     "months_observed",
+     "months"
+    ],
+    "title": "NowcastQuarter",
+    "type": "object"
+   },
+   "NowcastRelease": {
+    "properties": {
+     "expected": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Expected"
+     },
+     "impacts": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Impacts",
+      "type": "object"
+     },
+     "news": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "News"
+     },
+     "observed": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Observed"
+     },
+     "period": {
+      "title": "Period",
+      "type": "string"
+     },
+     "series_id": {
+      "title": "Series Id",
+      "type": "string"
+     }
+    },
+    "required": [
+     "series_id",
+     "period",
+     "observed",
+     "expected",
+     "news",
+     "impacts"
+    ],
+    "title": "NowcastRelease",
+    "type": "object"
+   },
+   "NowcastStep": {
+    "properties": {
+     "by_group": {
+      "additionalProperties": {
+       "additionalProperties": {
+        "anyOf": [
+         {
+          "type": "number"
+         },
+         {
+          "type": "null"
+         }
+        ]
+       },
+       "type": "object"
+      },
+      "title": "By Group",
+      "type": "object"
+     },
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "nowcasts": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Nowcasts",
+      "type": "object"
+     },
+     "releases": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastRelease"
+      },
+      "title": "Releases",
+      "type": "array"
+     },
+     "sds": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Sds",
+      "type": "object"
+     }
+    },
+    "required": [
+     "date",
+     "nowcasts",
+     "sds",
+     "by_group",
+     "releases"
+    ],
+    "title": "NowcastStep",
+    "type": "object"
+   },
    "OisPoint": {
     "properties": {
      "rate": {
@@ -5999,6 +8821,147 @@
     "summary": "Fitted Bond Curves New Issue"
    }
   },
+  "/api/tools/fx-ipca": {
+   "get": {
+    "description": "Model fit, Gamma_beta, factors, alpha test, current cross-section and OOS backtest.",
+    "operationId": "fx_ipca_api_tools_fx_ipca_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "k",
+      "required": false,
+      "schema": {
+       "default": 2,
+       "maximum": 4,
+       "minimum": 1,
+       "title": "K",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "n_boot",
+      "required": false,
+      "schema": {
+       "default": 100,
+       "maximum": 1000,
+       "minimum": 0,
+       "title": "N Boot",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "refresh",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Refresh",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Fx Ipca",
+    "tags": [
+     "fx-ipca"
+    ]
+   }
+  },
+  "/api/tools/fx-ipca/currency/{code}": {
+   "get": {
+    "description": "Monthly conditional betas and realised vs fitted returns for one currency.",
+    "operationId": "fx_ipca_currency_api_tools_fx_ipca_currency__code__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "code",
+      "required": true,
+      "schema": {
+       "title": "Code",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "k",
+      "required": false,
+      "schema": {
+       "default": 2,
+       "maximum": 4,
+       "minimum": 1,
+       "title": "K",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "n_boot",
+      "required": false,
+      "schema": {
+       "default": 100,
+       "maximum": 1000,
+       "minimum": 0,
+       "title": "N Boot",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Fx Ipca Currency",
+    "tags": [
+     "fx-ipca"
+    ]
+   }
+  },
   "/api/tools/global-yields": {
    "get": {
     "description": "PCA factor model on global 10y yields: factors, residuals, fair-value table.",
@@ -6692,6 +9655,7 @@
   },
   "/api/tools/momentum/cta-signals": {
    "get": {
+    "description": "Signals for any ticker expression, e.g. 'TY1 Comdty' or 'USGG10YR Index - USGG2YR Index'.",
     "operationId": "cta_signals_api_tools_momentum_cta_signals_get",
     "parameters": [
      {
@@ -6699,6 +9663,8 @@
       "name": "ticker",
       "required": true,
       "schema": {
+       "maxLength": 500,
+       "minLength": 1,
        "title": "Ticker",
        "type": "string"
       }
@@ -6708,9 +9674,59 @@
       "name": "start",
       "required": false,
       "schema": {
-       "default": "2010-01-01",
+       "default": "2015-01-01",
+       "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
        "title": "Start",
        "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "kind",
+      "required": false,
+      "schema": {
+       "default": "auto",
+       "enum": [
+        "auto",
+        "price",
+        "level"
+       ],
+       "title": "Kind",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "aum_bn",
+      "required": false,
+      "schema": {
+       "default": 300.0,
+       "exclusiveMinimum": 0,
+       "maximum": 5000,
+       "title": "Aum Bn",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "pctile_years",
+      "required": false,
+      "schema": {
+       "default": 0,
+       "maximum": 30,
+       "minimum": 0,
+       "title": "Pctile Years",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "refresh",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Refresh",
+       "type": "boolean"
       }
      }
     ],
@@ -6718,7 +9734,9 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/MomentumSeries"
+        }
        }
       },
       "description": "Successful Response"
@@ -6740,6 +9758,64 @@
      }
     ],
     "summary": "Cta Signals"
+   }
+  },
+  "/api/tools/momentum/monitor": {
+   "get": {
+    "description": "Regime, model CTA position, triggers and flows for the default universe.",
+    "operationId": "momentum_monitor_api_tools_momentum_monitor_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "aum_bn",
+      "required": false,
+      "schema": {
+       "default": 300.0,
+       "exclusiveMinimum": 0,
+       "maximum": 5000,
+       "title": "Aum Bn",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "refresh",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Refresh",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MomentumMonitor"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Momentum Monitor"
    }
   },
   "/api/tools/option-cdf/{ccy}/{tail}": {
@@ -7029,6 +10105,124 @@
      }
     ],
     "summary": "Print Vs Consensus"
+   }
+  },
+  "/api/tools/quant-macro": {
+   "get": {
+    "description": "Every nowcasting model in the Quant Macro section.",
+    "operationId": "quant_macro_models_api_tools_quant_macro_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/NowcastModelSummary"
+         },
+         "title": "Response Quant Macro Models Api Tools Quant Macro Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Quant Macro Models"
+   }
+  },
+  "/api/tools/quant-macro/{model}": {
+   "get": {
+    "description": "Nowcast, next print, news since the quarter began, catalysts and the central bank's estimates.",
+    "operationId": "quant_macro_nowcast_api_tools_quant_macro__model__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "model",
+      "required": true,
+      "schema": {
+       "title": "Model",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Nowcast"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Quant Macro Nowcast"
+   }
+  },
+  "/api/tools/quant-macro/{model}/backtest": {
+   "get": {
+    "description": "Pseudo-real-time nowcast errors at fixed days before each first estimate (slow on first call).",
+    "operationId": "quant_macro_backtest_api_tools_quant_macro__model__backtest_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "model",
+      "required": true,
+      "schema": {
+       "title": "Model",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NowcastBacktest"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Quant Macro Backtest"
    }
   },
   "/api/tools/seasonality/backtest": {

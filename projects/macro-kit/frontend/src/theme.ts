@@ -35,6 +35,7 @@ export const categoryColor: Record<string, string> = {
   'market-structure': '#d59fbf',
   backtesters: '#6fc0cb',
   global: '#d3b26e',
+  'quant-macro': '#92c27f',
   'macro-fundamentals': '#dd8a7d',
   'em-macro-fundamentals': '#b9bd78',
   technicals: '#a7b6e6',

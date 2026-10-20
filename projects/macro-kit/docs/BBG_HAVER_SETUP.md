@@ -493,18 +493,12 @@ def fetch_market_reaction(market_ticker: str, releases: list) -> dict:
 
 ### 3.16 Momentum (CTA Signals)
 
-**File:** `backend/momentum.py`  
-**Status:** ✅ Live (Bloomberg optional; simulation always available)
+**Files:** `backend/momentum.py`, `backend/momentum_universe.py`
+**Status:** ⚠️ Built on simulation; live tickers not yet probed (Terminal refused API requests with WORKFLOW_REVIEW_NEEDED on 2026-10-19)
 
-```python
-def compute_cta_signals(ticker: str, start: str) -> dict:
-    # tries _fetch_bloomberg(ticker, start) → PX_LAST
-    # falls back to deterministic regime-switching simulation seeded by ticker hash
-```
+Live only when `ANALYTICS_DATA_SOURCE=bloomberg`. The monitor universe (~60 tickers: generic futures such as `TY1 Comdty`, `RX1 Comdty`, `ES1 Index`, `EC1 Curncy`, `CL1 Comdty`; yields `USGG10YR Index`, BVAL Bund `BV100910 BVLI Index`, `GUKG10 Index`; `DXY Curncy`; the SG Trend Index `NEIXCTAT Index`) is fetched from 2012 into `var/momentum/universe.pkl` and topped up incrementally. Generic futures are requested ratio back-adjusted (`TY1 R:00_0_R Comdty`), falling back to the unadjusted generic (flagged in the payload) if the Terminal rejects that syntax. Static fields via `bdp`: `FUT_VAL_PT`, `CRNCY`, `VOLUME_AVG_20D`, `OPEN_INT`, `PX_LAST`, plus `{CCY}USD Curncy`.
 
-Lookbacks: 1M (21d), 3M (63d), 6M (126d), 12M (252d). Vol window: 63d. Minimum history: 315d. All signals are volatility-scaled to 10% annualised target.
-
-**Any Bloomberg price ticker works** — no catalogue needed.
+Check every ticker: `cd backend && python scripts/probe_momentum.py`. The Single Series view accepts any ticker or expression.
 
 ---
 

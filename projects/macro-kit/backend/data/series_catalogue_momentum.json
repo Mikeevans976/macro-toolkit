@@ -1,15 +1,15 @@
 {
   "tool": "Momentum (CTA Signals)",
   "file": "backend/momentum.py",
-  "bloomberg_fetch": "bdh",
-  "fallback": "deterministic simulation seeded by ticker name",
-  "note": "Tickers are user-supplied at runtime. Any Bloomberg ticker with a price history works. History pulled from 2010-01-01; a minimum of 315 days of data is required to produce signals. Field is always PX_LAST.",
+  "bloomberg_fetch": "bdh (PX_LAST), bdp (FUT_VAL_PT, CRNCY, VOLUME_AVG_20D, OPEN_INT)",
+  "fallback": "deterministic simulation (zlib.crc32 seeds) when ANALYTICS_DATA_SOURCE != bloomberg",
+  "note": "The monitor universe lives in backend/momentum_universe.py (generic futures, yields, curves, DXY and the SG Trend Index NEIXCTAT Index). Generic futures are fetched ratio back-adjusted ('TY1 R:00_0_R Comdty'). The Single Series view also accepts any user-supplied ticker or expression. Probe with scripts/probe_momentum.py.",
   "series": [
     {
       "id": "user_supplied",
       "bloomberg_ticker": "user_supplied",
       "field": "PX_LAST",
-      "description": "Any Bloomberg ticker entered by the user at runtime. Examples: 'GDBR10 Index', 'CO1 Comdty', 'EURUSD Curncy'. Minimum 315 days of history required.",
+      "description": "Any Bloomberg ticker or weighted expression entered at runtime, e.g. 'RX1 Comdty', 'USGG10YR Index - USGG2YR Index'. Needs 360 days of history.",
       "unit": "varies",
       "verified": true
     }

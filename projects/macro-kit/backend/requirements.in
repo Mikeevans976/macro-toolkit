@@ -12,6 +12,7 @@ numpy>=1.26.0
 pandas>=2.2.0
 scipy>=1.13.0
 scikit-learn>=1.4.0
+statsmodels>=0.14.0         # nowcasting DFM (DynamicFactorMQ, news decomposition)
 
 # AI agents
 anthropic>=1.11.0          # pod runner (backend/pod) needs 1.x: fallbacks, adaptive thinking

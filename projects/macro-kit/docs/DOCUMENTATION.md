@@ -785,79 +785,56 @@ Rows are returned reverse-chronological. Any field with unavailable data returns
 
 ### 6.7 Momentum (CTA Signals)
 
-**File:** `backend/momentum.py`
-**API route:** `GET /api/tools/momentum/cta-signals?ticker=...&start=...`
-**Data:** Bloomberg `PX_LAST` (optional); deterministic simulation fallback always available
+**Files:** `backend/momentum.py` (engine, data, calibration), `backend/momentum_universe.py` (default universe), `backend/schemas/momentum.py`
+**API routes:** `GET /api/tools/momentum/monitor?aum_bn=300`, `GET /api/tools/momentum/cta-signals?ticker=...&start=...&kind=auto&pctile_years=0`
+**Data:** Bloomberg `PX_LAST` when `ANALYTICS_DATA_SOURCE=bloomberg` (generic futures ratio back-adjusted, `TY1 R:00_0_R Comdty`); deterministic simulation otherwise. Every payload carries `data_source`.
 
-Computes multi-lookback, volatility-scaled CTA momentum signals for any price or yield series.
+A model of what a diversified trend follower holds. Two views:
 
-#### Signal formula
+- **CTA Monitor:** ~70 rows (46 CTA futures across bonds, STIR, FX, equity indices and commodities; plus cash yields, curves/spreads and DXY for reference). Per row: trend regime, the four speeds in σ, model position (% of max), 1-week change, the next-close level that flips the position, the flat-price 1-week flow, and for futures the $ notional, contracts and flow as % of 20-day volume. Below: sector totals with 1-week flow scenarios (±1σ, ±2σ, flat), the fit to the SG Trend Index and the model's P&L and drawdown.
+- **Single Series:** any ticker or weighted expression (`USGG10YR Index - USGG2YR Index`), with trigger levels, a scenario grid (1w/2w × −2σ..+2σ) and sizing.
 
-For each lookback window L (in trading days):
-
-```
-level_diff(t)  = series[t] − series[t − L]
-ann_vol(t)     = rolling_std(daily_diffs, window=63) × √252
-denom(t)       = ann_vol(t) × √(L / 252)
-
-signal_L(t)    = level_diff(t) / denom(t)
-```
-
-Both numerator and denominator are in the same units (level changes, not returns), so the signal is dimensionless regardless of whether the input is a price index or a yield series. Individual signals are clipped to [−5, +5] to prevent outliers from dominating.
-
-**Lookback windows:**
-
-| Label | L (trading days) | Approximate horizon |
-|---|---|---|
-| 1M | 21 | ~1 month |
-| 3M | 63 | ~3 months |
-| 6M | 126 | ~6 months |
-| 12M | 252 | ~1 year |
-
-**Composite signal:** equal-weight mean of the 4 lookback signals:
-```
-composite(t) = mean(signal_1M, signal_3M, signal_6M, signal_12M)
-```
-`composite` is NaN if any of the 4 individual signals is NaN (conservative: requires full history across all lookbacks).
-
-**Minimum history:** `MIN_HISTORY = 252 + 63 = 315` trading days before any signal is produced.
-
-#### Position sizing
+#### Signal
 
 ```
-ann_vol_ret(t) = rolling_std(pct_change, window=63) × √252   ← return-based vol
-position(t)    = (VOL_TARGET × composite(t)) / ann_vol_ret(t)
+r_t  = p_t/p_{t-1} − 1 (prices)  or  p_t − p_{t-1} (levels: yields, spreads)
+σ_t  = √EWMA(r², half-life 20d)
+n_t  = clip(r_t / σ_{t-1}, ±10)          z_t = Σ n
+x_k  = EMA_fast(z) − EMA_slow(z)          speeds 8/24, 16/48, 32/96, 64/192 (EMA spans, days)
+y_k  = x_k / √V_k                         V_k = Var(x_k) for a unit random walk (closed form)
+s    = Σ_k w_k φ(y_k)                     position, −1..+1
 ```
 
-- `VOL_TARGET = 0.10` (10% annualised vol target)
-- Return-based vol is used for sizing (not level-change vol) so position size is not distorted by the absolute price level
-- Position is clipped to [−8, +8] leverage
+`φ` is a saturating response: `tanh(y/1.5)`, Baz et al. `y·e^{−y²/4}` (scaled to peak at 1 at y = √2, then cuts extended trends) or linear capped at 2σ. The calibration picks the best one.
 
-**Signal labels:**
+Because every step is a linear recursion in z, flip levels (the next close at which a speed or the composite crosses zero, root-found for the composite), the flat-price days to flip and the scenario positions are exact projections, not approximations.
 
-| Composite range | Label |
+#### Regime (summary table)
+
+Using the speeds' y (fast = 8/24, slow = mean of 32/96 and 64/192) and the 63-day efficiency ratio ER = |net move| / path length:
+
+| Regime | Rule |
 |---|---|
-| > 1.5 | Strong Long |
-| 0.5 – 1.5 | Long |
-| −0.5 – 0.5 | Neutral |
-| −1.5 – −0.5 | Short |
-| < −1.5 | Strong Short |
+| Reversal | fast and slow disagree in sign, \|fast\| ≥ 1σ, \|slow\| ≥ 0.75σ |
+| Strong momentum | all four speeds agree, \|mean y\| ≥ 1.5σ |
+| Momentum | \|mean y\| ≥ 0.75σ, at least 3 speeds agree |
+| Fading | \|slow\| ≥ 0.75σ, \|fast\| < 0.5σ |
+| Range | \|mean y\| < 0.5σ and ER < 0.2 |
+| Mixed | anything else |
 
-**Percentile:** composite z-score is ranked against the full non-NaN history using `scipy.stats.percentileofscore` (rank method).
+"Stretched" flags \|mean y\| > 2σ. Directions are the series' own (yields up = up); the Single Series view can invert yields to a bond-equivalent view.
 
-#### Simulation fallback
+#### Portfolio, sizing, calibration
 
-When Bloomberg is unavailable (or as default): `_simulate_series(ticker, start)` generates a regime-switching random walk seeded by `hashlib.md5(ticker)`:
+CTA markets carry risk weights (sector budgets bonds 25%, STIR 10%, FX 20%, equities 25%, commodities 20%, equal within a sector). With u = r/σ_ann, the model earns `B · Σ w_i s_i u_i`; a full position in market i carries `AUM · B · w_i` of annual dollar vol, so `notional_i = AUM · B · w_i · s_i / σ_ann,i` and contracts = notional / (unadjusted price × FUT_VAL_PT × FX). Yields are sized in DV01 in the single-series view.
 
-- Alternates **trending** regimes (drift ±3–12% annualised, vol 6–14% ann) and **choppy** regimes (zero drift, vol 1–5% ann)
-- Each regime lasts uniformly 40–160 trading days
-- Starts at price = 100
+Speed weights and leverage B come from non-negative least squares of weekly SG Trend Index (`NEIXCTAT Index`) returns on the four single-speed portfolios over the last 156 weeks, for each response; the best R² wins. The payload reports R², an out-of-sample R² (fit on the prior 3 years, scored on the last 52 weeks), correlation and tracking error. Without index data or with R² < 0.05: equal weights, tanh, B sized to 12% vol.
 
-This produces realistic momentum signal variation — some periods the signals strongly agree, others they diverge — allowing the tool to be fully functional and visually meaningful without Bloomberg.
+#### Data and caching
 
-**Output:** `{ticker, dates[], series[], composite[], position[], signals: {1M, 3M, 6M, 12M}[], current: {date, value, composite, composite_pctile, label, signals, position}}`
+The live universe is cached on disk (`var/momentum/universe.pkl`) from 2012 and topped up incrementally (a roll rescales a ratio-adjusted history, so the cache is rescaled onto the new basis). Static fields (FUT_VAL_PT, CRNCY, VOLUME_AVG_20D, OPEN_INT) refresh daily. In-process TTL 15 min; `refresh=true` forces a top-up. If Bloomberg refuses the request, the monitor shows simulated data with a note saying why. An unknown ticker in live mode returns 404, not a simulation. Check the universe on the Terminal with `python scripts/probe_momentum.py`.
 
-Series subsampled every 5 days for payload size.
+Simulation: regime-switching shocks with sector factors and slow mean reversion, seeded with `zlib.crc32`; the simulated SG index is a known blend of the speeds plus noise, so the calibration has something to recover.
 
 ---
 
@@ -1138,16 +1115,13 @@ f(x) = φ(x) [1 + (γ₁/6) H₃(x) + (γ₂/24) H₄(x)]
 
 ### 7.7 CTA Signal and Position Sizing
 
-Signal at lookback L:
+See §6.7. For EMA spans f < s (α = 2/(span+1), b = 1 − α), the difference of EMAs of a random walk with unit steps has variance
+
 ```
-signal_L(t) = [series(t) − series(t-L)] / [σ_ann(t) × √(L/252)]
+V = b_s²/(1−b_s²) − 2·b_s·b_f/(1−b_s·b_f) + b_f²/(1−b_f²)
 ```
 
-where `σ_ann(t) = rolling_std(series.diff(), 63) × √252`. Result clipped to [−5, +5].
-
-Composite: `z(t) = mean(signal_L for L in {21, 63, 126, 252})`.
-
-Position: `p(t) = clip(VOL_TARGET × z(t) / σ_ret(t), −8, 8)` where `σ_ret(t) = rolling_std(pct_change, 63) × √252` and `VOL_TARGET = 0.10`.
+so `y = (EMA_f − EMA_s)/√V` is N(0,1) with no trend. Position `s = Σ w_k φ(y_k)`; notional `AUM · B · w_i · s / σ_ann`.
 
 ### 7.8 Seasonality Statistics
 
@@ -1201,7 +1175,8 @@ Replace `{region}` with: `euro-area`, `uk`, `us`, `japan`, `canada`, `sweden`, `
 | POST | /api/tools/seasonality/backtest | {dates[], values[], rule} | Rule-based backtest PnL + metrics |
 | GET | /api/tools/print-analysis/print-vs-consensus | ticker, start | Release history vs consensus |
 | POST | /api/tools/print-analysis/market-reaction | {market_ticker, releases[]} | Day-of-release market moves |
-| GET | /api/tools/momentum/cta-signals | ticker, start | Multi-lookback CTA signals + position |
+| GET | /api/tools/momentum/monitor | aum_bn, refresh | Cross-asset CTA monitor: regimes, positions, flows, sectors, calibration, P&L |
+| GET | /api/tools/momentum/cta-signals | ticker, start, kind, aum_bn, pctile_years, refresh | One series: signals, regime, triggers, scenarios, sizing |
 | GET | /api/tools/inflation-pca/{curve_id} | — | PCA + butterflies for ILB curve (btpei/oatei/dbrei/uki) |
 | GET | /api/tools/option-cdf/{ccy}/{tail} | — | Swaption fwd rate + ATM vol table for all expiries |
 
@@ -1253,7 +1228,7 @@ Most frontend pages are self-contained — they produce deterministic synthetic 
 | `SwapsRV.tsx` | `/api/tools/swaps-rv` | On currency change |
 | `SeasonalityBacktester.tsx` | `/api/tools/seasonality/*` | On user action |
 | `PrintAnalysis.tsx` | `/api/tools/print-analysis/*` | On user action |
-| `Momentum.tsx` | `/api/tools/momentum/cta-signals` | On ticker change |
+| `Momentum.tsx` (+ `features/momentum/`) | `/api/tools/momentum/monitor`, `/api/tools/momentum/cta-signals` | On load / AUM change; on ticker change or row click |
 | `InflationPCA.tsx` | `/api/tools/inflation-pca/{curve_id}` | On curve change |
 | `OptionDerivedCDF.tsx` | `/api/tools/option-cdf/{ccy}/{tail}` | On ccy/tail change |
 

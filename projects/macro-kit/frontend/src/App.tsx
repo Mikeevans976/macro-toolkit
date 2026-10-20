@@ -4,9 +4,11 @@ import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import AppShell from './components/AppShell'
 import { HEATMAP_REGIONS } from './features/heatmap/regions'
+import { QUANT_MACRO_MODELS } from './features/quant-macro/models'
 
 // Pages are code-split: each tool loads (and builds its synthetic data) only when opened.
 const RegionalHeatmapPage = lazy(() => import('./features/heatmap/RegionalHeatmapPage'))
+const NowcastPage = lazy(() => import('./features/quant-macro/NowcastPage'))
 const SwapsRV = lazy(() => import('./pages/SwapsRV'))
 const EGBRV = lazy(() => import('./pages/EGBRV'))
 const GlobalYields = lazy(() => import('./pages/GlobalYields'))
@@ -19,6 +21,7 @@ const InflationPCA = lazy(() => import('./pages/InflationPCA'))
 const InflationFixingsMonitor = lazy(() => import('./pages/InflationFixingsMonitor'))
 const MeanReversion = lazy(() => import('./pages/MeanReversion'))
 const PCAAnalysis = lazy(() => import('./pages/PCAAnalysis'))
+const FXIPCA = lazy(() => import('./pages/FXIPCA'))
 const CorrelationRegimes = lazy(() => import('./pages/CorrelationRegimes'))
 const FittedBondCurves = lazy(() => import('./pages/FittedBondCurves'))
 const SwapSpreads = lazy(() => import('./pages/SwapSpreads'))
@@ -63,6 +66,9 @@ export default function App() {
         {HEATMAP_REGIONS.map(r => (
           <Route key={r.slug} path={`/tools/${r.slug}-heatmap`} element={<ProtectedRoute><RegionalHeatmapPage region={r.slug} /></ProtectedRoute>} />
         ))}
+        {QUANT_MACRO_MODELS.map(m => (
+          <Route key={m.slug} path={`/tools/${m.toolId}`} element={<ProtectedRoute><NowcastPage slug={m.slug} /></ProtectedRoute>} />
+        ))}
         <Route path="/tools/swaps-rv" element={<ProtectedRoute><SwapsRV /></ProtectedRoute>} />
         <Route path="/tools/egb-rv" element={<ProtectedRoute><EGBRV /></ProtectedRoute>} />
         <Route path="/tools/global-yields" element={<ProtectedRoute><GlobalYields /></ProtectedRoute>} />
@@ -75,6 +81,7 @@ export default function App() {
         <Route path="/tools/inflation-fixings" element={<ProtectedRoute><InflationFixingsMonitor /></ProtectedRoute>} />
         <Route path="/tools/mean-reversion" element={<ProtectedRoute><MeanReversion /></ProtectedRoute>} />
         <Route path="/tools/pca-analysis" element={<ProtectedRoute><PCAAnalysis /></ProtectedRoute>} />
+        <Route path="/tools/fx-ipca" element={<ProtectedRoute><FXIPCA /></ProtectedRoute>} />
         <Route path="/tools/correlation-regimes" element={<ProtectedRoute><CorrelationRegimes /></ProtectedRoute>} />
         <Route path="/tools/fitted-bond-curves" element={<ProtectedRoute><FittedBondCurves /></ProtectedRoute>} />
         <Route path="/tools/swap-spreads" element={<ProtectedRoute><SwapSpreads /></ProtectedRoute>} />

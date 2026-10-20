@@ -68,6 +68,8 @@ CASES: list[str] = (
         "/api/tools/option-cdf/USD/10y",
         "/api/tools/inflation-pca/dbrei",
         "/api/tools/momentum/cta-signals?ticker=TY1%20Comdty",
+        "/api/tools/momentum/cta-signals?ticker=USGG10YR%20Index%20-%20USGG2YR%20Index&pctile_years=3",
+        "/api/tools/momentum/monitor",
         "/api/tools/print-analysis/print-vs-consensus?ticker=NFP%20TCH%20Index",
     ]
 )

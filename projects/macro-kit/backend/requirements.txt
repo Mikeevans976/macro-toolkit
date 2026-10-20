@@ -37,6 +37,8 @@ duckduckgo-search==8.1.1
     # via -r backend/requirements.in
 fastapi==0.137.1
     # via -r backend/requirements.in
+formulaic==1.2.2
+    # via statsmodels
 greenlet==3.5.6
     # via playwright
 h11==0.16.0
@@ -61,6 +63,8 @@ idna==3.18
     #   anyio
     #   httpx
     #   httpx2
+interface-meta==2.0.1
+    # via formulaic
 jiter==0.14.0
     # via anthropic
 joblib==1.5.3
@@ -75,8 +79,14 @@ numpy==2.4.6
     #   pandas
     #   scikit-learn
     #   scipy
+packaging==26.3
+    # via
+    #   patsy
+    #   statsmodels
 pandas==3.0.3
     # via -r backend/requirements.in
+patsy==1.0.3
+    # via statsmodels
 pdfminer-six==20260107
     # via pdfplumber
 pdfplumber==0.11.10
@@ -124,6 +134,8 @@ sniffio==1.3.1
     # via anthropic
 starlette==1.3.1
     # via fastapi
+statsmodels==0.15.0
+    # via -r backend/requirements.in
 threadpoolctl==3.6.0
     # via scikit-learn
 truststore==0.10.4 ; sys_platform != 'emscripten'
@@ -152,3 +164,5 @@ watchfiles==1.2.0
     # via uvicorn
 websockets==16.0
     # via uvicorn
+wrapt==2.5.1
+    # via formulaic

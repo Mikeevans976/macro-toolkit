@@ -83,6 +83,9 @@ categories:
         name: Correlation Regimes
         icon: "🔗"
         url: /tools/correlation-regimes
+      - id: fx-ipca
+        name: FX IPCA
+        url: /tools/fx-ipca
       - id: mean-reversion
         name: Mean Reversion (OU)
         icon: "〜"
@@ -117,6 +120,14 @@ categories:
         name: Trade Blotter and Trade Watch
         icon: "📒"
         url: /tools/trade-blotter
+
+  - id: quant-macro
+    name: Quant Macro
+    color: "#22C55E"
+    tools:
+      - id: uk-gdp-nowcast
+        name: UK GDP Nowcast
+        url: /tools/uk-gdp-nowcast
 
   - id: macro-fundamentals
     name: Macro Fundamentals
