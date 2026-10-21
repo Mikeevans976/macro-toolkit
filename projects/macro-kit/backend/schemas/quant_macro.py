@@ -77,7 +77,8 @@ class NowcastNextPrint(BaseModel):
 
 
 class NowcastRelease(BaseModel):
-    series_id: str
+    series_id: str                     # catalogue id, or "older_revisions" (revisions to earlier periods, grouped)
+    kind: Literal["release", "revision"]
     period: str
     observed: Optional[float]
     expected: Optional[float]
@@ -101,6 +102,7 @@ class NowcastIndicator(BaseModel):
     units: str
     ticker: str
     transform: str
+    vintages: str                      # how this series' first prints and revisions are tracked
     global_loading: Optional[float]
     last_period: Optional[str]
     last_value: Optional[float]
@@ -128,6 +130,8 @@ class NowcastModelInfo(BaseModel):
     excluded: list[str]
     loglik: Optional[float]
     em_iterations: int
+    fitted_at: Optional[str]
+    fit_data_as_of: Optional[str]
 
 
 class NowcastBridge(BaseModel):
@@ -173,6 +177,7 @@ class Nowcast(BaseModel):
     country: str
     target_label: str
     as_of: str
+    computed_at: str
     data_source: Source
     missing_series: list[str]
     model: NowcastModelInfo
@@ -186,9 +191,10 @@ class Nowcast(BaseModel):
 
 
 class NowcastBacktestStats(BaseModel):
-    rmse: Optional[float]
+    rmse: Optional[float]              # vs the first estimate
     bias: Optional[float]
     n: int
+    rmse_latest: Optional[float]       # vs today's value
 
 
 class NowcastBacktestSummary(BaseModel):
@@ -201,7 +207,8 @@ class NowcastBacktestSummary(BaseModel):
 class NowcastBacktestRow(BaseModel):
     quarter: str
     release_date: Optional[str]
-    actual: Optional[float]
+    actual: Optional[float]            # first estimate
+    actual_latest: Optional[float]
     dfm: list[Optional[float]]
     bridge: list[Optional[float]]
     naive: list[Optional[float]]
@@ -210,8 +217,39 @@ class NowcastBacktestRow(BaseModel):
 class NowcastBacktest(BaseModel):
     slug: str
     as_of: str
+    run_at: str
+    duration_s: float
     data_source: Source
     horizons: list[int]
+    n_fits: int
+    first_estimate_revision_rmse: Optional[float]
     rows: list[NowcastBacktestRow]
     summary: list[NowcastBacktestSummary]
     note: str
+
+
+class NowcastJob(BaseModel):
+    kind: Literal["update", "refit", "backtest"]
+    state: Literal["idle", "running", "done", "error"]
+    step: Optional[str]
+    progress: int
+    total: int
+    started_at: Optional[str]
+    finished_at: Optional[str]
+    error: Optional[str]
+
+
+class NowcastJobs(BaseModel):
+    update: NowcastJob
+    refit: NowcastJob
+    backtest: NowcastJob
+
+
+class NowcastStatus(BaseModel):
+    slug: str
+    model_fitted_at: Optional[str]
+    model_data_as_of: Optional[str]
+    nowcast_as_of: Optional[str]
+    nowcast_computed_at: Optional[str]
+    backtest_run_at: Optional[str]
+    jobs: NowcastJobs

@@ -5,12 +5,14 @@ export const BG = '#07090c'
 
 // News groups: the house hues stepped to pass the categorical checks on the dark
 // surface (lightness band, chroma floor, CVD ΔE ≥ 8 between stack neighbours).
-export const GROUP_ORDER = ['Activity', 'Surveys', 'Labour', 'Housing & credit'] as const
+// Revisions to periods before the tracked window are one neutral "other" item.
+export const GROUP_ORDER = ['Activity', 'Surveys', 'Labour', 'Housing & credit', 'Older revisions'] as const
 export const GROUP_COLOR: Record<string, string> = {
   Activity: '#3b8fd0',
   Surveys: '#c27f20',
   Labour: '#a07ae0',
   'Housing & credit': '#2fa37a',
+  'Older revisions': '#7d8792',
 }
 // Backtest models reuse the first three slots in the same fixed order.
 export const MODEL_COLOR = { dfm: '#3b8fd0', bridge: '#c27f20', naive: '#a07ae0' } as const
@@ -47,6 +49,14 @@ export const monthLabel = (m: string) => `${MONTHS[Number(m.slice(5, 7)) - 1]} $
 /** '2026-11-12' → '12 Nov' (calendar dates are parsed as text, never through Date) */
 export const dayLabel = (d: string | null | undefined) =>
   d ? `${Number(d.slice(8, 10))} ${MONTHS[Number(d.slice(5, 7)) - 1]}` : '—'
+
+/** '2026-10-20T11:13:45' → '20 Oct 11:13' */
+export const stampLabel = (t: string | null | undefined) => (t ? `${dayLabel(t.slice(0, 10))} ${t.slice(11, 16)}` : '—')
+
+export const button: React.CSSProperties = {
+  background: 'transparent', border: `1px solid ${line}`, borderRadius: 5, color: fg[1], fontSize: 12,
+  padding: '5px 12px', cursor: 'pointer', whiteSpace: 'nowrap',
+}
 
 export const num = (x: number | null | undefined, d = 2) => (x == null ? '—' : x.toFixed(d))
 export const signed = (x: number | null | undefined, d = 2) =>

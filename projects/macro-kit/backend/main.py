@@ -122,7 +122,7 @@ async def lifespan(_app: FastAPI):
             try:
                 from quant_macro import warm_cache
                 warm_cache()
-                logger.info("Quant Macro nowcasts and backtests warmed")
+                logger.info("Quant Macro nowcasts warmed")
             except Exception:
                 logger.exception("Quant Macro warm-up failed; will compute on first request")
         threading.Thread(target=_warm_quant_macro, name="quant-macro-warmup", daemon=True).start()

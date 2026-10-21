@@ -11,6 +11,7 @@ import dataclasses
 import json
 import os
 import sys
+import tempfile
 import warnings
 from pathlib import Path
 
@@ -28,10 +29,14 @@ OUT = BACKEND.parent / "frontend" / "src" / "test" / "fixtures"
 
 
 def main() -> None:
+    qm.ROOT = Path(tempfile.mkdtemp())          # never touch var/quant_macro
     spec = dataclasses.replace(qm.MODELS["uk-gdp"], backtest_from="2022Q1")
     m = qm.fit(spec, AS_OF, "csv")
+    status = {**qm.get_status("uk-gdp"), "model_fitted_at": m.state["fitted_at"],
+              "model_data_as_of": m.state["data_as_of"]}
     for name, payload in (("quant-macro-uk-gdp.json", qm.build_payload(m)),
-                          ("quant-macro-uk-gdp-backtest.json", qm.build_backtest(m))):
+                          ("quant-macro-uk-gdp-backtest.json", qm.build_backtest(spec, m.panel, AS_OF)),
+                          ("quant-macro-uk-gdp-status.json", status)):
         (OUT / name).write_text(json.dumps(payload, separators=(",", ":")) + "\n", encoding="utf-8")
         print("wrote", OUT / name)
 

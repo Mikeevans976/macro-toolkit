@@ -22,10 +22,10 @@ News (Bańbura & Modugno): with the parameters fixed, the change in the
 nowcast between two data vintages is Σ_j w_j (x_j − E_old[x_j]); computed by
 statsmodels' ``news()`` and aggregated to the quarterly target here.
 
-Vintages are pseudo-real-time: today's data, masked by each observation's
-release date (Bloomberg's when available, otherwise the catalogue's typical
-lag). Data revisions are not modelled and the parameters are estimated once
-on the full sample.
+Vintages are real-time (vintages.py): every value is stored with the day it
+became public, first prints and revisions alike, so ``Panel.vintage(d)`` is
+the dataset as it stood on day d. Parameters are estimated on demand (Refit)
+and saved; the backtest re-estimates them each quarter on that day's data.
 """
 from __future__ import annotations
 
@@ -39,6 +39,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+import vintages as vt
 
 logger = logging.getLogger(__name__)
 
@@ -69,15 +71,72 @@ class NowcastSpec:
 
 @dataclass
 class Panel:
-    """Monthly panel in model units, and the release date of every observation."""
-    values: pd.DataFrame               # PeriodIndex[M] × series id
-    release: pd.DataFrame              # same shape, datetime64 (NaT = no observation)
+    """Every observation with the date it became public (first print, then each revision).
+
+    ``vintage(d)`` rebuilds the monthly panel, in model units, exactly as it stood on day d."""
+    obs: pd.DataFrame                  # series, period (Period[M]), known_from, value (ticker units), source
+    transforms: dict[str, str]         # catalogue transform per series id, in catalogue order
     source: str                        # "live" | "simulation"
     missing: list[str] = field(default_factory=list)
     calendar: dict[str, dict] = field(default_factory=dict)   # live: next release date / consensus per id
+    vintage_info: dict[str, str] = field(default_factory=dict)   # how each series' revisions are tracked
+
+    def __post_init__(self) -> None:
+        obs = self.obs.sort_values("known_from", kind="stable")
+        present = set(obs["series"])
+        self.ids = [s for s in self.transforms if s in present]
+        self.index = pd.period_range(obs["period"].min(), obs["period"].max(), freq="M")
+        s_pos = pd.Index(self.ids).get_indexer(obs["series"])
+        p_pos = pd.PeriodIndex(obs["period"], freq="M").asi8 - self.index[0].ordinal
+        self._cell = s_pos * len(self.index) + p_pos
+        self._known = obs["known_from"].to_numpy("datetime64[ns]")
+        self._value = obs["value"].to_numpy(float)
+        self._cache: dict[pd.Timestamp, pd.DataFrame] = {}
+        self._release: pd.DataFrame | None = None
+
+    def _raw(self, k: int) -> np.ndarray:
+        """Latest value of every (series, period) cell among the first k observations."""
+        cell, val = self._cell[:k][::-1], self._value[:k][::-1]
+        u, i = np.unique(cell, return_index=True)
+        grid = np.full(len(self.ids) * len(self.index), np.nan)
+        grid[u] = val[i]
+        return grid.reshape(len(self.ids), len(self.index)).T
 
     def vintage(self, as_of: pd.Timestamp) -> pd.DataFrame:
-        return self.values.where(self.release <= as_of)
+        """Panel in model units as published on day as_of (transforms applied to that day's levels)."""
+        as_of = pd.Timestamp(as_of)
+        hit = self._cache.get(as_of)
+        if hit is None:
+            k = int(np.searchsorted(self._known, as_of.to_datetime64(), side="right"))
+            raw = pd.DataFrame(self._raw(k), index=self.index, columns=self.ids)
+            hit = pd.DataFrame({c: _apply_transform(raw[c], self.transforms[c]) for c in self.ids})
+            if len(self._cache) > 256:
+                self._cache.clear()
+            self._cache[as_of] = hit
+        return hit.copy()
+
+    @property
+    def values(self) -> pd.DataFrame:
+        """Latest values (today's data, and in the simulation the future truth)."""
+        return self.vintage(pd.Timestamp.max.normalize())
+
+    @property
+    def release(self) -> pd.DataFrame:
+        """First-release date of every observation in model units (NaT = never observed)."""
+        if self._release is None:
+            first = (self.obs.groupby(["period", "series"])["known_from"].min().unstack()
+                     .reindex(index=self.index, columns=self.ids))
+            for c in self.ids:
+                if self.transforms[c] in ("diff", "log_diff"):     # a change needs last month's level too
+                    first[c] = pd.concat([first[c], first[c].shift(1)], axis=1).max(axis=1, skipna=False)
+            self._release = first
+        return self._release
+
+    def change_dates(self, cols: list[str], start: pd.Timestamp, end: pd.Timestamp) -> list[pd.Timestamp]:
+        """Days in [start, end] on which any of cols was released or revised."""
+        rows = self.obs[self.obs["series"].isin(cols)]
+        d = rows["known_from"]
+        return sorted({pd.Timestamp(x) for x in d[(d >= start) & (d <= end)].unique()})
 
 
 @lru_cache(maxsize=None)
@@ -144,7 +203,11 @@ def simulate_panel(spec: NowcastSpec, as_of: pd.Timestamp) -> Panel:
             b[t] = 0.7 * b[t - 1] + e[t]
         blocks[name] = b / b.std()
 
-    values, release = {}, {}
+    # Revisions come from their own generator so the history above is unchanged by them.
+    rev_rng = np.random.default_rng(zlib.crc32(f"{spec.slug}:revisions".encode()))
+    end = horizon_end(as_of)
+    keep = idx <= end
+    frames, info = [], {}
     for s in series:
         p = s["sim"]
         e = rng.standard_normal(n) * np.sqrt(1 - p["rho"] ** 2)
@@ -153,15 +216,27 @@ def simulate_panel(spec: NowcastSpec, as_of: pd.Timestamp) -> Panel:
             u[t] = p["rho"] * u[t - 1] + e[t]
         block = next((b for b in s["blocks"] if b != "Global"), None)
         x = p["mean"] + p["load"] * f + 0.4 * abs(p["load"]) * blocks.get(block, 0.0) + p["noise"] * u
-        x = pd.Series(np.round(x, 2), index=idx)
-        x[idx < pd.Period(s["start"], "M")] = np.nan
-        values[s["id"]] = x
-        release[s["id"]] = pd.Series(typical_release(idx, s["release_lag_days"]), index=idx).where(x.notna())
-
-    end = horizon_end(as_of)
-    vals = pd.DataFrame(values).loc[:end]
-    rel = pd.DataFrame(release).loc[:end]
-    return Panel(values=vals, release=rel, source="simulation")
+        x = np.round(x, 2)
+        ok = keep & (idx >= pd.Period(s["start"], "M"))
+        rel = typical_release(idx, s["release_lag_days"])
+        cfg = s.get("vintages") or {}
+        e1, e2 = rev_rng.standard_normal(n), rev_rng.standard_normal(n)
+        sd, settle = cfg.get("sim_sd", 0.0), cfg.get("settle_days", 0)
+        if sd and settle:
+            # first print, a second estimate a month later when revisions run longer, then the final value
+            parts = [(rel, np.round(x + sd * e1, 2))]
+            if settle >= 60:
+                parts.append((_next_weekday(rel + pd.Timedelta(days=30)), np.round(x + 0.5 * sd * e2, 2)))
+            parts.append((_next_weekday(rel + pd.Timedelta(days=settle)), x))
+            info[s["id"]] = f"Simulated revisions: first print ± {sd} ({s['units']}), final after {settle} days"
+        else:
+            parts = [(rel, x)]
+            info[s["id"]] = "Simulated, not revised"
+        for d, v in parts:
+            frames.append(pd.DataFrame({"series": s["id"], "period": idx[ok], "known_from": d[ok],
+                                        "value": v[ok], "source": "sim"}))
+    obs = vt.dedupe(pd.concat(frames, ignore_index=True))
+    return Panel(obs=obs, transforms={s["id"]: "none" for s in series}, source="simulation", vintage_info=info)
 
 
 def _apply_transform(x: pd.Series, how: str) -> pd.Series:
@@ -178,41 +253,89 @@ def _parse_release_dates(raw: pd.Series) -> pd.Series:
     return pd.to_datetime(s, format="%Y%m%d", errors="coerce")
 
 
-def fetch_live_panel(spec: NowcastSpec, as_of: pd.Timestamp) -> Panel:
-    """Monthly panel from Bloomberg. Raises if the target or most of the panel is missing."""
+def _monthly(hist: pd.DataFrame, ticker: str, field_: str) -> pd.Series:
+    if (ticker, field_) not in hist.columns:
+        return pd.Series(dtype=float)
+    x = hist[(ticker, field_)].dropna()
+    x.index = pd.DatetimeIndex(x.index).to_period("M")
+    return x.groupby(level=0).last()
+
+
+def fetch_live_panel(spec: NowcastSpec, as_of: pd.Timestamp, store: vt.VintageStore, ons_dir: Path) -> Panel:
+    """Real-time panel: Bloomberg (today's values, first prints, release dates), ONS revisions
+    triangles and the stored daily snapshots. Raises if the target or most of the panel is missing."""
     import bbg
 
     series = load_catalogue(spec.catalogue)
+    dataset = spec.catalogue.removesuffix(".json")
     tickers = [s["ticker_bloomberg"] for s in series]
     end = as_of.strftime("%Y-%m-%d")
     hist = bbg.bdh(tickers=tickers, flds=["PX_LAST"], start_date="1996-01-01", end_date=end, periodicity="MONTHLY")
-    try:
-        rel_hist = bbg.bdh(tickers=tickers, flds=["ECO_RELEASE_DT"], start_date="1996-01-01", end_date=end,
-                           periodicity="MONTHLY")
-    except Exception:                                  # release dates are a nice-to-have
-        rel_hist = pd.DataFrame()
+    extra = {}
+    for fld in ("ECO_RELEASE_DT", "ACTUAL_RELEASE"):   # release dates and first prints are nice-to-haves
+        try:
+            extra[fld] = bbg.bdh(tickers=tickers, flds=[fld], start_date="1996-01-01", end_date=end,
+                                 periodicity="MONTHLY")
+        except Exception:
+            logger.warning("Nowcast %s: %s history unavailable", spec.slug, fld, exc_info=True)
+            extra[fld] = pd.DataFrame()
     idx = pd.period_range("1996-01", horizon_end(as_of), freq="M")
 
-    values, release, missing = {}, {}, []
+    latest, first, release, missing = {}, {}, {}, []
     for s in series:
-        t = s["ticker_bloomberg"]
-        if (t, "PX_LAST") not in hist.columns or hist[(t, "PX_LAST")].dropna().size < MIN_OBS:
-            missing.append(s["id"])
+        t, sid = s["ticker_bloomberg"], s["id"]
+        x = _monthly(hist, t, "PX_LAST")
+        if x.size < MIN_OBS:
+            missing.append(sid)
             continue
-        raw = hist[(t, "PX_LAST")].dropna()
-        raw.index = pd.DatetimeIndex(raw.index).to_period("M")
-        x = _apply_transform(raw.groupby(level=0).last(), s["transform"]).reindex(idx)
         typical = pd.Series(typical_release(idx, s["release_lag_days"]), index=idx)
-        if (t, "ECO_RELEASE_DT") in rel_hist.columns:
-            actual = _parse_release_dates(rel_hist[(t, "ECO_RELEASE_DT")])
+        if (t, "ECO_RELEASE_DT") in extra["ECO_RELEASE_DT"].columns:
+            actual = _parse_release_dates(extra["ECO_RELEASE_DT"][(t, "ECO_RELEASE_DT")])
             actual.index = pd.DatetimeIndex(actual.index).to_period("M")
             typical.update(actual.groupby(level=0).last())
         # Everything Bloomberg returned is public today, whatever the estimated date says.
-        values[s["id"]] = x
-        release[s["id"]] = typical.where(x.notna()).clip(upper=as_of)
+        latest[sid] = x
+        release[sid] = typical.reindex(idx).where(x.reindex(idx).notna()).clip(upper=as_of)
+        first[sid] = _monthly(extra["ACTUAL_RELEASE"], t, "ACTUAL_RELEASE").reindex(x.index)
 
     if spec.target in missing or len(missing) > 0.4 * len(series):
         raise RuntimeError(f"Live panel incomplete: missing {missing}")
+
+    store.add(dataset, pd.DataFrame(
+        [(sid, p, release[sid].get(p), v, "bbg_first") for sid, f in first.items() for p, v in f.dropna().items()
+         if not pd.isna(release[sid].get(p))], columns=vt.COLUMNS))
+    by_id = {s["id"]: s for s in series}
+    ons_ok: set[str] = set()
+    for sid in latest:
+        key = (by_id[sid].get("vintages") or {}).get("ons")
+        if not key:
+            continue
+        try:
+            path = vt.download_ons(key, ons_dir, today=as_of)
+            if path is None:
+                continue
+            lag = by_id[sid]["release_lag_days"]
+            rel_fn = (lambda p, r=release[sid], lag=lag:
+                      r.get(p) if not pd.isna(r.get(p, pd.NaT)) else typical_release(pd.PeriodIndex([p]), lag)[0])
+            rows = vt.ons_rows(key, path, rel_fn)
+            # Guard against a ticker in other units than the ONS series (e.g. 3m/3m vs m/m).
+            last = rows.sort_values("known_from").groupby("period")["value"].last()
+            common = last.index.intersection(latest[sid].index)
+            gap = float((last[common] - latest[sid][common]).abs().median()) if len(common) else np.inf
+            if gap > 0.15 * max(float(latest[sid].abs().median()), 1e-9) + 0.05:
+                logger.warning("Nowcast %s: ONS %s disagrees with %s (median gap %.3f); ignoring ONS",
+                               spec.slug, key, by_id[sid]["ticker_bloomberg"], gap)
+                continue
+            store.add(dataset, rows.assign(series=sid, source="ons"))
+            ons_ok.add(sid)
+        except Exception:
+            logger.warning("Nowcast %s: ONS %s unusable", spec.slug, key, exc_info=True)
+    store.snapshot(dataset, {sid: x for sid, x in latest.items() if sid not in ons_ok}, release, as_of)
+
+    stored = store.read(dataset)
+    stored = stored[(stored["source"] != "ons") | stored["series"].isin(ons_ok)]
+    runs = store.runs(dataset)
+    obs, info = vt.assemble(list(series), stored, latest, first, release, runs[0] if runs else None)
 
     calendar: dict[str, dict] = {}
     try:
@@ -232,14 +355,17 @@ def fetch_live_panel(spec: NowcastSpec, as_of: pd.Timestamp) -> Panel:
     except Exception:
         logger.warning("Nowcast %s: release calendar / consensus unavailable", spec.slug, exc_info=True)
 
-    return Panel(values=pd.DataFrame(values), release=pd.DataFrame(release), source="live",
-                 missing=missing, calendar=calendar)
+    return Panel(obs=obs, transforms={s["id"]: s["transform"] for s in series}, source="live",
+                 missing=missing, calendar=calendar, vintage_info=info)
 
 
-def load_panel(spec: NowcastSpec, as_of: pd.Timestamp, data_source: str) -> Panel:
+def load_panel(spec: NowcastSpec, as_of: pd.Timestamp, data_source: str,
+               store: vt.VintageStore | None = None, ons_dir: Path | None = None) -> Panel:
     if data_source == "bloomberg":
         try:
-            return fetch_live_panel(spec, as_of)
+            if store is None or ons_dir is None:
+                raise RuntimeError("no vintage store")
+            return fetch_live_panel(spec, as_of, store, ons_dir)
         except Exception as exc:
             logger.warning("Nowcast %s: live data unavailable (%s); using simulation", spec.slug, exc)
             panel = simulate_panel(spec, as_of)
@@ -260,20 +386,68 @@ def model_data(spec: NowcastSpec, vintage: pd.DataFrame, columns: list[str] | No
     return y if columns is None else y[columns]
 
 
-def fit_model(spec: NowcastSpec, y: pd.DataFrame):
-    """EM estimate of the DFM on frame y; series with too little data are left out."""
+def _dfm(spec: NowcastSpec, y: pd.DataFrame, standardize):
     from statsmodels.tsa.statespace.dynamic_factor_mq import DynamicFactorMQ
 
     series = {s["id"]: s for s in load_catalogue(spec.catalogue)}
+    factors = {c: list(series[c]["blocks"]) for c in y.columns}
+    return DynamicFactorMQ(y, factors=factors, factor_orders=dict(spec.factor_orders),
+                           idiosyncratic_ar1=True, standardize=standardize)
+
+
+def fit_model(spec: NowcastSpec, y: pd.DataFrame, start: dict | None = None):
+    """EM estimate of the DFM on frame y; series with too little data are left out.
+
+    ``start``: a saved state (``model_state``) to start EM from when it has the same series."""
     cols = [c for c in y.columns if y[c].notna().sum() >= MIN_OBS]
     if spec.target not in cols:
         raise ValueError(f"target {spec.target!r} has too little data")
-    factors = {c: list(series[c]["blocks"]) for c in cols}
-    mod = DynamicFactorMQ(y[cols], factors=factors, factor_orders=dict(spec.factor_orders),
-                          idiosyncratic_ar1=True, standardize=True)
+    mod = _dfm(spec, y[cols], True)
+    start_params = None
+    if start and start["columns"] == cols and start["param_names"] == list(mod.param_names):
+        start_params = np.asarray(start["params"])
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        return mod.fit(disp=False, maxiter=spec.maxiter, tolerance=1e-6)
+        return mod.fit(start_params=start_params, disp=False, maxiter=spec.maxiter, tolerance=1e-6)
+
+
+def structure_key(spec: NowcastSpec, cols: list[str]) -> str:
+    """Fingerprint of everything that fixes the parameter vector's meaning."""
+    series = {s["id"]: s for s in load_catalogue(spec.catalogue)}
+    blob = json.dumps({"cols": [(c, series[c]["blocks"], series[c]["transform"]) for c in cols],
+                       "factor_orders": spec.factor_orders, "start": spec.start, "exclude": spec.exclude},
+                      sort_keys=True)
+    return f"{zlib.crc32(blob.encode()):08x}"
+
+
+def model_state(spec: NowcastSpec, res) -> dict:
+    """Fitted parameters plus what is needed to rebuild the model on new data (JSON-safe)."""
+    import statsmodels
+
+    model = res.model
+    cols = list(model.endog_names)
+    retvals = res.mle_retvals if isinstance(res.mle_retvals, dict) else {}
+    return {
+        "columns": cols,
+        "param_names": list(model.param_names),
+        "params": [float(v) for v in np.asarray(res.params)],
+        "endog_mean": [float(v) for v in np.asarray(model._endog_mean)],
+        "endog_std": [float(v) for v in np.asarray(model._endog_std)],
+        "structure": structure_key(spec, cols),
+        "loglik": float(res.llf),
+        "em_iterations": int(retvals.get("iter", 0) or 0),
+        "statsmodels": statsmodels.__version__,
+    }
+
+
+def restore_model(spec: NowcastSpec, y: pd.DataFrame, state: dict):
+    """Saved parameters applied to frame y (same standardisation as at estimation): no EM."""
+    cols = state["columns"]
+    std = (pd.Series(state["endog_mean"], index=cols), pd.Series(state["endog_std"], index=cols))
+    mod = _dfm(spec, y[cols], std)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return mod.smooth(np.asarray(state["params"]))
 
 
 def apply_vintage(res, y: pd.DataFrame):
@@ -337,17 +511,10 @@ def quarter_nowcast(res, target: str, q: pd.Period) -> tuple[float, float]:
     return float(TRIANGLE @ mean), float(np.sqrt(max(TRIANGLE @ cov @ TRIANGLE, 0.0)))
 
 
-def quarter_impacts(news, target: str, quarters: list[pd.Period]) -> pd.DataFrame:
-    """News impacts on each quarter's q/q (weight × news). Rows: (update date, updated variable)."""
-    w = quarter_weights(news, target, quarters)
-    return w.mul(news.news.reindex(w.index).to_numpy(), axis=0)
-
-
-def quarter_weights(news, target: str, quarters: list[pd.Period]) -> pd.DataFrame:
-    """Weight of each updated (period, series) on each quarter's q/q: pp per unit of surprise."""
-    w = news.weights
+def _to_quarters(w: pd.DataFrame, target: str, quarters: list[pd.Period]) -> pd.DataFrame:
+    """Monthly weights on the target (columns: impact date × impacted variable) → q/q weights."""
     if w.empty:
-        return pd.DataFrame(columns=[str(q) for q in quarters])
+        return pd.DataFrame(columns=[str(q) for q in quarters], index=w.index, dtype=float)
     w = w.xs(target, axis=1, level="impacted variable")
     out = {}
     for q in quarters:
@@ -357,11 +524,44 @@ def quarter_weights(news, target: str, quarters: list[pd.Period]) -> pd.DataFram
     return pd.DataFrame(out, index=w.index)
 
 
-def compute_news(res_new, res_prev, target: str, start: pd.Period, end: pd.Period):
+def quarter_weights(news, target: str, quarters: list[pd.Period]) -> pd.DataFrame:
+    """Weight of each updated (period, series) on each quarter's q/q: pp per unit of surprise."""
+    return _to_quarters(news.weights, target, quarters)
+
+
+def quarter_impacts(news, target: str, quarters: list[pd.Period]) -> pd.DataFrame:
+    """News impacts on each quarter's q/q (weight × news). Rows: (update date, updated variable)."""
+    w = quarter_weights(news, target, quarters)
+    return w.mul(news.news.reindex(w.index).to_numpy(), axis=0)
+
+
+def quarter_revision_impacts(news, target: str, quarters: list[pd.Period]) -> pd.DataFrame:
+    """Impacts of the individually tracked revisions (weight × revision). Rows: (period, series)."""
+    if news.n_revisions_detailed == 0:
+        return pd.DataFrame(columns=[str(q) for q in quarters], dtype=float)
+    w = _to_quarters(news.revision_weights, target, quarters)
+    return w.mul(news.revisions.reindex(w.index).to_numpy(), axis=0)
+
+
+def quarter_total_impacts(news, target: str, quarters: list[pd.Period]) -> dict[str, float]:
+    """Total change in each quarter's q/q between the two vintages (news + revisions)."""
+    tot = news.total_impacts[target]
+    out = {}
+    for q in quarters:
+        tri = pd.Series(TRIANGLE, index=quarter_months(q))
+        out[str(q)] = float(tot.reindex(tri.index).fillna(0.0).to_numpy() @ tri.to_numpy())
+    return out
+
+
+def compute_news(res_new, res_prev, target: str, start: pd.Period, end: pd.Period,
+                 details_from: pd.Period | None = None):
+    """News between two vintages. Revisions to periods from ``details_from`` on get their own
+    weights; earlier ones are only reported as a group (they are rare and slow to decompose)."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         return res_new.news(res_prev, start=start, end=end, impacted_variable=target,
-                            comparison_type="previous")
+                            comparison_type="previous",
+                            revisions_details_start=details_from if details_from is not None else False)
 
 
 # ---------------------------------------------------------------------------

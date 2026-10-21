@@ -77,7 +77,8 @@ cd frontend && npm run build && cd .. && python backend/main.py
 | `swaps_rv.py` | Swap RV analytics (carry, roll, OIS pricing) |
 | `macro_options.py` | Euribor options for the Macro Options Monitor: chains, smile fit + call grid, €STR OIS meeting path, open interest |
 | `nowcast.py` | Quant Macro engine: mixed-frequency DFM (statsmodels `DynamicFactorMQ`), quarterly moments, news/weights, survey bridge |
-| `quant_macro.py` | Quant Macro models (`MODELS`), payload (quarters, next print, evolution, catalysts, central bank) and backtest |
+| `quant_macro.py` | Quant Macro models (`MODELS`), saved fits and background jobs (update / refit / backtest), payload (quarters, next print, evolution, catalysts, central bank) and the real-time backtest |
+| `vintages.py` | Quant Macro real-time data: SQLite vintage store (`var/quant_macro/vintages.db`), ONS revisions triangles, source assembly |
 | `curves_flies_config.py` | Config for curves/flies tool |
 | `seasonality_backtester.py` | Seasonality backtest engine |
 | `data/series_catalogue_*.json` | Single source of truth for indicator tickers/lags per region |
@@ -143,17 +144,18 @@ After an intentional change to the dashboard payload, regenerate the frontend te
 
 ## Quant Macro
 
-Nowcasts and forecasts of growth, inflation and labour-market variables per G10 market: the next print, the current and next quarters, and the central bank's own staff estimates alongside. One page (`frontend/src/features/quant-macro/NowcastPage.tsx`) driven by `GET /api/tools/quant-macro/{model}`; the backtest is `.../{model}/backtest` (slow, warmed at startup with the payload).
+Nowcasts and forecasts of growth, inflation and labour-market variables per G10 market: the next print, the current and next quarters, and the central bank's own staff estimates alongside. One page (`frontend/src/features/quant-macro/NowcastPage.tsx`) driven by `GET /api/tools/quant-macro/{model}`. Nothing heavy runs on a page load: the parameters are saved (`var/quant_macro/<slug>/model.json`) and only re-estimated by `POST .../{model}/refit` (the page's Refit button) or when no saved fit matches the data (first run, a change of data source or series list). New data go through the saved parameters in a background `update` job (on a new day; hourly with live data). The real-time backtest runs only on `POST .../{model}/backtest` (Run full backtest, ~5–10 min, background); `GET .../backtest` returns the last saved run or null, and `GET .../status` the fit/run times and job progress.
 
 | Layer | File | Notes |
 |-------|------|-------|
 | Engine | `backend/nowcast.py` | Bańbura–Modugno DFM (Global + Soft/Real/Labour blocks, AR(1) idiosyncratics, EM). Quarterly growth = (g_t + 2g_t-1 + 3g_t-2 + 2g_t-3 + g_t-4)/3 of the monthly target; its variance uses smoothed cross-month covariances. News and weights from statsmodels `news()` |
-| Models | `backend/quant_macro.py` | `MODELS` (one `NowcastSpec` per market × variable); cached per day and data source |
-| Panel | `backend/data/series_catalogue_nowcast_<cc>.json` | id, blocks, group, transform (`none`/`diff`/`log_diff`), `release_lag_days`, simulation DGP |
+| Models | `backend/quant_macro.py` | `MODELS` (one `NowcastSpec` per market × variable); state under `var/quant_macro/` (`ROOT` overrides it in tests) |
+| Vintages | `backend/vintages.py` | Every value with the day it became public. Sources per series (catalogue `vintages`): ONS revisions triangles (`ONS_DATASETS`, link read from the dataset page each day), Bloomberg first print (`ACTUAL_RELEASE`) + latest after `settle_days`, daily snapshots from the first live run; surveys unrevised |
+| Panel | `backend/data/series_catalogue_nowcast_<cc>.json` | id, blocks, group, transform (`none`/`diff`/`log_diff`), `release_lag_days`, `vintages` (ONS dataset, settle days, simulated revision size), simulation DGP |
 | Central bank | `backend/data/central_bank_nowcasts_<cc>.json` | Staff estimates entered by hand from the bank's publications, with URL; mark implied values in `note` |
 | Page | `frontend/src/features/quant-macro/` | `models.ts` generates `/tools/{toolId}` routes; fixtures from `backend/scripts/make_nowcast_fixture.py` |
 
-Vintages are pseudo-real-time: today's data masked by release date (Bloomberg `ECO_RELEASE_DT` when available, else the typical lag), so revisions are not modelled and parameters use the full sample. Live data need the target and 60% of the panel, else the payload falls back to simulation and lists `missing_series`. 2020-03 to 2021-06 is treated as missing.
+Vintages are real-time: `Panel.vintage(d)` rebuilds the data as published on day d, first prints and revisions included; values are stored in ticker units and transformed per vintage. News splits each change into releases (weight × surprise), revisions (weight × revision) and grouped older revisions, and adds up exactly. The backtest re-estimates on the first day of each calendar quarter with that day's data and scores against the first estimate (and today's value). ONS monthly GDP vintages start in July 2018 (monthly GDP did not exist before), retail sales in 2020 and RTI payrolls in Dec 2019; earlier periods use the Bloomberg fallback. An ONS series whose values disagree with the Bloomberg ticker is ignored (units check). Live data need the target and 60% of the panel, else the payload falls back to simulation and lists `missing_series`. 2020-03 to 2021-06 is treated as missing. Back up `var/quant_macro/vintages.db`: the snapshots cannot be recreated.
 
 ### Adding a model
 

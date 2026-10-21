@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PageTitle, { headerBar } from '../../components/PageTitle'
 import CountryFlag from '../../components/CountryFlag'
 import { authFetch } from '../../api/client'
 import { accent, fg, fontNum, line, line2, neg, pos, warn } from '../../theme'
 import { BacktestChart, EvolutionCharts, MonthlyPathChart, QuarterChart } from './charts'
 import { QUANT_MACRO_CATEGORY, QUANT_MACRO_MODELS } from './models'
-import type { Backtest, Indicator, Nowcast, QuarterRow } from './types'
+import type { Backtest, Indicator, Job, Nowcast, QuarterRow, Status } from './types'
 import {
-  BG, GROUP_COLOR, STATUS_LABEL, card, dayLabel, monthLabel, num, quarterLabel, sectionLabel, signColor,
-  signed, td, tdText, th,
+  BG, GROUP_COLOR, STATUS_LABEL, button, card, dayLabel, monthLabel, num, quarterLabel, sectionLabel, signColor,
+  signed, stampLabel, td, tdText, th,
 } from './ui'
 
 // Quant Macro nowcast page. The backend (quant_macro.py / nowcast.py) does all the
@@ -63,6 +63,49 @@ function QuarterPicker({ quarters, value, onChange }: { quarters: QuarterRow[]; 
           {quarterLabel(q.quarter)}
         </button>
       ))}
+    </div>
+  )
+}
+
+const running = (j?: Job) => j?.state === 'running'
+
+function JobProgress({ job }: { job: Job }) {
+  const pct = job.total > 0 ? Math.round((100 * job.progress) / job.total) : null
+  return (
+    <div style={{ display: 'grid', gap: 4, minWidth: 220 }}>
+      <div style={{ fontSize: 11, color: fg[3] }}>
+        {job.step}{job.total > 0 && <span style={{ fontFamily: fontNum }}> · {job.progress}/{job.total}</span>}
+      </div>
+      {pct != null && (
+        <div role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}
+          style={{ height: 4, borderRadius: 2, background: line, overflow: 'hidden' }}>
+          <div style={{ width: `${pct}%`, height: '100%', background: accent }} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RefitControl({ status, onRefit }: { status: Status | null; onRefit: () => void }) {
+  const refit = status?.jobs.refit
+  const update = status?.jobs.update
+  const busy = running(refit)
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      {busy && refit ? <JobProgress job={refit} />
+        : running(update) && update ? <span style={{ fontSize: 11, color: fg[3] }}>Updating with new data: {update.step}</span>
+        : (
+          <span style={{ fontSize: 11, color: fg[3] }}
+            title={status?.model_data_as_of ? `Parameters estimated on data as of ${status.model_data_as_of}` : undefined}>
+            {refit?.state === 'error' ? <span style={{ color: neg }}>Refit failed: {refit.error}</span>
+              : <>Model fitted <span style={{ fontFamily: fontNum, color: fg[2] }}>{stampLabel(status?.model_fitted_at)}</span></>}
+          </span>
+        )}
+      <button type="button" onClick={onRefit} disabled={busy || !status}
+        title="Re-estimate the parameters on today's data (about a minute)"
+        style={{ ...button, opacity: busy || !status ? 0.5 : 1, cursor: busy ? 'default' : 'pointer' }}>
+        {busy ? 'Refitting…' : 'Refit'}
+      </button>
     </div>
   )
 }
@@ -274,7 +317,7 @@ function NewsTab({ data, quarter, names }: { data: Nowcast; quarter: string; nam
         </div>
 
         <div style={card}>
-          <div style={sectionLabel}>Releases since {dayLabel(steps[0]?.date)}: surprise vs model and impact on {quarterLabel(quarter)}</div>
+          <div style={sectionLabel}>Releases and revisions since {dayLabel(steps[0]?.date)}: surprise vs model and impact on {quarterLabel(quarter)}</div>
           <div style={{ maxHeight: 560, overflowY: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead style={{ position: 'sticky', top: 0, background: BG }}>
@@ -282,9 +325,9 @@ function NewsTab({ data, quarter, names }: { data: Nowcast; quarter: string; nam
                   <th style={{ ...th, textAlign: 'left' }}>Date</th>
                   <th style={{ ...th, textAlign: 'left' }}>Indicator</th>
                   <th style={th}>Period</th>
-                  <th style={th}>Actual</th>
-                  <th style={th}>Model</th>
-                  <th style={th}>Surprise</th>
+                  <th style={th} title="Released value; for a revision, the revised value">Actual</th>
+                  <th style={th} title="Model expectation; for a revision, the previously published value">Model / prev.</th>
+                  <th style={th} title="Actual − model; for a revision, the size of the revision">Surprise</th>
                   <th style={th}>Impact pp</th>
                 </tr>
               </thead>
@@ -292,14 +335,16 @@ function NewsTab({ data, quarter, names }: { data: Nowcast; quarter: string; nam
                 {releases.map(r => {
                   const ind = names[r.series_id]
                   const imp = r.impacts[quarter]
+                  const older = r.series_id === 'older_revisions'
                   return (
-                    <tr key={`${r.date}-${r.series_id}-${r.period}`}>
+                    <tr key={`${r.date}-${r.series_id}-${r.period}-${r.kind}`}>
                       <td style={{ ...td, textAlign: 'left', color: fg[3] }}>{dayLabel(r.date)}</td>
                       <td style={tdText}>
-                        <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: 1, background: GROUP_COLOR[ind?.group ?? ''], marginRight: 7 }} />
-                        {ind?.name ?? r.series_id}
+                        <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: 1, background: GROUP_COLOR[older ? 'Older revisions' : ind?.group ?? ''], marginRight: 7 }} />
+                        {older ? `Revisions before ${monthLabel(r.period)}` : ind?.name ?? r.series_id}
+                        {r.kind === 'revision' && !older && <span style={{ color: fg[4], fontSize: 11 }}> (revised)</span>}
                       </td>
-                      <td style={td}>{monthLabel(r.period)}</td>
+                      <td style={td}>{older ? '' : monthLabel(r.period)}</td>
                       <td style={td}>{num(r.observed, dp(ind))}</td>
                       <td style={td}>{num(r.expected, dp(ind))}</td>
                       <td style={{ ...td, color: signColor(r.news) }}>{signed(r.news, dp(ind))}</td>
@@ -318,30 +363,41 @@ function NewsTab({ data, quarter, names }: { data: Nowcast; quarter: string; nam
 
 // ─── Track record tab ─────────────────────────────────────────────────────────
 
-function BacktestTab({ slug }: { slug: string }) {
-  const [bt, setBt] = useState<Backtest | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  useEffect(() => {
-    let cancelled = false
-    authFetch(`/api/tools/quant-macro/${slug}/backtest`)
-      .then(async res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const body = await res.json()
-        if (!Array.isArray(body?.summary)) throw new Error('unexpected response (restart the backend?)')
-        if (!cancelled) setBt(body as Backtest)
-      })
-      .catch(e => { if (!cancelled) setError(String(e.message ?? e)) })
-    return () => { cancelled = true }
-  }, [slug])
+function BacktestTab({ bt, error, job, onRun }: {
+  bt: Backtest | null | undefined; error: string | null; job?: Job; onRun: () => void
+}) {
+  const busy = running(job)
+  const header = (
+    <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+      <div style={{ fontSize: 12, color: fg[3], lineHeight: 1.6, maxWidth: 760 }}>
+        {bt ? (
+          <>Last run <span style={{ fontFamily: fontNum, color: fg[2] }}>{stampLabel(bt.run_at)}</span> on data as of {bt.as_of}
+            {' '}· {bt.n_fits} quarterly re-estimations · took {Math.round(bt.duration_s / 60)} min.{' '}</>
+        ) : bt === null ? <>No backtest has been run yet. </> : null}
+        Each nowcast uses only the data public on that day (first prints and revisions as published), with
+        parameters re-estimated at the start of each quarter. Takes about 5–10 minutes; the page stays usable.
+        {job?.state === 'error' && <div style={{ color: neg }}>Last run failed: {job.error}</div>}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {busy && job && <JobProgress job={job} />}
+        <button type="button" onClick={onRun} disabled={busy}
+          style={{ ...button, opacity: busy ? 0.5 : 1, cursor: busy ? 'default' : 'pointer' }}>
+          {busy ? 'Running…' : 'Run full backtest'}
+        </button>
+      </div>
+    </div>
+  )
 
-  if (error) return <div style={{ color: neg, fontSize: 13 }}>Failed to load the backtest: {error}</div>
-  if (!bt) return <div style={{ color: fg[3], fontSize: 13 }}>Running the pseudo-real-time backtest (a minute on first use)…</div>
+  if (error) return <div style={{ display: 'grid', gap: 16 }}>{header}<div style={{ color: neg, fontSize: 13 }}>Failed to load the backtest: {error}</div></div>
+  if (bt === undefined) return <div style={{ display: 'grid', gap: 16 }}>{header}<div style={{ color: fg[3], fontSize: 13 }}>Loading…</div></div>
+  if (bt === null) return header
   const last = bt.horizons.length - 1
   return (
     <div style={{ display: 'grid', gap: 16 }}>
+      {header}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16, alignItems: 'start' }}>
         <div style={card}>
-          <div style={sectionLabel}>Root-mean-square error of the q/q nowcast, pp, by days before the first estimate</div>
+          <div style={sectionLabel}>Root-mean-square error of the q/q nowcast vs the first estimate, pp, by days before it</div>
           <BacktestChart bt={bt} />
           <div style={{ fontSize: 11, color: fg[4], marginTop: 6 }}>{bt.note}</div>
         </div>
@@ -353,6 +409,7 @@ function BacktestTab({ slug }: { slug: string }) {
                 <th style={{ ...th, textAlign: 'left' }}>Days before</th>
                 <th style={th}>DFM RMSE</th>
                 <th style={th}>DFM bias</th>
+                <th style={th} title="DFM error against today's (revised) value instead of the first estimate">DFM vs latest</th>
                 <th style={th}>Bridge RMSE</th>
                 <th style={th}>Last outturn RMSE</th>
                 <th style={th}>Quarters</th>
@@ -364,6 +421,7 @@ function BacktestTab({ slug }: { slug: string }) {
                   <td style={{ ...td, textAlign: 'left' }}>{Math.abs(s.horizon)}</td>
                   <td style={{ ...td, color: fg[1] }}>{num(s.dfm.rmse)}</td>
                   <td style={td}>{signed(s.dfm.bias)}</td>
+                  <td style={td}>{num(s.dfm.rmse_latest)}</td>
                   <td style={td}>{num(s.bridge.rmse)}</td>
                   <td style={td}>{num(s.naive.rmse)}</td>
                   <td style={td}>{s.dfm.n}</td>
@@ -371,17 +429,23 @@ function BacktestTab({ slug }: { slug: string }) {
               ))}
             </tbody>
           </table>
+          {bt.first_estimate_revision_rmse != null && (
+            <div style={{ fontSize: 11, color: fg[4], marginTop: 10 }}>
+              For scale: the first estimate itself has since been revised by {num(bt.first_estimate_revision_rmse)}pp (RMS) over these quarters.
+            </div>
+          )}
         </div>
       </div>
       <div style={card}>
-        <div style={sectionLabel}>Each quarter: nowcast the day before the first estimate vs outturn</div>
+        <div style={sectionLabel}>Each quarter: real-time nowcasts vs the first estimate</div>
         <div style={{ maxHeight: 420, overflowY: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead style={{ position: 'sticky', top: 0, background: BG }}>
               <tr>
                 <th style={{ ...th, textAlign: 'left' }}>Quarter</th>
                 <th style={th}>Released</th>
-                <th style={th}>Outturn</th>
+                <th style={th}>First est.</th>
+                <th style={th}>Latest</th>
                 {bt.horizons.map(h => <th key={h} style={th}>DFM {Math.abs(h)}d</th>)}
                 <th style={th}>Bridge</th>
                 <th style={th}>Error</th>
@@ -395,6 +459,7 @@ function BacktestTab({ slug }: { slug: string }) {
                     <td style={{ ...td, textAlign: 'left' }}>{quarterLabel(r.quarter)}</td>
                     <td style={{ ...td, color: fg[3] }}>{r.release_date}</td>
                     <td style={{ ...td, color: fg[1] }}>{signed(r.actual)}</td>
+                    <td style={td}>{signed(r.actual_latest)}</td>
                     {r.dfm.map((v, k) => <td key={k} style={td}>{signed(v)}</td>)}
                     <td style={td}>{signed(r.bridge[last])}</td>
                     <td style={td}>{signed(err)}</td>
@@ -442,9 +507,11 @@ function ModelTab({ data }: { data: Nowcast }) {
           and the panel includes the Bank's Agents' scores and Decision Maker Panel. The Bank's published staff estimates sit
           alongside, so the gap between the model and the Bank, and the news since the Bank last spoke, are visible.
         </p>
-        <p style={{ ...p, color: fg[3], fontSize: 12 }}>
-          Caveats: vintages are pseudo-real-time (today's data masked by release date, so no revisions), and parameters use
-          the full sample. Release dates come from Bloomberg when available, otherwise from typical publication lags.
+        <p style={p}>
+          Data are real-time: every value is stored with the day it became public, first prints and revisions alike, so the
+          news history and the backtest see each day's data exactly as published (sources per indicator below).
+          Parameters were last estimated on data as of {m.fit_data_as_of ?? '—'} ({stampLabel(m.fitted_at)}); new data
+          are run through those parameters until the next Refit.
         </p>
         {data.missing_series.length > 0 && (
           <p style={{ ...p, color: warn, fontSize: 12 }}>
@@ -486,60 +553,120 @@ function ModelTab({ data }: { data: Nowcast }) {
   )
 }
 
+function VintagesCard({ data }: { data: Nowcast }) {
+  return (
+    <div style={card}>
+      <div style={sectionLabel}>Real-time data: where each indicator's first prints and revisions come from</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <tbody>
+          {data.indicators.map(i => (
+            <tr key={i.id}>
+              <td style={{ ...tdText, width: 220 }}>
+                <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: 1, background: GROUP_COLOR[i.group], marginRight: 7 }} />
+                {i.name}
+              </td>
+              <td style={{ ...tdText, color: fg[3], whiteSpace: 'normal' }}>{i.vintages}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
+
+async function getJson<T>(url: string, ok: (body: unknown) => boolean, init?: RequestInit): Promise<T> {
+  const res = await authFetch(url, init)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const body = await res.json().catch(() => undefined)
+  // An old server answers unknown /api routes with the SPA's index.html
+  if (!ok(body)) throw new Error('unexpected response (restart the backend?)')
+  return body as T
+}
+
+const isStatus = (b: unknown) => typeof b === 'object' && b !== null && 'jobs' in b
 
 export default function NowcastPage({ slug }: { slug: string }) {
   const meta = QUANT_MACRO_MODELS.find(m => m.slug === slug) ?? QUANT_MACRO_MODELS[0]
+  const base = `/api/tools/quant-macro/${meta.slug}`
   const [data, setData] = useState<Nowcast | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('nowcast')
   const [quarter, setQuarter] = useState<string | null>(null)
+  const [status, setStatus] = useState<Status | null>(null)
+  const [bt, setBt] = useState<Backtest | null | undefined>(undefined)
+  const [btError, setBtError] = useState<string | null>(null)
+  const prevJobs = useRef<Status['jobs'] | null>(null)
+
+  const loadNowcast = useCallback(() => getJson<Nowcast>(base, b => Array.isArray((b as Nowcast | undefined)?.quarters))
+    .then(payload => {
+      setData(payload)
+      setQuarter(q => (q && payload.quarters.some(r => r.quarter === q && r.status !== 'released') ? q
+        : payload.next_print.quarter?.quarter ?? payload.quarters.find(r => r.status === 'nowcast')?.quarter ?? null))
+    }), [base])
+  const loadStatus = useCallback(() => getJson<Status>(`${base}/status`, isStatus).then(setStatus).catch(() => {}), [base])
+  const loadBacktest = useCallback(() => getJson<Backtest | null>(`${base}/backtest`,
+    b => b === null || Array.isArray((b as Backtest | undefined)?.summary))
+    .then(b => { setBt(b); setBtError(null) })
+    .catch(e => setBtError(String(e.message ?? e))), [base])
 
   useEffect(() => {
     let cancelled = false
     setError(null)
-    authFetch(`/api/tools/quant-macro/${meta.slug}`)
-      .then(async res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const body = await res.json()
-        // An old server answers unknown /api routes with the SPA's index.html
-        if (!Array.isArray(body?.quarters)) throw new Error('unexpected response (restart the backend?)')
-        if (cancelled) return
-        const payload = body as Nowcast
-        setData(payload)
-        setQuarter(payload.next_print.quarter?.quarter
-          ?? payload.quarters.find(q => q.status === 'nowcast')?.quarter ?? null)
-      })
+    loadNowcast().then(() => { if (!cancelled) loadStatus() })
       .catch(e => { if (!cancelled) setError(String(e.message ?? e)) })
     return () => { cancelled = true }
-  }, [meta.slug])
+  }, [loadNowcast, loadStatus])
+
+  useEffect(() => { if (tab === 'backtest' && bt === undefined) loadBacktest() }, [tab, bt, loadBacktest])
+
+  // Poll while a job runs; reload what it produced when it finishes.
+  const anyRunning = !!status && Object.values(status.jobs).some(j => j.state === 'running')
+  useEffect(() => {
+    if (!anyRunning) return
+    const id = window.setInterval(loadStatus, 2000)
+    return () => window.clearInterval(id)
+  }, [anyRunning, loadStatus])
+  useEffect(() => {
+    const prev = prevJobs.current
+    prevJobs.current = status?.jobs ?? null
+    if (!prev || !status) return
+    const finished = (k: keyof Status['jobs']) => prev[k].state === 'running' && status.jobs[k].state !== 'running'
+    if (finished('update') || finished('refit')) loadNowcast().catch(() => {})
+    if (finished('backtest')) loadBacktest()
+  }, [status, loadNowcast, loadBacktest])
+
+  const post = (path: string) => getJson<Status>(`${base}${path}`, isStatus, { method: 'POST' })
+    .then(setStatus).catch(e => setError(String(e.message ?? e)))
 
   const names = useMemo(() => Object.fromEntries((data?.indicators ?? []).map(i => [i.id, i])), [data])
   const open = data?.quarters.filter(q => q.status !== 'released') ?? []
 
   return (
     <div style={{ background: BG, minHeight: '100vh' }}>
-      <header style={{ ...headerBar, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 24px' }}>
+      <header style={{ ...headerBar, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 24px', flexWrap: 'wrap' }}>
         <PageTitle category={QUANT_MACRO_CATEGORY.name} categoryId={QUANT_MACRO_CATEGORY.id}
           flag={<CountryFlag country={meta.country} height={14} />}
           title={meta.title}
           subtitle={<>Mixed-frequency dynamic factor model{data ? ` · ${data.model.n_series} indicators · as of ${data.as_of}` : ''}</>} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           {data && tab === 'news' && quarter && <QuarterPicker quarters={open} value={quarter} onChange={setQuarter} />}
+          {data && <RefitControl status={status} onRefit={() => post('/refit')} />}
           {data && <SourceBadge source={data.data_source} missing={data.missing_series.length} />}
         </div>
       </header>
 
       <main style={{ padding: '20px 24px' }}>
         {error && <div style={{ color: neg, fontSize: 13, marginBottom: 12 }}>Failed to load: {error}</div>}
-        {!data && !error && <div style={{ color: fg[3], fontSize: 13 }}>Estimating the model (up to a minute after a restart)…</div>}
+        {!data && !error && <div style={{ color: fg[3], fontSize: 13 }}>Loading the nowcast (the first run estimates the model, about a minute)…</div>}
         {data && (
           <div style={{ display: 'grid', gap: 16 }}>
             <Tabs value={tab} onChange={setTab} />
             {tab === 'nowcast' && <NowcastTab data={data} />}
             {tab === 'news' && quarter && <NewsTab data={data} quarter={quarter} names={names} />}
-            {tab === 'backtest' && <BacktestTab slug={meta.slug} />}
-            {tab === 'model' && <ModelTab data={data} />}
+            {tab === 'backtest' && <BacktestTab bt={bt} error={btError} job={status?.jobs.backtest} onRun={() => post('/backtest')} />}
+            {tab === 'model' && <div style={{ display: 'grid', gap: 16 }}><ModelTab data={data} /><VintagesCard data={data} /></div>}
           </div>
         )}
       </main>

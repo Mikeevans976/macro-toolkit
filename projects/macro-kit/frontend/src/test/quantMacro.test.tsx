@@ -9,6 +9,7 @@ import NowcastPage from '../features/quant-macro/NowcastPage'
 import { dayLabel, monthLabel, quarterLabel, signed } from '../features/quant-macro/ui'
 import payload from './fixtures/quant-macro-uk-gdp.json'
 import backtest from './fixtures/quant-macro-uk-gdp-backtest.json'
+import status from './fixtures/quant-macro-uk-gdp-status.json'
 
 vi.mock('recharts', async importOriginal => {
   const mod = await importOriginal<typeof import('recharts')>()
@@ -19,12 +20,24 @@ vi.mock('recharts', async importOriginal => {
   }
 })
 
-function stubApi(body: unknown = payload) {
-  const fetchMock = vi.fn(async (url: string) =>
-    new Response(JSON.stringify(url.endsWith('/backtest') ? backtest : body), { status: 200 }))
+const runningJob = (kind: string) => ({
+  ...status, jobs: { ...status.jobs, [kind]: { kind, state: 'running', step: 'Re-estimating on data public on 01 Jan 2024', progress: 3, total: 12, started_at: '2026-10-19T12:00:00', finished_at: null, error: null } },
+})
+
+function stubApi(body: unknown = payload, saved: unknown = backtest) {
+  const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+    const post = init?.method === 'POST'
+    const out = url.endsWith('/status') ? status
+      : url.endsWith('/refit') ? runningJob('refit')
+      : url.endsWith('/backtest') ? (post ? runningJob('backtest') : saved)
+      : body
+    return new Response(JSON.stringify(out), { status: 200 })
+  })
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
 }
+
+const calls = (m: ReturnType<typeof stubApi>) => m.mock.calls.map(c => [String(c[0]), (c[1] as RequestInit | undefined)?.method ?? 'GET'])
 
 describe('NowcastPage', () => {
   afterEach(() => vi.unstubAllGlobals())
@@ -53,7 +66,7 @@ describe('NowcastPage', () => {
     const dates = [...payload.indicators].map(i => i.next_release!).sort()
     expect(within(rows[0]).getByText(dayLabel(dates[0]))).toBeTruthy()
     const nReleases = payload.evolution.slice(1).reduce((n, s) => n + s.releases.length, 0)
-    const past = (await screen.findByText(/Releases since/)).parentElement!
+    const past = (await screen.findByText(/Releases and revisions since/)).parentElement!
     expect(within(past).getAllByRole('row').length).toBe(nReleases + 1)
     // the quarter picker switches the impacts
     const other = payload.quarters.filter(q => q.status !== 'released').map(q => q.quarter)[1]
@@ -61,14 +74,40 @@ describe('NowcastPage', () => {
     expect(screen.getByText(new RegExp(`${quarterLabel(other)} nowcast through the data flow`))).toBeTruthy()
   })
 
-  it('loads the backtest on demand', async () => {
+  it('shows the saved backtest and runs a new one only on request', async () => {
     const fetchMock = stubApi()
     render(<NowcastPage slug="uk-gdp" />)
     await screen.findByText('Next print')
+    expect(calls(fetchMock).some(([u]) => u.endsWith('/backtest'))).toBe(false)
     fireEvent.click(screen.getByRole('tab', { name: 'Track record' }))
     expect(await screen.findByText('Error statistics')).toBeTruthy()
-    expect(fetchMock.mock.calls.some(c => String(c[0]).endsWith('/uk-gdp/backtest'))).toBe(true)
     expect(screen.getAllByText(quarterLabel(backtest.rows[0].quarter)).length).toBe(1)
+    expect(calls(fetchMock).some(([u, m]) => u.endsWith('/backtest') && m === 'POST')).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: 'Run full backtest' }))
+    expect(await screen.findByRole('button', { name: 'Running…' })).toBeTruthy()
+    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('25')
+    expect(calls(fetchMock)).toContainEqual(['/api/tools/quant-macro/uk-gdp/backtest', 'POST'])
+  })
+
+  it('offers to run the backtest when none is saved', async () => {
+    stubApi(payload, null)
+    render(<NowcastPage slug="uk-gdp" />)
+    await screen.findByText('Next print')
+    fireEvent.click(screen.getByRole('tab', { name: 'Track record' }))
+    expect(await screen.findByText(/No backtest has been run yet/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Run full backtest' })).toBeTruthy()
+    expect(screen.queryByText('Error statistics')).toBeNull()
+  })
+
+  it('refits only when asked', async () => {
+    const fetchMock = stubApi()
+    render(<NowcastPage slug="uk-gdp" />)
+    await screen.findByText('Next print')
+    expect(await screen.findByText(/Model fitted/)).toBeTruthy()
+    expect(calls(fetchMock).some(([u]) => u.endsWith('/refit'))).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: 'Refit' }))
+    expect(await screen.findByRole('button', { name: 'Refitting…' })).toBeTruthy()
+    expect(calls(fetchMock)).toContainEqual(['/api/tools/quant-macro/uk-gdp/refit', 'POST'])
   })
 
   it('shows the model description and the indicator panel', async () => {
@@ -79,6 +118,8 @@ describe('NowcastPage', () => {
     expect(screen.getByText(/How the nowcast is built/)).toBeTruthy()
     for (const i of payload.indicators) expect(screen.getAllByText(i.ticker).length).toBe(1)
     expect(screen.getAllByText(monthLabel(payload.indicators[0].last_period!)).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText(/where each indicator's first prints and revisions come from/)).toBeTruthy()
+    expect(screen.getByText(payload.indicators[0].vintages)).toBeTruthy()
   })
 
   it('reports a stale backend instead of crashing', async () => {

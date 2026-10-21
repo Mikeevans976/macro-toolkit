@@ -3462,6 +3462,10 @@
        }
       ]
      },
+     "computed_at": {
+      "title": "Computed At",
+      "type": "string"
+     },
      "country": {
       "title": "Country",
       "type": "string"
@@ -3534,6 +3538,7 @@
      "country",
      "target_label",
      "as_of",
+     "computed_at",
      "data_source",
      "missing_series",
      "model",
@@ -3562,12 +3567,31 @@
       "title": "Data Source",
       "type": "string"
      },
+     "duration_s": {
+      "title": "Duration S",
+      "type": "number"
+     },
+     "first_estimate_revision_rmse": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "First Estimate Revision Rmse"
+     },
      "horizons": {
       "items": {
        "type": "integer"
       },
       "title": "Horizons",
       "type": "array"
+     },
+     "n_fits": {
+      "title": "N Fits",
+      "type": "integer"
      },
      "note": {
       "title": "Note",
@@ -3579,6 +3603,10 @@
       },
       "title": "Rows",
       "type": "array"
+     },
+     "run_at": {
+      "title": "Run At",
+      "type": "string"
      },
      "slug": {
       "title": "Slug",
@@ -3595,8 +3623,12 @@
     "required": [
      "slug",
      "as_of",
+     "run_at",
+     "duration_s",
      "data_source",
      "horizons",
+     "n_fits",
+     "first_estimate_revision_rmse",
      "rows",
      "summary",
      "note"
@@ -3616,6 +3648,17 @@
        }
       ],
       "title": "Actual"
+     },
+     "actual_latest": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Actual Latest"
      },
      "bridge": {
       "items": {
@@ -3679,6 +3722,7 @@
      "quarter",
      "release_date",
      "actual",
+     "actual_latest",
      "dfm",
      "bridge",
      "naive"
@@ -3713,12 +3757,24 @@
        }
       ],
       "title": "Rmse"
+     },
+     "rmse_latest": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rmse Latest"
      }
     },
     "required": [
      "rmse",
      "bias",
-     "n"
+     "n",
+     "rmse_latest"
     ],
     "title": "NowcastBacktestStats",
     "type": "object"
@@ -4178,6 +4234,10 @@
       "title": "Units",
       "type": "string"
      },
+     "vintages": {
+      "title": "Vintages",
+      "type": "string"
+     },
      "weights": {
       "additionalProperties": {
        "anyOf": [
@@ -4201,6 +4261,7 @@
      "units",
      "ticker",
      "transform",
+     "vintages",
      "global_loading",
      "last_period",
      "last_value",
@@ -4218,6 +4279,113 @@
      "typical_impacts"
     ],
     "title": "NowcastIndicator",
+    "type": "object"
+   },
+   "NowcastJob": {
+    "properties": {
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "finished_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Finished At"
+     },
+     "kind": {
+      "enum": [
+       "update",
+       "refit",
+       "backtest"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "progress": {
+      "title": "Progress",
+      "type": "integer"
+     },
+     "started_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Started At"
+     },
+     "state": {
+      "enum": [
+       "idle",
+       "running",
+       "done",
+       "error"
+      ],
+      "title": "State",
+      "type": "string"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     },
+     "total": {
+      "title": "Total",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "kind",
+     "state",
+     "step",
+     "progress",
+     "total",
+     "started_at",
+     "finished_at",
+     "error"
+    ],
+    "title": "NowcastJob",
+    "type": "object"
+   },
+   "NowcastJobs": {
+    "properties": {
+     "backtest": {
+      "$ref": "#/components/schemas/NowcastJob"
+     },
+     "refit": {
+      "$ref": "#/components/schemas/NowcastJob"
+     },
+     "update": {
+      "$ref": "#/components/schemas/NowcastJob"
+     }
+    },
+    "required": [
+     "update",
+     "refit",
+     "backtest"
+    ],
+    "title": "NowcastJobs",
     "type": "object"
    },
    "NowcastModelInfo": {
@@ -4246,6 +4414,28 @@
       },
       "title": "Factor Orders",
       "type": "object"
+     },
+     "fit_data_as_of": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fit Data As Of"
+     },
+     "fitted_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fitted At"
      },
      "last_data": {
       "title": "Last Data",
@@ -4284,7 +4474,9 @@
      "last_data",
      "excluded",
      "loglik",
-     "em_iterations"
+     "em_iterations",
+     "fitted_at",
+     "fit_data_as_of"
     ],
     "title": "NowcastModelInfo",
     "type": "object"
@@ -4862,6 +5054,14 @@
       "title": "Impacts",
       "type": "object"
      },
+     "kind": {
+      "enum": [
+       "release",
+       "revision"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
      "news": {
       "anyOf": [
        {
@@ -4895,6 +5095,7 @@
     },
     "required": [
      "series_id",
+     "kind",
      "period",
      "observed",
      "expected",
@@ -4902,6 +5103,83 @@
      "impacts"
     ],
     "title": "NowcastRelease",
+    "type": "object"
+   },
+   "NowcastStatus": {
+    "properties": {
+     "backtest_run_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Backtest Run At"
+     },
+     "jobs": {
+      "$ref": "#/components/schemas/NowcastJobs"
+     },
+     "model_data_as_of": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model Data As Of"
+     },
+     "model_fitted_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model Fitted At"
+     },
+     "nowcast_as_of": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nowcast As Of"
+     },
+     "nowcast_computed_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nowcast Computed At"
+     },
+     "slug": {
+      "title": "Slug",
+      "type": "string"
+     }
+    },
+    "required": [
+     "slug",
+     "model_fitted_at",
+     "model_data_as_of",
+     "nowcast_as_of",
+     "nowcast_computed_at",
+     "backtest_run_at",
+     "jobs"
+    ],
+    "title": "NowcastStatus",
     "type": "object"
    },
    "NowcastStep": {
@@ -10137,7 +10415,7 @@
   },
   "/api/tools/quant-macro/{model}": {
    "get": {
-    "description": "Nowcast, next print, news since the quarter began, catalysts and the central bank's estimates.",
+    "description": "Last computed nowcast (refreshed in the background when stale; computed here only on first use).",
     "operationId": "quant_macro_nowcast_api_tools_quant_macro__model__get",
     "parameters": [
      {
@@ -10182,7 +10460,7 @@
   },
   "/api/tools/quant-macro/{model}/backtest": {
    "get": {
-    "description": "Pseudo-real-time nowcast errors at fixed days before each first estimate (slow on first call).",
+    "description": "Last saved real-time backtest (null if none has been run).",
     "operationId": "quant_macro_backtest_api_tools_quant_macro__model__backtest_get",
     "parameters": [
      {
@@ -10200,7 +10478,15 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/NowcastBacktest"
+         "anyOf": [
+          {
+           "$ref": "#/components/schemas/NowcastBacktest"
+          },
+          {
+           "type": "null"
+          }
+         ],
+         "title": "Response Quant Macro Backtest Api Tools Quant Macro  Model  Backtest Get"
         }
        }
       },
@@ -10223,6 +10509,139 @@
      }
     ],
     "summary": "Quant Macro Backtest"
+   },
+   "post": {
+    "description": "Run the full real-time backtest, re-estimating every quarter (background job, ~15\u201320 min).",
+    "operationId": "quant_macro_run_backtest_api_tools_quant_macro__model__backtest_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "model",
+      "required": true,
+      "schema": {
+       "title": "Model",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NowcastStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Quant Macro Run Backtest"
+   }
+  },
+  "/api/tools/quant-macro/{model}/refit": {
+   "post": {
+    "description": "Re-estimate the parameters on today's data, then recompute the nowcast (background job).",
+    "operationId": "quant_macro_refit_api_tools_quant_macro__model__refit_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "model",
+      "required": true,
+      "schema": {
+       "title": "Model",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NowcastStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Quant Macro Refit"
+   }
+  },
+  "/api/tools/quant-macro/{model}/status": {
+   "get": {
+    "description": "When the model was fitted, the nowcast computed and the backtest run, and any running jobs.",
+    "operationId": "quant_macro_status_api_tools_quant_macro__model__status_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "model",
+      "required": true,
+      "schema": {
+       "title": "Model",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NowcastStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Quant Macro Status"
    }
   },
   "/api/tools/seasonality/backtest": {

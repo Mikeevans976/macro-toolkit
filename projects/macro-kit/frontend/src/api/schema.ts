@@ -1286,7 +1286,7 @@ export interface paths {
         };
         /**
          * Quant Macro Nowcast
-         * @description Nowcast, next print, news since the quarter began, catalysts and the central bank's estimates.
+         * @description Last computed nowcast (refreshed in the background when stale; computed here only on first use).
          */
         get: operations["quant_macro_nowcast_api_tools_quant_macro__model__get"];
         put?: never;
@@ -1306,9 +1306,53 @@ export interface paths {
         };
         /**
          * Quant Macro Backtest
-         * @description Pseudo-real-time nowcast errors at fixed days before each first estimate (slow on first call).
+         * @description Last saved real-time backtest (null if none has been run).
          */
         get: operations["quant_macro_backtest_api_tools_quant_macro__model__backtest_get"];
+        put?: never;
+        /**
+         * Quant Macro Run Backtest
+         * @description Run the full real-time backtest, re-estimating every quarter (background job, ~15–20 min).
+         */
+        post: operations["quant_macro_run_backtest_api_tools_quant_macro__model__backtest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro/{model}/refit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Quant Macro Refit
+         * @description Re-estimate the parameters on today's data, then recompute the nowcast (background job).
+         */
+        post: operations["quant_macro_refit_api_tools_quant_macro__model__refit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro/{model}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Quant Macro Status
+         * @description When the model was fitted, the nowcast computed and the backtest run, and any running jobs.
+         */
+        get: operations["quant_macro_status_api_tools_quant_macro__model__status_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2669,6 +2713,8 @@ export interface components {
             as_of: string;
             bridge: components["schemas"]["NowcastBridge"] | null;
             central_bank: components["schemas"]["NowcastCentralBank"] | null;
+            /** Computed At */
+            computed_at: string;
             /** Country */
             country: string;
             /**
@@ -2704,12 +2750,20 @@ export interface components {
              * @enum {string}
              */
             data_source: "live" | "simulation";
+            /** Duration S */
+            duration_s: number;
+            /** First Estimate Revision Rmse */
+            first_estimate_revision_rmse: number | null;
             /** Horizons */
             horizons: number[];
+            /** N Fits */
+            n_fits: number;
             /** Note */
             note: string;
             /** Rows */
             rows: components["schemas"]["NowcastBacktestRow"][];
+            /** Run At */
+            run_at: string;
             /** Slug */
             slug: string;
             /** Summary */
@@ -2719,6 +2773,8 @@ export interface components {
         NowcastBacktestRow: {
             /** Actual */
             actual: number | null;
+            /** Actual Latest */
+            actual_latest: number | null;
             /** Bridge */
             bridge: (number | null)[];
             /** Dfm */
@@ -2738,6 +2794,8 @@ export interface components {
             n: number;
             /** Rmse */
             rmse: number | null;
+            /** Rmse Latest */
+            rmse_latest: number | null;
         };
         /** NowcastBacktestSummary */
         NowcastBacktestSummary: {
@@ -2857,10 +2915,43 @@ export interface components {
             typical_surprise: number | null;
             /** Units */
             units: string;
+            /** Vintages */
+            vintages: string;
             /** Weights */
             weights: {
                 [key: string]: number | null;
             };
+        };
+        /** NowcastJob */
+        NowcastJob: {
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "update" | "refit" | "backtest";
+            /** Progress */
+            progress: number;
+            /** Started At */
+            started_at: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "idle" | "running" | "done" | "error";
+            /** Step */
+            step: string | null;
+            /** Total */
+            total: number;
+        };
+        /** NowcastJobs */
+        NowcastJobs: {
+            backtest: components["schemas"]["NowcastJob"];
+            refit: components["schemas"]["NowcastJob"];
+            update: components["schemas"]["NowcastJob"];
         };
         /** NowcastModelInfo */
         NowcastModelInfo: {
@@ -2874,6 +2965,10 @@ export interface components {
             factor_orders: {
                 [key: string]: number;
             };
+            /** Fit Data As Of */
+            fit_data_as_of: string | null;
+            /** Fitted At */
+            fitted_at: string | null;
             /** Last Data */
             last_data: string;
             /** Loglik */
@@ -3011,6 +3106,11 @@ export interface components {
             impacts: {
                 [key: string]: number | null;
             };
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "release" | "revision";
             /** News */
             news: number | null;
             /** Observed */
@@ -3019,6 +3119,22 @@ export interface components {
             period: string;
             /** Series Id */
             series_id: string;
+        };
+        /** NowcastStatus */
+        NowcastStatus: {
+            /** Backtest Run At */
+            backtest_run_at: string | null;
+            jobs: components["schemas"]["NowcastJobs"];
+            /** Model Data As Of */
+            model_data_as_of: string | null;
+            /** Model Fitted At */
+            model_fitted_at: string | null;
+            /** Nowcast As Of */
+            nowcast_as_of: string | null;
+            /** Nowcast Computed At */
+            nowcast_computed_at: string | null;
+            /** Slug */
+            slug: string;
         };
         /** NowcastStep */
         NowcastStep: {
@@ -5609,7 +5725,100 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NowcastBacktest"];
+                    "application/json": components["schemas"]["NowcastBacktest"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    quant_macro_run_backtest_api_tools_quant_macro__model__backtest_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                model: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NowcastStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    quant_macro_refit_api_tools_quant_macro__model__refit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                model: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NowcastStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    quant_macro_status_api_tools_quant_macro__model__status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                model: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NowcastStatus"];
                 };
             };
             /** @description Validation Error */
