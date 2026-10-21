@@ -1,0 +1,49 @@
+{
+  "country": "GB",
+  "source": "HM Treasury, Charter for Budget Responsibility (autumn 2024); OBR assessments since the October 2024 Budget",
+  "target_year": "2029-30",
+  "target_note": "Both rules are assessed in 2029-30 until it becomes the third year of the forecast, then in the third year (rolling). Since the November 2025 Budget the OBR formally assesses the rules once a year, at the Budget.",
+  "rules": [
+    {
+      "id": "stability",
+      "name": "Stability rule",
+      "measure": "Current budget",
+      "description": "Current budget (receipts less day-to-day spending, including debt interest) in balance or surplus in the target year. Headroom = current budget surplus, £bn."
+    },
+    {
+      "id": "investment",
+      "name": "Investment rule",
+      "measure": "PSNFL",
+      "description": "Public sector net financial liabilities falling as a share of GDP in the target year. Headroom = fall in the ratio, shown in £bn at that year's GDP."
+    }
+  ],
+  "issuance_mix": {
+    "note": "Assumed split of gross financing (a typical recent DMO remit); edit to match the current remit.",
+    "short": {"share": 0.33, "maturity": 3},
+    "medium": {"share": 0.30, "maturity": 8},
+    "long": {"share": 0.17, "maturity": 25},
+    "index_linked": {"share": 0.10, "maturity": 20},
+    "bills": {"share": 0.10, "maturity": 0.5}
+  },
+  "synthetic_register": {
+    "note": "Used until a DMO gilts-in-issue (D1A) file is uploaded. Shares and maturities are approximate published DMO aggregates; coupons are calibrated to the interest the ONS records.",
+    "linker_share": 0.24,
+    "avg_maturity_conventional": 13.0,
+    "avg_maturity_linkers": 17.0,
+    "max_maturity": 50
+  },
+  "apf": {
+    "note": "OBR March 2026 assumption: £65bn a year reduction in the APF (redemptions plus £32bn of active sales).",
+    "reduction_per_year_bn": 65,
+    "average_price": 0.80
+  },
+  "extension": {
+    "note": "Years after the OBR horizon: real growth, GDP deflator and primary balance held at the OBR's final year; rates from the market curves.",
+    "last_year": "2035-36"
+  },
+  "cyclical": {
+    "note": "Semi-elasticity of the primary balance to the output gap (OBR cyclical adjustment is about 0.5–0.6) and output-gap persistence.",
+    "pb_semi_elasticity": 0.55,
+    "gap_persistence": 0.6
+  }
+}

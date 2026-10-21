@@ -177,6 +177,20 @@
     "title": "BasisPoint",
     "type": "object"
    },
+   "Body_dsa_upload_api_tools_quant_macro_dsa__country__upload_post": {
+    "properties": {
+     "file": {
+      "contentMediaType": "application/octet-stream",
+      "title": "File",
+      "type": "string"
+     }
+    },
+    "required": [
+     "file"
+    ],
+    "title": "Body_dsa_upload_api_tools_quant_macro_dsa__country__upload_post",
+    "type": "object"
+   },
    "Body_login_api_auth_login_post": {
     "properties": {
      "client_id": {
@@ -1073,6 +1087,2237 @@
      "missing_series"
     ],
     "title": "DataSources",
+    "type": "object"
+   },
+   "DebtSustainability": {
+    "properties": {
+     "as_of": {
+      "title": "As Of",
+      "type": "string"
+     },
+     "computed_at": {
+      "title": "Computed At",
+      "type": "string"
+     },
+     "country": {
+      "title": "Country",
+      "type": "string"
+     },
+     "dynamics": {
+      "$ref": "#/components/schemas/DsaDynamics"
+     },
+     "fan": {
+      "$ref": "#/components/schemas/DsaFan"
+     },
+     "financing": {
+      "$ref": "#/components/schemas/DsaFinancing"
+     },
+     "interest": {
+      "$ref": "#/components/schemas/DsaInterest"
+     },
+     "market": {
+      "$ref": "#/components/schemas/DsaMarket"
+     },
+     "model": {
+      "$ref": "#/components/schemas/DsaModel"
+     },
+     "probabilities": {
+      "$ref": "#/components/schemas/DsaProbabilities"
+     },
+     "projection": {
+      "items": {
+       "$ref": "#/components/schemas/DsaProjectionRow"
+      },
+      "title": "Projection",
+      "type": "array"
+     },
+     "rules": {
+      "items": {
+       "$ref": "#/components/schemas/DsaRule"
+      },
+      "title": "Rules",
+      "type": "array"
+     },
+     "scenarios": {
+      "items": {
+       "$ref": "#/components/schemas/DsaScenario"
+      },
+      "title": "Scenarios",
+      "type": "array"
+     },
+     "slug": {
+      "title": "Slug",
+      "type": "string"
+     },
+     "sources": {
+      "$ref": "#/components/schemas/DsaSources"
+     },
+     "target_year": {
+      "title": "Target Year",
+      "type": "string"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     },
+     "tracker": {
+      "$ref": "#/components/schemas/DsaTracker"
+     }
+    },
+    "required": [
+     "slug",
+     "title",
+     "country",
+     "as_of",
+     "computed_at",
+     "target_year",
+     "sources",
+     "rules",
+     "projection",
+     "fan",
+     "probabilities",
+     "dynamics",
+     "interest",
+     "financing",
+     "scenarios",
+     "tracker",
+     "market",
+     "model"
+    ],
+    "title": "DebtSustainability",
+    "type": "object"
+   },
+   "DsaAttribution": {
+    "properties": {
+     "bank_rate": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Bank Rate"
+     },
+     "gilts": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gilts"
+     },
+     "inflation": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Inflation"
+     },
+     "time": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Time"
+     }
+    },
+    "required": [
+     "time",
+     "bank_rate",
+     "gilts",
+     "inflation"
+    ],
+    "title": "DsaAttribution",
+    "type": "object"
+   },
+   "DsaCurvePoint": {
+    "properties": {
+     "latest": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest"
+     },
+     "maturity": {
+      "title": "Maturity",
+      "type": "number"
+     },
+     "obr_window": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Window"
+     },
+     "ois_latest": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ois Latest"
+     }
+    },
+    "required": [
+     "maturity",
+     "latest",
+     "obr_window",
+     "ois_latest"
+    ],
+    "title": "DsaCurvePoint",
+    "type": "object"
+   },
+   "DsaDynamics": {
+    "properties": {
+     "history": {
+      "items": {
+       "$ref": "#/components/schemas/DsaDynamicsRow"
+      },
+      "title": "History",
+      "type": "array"
+     },
+     "market": {
+      "items": {
+       "$ref": "#/components/schemas/DsaDynamicsRow"
+      },
+      "title": "Market",
+      "type": "array"
+     },
+     "obr": {
+      "items": {
+       "$ref": "#/components/schemas/DsaDynamicsRow"
+      },
+      "title": "Obr",
+      "type": "array"
+     }
+    },
+    "required": [
+     "history",
+     "obr",
+     "market"
+    ],
+    "title": "DsaDynamics",
+    "type": "object"
+   },
+   "DsaDynamicsRow": {
+    "properties": {
+     "change": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Change"
+     },
+     "debt": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Debt"
+     },
+     "effective_rate": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Effective Rate"
+     },
+     "growth": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Growth"
+     },
+     "interest": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Interest"
+     },
+     "nominal_growth": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nominal Growth"
+     },
+     "other": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Other"
+     },
+     "primary": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Primary"
+     },
+     "r_minus_g": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "R Minus G"
+     },
+     "stabilising_primary": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stabilising Primary"
+     },
+     "year": {
+      "title": "Year",
+      "type": "string"
+     }
+    },
+    "required": [
+     "year",
+     "debt",
+     "change",
+     "growth",
+     "interest",
+     "primary",
+     "other",
+     "effective_rate",
+     "nominal_growth",
+     "r_minus_g",
+     "stabilising_primary"
+    ],
+    "title": "DsaDynamicsRow",
+    "type": "object"
+   },
+   "DsaFan": {
+    "properties": {
+     "interest_receipts": {
+      "items": {
+       "$ref": "#/components/schemas/DsaFanRow"
+      },
+      "title": "Interest Receipts",
+      "type": "array"
+     },
+     "psnb_pct": {
+      "items": {
+       "$ref": "#/components/schemas/DsaFanRow"
+      },
+      "title": "Psnb Pct",
+      "type": "array"
+     },
+     "psnd_pct": {
+      "items": {
+       "$ref": "#/components/schemas/DsaFanRow"
+      },
+      "title": "Psnd Pct",
+      "type": "array"
+     },
+     "psnfl_pct": {
+      "items": {
+       "$ref": "#/components/schemas/DsaFanRow"
+      },
+      "title": "Psnfl Pct",
+      "type": "array"
+     }
+    },
+    "required": [
+     "psnfl_pct",
+     "psnd_pct",
+     "psnb_pct",
+     "interest_receipts"
+    ],
+    "title": "DsaFan",
+    "type": "object"
+   },
+   "DsaFanRow": {
+    "properties": {
+     "p10": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P10"
+     },
+     "p25": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P25"
+     },
+     "p5": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P5"
+     },
+     "p50": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P50"
+     },
+     "p75": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P75"
+     },
+     "p90": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P90"
+     },
+     "p95": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P95"
+     },
+     "year": {
+      "title": "Year",
+      "type": "string"
+     }
+    },
+    "required": [
+     "year",
+     "p5",
+     "p10",
+     "p25",
+     "p50",
+     "p75",
+     "p90",
+     "p95"
+    ],
+    "title": "DsaFanRow",
+    "type": "object"
+   },
+   "DsaFinancing": {
+    "properties": {
+     "apf_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Apf Bn"
+     },
+     "apf_share": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Apf Share"
+     },
+     "as_of": {
+      "title": "As Of",
+      "type": "string"
+     },
+     "avg_maturity_conventional": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg Maturity Conventional"
+     },
+     "avg_maturity_linkers": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg Maturity Linkers"
+     },
+     "bills_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Bills Bn"
+     },
+     "debt_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Debt Bn"
+     },
+     "floating_share": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Floating Share"
+     },
+     "gilts_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gilts Bn"
+     },
+     "gross": {
+      "items": {
+       "$ref": "#/components/schemas/DsaGross"
+      },
+      "title": "Gross",
+      "type": "array"
+     },
+     "linker_share": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Linker Share"
+     },
+     "nsandi_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nsandi Bn"
+     },
+     "profile": {
+      "items": {
+       "$ref": "#/components/schemas/DsaMaturity"
+      },
+      "title": "Profile",
+      "type": "array"
+     },
+     "repricing_1y_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Repricing 1Y Bn"
+     },
+     "reserves_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reserves Bn"
+     }
+    },
+    "required": [
+     "profile",
+     "gross",
+     "gilts_bn",
+     "linker_share",
+     "avg_maturity_conventional",
+     "avg_maturity_linkers",
+     "bills_bn",
+     "nsandi_bn",
+     "reserves_bn",
+     "apf_bn",
+     "apf_share",
+     "floating_share",
+     "repricing_1y_bn",
+     "debt_bn",
+     "as_of"
+    ],
+    "title": "DsaFinancing",
+    "type": "object"
+   },
+   "DsaGauge": {
+    "properties": {
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "latest": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest"
+     },
+     "obr_window": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Window"
+     },
+     "unit": {
+      "title": "Unit",
+      "type": "string"
+     },
+     "year_ago": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Year Ago"
+     }
+    },
+    "required": [
+     "id",
+     "label",
+     "unit",
+     "latest",
+     "obr_window",
+     "year_ago"
+    ],
+    "title": "DsaGauge",
+    "type": "object"
+   },
+   "DsaGross": {
+    "properties": {
+     "gross": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gross"
+     },
+     "gross_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gross Pct"
+     },
+     "net_need": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Net Need"
+     },
+     "redemptions": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Redemptions"
+     },
+     "year": {
+      "title": "Year",
+      "type": "string"
+     }
+    },
+    "required": [
+     "year",
+     "redemptions",
+     "net_need",
+     "gross",
+     "gross_pct"
+    ],
+    "title": "DsaGross",
+    "type": "object"
+   },
+   "DsaHistoryPoint": {
+    "properties": {
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value"
+     }
+    },
+    "required": [
+     "date",
+     "value"
+    ],
+    "title": "DsaHistoryPoint",
+    "type": "object"
+   },
+   "DsaInterest": {
+    "properties": {
+     "history": {
+      "items": {
+       "$ref": "#/components/schemas/DsaInterestHistory"
+      },
+      "title": "History",
+      "type": "array"
+     },
+     "obr_reckoner": {
+      "$ref": "#/components/schemas/DsaReckoner"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/DsaInterestRow"
+      },
+      "title": "Rows",
+      "type": "array"
+     }
+    },
+    "required": [
+     "rows",
+     "history",
+     "obr_reckoner"
+    ],
+    "title": "DsaInterest",
+    "type": "object"
+   },
+   "DsaInterestHistory": {
+    "properties": {
+     "apf": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Apf"
+     },
+     "interest": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Interest"
+     },
+     "uplift": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Uplift"
+     },
+     "year": {
+      "title": "Year",
+      "type": "string"
+     }
+    },
+    "required": [
+     "year",
+     "interest",
+     "uplift",
+     "apf"
+    ],
+    "title": "DsaInterestHistory",
+    "type": "object"
+   },
+   "DsaInterestRow": {
+    "properties": {
+     "apf_offset": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Apf Offset"
+     },
+     "change": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Change"
+     },
+     "conventional": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Conventional"
+     },
+     "effective_rate": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Effective Rate"
+     },
+     "floating": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Floating"
+     },
+     "index_linked": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Index Linked"
+     },
+     "kind": {
+      "enum": [
+       "forecast",
+       "extension"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "market": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market"
+     },
+     "model_obr_curves": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model Obr Curves"
+     },
+     "model_total": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model Total"
+     },
+     "obr": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr"
+     },
+     "sens_bank_rate_100": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sens Bank Rate 100"
+     },
+     "sens_gilts_100": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sens Gilts 100"
+     },
+     "sens_rates_100": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sens Rates 100"
+     },
+     "sens_rpi_100": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sens Rpi 100"
+     },
+     "year": {
+      "title": "Year",
+      "type": "string"
+     }
+    },
+    "required": [
+     "year",
+     "kind",
+     "obr",
+     "market",
+     "change",
+     "conventional",
+     "index_linked",
+     "floating",
+     "apf_offset",
+     "model_total",
+     "model_obr_curves",
+     "effective_rate",
+     "sens_rates_100",
+     "sens_bank_rate_100",
+     "sens_gilts_100",
+     "sens_rpi_100"
+    ],
+    "title": "DsaInterestRow",
+    "type": "object"
+   },
+   "DsaJob": {
+    "properties": {
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "finished_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Finished At"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "started_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Started At"
+     },
+     "state": {
+      "enum": [
+       "idle",
+       "running",
+       "done",
+       "error"
+      ],
+      "title": "State",
+      "type": "string"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     }
+    },
+    "required": [
+     "kind",
+     "state",
+     "step",
+     "started_at",
+     "finished_at",
+     "error"
+    ],
+    "title": "DsaJob",
+    "type": "object"
+   },
+   "DsaMarket": {
+    "properties": {
+     "curve": {
+      "items": {
+       "$ref": "#/components/schemas/DsaCurvePoint"
+      },
+      "title": "Curve",
+      "type": "array"
+     },
+     "gauges": {
+      "items": {
+       "$ref": "#/components/schemas/DsaGauge"
+      },
+      "title": "Gauges",
+      "type": "array"
+     },
+     "series": {
+      "items": {
+       "$ref": "#/components/schemas/DsaMarketPoint"
+      },
+      "title": "Series",
+      "type": "array"
+     }
+    },
+    "required": [
+     "gauges",
+     "series",
+     "curve"
+    ],
+    "title": "DsaMarket",
+    "type": "object"
+   },
+   "DsaMarketPoint": {
+    "properties": {
+     "date": {
+      "title": "Date",
+      "type": "string"
+     },
+     "gilt_10y": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gilt 10Y"
+     },
+     "gilt_30y": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gilt 30Y"
+     },
+     "gilt_ois_10y": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gilt Ois 10Y"
+     }
+    },
+    "required": [
+     "date",
+     "gilt_10y",
+     "gilt_30y",
+     "gilt_ois_10y"
+    ],
+    "title": "DsaMarketPoint",
+    "type": "object"
+   },
+   "DsaMaturity": {
+    "properties": {
+     "conventional": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Conventional"
+     },
+     "index_linked": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Index Linked"
+     },
+     "year": {
+      "title": "Year",
+      "type": "string"
+     }
+    },
+    "required": [
+     "year",
+     "conventional",
+     "index_linked"
+    ],
+    "title": "DsaMaturity",
+    "type": "object"
+   },
+   "DsaModel": {
+    "properties": {
+     "apf": {
+      "additionalProperties": true,
+      "title": "Apf",
+      "type": "object"
+     },
+     "bohn": {
+      "additionalProperties": true,
+      "title": "Bohn",
+      "type": "object"
+     },
+     "cyclical": {
+      "additionalProperties": true,
+      "title": "Cyclical",
+      "type": "object"
+     },
+     "extension_note": {
+      "title": "Extension Note",
+      "type": "string"
+     },
+     "issuance_mix": {
+      "additionalProperties": true,
+      "title": "Issuance Mix",
+      "type": "object"
+     },
+     "paths": {
+      "title": "Paths",
+      "type": "integer"
+     },
+     "rules_note": {
+      "title": "Rules Note",
+      "type": "string"
+     },
+     "var": {
+      "additionalProperties": true,
+      "title": "Var",
+      "type": "object"
+     }
+    },
+    "required": [
+     "var",
+     "bohn",
+     "paths",
+     "cyclical",
+     "issuance_mix",
+     "apf",
+     "rules_note",
+     "extension_note"
+    ],
+    "title": "DsaModel",
+    "type": "object"
+   },
+   "DsaProbabilities": {
+    "properties": {
+     "both": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Both"
+     },
+     "debt_above_100": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Debt Above 100"
+     },
+     "debt_falling_end": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Debt Falling End"
+     },
+     "end_year": {
+      "title": "End Year",
+      "type": "string"
+     },
+     "from_year": {
+      "title": "From Year",
+      "type": "string"
+     },
+     "investment": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Investment"
+     },
+     "stability": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stability"
+     }
+    },
+    "required": [
+     "stability",
+     "investment",
+     "both",
+     "debt_falling_end",
+     "debt_above_100",
+     "end_year",
+     "from_year"
+    ],
+    "title": "DsaProbabilities",
+    "type": "object"
+   },
+   "DsaProjectionRow": {
+    "properties": {
+     "cbd_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cbd Bn"
+     },
+     "interest_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Interest Bn"
+     },
+     "interest_receipts": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Interest Receipts"
+     },
+     "kind": {
+      "enum": [
+       "outturn",
+       "forecast",
+       "extension"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "obr_cbd_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Cbd Bn"
+     },
+     "obr_interest_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Interest Bn"
+     },
+     "obr_psnb_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Psnb Pct"
+     },
+     "obr_psnd_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Psnd Pct"
+     },
+     "obr_psnfl_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Psnfl Pct"
+     },
+     "psnb_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Psnb Pct"
+     },
+     "psnd_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Psnd Pct"
+     },
+     "psnfl_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Psnfl Pct"
+     },
+     "year": {
+      "title": "Year",
+      "type": "string"
+     }
+    },
+    "required": [
+     "year",
+     "kind",
+     "psnfl_pct",
+     "psnd_pct",
+     "psnb_pct",
+     "cbd_bn",
+     "interest_bn",
+     "interest_receipts",
+     "obr_psnfl_pct",
+     "obr_psnd_pct",
+     "obr_psnb_pct",
+     "obr_cbd_bn",
+     "obr_interest_bn"
+    ],
+    "title": "DsaProjectionRow",
+    "type": "object"
+   },
+   "DsaReckoner": {
+    "properties": {
+     "rates_1pp_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rates 1Pp Bn"
+     },
+     "rpi_1pp_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rpi 1Pp Bn"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Year"
+     }
+    },
+    "required": [
+     "rates_1pp_bn",
+     "rpi_1pp_bn",
+     "year"
+    ],
+    "title": "DsaReckoner",
+    "type": "object"
+   },
+   "DsaRule": {
+    "properties": {
+     "attribution": {
+      "$ref": "#/components/schemas/DsaAttribution"
+     },
+     "change_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Change Bn"
+     },
+     "description": {
+      "title": "Description",
+      "type": "string"
+     },
+     "history": {
+      "items": {
+       "$ref": "#/components/schemas/DsaHistoryPoint"
+      },
+      "title": "History",
+      "type": "array"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "market_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Bn"
+     },
+     "market_pp": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Pp"
+     },
+     "measure": {
+      "title": "Measure",
+      "type": "string"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "obr_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Bn"
+     },
+     "obr_pp": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Pp"
+     },
+     "probability": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Probability"
+     },
+     "unit": {
+      "title": "Unit",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "measure",
+     "description",
+     "unit",
+     "obr_bn",
+     "market_bn",
+     "change_bn",
+     "obr_pp",
+     "market_pp",
+     "attribution",
+     "probability",
+     "history"
+    ],
+    "title": "DsaRule",
+    "type": "object"
+   },
+   "DsaScenario": {
+    "properties": {
+     "description": {
+      "title": "Description",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "interest_end": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Interest End"
+     },
+     "investment_pp": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Investment Pp"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "paths": {
+      "items": {
+       "$ref": "#/components/schemas/DsaScenarioPoint"
+      },
+      "title": "Paths",
+      "type": "array"
+     },
+     "psnd_end": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Psnd End"
+     },
+     "stability_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stability Bn"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "description",
+     "stability_bn",
+     "investment_pp",
+     "psnd_end",
+     "interest_end",
+     "paths"
+    ],
+    "title": "DsaScenario",
+    "type": "object"
+   },
+   "DsaScenarioPoint": {
+    "properties": {
+     "interest_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Interest Bn"
+     },
+     "psnb_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Psnb Pct"
+     },
+     "psnd_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Psnd Pct"
+     },
+     "psnfl_pct": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Psnfl Pct"
+     },
+     "year": {
+      "title": "Year",
+      "type": "string"
+     }
+    },
+    "required": [
+     "year",
+     "psnfl_pct",
+     "psnd_pct",
+     "psnb_pct",
+     "interest_bn"
+    ],
+    "title": "DsaScenarioPoint",
+    "type": "object"
+   },
+   "DsaSources": {
+    "properties": {
+     "curves_cutoff": {
+      "title": "Curves Cutoff",
+      "type": "string"
+     },
+     "curves_latest": {
+      "title": "Curves Latest",
+      "type": "string"
+     },
+     "obr_cutoff": {
+      "title": "Obr Cutoff",
+      "type": "string"
+     },
+     "obr_edition": {
+      "title": "Obr Edition",
+      "type": "string"
+     },
+     "obr_source": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Source"
+     },
+     "pusf_editions": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Pusf Editions",
+      "type": "array"
+     },
+     "pusf_latest_month": {
+      "title": "Pusf Latest Month",
+      "type": "string"
+     },
+     "pusf_next_release": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pusf Next Release"
+     },
+     "pusf_release": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pusf Release"
+     },
+     "register_note": {
+      "title": "Register Note",
+      "type": "string"
+     },
+     "register_source": {
+      "enum": [
+       "dmo",
+       "reconstructed"
+      ],
+      "title": "Register Source",
+      "type": "string"
+     },
+     "register_upload": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Register Upload"
+     }
+    },
+    "required": [
+     "pusf_release",
+     "pusf_next_release",
+     "pusf_latest_month",
+     "pusf_editions",
+     "obr_edition",
+     "obr_source",
+     "obr_cutoff",
+     "curves_cutoff",
+     "curves_latest",
+     "register_source",
+     "register_note",
+     "register_upload"
+    ],
+    "title": "DsaSources",
+    "type": "object"
+   },
+   "DsaStatus": {
+    "properties": {
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of"
+     },
+     "computed_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Computed At"
+     },
+     "job": {
+      "$ref": "#/components/schemas/DsaJob"
+     },
+     "slug": {
+      "title": "Slug",
+      "type": "string"
+     }
+    },
+    "required": [
+     "slug",
+     "computed_at",
+     "as_of",
+     "job"
+    ],
+    "title": "DsaStatus",
+    "type": "object"
+   },
+   "DsaTracker": {
+    "properties": {
+     "implied_full_year_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Implied Full Year Bn"
+     },
+     "latest_month": {
+      "title": "Latest Month",
+      "type": "string"
+     },
+     "months": {
+      "items": {
+       "$ref": "#/components/schemas/DsaTrackerMonth"
+      },
+      "title": "Months",
+      "type": "array"
+     },
+     "months_observed": {
+      "title": "Months Observed",
+      "type": "integer"
+     },
+     "next_month": {
+      "title": "Next Month",
+      "type": "string"
+     },
+     "next_month_forecast_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Month Forecast Bn"
+     },
+     "next_release": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Release"
+     },
+     "obr_full_year_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Full Year Bn"
+     },
+     "previous_full_year_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Previous Full Year Bn"
+     },
+     "typical_share": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Typical Share"
+     },
+     "year": {
+      "title": "Year",
+      "type": "string"
+     },
+     "ytd_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ytd Bn"
+     },
+     "ytd_obr_profile_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ytd Obr Profile Bn"
+     },
+     "ytd_previous_bn": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ytd Previous Bn"
+     }
+    },
+    "required": [
+     "year",
+     "months_observed",
+     "latest_month",
+     "ytd_bn",
+     "ytd_previous_bn",
+     "ytd_obr_profile_bn",
+     "obr_full_year_bn",
+     "implied_full_year_bn",
+     "previous_full_year_bn",
+     "typical_share",
+     "next_release",
+     "next_month",
+     "next_month_forecast_bn",
+     "months"
+    ],
+    "title": "DsaTracker",
+    "type": "object"
+   },
+   "DsaTrackerMonth": {
+    "properties": {
+     "current": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Current"
+     },
+     "month": {
+      "title": "Month",
+      "type": "string"
+     },
+     "obr_profile": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obr Profile"
+     },
+     "previous": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Previous"
+     }
+    },
+    "required": [
+     "month",
+     "current",
+     "previous",
+     "obr_profile"
+    ],
+    "title": "DsaTrackerMonth",
+    "type": "object"
+   },
+   "DsaUpload": {
+    "properties": {
+     "detail": {
+      "title": "Detail",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "obr",
+       "dmo"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "status": {
+      "$ref": "#/components/schemas/DsaStatus"
+     }
+    },
+    "required": [
+     "kind",
+     "detail",
+     "status"
+    ],
+    "title": "DsaUpload",
     "type": "object"
    },
    "ExpiryChain": {
@@ -10413,6 +12658,196 @@
     "summary": "Quant Macro Models"
    }
   },
+  "/api/tools/quant-macro/dsa/{country}": {
+   "get": {
+    "description": "Debt sustainability monitor: OBR vs market baseline, live fiscal-rule headroom, fan charts,\nscenarios, debt interest, financing, the monthly borrowing tracker and market gauges.\nRefreshed in the background when over an hour old; computed here only on first use (~30 s).",
+    "operationId": "dsa_api_tools_quant_macro_dsa__country__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "country",
+      "required": true,
+      "schema": {
+       "title": "Country",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/DebtSustainability"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Dsa"
+   }
+  },
+  "/api/tools/quant-macro/dsa/{country}/refresh": {
+   "post": {
+    "description": "Download the latest data and recompute (background job).",
+    "operationId": "dsa_refresh_api_tools_quant_macro_dsa__country__refresh_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "country",
+      "required": true,
+      "schema": {
+       "title": "Country",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/DsaStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Dsa Refresh"
+   }
+  },
+  "/api/tools/quant-macro/dsa/{country}/status": {
+   "get": {
+    "description": "When the payload was computed, and the refresh job's progress.",
+    "operationId": "dsa_status_api_tools_quant_macro_dsa__country__status_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "country",
+      "required": true,
+      "schema": {
+       "title": "Country",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/DsaStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Dsa Status"
+   }
+  },
+  "/api/tools/quant-macro/dsa/{country}/upload": {
+   "post": {
+    "description": "Upload an OBR Economic and fiscal outlook (PDF) or the DMO gilts-in-issue report\n(D1A as CSV, XLSX or XML); then recompute in the background.",
+    "operationId": "dsa_upload_api_tools_quant_macro_dsa__country__upload_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "country",
+      "required": true,
+      "schema": {
+       "title": "Country",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_dsa_upload_api_tools_quant_macro_dsa__country__upload_post"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/DsaUpload"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Dsa Upload"
+   }
+  },
   "/api/tools/quant-macro/{model}": {
    "get": {
     "description": "Last computed nowcast (refreshed in the background when stale; computed here only on first use).",
@@ -10511,7 +12946,7 @@
     "summary": "Quant Macro Backtest"
    },
    "post": {
-    "description": "Run the full real-time backtest, re-estimating every quarter (background job, ~15\u201320 min).",
+    "description": "Run the full real-time backtest, re-estimating every quarter (background job, ~5\u201310 min).",
     "operationId": "quant_macro_run_backtest_api_tools_quant_macro__model__backtest_post",
     "parameters": [
      {

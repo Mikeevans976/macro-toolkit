@@ -1,0 +1,6545 @@
+{
+ "slug": "uk",
+ "title": "UK Debt Sustainability",
+ "country": "GB",
+ "as_of": "2026-10-20",
+ "computed_at": "2026-10-21T09:00:00",
+ "target_year": "2029-30",
+ "sources": {
+  "pusf_release": "2026-10-21",
+  "pusf_next_release": "20 November 2026",
+  "pusf_latest_month": "2026-09",
+  "pusf_editions": [
+   "2026-10-21"
+  ],
+  "obr_edition": "March 2026",
+  "obr_source": "https://obr.uk/efo/economic-and-fiscal-outlook-march-2026/",
+  "obr_cutoff": "2026-01-30",
+  "curves_cutoff": "2026-01-30",
+  "curves_latest": "2026-10-20",
+  "register_source": "reconstructed",
+  "register_note": "Reconstructed from ONS totals (\u00a32,498bn of gilts, 24% index-linked, average maturity 13y conventional / 17y linkers); conventional coupon 2.64% calibrated to the \u00a366.2bn of interest the ONS recorded in the last complete year. Upload the DMO gilts-in-issue (D1A) report for the gilt-by-gilt version.",
+  "register_upload": null
+ },
+ "rules": [
+  {
+   "id": "stability",
+   "name": "Stability rule",
+   "measure": "Current budget",
+   "description": "Current budget (receipts less day-to-day spending, including debt interest) in balance or surplus in the target year. Headroom = current budget surplus, \u00a3bn.",
+   "obr_bn": 23.6,
+   "market_bn": 8.0,
+   "change_bn": -15.6,
+   "attribution": {
+    "time": 0.3,
+    "bank_rate": -6.8,
+    "gilts": -9.2,
+    "inflation": -0.0
+   },
+   "probability": 0.581,
+   "history": [
+    {
+     "date": "2026-01-30",
+     "value": 23.6
+    },
+    {
+     "date": "2026-02-06",
+     "value": 23.61
+    },
+    {
+     "date": "2026-02-13",
+     "value": 23.62
+    },
+    {
+     "date": "2026-02-20",
+     "value": 23.62
+    },
+    {
+     "date": "2026-02-27",
+     "value": 23.63
+    },
+    {
+     "date": "2026-03-06",
+     "value": 23.64
+    },
+    {
+     "date": "2026-03-13",
+     "value": 23.65
+    },
+    {
+     "date": "2026-03-20",
+     "value": 23.65
+    },
+    {
+     "date": "2026-03-27",
+     "value": 23.66
+    },
+    {
+     "date": "2026-04-03",
+     "value": 7.54
+    },
+    {
+     "date": "2026-04-10",
+     "value": 7.55
+    },
+    {
+     "date": "2026-04-17",
+     "value": 7.58
+    },
+    {
+     "date": "2026-04-24",
+     "value": 7.59
+    },
+    {
+     "date": "2026-05-01",
+     "value": 7.6
+    },
+    {
+     "date": "2026-05-08",
+     "value": 7.61
+    },
+    {
+     "date": "2026-05-15",
+     "value": 7.61
+    },
+    {
+     "date": "2026-05-22",
+     "value": 7.65
+    },
+    {
+     "date": "2026-05-29",
+     "value": 7.66
+    },
+    {
+     "date": "2026-06-05",
+     "value": 7.67
+    },
+    {
+     "date": "2026-06-12",
+     "value": 7.67
+    },
+    {
+     "date": "2026-06-19",
+     "value": 7.71
+    },
+    {
+     "date": "2026-06-26",
+     "value": 7.72
+    },
+    {
+     "date": "2026-07-03",
+     "value": 7.73
+    },
+    {
+     "date": "2026-07-10",
+     "value": 7.73
+    },
+    {
+     "date": "2026-07-17",
+     "value": 7.77
+    },
+    {
+     "date": "2026-07-24",
+     "value": 7.78
+    },
+    {
+     "date": "2026-07-31",
+     "value": 7.78
+    },
+    {
+     "date": "2026-08-07",
+     "value": 7.79
+    },
+    {
+     "date": "2026-08-14",
+     "value": 7.8
+    },
+    {
+     "date": "2026-08-21",
+     "value": 7.83
+    },
+    {
+     "date": "2026-08-28",
+     "value": 7.84
+    },
+    {
+     "date": "2026-09-04",
+     "value": 7.85
+    },
+    {
+     "date": "2026-09-11",
+     "value": 7.86
+    },
+    {
+     "date": "2026-09-18",
+     "value": 7.89
+    },
+    {
+     "date": "2026-09-25",
+     "value": 7.9
+    },
+    {
+     "date": "2026-10-02",
+     "value": 7.91
+    },
+    {
+     "date": "2026-10-09",
+     "value": 7.91
+    },
+    {
+     "date": "2026-10-16",
+     "value": 7.95
+    },
+    {
+     "date": "2026-10-20",
+     "value": 7.95
+    }
+   ],
+   "unit": "\u00a3bn",
+   "obr_pp": null,
+   "market_pp": null
+  },
+  {
+   "id": "investment",
+   "name": "Investment rule",
+   "measure": "PSNFL",
+   "description": "Public sector net financial liabilities falling as a share of GDP in the target year. Headroom = fall in the ratio, shown in \u00a3bn at that year's GDP.",
+   "obr_bn": 26.5,
+   "market_bn": 11.9,
+   "change_bn": -14.6,
+   "attribution": {
+    "time": 0.3,
+    "bank_rate": -6.2,
+    "gilts": -8.7,
+    "inflation": -0.0
+   },
+   "probability": 0.555,
+   "history": [
+    {
+     "date": "2026-01-30",
+     "value": 26.5
+    },
+    {
+     "date": "2026-02-06",
+     "value": 26.51
+    },
+    {
+     "date": "2026-02-13",
+     "value": 26.52
+    },
+    {
+     "date": "2026-02-20",
+     "value": 26.52
+    },
+    {
+     "date": "2026-02-27",
+     "value": 26.53
+    },
+    {
+     "date": "2026-03-06",
+     "value": 26.54
+    },
+    {
+     "date": "2026-03-13",
+     "value": 26.55
+    },
+    {
+     "date": "2026-03-20",
+     "value": 26.55
+    },
+    {
+     "date": "2026-03-27",
+     "value": 26.56
+    },
+    {
+     "date": "2026-04-03",
+     "value": 11.66
+    },
+    {
+     "date": "2026-04-10",
+     "value": 11.67
+    },
+    {
+     "date": "2026-04-17",
+     "value": 11.68
+    },
+    {
+     "date": "2026-04-24",
+     "value": 11.69
+    },
+    {
+     "date": "2026-05-01",
+     "value": 11.69
+    },
+    {
+     "date": "2026-05-08",
+     "value": 11.7
+    },
+    {
+     "date": "2026-05-15",
+     "value": 11.71
+    },
+    {
+     "date": "2026-05-22",
+     "value": 11.72
+    },
+    {
+     "date": "2026-05-29",
+     "value": 11.73
+    },
+    {
+     "date": "2026-06-05",
+     "value": 11.74
+    },
+    {
+     "date": "2026-06-12",
+     "value": 11.75
+    },
+    {
+     "date": "2026-06-19",
+     "value": 11.76
+    },
+    {
+     "date": "2026-06-26",
+     "value": 11.77
+    },
+    {
+     "date": "2026-07-03",
+     "value": 11.78
+    },
+    {
+     "date": "2026-07-10",
+     "value": 11.78
+    },
+    {
+     "date": "2026-07-17",
+     "value": 11.8
+    },
+    {
+     "date": "2026-07-24",
+     "value": 11.8
+    },
+    {
+     "date": "2026-07-31",
+     "value": 11.81
+    },
+    {
+     "date": "2026-08-07",
+     "value": 11.82
+    },
+    {
+     "date": "2026-08-14",
+     "value": 11.83
+    },
+    {
+     "date": "2026-08-21",
+     "value": 11.84
+    },
+    {
+     "date": "2026-08-28",
+     "value": 11.85
+    },
+    {
+     "date": "2026-09-04",
+     "value": 11.85
+    },
+    {
+     "date": "2026-09-11",
+     "value": 11.86
+    },
+    {
+     "date": "2026-09-18",
+     "value": 11.88
+    },
+    {
+     "date": "2026-09-25",
+     "value": 11.88
+    },
+    {
+     "date": "2026-10-02",
+     "value": 11.89
+    },
+    {
+     "date": "2026-10-09",
+     "value": 11.9
+    },
+    {
+     "date": "2026-10-16",
+     "value": 11.91
+    },
+    {
+     "date": "2026-10-20",
+     "value": 11.91
+    }
+   ],
+   "unit": "\u00a3bn",
+   "obr_pp": 0.74,
+   "market_pp": 0.33
+  }
+ ],
+ "projection": [
+  {
+   "year": "1997-98",
+   "kind": "outturn",
+   "psnfl_pct": 36.4,
+   "psnd_pct": 40.0,
+   "psnb_pct": 0.46,
+   "cbd_bn": 10.14,
+   "interest_bn": 13.57,
+   "interest_receipts": 3.79,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "1998-99",
+   "kind": "outturn",
+   "psnfl_pct": 36.4,
+   "psnd_pct": 40.0,
+   "psnb_pct": 0.58,
+   "cbd_bn": 19.92,
+   "interest_bn": 14.14,
+   "interest_receipts": 3.79,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "1999-00",
+   "kind": "outturn",
+   "psnfl_pct": 36.4,
+   "psnd_pct": 40.0,
+   "psnb_pct": 0.46,
+   "cbd_bn": 13.33,
+   "interest_bn": 14.74,
+   "interest_receipts": 3.79,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2000-01",
+   "kind": "outturn",
+   "psnfl_pct": 36.4,
+   "psnd_pct": 40.0,
+   "psnb_pct": 0.42,
+   "cbd_bn": 10.83,
+   "interest_bn": 15.36,
+   "interest_receipts": 3.79,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2001-02",
+   "kind": "outturn",
+   "psnfl_pct": 36.4,
+   "psnd_pct": 40.0,
+   "psnb_pct": 0.46,
+   "cbd_bn": 15.47,
+   "interest_bn": 16.0,
+   "interest_receipts": 3.79,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2002-03",
+   "kind": "outturn",
+   "psnfl_pct": 36.4,
+   "psnd_pct": 40.0,
+   "psnb_pct": 0.47,
+   "cbd_bn": 18.71,
+   "interest_bn": 16.67,
+   "interest_receipts": 3.79,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2003-04",
+   "kind": "outturn",
+   "psnfl_pct": 36.4,
+   "psnd_pct": 40.0,
+   "psnb_pct": 0.41,
+   "cbd_bn": 15.66,
+   "interest_bn": 17.38,
+   "interest_receipts": 3.79,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2004-05",
+   "kind": "outturn",
+   "psnfl_pct": 36.4,
+   "psnd_pct": 40.0,
+   "psnb_pct": 0.31,
+   "cbd_bn": 6.01,
+   "interest_bn": 18.1,
+   "interest_receipts": 3.79,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2005-06",
+   "kind": "outturn",
+   "psnfl_pct": 36.4,
+   "psnd_pct": 40.0,
+   "psnb_pct": 0.39,
+   "cbd_bn": 17.23,
+   "interest_bn": 18.87,
+   "interest_receipts": 3.79,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2006-07",
+   "kind": "outturn",
+   "psnfl_pct": 36.4,
+   "psnd_pct": 40.0,
+   "psnb_pct": 0.41,
+   "cbd_bn": 21.01,
+   "interest_bn": 19.66,
+   "interest_receipts": 3.79,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2007-08",
+   "kind": "outturn",
+   "psnfl_pct": 42.85,
+   "psnd_pct": 47.08,
+   "psnb_pct": 0.36,
+   "cbd_bn": 16.99,
+   "interest_bn": 22.35,
+   "interest_receipts": 4.14,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2008-09",
+   "kind": "outturn",
+   "psnfl_pct": 48.84,
+   "psnd_pct": 53.67,
+   "psnb_pct": 0.35,
+   "cbd_bn": 17.58,
+   "interest_bn": 27.09,
+   "interest_receipts": 4.82,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2009-10",
+   "kind": "outturn",
+   "psnfl_pct": 53.92,
+   "psnd_pct": 59.25,
+   "psnb_pct": 0.43,
+   "cbd_bn": 29.34,
+   "interest_bn": 31.57,
+   "interest_receipts": 5.39,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2010-11",
+   "kind": "outturn",
+   "psnfl_pct": 58.21,
+   "psnd_pct": 63.97,
+   "psnb_pct": 0.33,
+   "cbd_bn": 17.53,
+   "interest_bn": 35.85,
+   "interest_receipts": 5.87,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2011-12",
+   "kind": "outturn",
+   "psnfl_pct": 61.85,
+   "psnd_pct": 67.97,
+   "psnb_pct": 0.35,
+   "cbd_bn": 22.08,
+   "interest_bn": 39.97,
+   "interest_receipts": 6.28,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2012-13",
+   "kind": "outturn",
+   "psnfl_pct": 64.93,
+   "psnd_pct": 71.35,
+   "psnb_pct": 0.33,
+   "cbd_bn": 22.23,
+   "interest_bn": 43.94,
+   "interest_receipts": 6.63,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2013-14",
+   "kind": "outturn",
+   "psnfl_pct": 67.53,
+   "psnd_pct": 74.21,
+   "psnb_pct": 0.32,
+   "cbd_bn": 24.23,
+   "interest_bn": 47.82,
+   "interest_receipts": 6.92,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2014-15",
+   "kind": "outturn",
+   "psnfl_pct": 69.74,
+   "psnd_pct": 76.64,
+   "psnb_pct": 0.31,
+   "cbd_bn": 26.36,
+   "interest_bn": 51.61,
+   "interest_receipts": 7.17,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2015-16",
+   "kind": "outturn",
+   "psnfl_pct": 71.61,
+   "psnd_pct": 78.69,
+   "psnb_pct": 0.32,
+   "cbd_bn": 34.71,
+   "interest_bn": 55.36,
+   "interest_receipts": 7.38,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2016-17",
+   "kind": "outturn",
+   "psnfl_pct": 73.19,
+   "psnd_pct": 80.42,
+   "psnb_pct": 0.3,
+   "cbd_bn": 32.97,
+   "interest_bn": 59.07,
+   "interest_receipts": 7.56,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2017-18",
+   "kind": "outturn",
+   "psnfl_pct": 74.52,
+   "psnd_pct": 81.89,
+   "psnb_pct": 0.24,
+   "cbd_bn": 20.9,
+   "interest_bn": 62.78,
+   "interest_receipts": 7.71,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2018-19",
+   "kind": "outturn",
+   "psnfl_pct": 75.66,
+   "psnd_pct": 83.14,
+   "psnb_pct": 0.26,
+   "cbd_bn": 31.24,
+   "interest_bn": 66.5,
+   "interest_receipts": 7.84,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2019-20",
+   "kind": "outturn",
+   "psnfl_pct": 76.61,
+   "psnd_pct": 84.19,
+   "psnb_pct": 0.25,
+   "cbd_bn": 28.71,
+   "interest_bn": 70.25,
+   "interest_receipts": 7.94,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2020-21",
+   "kind": "outturn",
+   "psnfl_pct": 77.43,
+   "psnd_pct": 85.08,
+   "psnb_pct": 0.23,
+   "cbd_bn": 24.45,
+   "interest_bn": 74.04,
+   "interest_receipts": 8.03,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2021-22",
+   "kind": "outturn",
+   "psnfl_pct": 78.11,
+   "psnd_pct": 85.84,
+   "psnb_pct": 0.24,
+   "cbd_bn": 35.26,
+   "interest_bn": 77.89,
+   "interest_receipts": 8.11,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2022-23",
+   "kind": "outturn",
+   "psnfl_pct": 78.69,
+   "psnd_pct": 86.48,
+   "psnb_pct": 0.23,
+   "cbd_bn": 36.42,
+   "interest_bn": 81.82,
+   "interest_receipts": 8.18,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2023-24",
+   "kind": "outturn",
+   "psnfl_pct": 79.19,
+   "psnd_pct": 87.02,
+   "psnb_pct": 0.19,
+   "cbd_bn": 24.37,
+   "interest_bn": 85.83,
+   "interest_receipts": 8.23,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2024-25",
+   "kind": "outturn",
+   "psnfl_pct": 79.6,
+   "psnd_pct": 87.48,
+   "psnb_pct": 0.22,
+   "cbd_bn": 44.95,
+   "interest_bn": 89.94,
+   "interest_receipts": 8.28,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2025-26",
+   "kind": "outturn",
+   "psnfl_pct": 79.96,
+   "psnd_pct": 87.86,
+   "psnb_pct": 0.19,
+   "cbd_bn": 35.94,
+   "interest_bn": 94.17,
+   "interest_receipts": 8.32,
+   "obr_psnfl_pct": null,
+   "obr_psnd_pct": null,
+   "obr_psnb_pct": null,
+   "obr_cbd_bn": null,
+   "obr_interest_bn": null
+  },
+  {
+   "year": "2026-27",
+   "kind": "forecast",
+   "psnfl_pct": 82.83,
+   "psnd_pct": 92.45,
+   "psnb_pct": 3.82,
+   "cbd_bn": 39.4,
+   "interest_bn": 114.9,
+   "interest_receipts": 8.81,
+   "obr_psnfl_pct": 82.64,
+   "obr_psnd_pct": 92.27,
+   "obr_psnb_pct": 3.65,
+   "obr_cbd_bn": 33.9,
+   "obr_interest_bn": 109.4
+  },
+  {
+   "year": "2027-28",
+   "kind": "forecast",
+   "psnfl_pct": 83.47,
+   "psnd_pct": 94.06,
+   "psnb_pct": 3.28,
+   "cbd_bn": 15.6,
+   "interest_bn": 127.7,
+   "interest_receipts": 9.28,
+   "obr_psnfl_pct": 82.96,
+   "obr_psnd_pct": 93.55,
+   "obr_psnb_pct": 2.94,
+   "obr_cbd_bn": 4.6,
+   "obr_interest_bn": 116.7
+  },
+  {
+   "year": "2028-29",
+   "kind": "forecast",
+   "psnfl_pct": 83.8,
+   "psnd_pct": 95.34,
+   "psnb_pct": 2.93,
+   "cbd_bn": 10.1,
+   "interest_bn": 139.3,
+   "interest_receipts": 9.76,
+   "obr_psnfl_pct": 82.92,
+   "obr_psnd_pct": 94.46,
+   "obr_psnb_pct": 2.54,
+   "obr_cbd_bn": -3.3,
+   "obr_interest_bn": 125.9
+  },
+  {
+   "year": "2029-30",
+   "kind": "forecast",
+   "psnfl_pct": 83.47,
+   "psnd_pct": 95.83,
+   "psnb_pct": 2.25,
+   "cbd_bn": -8.0,
+   "interest_bn": 150.3,
+   "interest_receipts": 10.09,
+   "obr_psnfl_pct": 82.17,
+   "obr_psnd_pct": 94.53,
+   "obr_psnb_pct": 1.81,
+   "obr_cbd_bn": -23.6,
+   "obr_interest_bn": 134.7
+  },
+  {
+   "year": "2030-31",
+   "kind": "forecast",
+   "psnfl_pct": 82.85,
+   "psnd_pct": 96.02,
+   "psnb_pct": 2.11,
+   "cbd_bn": -12.5,
+   "interest_bn": 154.9,
+   "interest_receipts": 9.99,
+   "obr_psnfl_pct": 81.12,
+   "obr_psnd_pct": 94.29,
+   "obr_psnb_pct": 1.62,
+   "obr_cbd_bn": -30.3,
+   "obr_interest_bn": 137.1
+  },
+  {
+   "year": "2031-32",
+   "kind": "extension",
+   "psnfl_pct": 82.39,
+   "psnd_pct": 96.36,
+   "psnb_pct": 2.23,
+   "cbd_bn": -10.3,
+   "interest_bn": 164.4,
+   "interest_receipts": 10.23,
+   "obr_psnfl_pct": 80.2,
+   "obr_psnd_pct": 94.17,
+   "obr_psnb_pct": 1.69,
+   "obr_cbd_bn": -30.5,
+   "obr_interest_bn": 144.3
+  },
+  {
+   "year": "2032-33",
+   "kind": "extension",
+   "psnfl_pct": 82.08,
+   "psnd_pct": 96.81,
+   "psnb_pct": 2.35,
+   "cbd_bn": -6.0,
+   "interest_bn": 174.2,
+   "interest_receipts": 10.46,
+   "obr_psnfl_pct": 79.38,
+   "obr_psnd_pct": 94.12,
+   "obr_psnb_pct": 1.76,
+   "obr_cbd_bn": -28.7,
+   "obr_interest_bn": 151.4
+  },
+  {
+   "year": "2033-34",
+   "kind": "extension",
+   "psnfl_pct": 81.87,
+   "psnd_pct": 97.34,
+   "psnb_pct": 2.45,
+   "cbd_bn": -1.9,
+   "interest_bn": 183.9,
+   "interest_receipts": 10.66,
+   "obr_psnfl_pct": 78.66,
+   "obr_psnd_pct": 94.13,
+   "obr_psnb_pct": 1.82,
+   "obr_cbd_bn": -27.3,
+   "obr_interest_bn": 158.5
+  },
+  {
+   "year": "2034-35",
+   "kind": "extension",
+   "psnfl_pct": 81.77,
+   "psnd_pct": 97.96,
+   "psnb_pct": 2.55,
+   "cbd_bn": 2.1,
+   "interest_bn": 193.6,
+   "interest_receipts": 10.84,
+   "obr_psnfl_pct": 78.01,
+   "obr_psnd_pct": 94.19,
+   "obr_psnb_pct": 1.88,
+   "obr_cbd_bn": -26.1,
+   "obr_interest_bn": 165.5
+  },
+  {
+   "year": "2035-36",
+   "kind": "extension",
+   "psnfl_pct": 81.76,
+   "psnd_pct": 98.63,
+   "psnb_pct": 2.63,
+   "cbd_bn": 5.8,
+   "interest_bn": 203.4,
+   "interest_receipts": 10.99,
+   "obr_psnfl_pct": 77.42,
+   "obr_psnd_pct": 94.3,
+   "obr_psnb_pct": 1.92,
+   "obr_cbd_bn": -25.1,
+   "obr_interest_bn": 172.5
+  }
+ ],
+ "fan": {
+  "psnfl_pct": [
+   {
+    "year": "2025-26",
+    "p5": 82.43,
+    "p10": 82.43,
+    "p25": 82.43,
+    "p50": 82.43,
+    "p75": 82.43,
+    "p90": 82.43,
+    "p95": 82.43
+   },
+   {
+    "year": "2026-27",
+    "p5": 79.19,
+    "p10": 79.97,
+    "p25": 81.3,
+    "p50": 82.83,
+    "p75": 84.33,
+    "p90": 85.7,
+    "p95": 86.57
+   },
+   {
+    "year": "2027-28",
+    "p5": 77.85,
+    "p10": 79.06,
+    "p25": 81.13,
+    "p50": 83.44,
+    "p75": 85.84,
+    "p90": 88.04,
+    "p95": 89.52
+   },
+   {
+    "year": "2028-29",
+    "p5": 76.64,
+    "p10": 78.09,
+    "p25": 80.78,
+    "p50": 83.78,
+    "p75": 86.86,
+    "p90": 89.84,
+    "p95": 91.56
+   },
+   {
+    "year": "2029-30",
+    "p5": 75.03,
+    "p10": 76.73,
+    "p25": 79.9,
+    "p50": 83.46,
+    "p75": 87.0,
+    "p90": 90.68,
+    "p95": 92.95
+   },
+   {
+    "year": "2030-31",
+    "p5": 73.22,
+    "p10": 75.21,
+    "p25": 78.78,
+    "p50": 82.79,
+    "p75": 86.95,
+    "p90": 91.05,
+    "p95": 93.3
+   },
+   {
+    "year": "2031-32",
+    "p5": 71.67,
+    "p10": 74.06,
+    "p25": 77.99,
+    "p50": 82.49,
+    "p75": 87.03,
+    "p90": 91.34,
+    "p95": 94.06
+   },
+   {
+    "year": "2032-33",
+    "p5": 70.84,
+    "p10": 73.11,
+    "p25": 77.46,
+    "p50": 82.24,
+    "p75": 87.27,
+    "p90": 91.89,
+    "p95": 94.79
+   },
+   {
+    "year": "2033-34",
+    "p5": 69.59,
+    "p10": 72.55,
+    "p25": 77.06,
+    "p50": 82.03,
+    "p75": 87.43,
+    "p90": 92.15,
+    "p95": 95.3
+   },
+   {
+    "year": "2034-35",
+    "p5": 68.87,
+    "p10": 71.74,
+    "p25": 76.64,
+    "p50": 81.97,
+    "p75": 87.72,
+    "p90": 92.69,
+    "p95": 95.84
+   },
+   {
+    "year": "2035-36",
+    "p5": 68.41,
+    "p10": 71.41,
+    "p25": 76.3,
+    "p50": 82.04,
+    "p75": 87.96,
+    "p90": 93.45,
+    "p95": 96.53
+   }
+  ],
+  "psnd_pct": [
+   {
+    "year": "2025-26",
+    "p5": 90.63,
+    "p10": 90.63,
+    "p25": 90.63,
+    "p50": 90.63,
+    "p75": 90.63,
+    "p90": 90.63,
+    "p95": 90.63
+   },
+   {
+    "year": "2026-27",
+    "p5": 88.55,
+    "p10": 89.42,
+    "p25": 90.82,
+    "p50": 92.47,
+    "p75": 94.05,
+    "p90": 95.52,
+    "p95": 96.41
+   },
+   {
+    "year": "2027-28",
+    "p5": 88.11,
+    "p10": 89.41,
+    "p25": 91.6,
+    "p50": 94.02,
+    "p75": 96.58,
+    "p90": 98.92,
+    "p95": 100.46
+   },
+   {
+    "year": "2028-29",
+    "p5": 87.71,
+    "p10": 89.33,
+    "p25": 92.13,
+    "p50": 95.33,
+    "p75": 98.6,
+    "p90": 101.77,
+    "p95": 103.62
+   },
+   {
+    "year": "2029-30",
+    "p5": 86.87,
+    "p10": 88.69,
+    "p25": 92.07,
+    "p50": 95.8,
+    "p75": 99.56,
+    "p90": 103.46,
+    "p95": 105.79
+   },
+   {
+    "year": "2030-31",
+    "p5": 85.76,
+    "p10": 88.01,
+    "p25": 91.73,
+    "p50": 96.02,
+    "p75": 100.39,
+    "p90": 104.73,
+    "p95": 107.11
+   },
+   {
+    "year": "2031-32",
+    "p5": 85.08,
+    "p10": 87.55,
+    "p25": 91.63,
+    "p50": 96.45,
+    "p75": 101.27,
+    "p90": 105.85,
+    "p95": 108.78
+   },
+   {
+    "year": "2032-33",
+    "p5": 84.86,
+    "p10": 87.27,
+    "p25": 91.91,
+    "p50": 96.97,
+    "p75": 102.36,
+    "p90": 107.17,
+    "p95": 110.29
+   },
+   {
+    "year": "2033-34",
+    "p5": 84.32,
+    "p10": 87.46,
+    "p25": 92.23,
+    "p50": 97.56,
+    "p75": 103.3,
+    "p90": 108.41,
+    "p95": 111.6
+   },
+   {
+    "year": "2034-35",
+    "p5": 84.14,
+    "p10": 87.3,
+    "p25": 92.49,
+    "p50": 98.17,
+    "p75": 104.31,
+    "p90": 109.6,
+    "p95": 112.87
+   },
+   {
+    "year": "2035-36",
+    "p5": 84.45,
+    "p10": 87.53,
+    "p25": 92.86,
+    "p50": 98.94,
+    "p75": 105.23,
+    "p90": 111.16,
+    "p95": 114.32
+   }
+  ],
+  "psnb_pct": [
+   {
+    "year": "2025-26",
+    "p5": 4.36,
+    "p10": 4.36,
+    "p25": 4.36,
+    "p50": 4.36,
+    "p75": 4.36,
+    "p90": 4.36,
+    "p95": 4.36
+   },
+   {
+    "year": "2026-27",
+    "p5": 1.99,
+    "p10": 2.43,
+    "p25": 3.08,
+    "p50": 3.83,
+    "p75": 4.53,
+    "p90": 5.17,
+    "p95": 5.58
+   },
+   {
+    "year": "2027-28",
+    "p5": 1.29,
+    "p10": 1.72,
+    "p25": 2.44,
+    "p50": 3.24,
+    "p75": 4.09,
+    "p90": 4.87,
+    "p95": 5.36
+   },
+   {
+    "year": "2028-29",
+    "p5": 0.88,
+    "p10": 1.33,
+    "p25": 2.13,
+    "p50": 2.96,
+    "p75": 3.8,
+    "p90": 4.6,
+    "p95": 5.05
+   },
+   {
+    "year": "2029-30",
+    "p5": 0.11,
+    "p10": 0.6,
+    "p25": 1.36,
+    "p50": 2.25,
+    "p75": 3.09,
+    "p90": 3.84,
+    "p95": 4.29
+   },
+   {
+    "year": "2030-31",
+    "p5": 0.03,
+    "p10": 0.48,
+    "p25": 1.25,
+    "p50": 2.09,
+    "p75": 2.95,
+    "p90": 3.73,
+    "p95": 4.17
+   },
+   {
+    "year": "2031-32",
+    "p5": 0.15,
+    "p10": 0.61,
+    "p25": 1.38,
+    "p50": 2.24,
+    "p75": 3.09,
+    "p90": 3.84,
+    "p95": 4.33
+   },
+   {
+    "year": "2032-33",
+    "p5": 0.28,
+    "p10": 0.74,
+    "p25": 1.56,
+    "p50": 2.43,
+    "p75": 3.27,
+    "p90": 4.09,
+    "p95": 4.53
+   },
+   {
+    "year": "2033-34",
+    "p5": 0.45,
+    "p10": 0.85,
+    "p25": 1.62,
+    "p50": 2.48,
+    "p75": 3.35,
+    "p90": 4.16,
+    "p95": 4.61
+   },
+   {
+    "year": "2034-35",
+    "p5": 0.52,
+    "p10": 0.99,
+    "p25": 1.77,
+    "p50": 2.55,
+    "p75": 3.45,
+    "p90": 4.22,
+    "p95": 4.63
+   },
+   {
+    "year": "2035-36",
+    "p5": 0.59,
+    "p10": 1.03,
+    "p25": 1.8,
+    "p50": 2.63,
+    "p75": 3.49,
+    "p90": 4.28,
+    "p95": 4.76
+   }
+  ],
+  "interest_receipts": [
+   {
+    "year": "2025-26",
+    "p5": 8.93,
+    "p10": 8.93,
+    "p25": 8.93,
+    "p50": 8.93,
+    "p75": 8.93,
+    "p90": 8.93,
+    "p95": 8.93
+   },
+   {
+    "year": "2026-27",
+    "p5": 7.57,
+    "p10": 7.86,
+    "p25": 8.33,
+    "p50": 8.84,
+    "p75": 9.33,
+    "p90": 9.8,
+    "p95": 10.07
+   },
+   {
+    "year": "2027-28",
+    "p5": 7.99,
+    "p10": 8.27,
+    "p25": 8.75,
+    "p50": 9.27,
+    "p75": 9.82,
+    "p90": 10.28,
+    "p95": 10.58
+   },
+   {
+    "year": "2028-29",
+    "p5": 8.31,
+    "p10": 8.63,
+    "p25": 9.15,
+    "p50": 9.77,
+    "p75": 10.35,
+    "p90": 10.87,
+    "p95": 11.2
+   },
+   {
+    "year": "2029-30",
+    "p5": 8.52,
+    "p10": 8.91,
+    "p25": 9.45,
+    "p50": 10.08,
+    "p75": 10.73,
+    "p90": 11.29,
+    "p95": 11.67
+   },
+   {
+    "year": "2030-31",
+    "p5": 8.34,
+    "p10": 8.7,
+    "p25": 9.3,
+    "p50": 9.99,
+    "p75": 10.63,
+    "p90": 11.26,
+    "p95": 11.64
+   },
+   {
+    "year": "2031-32",
+    "p5": 8.59,
+    "p10": 8.93,
+    "p25": 9.53,
+    "p50": 10.21,
+    "p75": 10.92,
+    "p90": 11.57,
+    "p95": 11.95
+   },
+   {
+    "year": "2032-33",
+    "p5": 8.75,
+    "p10": 9.12,
+    "p25": 9.78,
+    "p50": 10.47,
+    "p75": 11.25,
+    "p90": 11.9,
+    "p95": 12.3
+   },
+   {
+    "year": "2033-34",
+    "p5": 8.86,
+    "p10": 9.27,
+    "p25": 9.91,
+    "p50": 10.66,
+    "p75": 11.43,
+    "p90": 12.16,
+    "p95": 12.61
+   },
+   {
+    "year": "2034-35",
+    "p5": 8.97,
+    "p10": 9.37,
+    "p25": 10.08,
+    "p50": 10.86,
+    "p75": 11.66,
+    "p90": 12.4,
+    "p95": 12.78
+   },
+   {
+    "year": "2035-36",
+    "p5": 9.08,
+    "p10": 9.5,
+    "p25": 10.21,
+    "p50": 11.0,
+    "p75": 11.82,
+    "p90": 12.61,
+    "p95": 13.1
+   }
+  ]
+ },
+ "probabilities": {
+  "stability": 0.581,
+  "investment": 0.5554,
+  "both": 0.4592,
+  "debt_falling_end": 0.336,
+  "debt_above_100": 0.4478,
+  "end_year": "2035-36",
+  "from_year": "2030-31"
+ },
+ "dynamics": {
+  "history": [
+   {
+    "year": "1998-99",
+    "debt": 40.0,
+    "change": 0.0,
+    "growth": -1.61,
+    "interest": 1.18,
+    "primary": 3.03,
+    "other": -2.59,
+    "effective_rate": 3.07,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.13,
+    "stabilising_primary": 0.43
+   },
+   {
+    "year": "1999-00",
+    "debt": 40.0,
+    "change": 0.0,
+    "growth": -1.61,
+    "interest": 1.18,
+    "primary": 2.29,
+    "other": -1.86,
+    "effective_rate": 3.07,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.13,
+    "stabilising_primary": 0.43
+   },
+   {
+    "year": "2000-01",
+    "debt": 40.0,
+    "change": 0.0,
+    "growth": -1.61,
+    "interest": 1.18,
+    "primary": 2.01,
+    "other": -1.57,
+    "effective_rate": 3.07,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.13,
+    "stabilising_primary": 0.43
+   },
+   {
+    "year": "2001-02",
+    "debt": 40.0,
+    "change": 0.0,
+    "growth": -1.61,
+    "interest": 1.18,
+    "primary": 2.39,
+    "other": -1.95,
+    "effective_rate": 3.07,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.13,
+    "stabilising_primary": 0.43
+   },
+   {
+    "year": "2002-03",
+    "debt": 40.0,
+    "change": 0.0,
+    "growth": -1.61,
+    "interest": 1.18,
+    "primary": 2.61,
+    "other": -2.18,
+    "effective_rate": 3.07,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.13,
+    "stabilising_primary": 0.43
+   },
+   {
+    "year": "2003-04",
+    "debt": 40.0,
+    "change": 0.0,
+    "growth": -1.61,
+    "interest": 1.18,
+    "primary": 2.29,
+    "other": -1.86,
+    "effective_rate": 3.07,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.13,
+    "stabilising_primary": 0.43
+   },
+   {
+    "year": "2004-05",
+    "debt": 40.0,
+    "change": 0.0,
+    "growth": -1.61,
+    "interest": 1.18,
+    "primary": 1.46,
+    "other": -1.03,
+    "effective_rate": 3.07,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.13,
+    "stabilising_primary": 0.43
+   },
+   {
+    "year": "2005-06",
+    "debt": 40.0,
+    "change": 0.0,
+    "growth": -1.61,
+    "interest": 1.18,
+    "primary": 2.31,
+    "other": -1.87,
+    "effective_rate": 3.07,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.13,
+    "stabilising_primary": 0.43
+   },
+   {
+    "year": "2006-07",
+    "debt": 40.0,
+    "change": 0.0,
+    "growth": -1.61,
+    "interest": 1.18,
+    "primary": 2.53,
+    "other": -2.1,
+    "effective_rate": 3.07,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.13,
+    "stabilising_primary": 0.43
+   },
+   {
+    "year": "2007-08",
+    "debt": 47.08,
+    "change": 7.08,
+    "growth": -1.61,
+    "interest": 1.29,
+    "primary": 2.08,
+    "other": 5.33,
+    "effective_rate": 3.35,
+    "nominal_growth": 4.2,
+    "r_minus_g": -0.85,
+    "stabilising_primary": 0.33
+   },
+   {
+    "year": "2008-09",
+    "debt": 53.67,
+    "change": 6.59,
+    "growth": -1.9,
+    "interest": 1.49,
+    "primary": 1.86,
+    "other": 5.13,
+    "effective_rate": 3.31,
+    "nominal_growth": 4.2,
+    "r_minus_g": -0.89,
+    "stabilising_primary": 0.4
+   },
+   {
+    "year": "2009-10",
+    "debt": 59.25,
+    "change": 5.58,
+    "growth": -2.16,
+    "interest": 1.67,
+    "primary": 2.4,
+    "other": 3.67,
+    "effective_rate": 3.25,
+    "nominal_growth": 4.2,
+    "r_minus_g": -0.95,
+    "stabilising_primary": 0.49
+   },
+   {
+    "year": "2010-11",
+    "debt": 63.97,
+    "change": 4.72,
+    "growth": -2.39,
+    "interest": 1.82,
+    "primary": 1.44,
+    "other": 3.85,
+    "effective_rate": 3.2,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.0,
+    "stabilising_primary": 0.57
+   },
+   {
+    "year": "2011-12",
+    "debt": 67.97,
+    "change": 4.0,
+    "growth": -2.58,
+    "interest": 1.95,
+    "primary": 1.54,
+    "other": 3.09,
+    "effective_rate": 3.17,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.03,
+    "stabilising_primary": 0.63
+   },
+   {
+    "year": "2012-13",
+    "debt": 71.35,
+    "change": 3.38,
+    "growth": -2.74,
+    "interest": 2.06,
+    "primary": 1.39,
+    "other": 2.68,
+    "effective_rate": 3.15,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.05,
+    "stabilising_primary": 0.68
+   },
+   {
+    "year": "2013-14",
+    "debt": 74.21,
+    "change": 2.86,
+    "growth": -2.88,
+    "interest": 2.15,
+    "primary": 1.35,
+    "other": 2.24,
+    "effective_rate": 3.14,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.06,
+    "stabilising_primary": 0.73
+   },
+   {
+    "year": "2014-15",
+    "debt": 76.64,
+    "change": 2.42,
+    "growth": -2.99,
+    "interest": 2.22,
+    "primary": 1.34,
+    "other": 1.85,
+    "effective_rate": 3.12,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.08,
+    "stabilising_primary": 0.77
+   },
+   {
+    "year": "2015-16",
+    "debt": 78.69,
+    "change": 2.05,
+    "growth": -3.09,
+    "interest": 2.29,
+    "primary": 1.64,
+    "other": 1.21,
+    "effective_rate": 3.11,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.09,
+    "stabilising_primary": 0.8
+   },
+   {
+    "year": "2016-17",
+    "debt": 80.42,
+    "change": 1.74,
+    "growth": -3.17,
+    "interest": 2.35,
+    "primary": 1.43,
+    "other": 1.13,
+    "effective_rate": 3.11,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.09,
+    "stabilising_primary": 0.83
+   },
+   {
+    "year": "2017-18",
+    "debt": 81.89,
+    "change": 1.47,
+    "growth": -3.24,
+    "interest": 2.39,
+    "primary": 0.75,
+    "other": 1.57,
+    "effective_rate": 3.1,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.1,
+    "stabilising_primary": 0.85
+   },
+   {
+    "year": "2018-19",
+    "debt": 83.14,
+    "change": 1.24,
+    "growth": -3.3,
+    "interest": 2.43,
+    "primary": 1.14,
+    "other": 0.98,
+    "effective_rate": 3.09,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.11,
+    "stabilising_primary": 0.87
+   },
+   {
+    "year": "2019-20",
+    "debt": 84.19,
+    "change": 1.05,
+    "growth": -3.35,
+    "interest": 2.47,
+    "primary": 0.94,
+    "other": 1.0,
+    "effective_rate": 3.09,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.11,
+    "stabilising_primary": 0.89
+   },
+   {
+    "year": "2020-21",
+    "debt": 85.08,
+    "change": 0.89,
+    "growth": -3.39,
+    "interest": 2.49,
+    "primary": 0.68,
+    "other": 1.11,
+    "effective_rate": 3.09,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.11,
+    "stabilising_primary": 0.9
+   },
+   {
+    "year": "2021-22",
+    "debt": 85.84,
+    "change": 0.75,
+    "growth": -3.43,
+    "interest": 2.52,
+    "primary": 1.05,
+    "other": 0.62,
+    "effective_rate": 3.08,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.12,
+    "stabilising_primary": 0.91
+   },
+   {
+    "year": "2022-23",
+    "debt": 86.48,
+    "change": 0.64,
+    "growth": -3.46,
+    "interest": 2.54,
+    "primary": 1.01,
+    "other": 0.55,
+    "effective_rate": 3.08,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.12,
+    "stabilising_primary": 0.92
+   },
+   {
+    "year": "2023-24",
+    "debt": 87.02,
+    "change": 0.54,
+    "growth": -3.49,
+    "interest": 2.55,
+    "primary": 0.5,
+    "other": 0.97,
+    "effective_rate": 3.08,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.12,
+    "stabilising_primary": 0.93
+   },
+   {
+    "year": "2024-25",
+    "debt": 87.48,
+    "change": 0.46,
+    "growth": -3.51,
+    "interest": 2.57,
+    "primary": 1.17,
+    "other": 0.22,
+    "effective_rate": 3.08,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.12,
+    "stabilising_primary": 0.94
+   },
+   {
+    "year": "2025-26",
+    "debt": 87.86,
+    "change": 0.39,
+    "growth": -3.53,
+    "interest": 2.58,
+    "primary": 0.79,
+    "other": 0.54,
+    "effective_rate": 3.08,
+    "nominal_growth": 4.2,
+    "r_minus_g": -1.12,
+    "stabilising_primary": 0.94
+   }
+  ],
+  "obr": [
+   {
+    "year": "2025-26",
+    "debt": 90.61,
+    "change": 2.96,
+    "growth": -2.49,
+    "interest": 2.9,
+    "primary": 1.38,
+    "other": 1.17,
+    "effective_rate": 3.41,
+    "nominal_growth": 2.92,
+    "r_minus_g": 0.49,
+    "stabilising_primary": -0.42
+   },
+   {
+    "year": "2026-27",
+    "debt": 92.27,
+    "change": 1.66,
+    "growth": -3.4,
+    "interest": 2.76,
+    "primary": 0.79,
+    "other": 1.51,
+    "effective_rate": 3.17,
+    "nominal_growth": 3.9,
+    "r_minus_g": -0.73,
+    "stabilising_primary": 0.64
+   },
+   {
+    "year": "2027-28",
+    "debt": 93.55,
+    "change": 1.28,
+    "growth": -3.13,
+    "interest": 2.85,
+    "primary": 0.0,
+    "other": 1.56,
+    "effective_rate": 3.19,
+    "nominal_growth": 3.51,
+    "r_minus_g": -0.32,
+    "stabilising_primary": 0.28
+   },
+   {
+    "year": "2028-29",
+    "debt": 94.46,
+    "change": 0.91,
+    "growth": -3.12,
+    "interest": 3.01,
+    "primary": -0.49,
+    "other": 1.52,
+    "effective_rate": 3.33,
+    "nominal_growth": 3.45,
+    "r_minus_g": -0.12,
+    "stabilising_primary": 0.11
+   },
+   {
+    "year": "2029-30",
+    "debt": 94.53,
+    "change": 0.07,
+    "growth": -3.18,
+    "interest": 3.12,
+    "primary": -1.38,
+    "other": 1.51,
+    "effective_rate": 3.42,
+    "nominal_growth": 3.48,
+    "r_minus_g": -0.06,
+    "stabilising_primary": 0.06
+   },
+   {
+    "year": "2030-31",
+    "debt": 94.29,
+    "change": -0.24,
+    "growth": -3.3,
+    "interest": 3.05,
+    "primary": -1.47,
+    "other": 1.48,
+    "effective_rate": 3.35,
+    "nominal_growth": 3.62,
+    "r_minus_g": -0.27,
+    "stabilising_primary": 0.24
+   },
+   {
+    "year": "2031-32",
+    "debt": 94.17,
+    "change": -0.13,
+    "growth": -3.28,
+    "interest": 3.13,
+    "primary": -1.47,
+    "other": 1.49,
+    "effective_rate": 3.44,
+    "nominal_growth": 3.6,
+    "r_minus_g": -0.16,
+    "stabilising_primary": 0.14
+   },
+   {
+    "year": "2032-33",
+    "debt": 94.12,
+    "change": -0.05,
+    "growth": -3.27,
+    "interest": 3.21,
+    "primary": -1.47,
+    "other": 1.49,
+    "effective_rate": 3.53,
+    "nominal_growth": 3.6,
+    "r_minus_g": -0.07,
+    "stabilising_primary": 0.07
+   },
+   {
+    "year": "2033-34",
+    "debt": 94.13,
+    "change": 0.01,
+    "growth": -3.27,
+    "interest": 3.27,
+    "primary": -1.47,
+    "other": 1.49,
+    "effective_rate": 3.6,
+    "nominal_growth": 3.6,
+    "r_minus_g": -0.0,
+    "stabilising_primary": 0.0
+   },
+   {
+    "year": "2034-35",
+    "debt": 94.19,
+    "change": 0.06,
+    "growth": -3.27,
+    "interest": 3.32,
+    "primary": -1.47,
+    "other": 1.49,
+    "effective_rate": 3.65,
+    "nominal_growth": 3.6,
+    "r_minus_g": 0.05,
+    "stabilising_primary": -0.05
+   },
+   {
+    "year": "2035-36",
+    "debt": 94.3,
+    "change": 0.1,
+    "growth": -3.27,
+    "interest": 3.36,
+    "primary": -1.47,
+    "other": 1.49,
+    "effective_rate": 3.7,
+    "nominal_growth": 3.6,
+    "r_minus_g": 0.1,
+    "stabilising_primary": -0.09
+   }
+  ],
+  "market": [
+   {
+    "year": "2025-26",
+    "debt": 90.63,
+    "change": 2.98,
+    "growth": -2.49,
+    "interest": 2.92,
+    "primary": 1.38,
+    "other": 1.17,
+    "effective_rate": 3.43,
+    "nominal_growth": 2.92,
+    "r_minus_g": 0.51,
+    "stabilising_primary": -0.43
+   },
+   {
+    "year": "2026-27",
+    "debt": 92.45,
+    "change": 1.83,
+    "growth": -3.41,
+    "interest": 2.93,
+    "primary": 0.79,
+    "other": 1.51,
+    "effective_rate": 3.36,
+    "nominal_growth": 3.9,
+    "r_minus_g": -0.54,
+    "stabilising_primary": 0.47
+   },
+   {
+    "year": "2027-28",
+    "debt": 94.06,
+    "change": 1.61,
+    "growth": -3.13,
+    "interest": 3.18,
+    "primary": 0.0,
+    "other": 1.56,
+    "effective_rate": 3.56,
+    "nominal_growth": 3.51,
+    "r_minus_g": 0.05,
+    "stabilising_primary": -0.04
+   },
+   {
+    "year": "2028-29",
+    "debt": 95.34,
+    "change": 1.28,
+    "growth": -3.14,
+    "interest": 3.4,
+    "primary": -0.49,
+    "other": 1.52,
+    "effective_rate": 3.73,
+    "nominal_growth": 3.45,
+    "r_minus_g": 0.28,
+    "stabilising_primary": -0.26
+   },
+   {
+    "year": "2029-30",
+    "debt": 95.83,
+    "change": 0.48,
+    "growth": -3.21,
+    "interest": 3.56,
+    "primary": -1.38,
+    "other": 1.51,
+    "effective_rate": 3.86,
+    "nominal_growth": 3.48,
+    "r_minus_g": 0.38,
+    "stabilising_primary": -0.35
+   },
+   {
+    "year": "2030-31",
+    "debt": 96.02,
+    "change": 0.19,
+    "growth": -3.34,
+    "interest": 3.53,
+    "primary": -1.47,
+    "other": 1.48,
+    "effective_rate": 3.82,
+    "nominal_growth": 3.62,
+    "r_minus_g": 0.21,
+    "stabilising_primary": -0.19
+   },
+   {
+    "year": "2031-32",
+    "debt": 96.36,
+    "change": 0.34,
+    "growth": -3.34,
+    "interest": 3.66,
+    "primary": -1.47,
+    "other": 1.49,
+    "effective_rate": 3.95,
+    "nominal_growth": 3.6,
+    "r_minus_g": 0.35,
+    "stabilising_primary": -0.32
+   },
+   {
+    "year": "2032-33",
+    "debt": 96.81,
+    "change": 0.45,
+    "growth": -3.35,
+    "interest": 3.78,
+    "primary": -1.47,
+    "other": 1.49,
+    "effective_rate": 4.06,
+    "nominal_growth": 3.6,
+    "r_minus_g": 0.46,
+    "stabilising_primary": -0.43
+   },
+   {
+    "year": "2033-34",
+    "debt": 97.34,
+    "change": 0.54,
+    "growth": -3.36,
+    "interest": 3.88,
+    "primary": -1.47,
+    "other": 1.49,
+    "effective_rate": 4.16,
+    "nominal_growth": 3.6,
+    "r_minus_g": 0.56,
+    "stabilising_primary": -0.52
+   },
+   {
+    "year": "2034-35",
+    "debt": 97.96,
+    "change": 0.61,
+    "growth": -3.38,
+    "interest": 3.98,
+    "primary": -1.47,
+    "other": 1.49,
+    "effective_rate": 4.23,
+    "nominal_growth": 3.6,
+    "r_minus_g": 0.63,
+    "stabilising_primary": -0.6
+   },
+   {
+    "year": "2035-36",
+    "debt": 98.63,
+    "change": 0.67,
+    "growth": -3.4,
+    "interest": 4.06,
+    "primary": -1.47,
+    "other": 1.49,
+    "effective_rate": 4.29,
+    "nominal_growth": 3.6,
+    "r_minus_g": 0.69,
+    "stabilising_primary": -0.66
+   }
+  ]
+ },
+ "interest": {
+  "rows": [
+   {
+    "year": "2025-26",
+    "kind": "forecast",
+    "obr": 109.7,
+    "market": 110.2,
+    "change": 0.5,
+    "conventional": 53.2,
+    "index_linked": 27.9,
+    "floating": 33.7,
+    "apf_offset": -9.7,
+    "model_total": 105.1,
+    "model_obr_curves": 104.5,
+    "effective_rate": 4.18,
+    "sens_rates_100": 0.6,
+    "sens_bank_rate_100": -0.0,
+    "sens_gilts_100": 0.6,
+    "sens_rpi_100": 6.0
+   },
+   {
+    "year": "2026-27",
+    "kind": "forecast",
+    "obr": 109.4,
+    "market": 114.9,
+    "change": 5.5,
+    "conventional": 60.9,
+    "index_linked": 21.5,
+    "floating": 35.7,
+    "apf_offset": -8.0,
+    "model_total": 110.1,
+    "model_obr_curves": 104.6,
+    "effective_rate": 4.09,
+    "sens_rates_100": 6.6,
+    "sens_bank_rate_100": 3.9,
+    "sens_gilts_100": 2.5,
+    "sens_rpi_100": 6.4
+   },
+   {
+    "year": "2027-28",
+    "kind": "forecast",
+    "obr": 116.7,
+    "market": 127.7,
+    "change": 11.0,
+    "conventional": 70.1,
+    "index_linked": 22.7,
+    "floating": 37.9,
+    "apf_offset": -6.3,
+    "model_total": 124.4,
+    "model_obr_curves": 113.4,
+    "effective_rate": 4.29,
+    "sens_rates_100": 12.6,
+    "sens_bank_rate_100": 7.3,
+    "sens_gilts_100": 4.7,
+    "sens_rpi_100": 6.5
+   },
+   {
+    "year": "2028-29",
+    "kind": "forecast",
+    "obr": 125.9,
+    "market": 139.3,
+    "change": 13.4,
+    "conventional": 79.2,
+    "index_linked": 23.3,
+    "floating": 37.0,
+    "apf_offset": -4.6,
+    "model_total": 135.0,
+    "model_obr_curves": 121.6,
+    "effective_rate": 4.44,
+    "sens_rates_100": 14.4,
+    "sens_bank_rate_100": 6.5,
+    "sens_gilts_100": 6.7,
+    "sens_rpi_100": 6.5
+   },
+   {
+    "year": "2029-30",
+    "kind": "forecast",
+    "obr": 134.7,
+    "market": 150.3,
+    "change": 15.6,
+    "conventional": 87.1,
+    "index_linked": 25.5,
+    "floating": 36.1,
+    "apf_offset": -2.8,
+    "model_total": 145.9,
+    "model_obr_curves": 130.2,
+    "effective_rate": 4.57,
+    "sens_rates_100": 15.7,
+    "sens_bank_rate_100": 5.6,
+    "sens_gilts_100": 8.3,
+    "sens_rpi_100": 6.4
+   },
+   {
+    "year": "2030-31",
+    "kind": "forecast",
+    "obr": 137.1,
+    "market": 154.9,
+    "change": 17.8,
+    "conventional": 94.0,
+    "index_linked": 21.3,
+    "floating": 35.3,
+    "apf_offset": -1.1,
+    "model_total": 149.5,
+    "model_obr_curves": 131.7,
+    "effective_rate": 4.53,
+    "sens_rates_100": 16.8,
+    "sens_bank_rate_100": 4.7,
+    "sens_gilts_100": 9.5,
+    "sens_rpi_100": 6.0
+   },
+   {
+    "year": "2031-32",
+    "kind": "extension",
+    "obr": 144.3,
+    "market": 164.4,
+    "change": 20.2,
+    "conventional": 101.0,
+    "index_linked": 22.7,
+    "floating": 35.5,
+    "apf_offset": -0.1,
+    "model_total": 159.0,
+    "model_obr_curves": 138.9,
+    "effective_rate": 4.63,
+    "sens_rates_100": 18.0,
+    "sens_bank_rate_100": 3.9,
+    "sens_gilts_100": 10.7,
+    "sens_rpi_100": 5.8
+   },
+   {
+    "year": "2032-33",
+    "kind": "extension",
+    "obr": 151.4,
+    "market": 174.2,
+    "change": 22.8,
+    "conventional": 107.8,
+    "index_linked": 24.0,
+    "floating": 36.9,
+    "apf_offset": -0.0,
+    "model_total": 168.8,
+    "model_obr_curves": 146.0,
+    "effective_rate": 4.72,
+    "sens_rates_100": 19.2,
+    "sens_bank_rate_100": 3.3,
+    "sens_gilts_100": 11.6,
+    "sens_rpi_100": 5.4
+   },
+   {
+    "year": "2033-34",
+    "kind": "extension",
+    "obr": 158.5,
+    "market": 183.9,
+    "change": 25.4,
+    "conventional": 114.3,
+    "index_linked": 25.5,
+    "floating": 38.7,
+    "apf_offset": -0.0,
+    "model_total": 178.5,
+    "model_obr_curves": 153.1,
+    "effective_rate": 4.79,
+    "sens_rates_100": 20.3,
+    "sens_bank_rate_100": 2.6,
+    "sens_gilts_100": 12.3,
+    "sens_rpi_100": 5.0
+   },
+   {
+    "year": "2034-35",
+    "kind": "extension",
+    "obr": 165.5,
+    "market": 193.6,
+    "change": 28.1,
+    "conventional": 120.4,
+    "index_linked": 27.2,
+    "floating": 40.6,
+    "apf_offset": -0.0,
+    "model_total": 188.2,
+    "model_obr_curves": 160.1,
+    "effective_rate": 4.84,
+    "sens_rates_100": 21.2,
+    "sens_bank_rate_100": 1.8,
+    "sens_gilts_100": 12.9,
+    "sens_rpi_100": 4.6
+   },
+   {
+    "year": "2035-36",
+    "kind": "extension",
+    "obr": 172.5,
+    "market": 203.4,
+    "change": 30.9,
+    "conventional": 126.3,
+    "index_linked": 29.1,
+    "floating": 42.6,
+    "apf_offset": -0.0,
+    "model_total": 198.0,
+    "model_obr_curves": 167.1,
+    "effective_rate": 4.87,
+    "sens_rates_100": 21.9,
+    "sens_bank_rate_100": 1.0,
+    "sens_gilts_100": 13.2,
+    "sens_rpi_100": 4.2
+   }
+  ],
+  "history": [
+   {
+    "year": "1997-98",
+    "interest": 13.6,
+    "uplift": 2.9,
+    "apf": 1.1
+   },
+   {
+    "year": "1998-99",
+    "interest": 14.1,
+    "uplift": 3.1,
+    "apf": 1.1
+   },
+   {
+    "year": "1999-00",
+    "interest": 14.7,
+    "uplift": 3.2,
+    "apf": 1.2
+   },
+   {
+    "year": "2000-01",
+    "interest": 15.4,
+    "uplift": 3.3,
+    "apf": 1.2
+   },
+   {
+    "year": "2001-02",
+    "interest": 16.0,
+    "uplift": 3.5,
+    "apf": 1.3
+   },
+   {
+    "year": "2002-03",
+    "interest": 16.7,
+    "uplift": 3.6,
+    "apf": 1.4
+   },
+   {
+    "year": "2003-04",
+    "interest": 17.4,
+    "uplift": 3.8,
+    "apf": 1.4
+   },
+   {
+    "year": "2004-05",
+    "interest": 18.1,
+    "uplift": 3.9,
+    "apf": 1.5
+   },
+   {
+    "year": "2005-06",
+    "interest": 18.9,
+    "uplift": 4.1,
+    "apf": 1.5
+   },
+   {
+    "year": "2006-07",
+    "interest": 19.7,
+    "uplift": 4.3,
+    "apf": 1.6
+   },
+   {
+    "year": "2007-08",
+    "interest": 22.4,
+    "uplift": 4.8,
+    "apf": 1.8
+   },
+   {
+    "year": "2008-09",
+    "interest": 27.1,
+    "uplift": 5.9,
+    "apf": 2.2
+   },
+   {
+    "year": "2009-10",
+    "interest": 31.6,
+    "uplift": 6.8,
+    "apf": 2.6
+   },
+   {
+    "year": "2010-11",
+    "interest": 35.9,
+    "uplift": 7.8,
+    "apf": 2.9
+   },
+   {
+    "year": "2011-12",
+    "interest": 40.0,
+    "uplift": 8.6,
+    "apf": 3.2
+   },
+   {
+    "year": "2012-13",
+    "interest": 43.9,
+    "uplift": 9.5,
+    "apf": 3.6
+   },
+   {
+    "year": "2013-14",
+    "interest": 47.8,
+    "uplift": 10.3,
+    "apf": 3.9
+   },
+   {
+    "year": "2014-15",
+    "interest": 51.6,
+    "uplift": 11.2,
+    "apf": 4.2
+   },
+   {
+    "year": "2015-16",
+    "interest": 55.4,
+    "uplift": 12.0,
+    "apf": 4.5
+   },
+   {
+    "year": "2016-17",
+    "interest": 59.1,
+    "uplift": 12.8,
+    "apf": 4.8
+   },
+   {
+    "year": "2017-18",
+    "interest": 62.8,
+    "uplift": 13.6,
+    "apf": 5.1
+   },
+   {
+    "year": "2018-19",
+    "interest": 66.5,
+    "uplift": 14.4,
+    "apf": 5.4
+   },
+   {
+    "year": "2019-20",
+    "interest": 70.2,
+    "uplift": 15.2,
+    "apf": 5.7
+   },
+   {
+    "year": "2020-21",
+    "interest": 74.0,
+    "uplift": 16.0,
+    "apf": 6.0
+   },
+   {
+    "year": "2021-22",
+    "interest": 77.9,
+    "uplift": 16.8,
+    "apf": 6.3
+   },
+   {
+    "year": "2022-23",
+    "interest": 81.8,
+    "uplift": 17.7,
+    "apf": 6.6
+   },
+   {
+    "year": "2023-24",
+    "interest": 85.8,
+    "uplift": 18.6,
+    "apf": 7.0
+   },
+   {
+    "year": "2024-25",
+    "interest": 89.9,
+    "uplift": 19.4,
+    "apf": 7.3
+   },
+   {
+    "year": "2025-26",
+    "interest": 94.2,
+    "uplift": 20.4,
+    "apf": 7.6
+   }
+  ],
+  "obr_reckoner": {
+   "rates_1pp_bn": 15.0,
+   "rpi_1pp_bn": 11.0,
+   "year": "2030-31"
+  }
+ },
+ "financing": {
+  "profile": [
+   {
+    "year": "2026-27",
+    "conventional": 128.9,
+    "index_linked": 27.7
+   },
+   {
+    "year": "2027-28",
+    "conventional": 120.5,
+    "index_linked": 26.5
+   },
+   {
+    "year": "2028-29",
+    "conventional": 112.6,
+    "index_linked": 25.5
+   },
+   {
+    "year": "2029-30",
+    "conventional": 105.2,
+    "index_linked": 24.5
+   },
+   {
+    "year": "2030-31",
+    "conventional": 98.3,
+    "index_linked": 23.5
+   },
+   {
+    "year": "2031-32",
+    "conventional": 91.8,
+    "index_linked": 22.5
+   },
+   {
+    "year": "2032-33",
+    "conventional": 85.8,
+    "index_linked": 21.6
+   },
+   {
+    "year": "2033-34",
+    "conventional": 80.2,
+    "index_linked": 20.8
+   },
+   {
+    "year": "2034-35",
+    "conventional": 74.9,
+    "index_linked": 19.9
+   },
+   {
+    "year": "2035-36",
+    "conventional": 70.0,
+    "index_linked": 19.1
+   },
+   {
+    "year": "2036-37",
+    "conventional": 65.4,
+    "index_linked": 18.4
+   },
+   {
+    "year": "2037-38",
+    "conventional": 61.1,
+    "index_linked": 17.6
+   },
+   {
+    "year": "2038-39",
+    "conventional": 57.1,
+    "index_linked": 16.9
+   },
+   {
+    "year": "2039-40",
+    "conventional": 53.3,
+    "index_linked": 16.2
+   },
+   {
+    "year": "2040-41",
+    "conventional": 49.8,
+    "index_linked": 15.6
+   },
+   {
+    "year": "2041-42",
+    "conventional": 46.6,
+    "index_linked": 14.9
+   },
+   {
+    "year": "2042-43",
+    "conventional": 43.5,
+    "index_linked": 14.3
+   },
+   {
+    "year": "2043-44",
+    "conventional": 40.7,
+    "index_linked": 13.8
+   },
+   {
+    "year": "2044-45",
+    "conventional": 38.0,
+    "index_linked": 13.2
+   },
+   {
+    "year": "2045-46",
+    "conventional": 35.5,
+    "index_linked": 12.7
+   },
+   {
+    "year": "2046-47",
+    "conventional": 33.2,
+    "index_linked": 12.2
+   },
+   {
+    "year": "2047-48",
+    "conventional": 31.0,
+    "index_linked": 11.7
+   },
+   {
+    "year": "2048-49",
+    "conventional": 29.0,
+    "index_linked": 11.2
+   },
+   {
+    "year": "2049-50",
+    "conventional": 27.1,
+    "index_linked": 10.8
+   },
+   {
+    "year": "2050-51",
+    "conventional": 25.3,
+    "index_linked": 10.3
+   },
+   {
+    "year": "2051-52",
+    "conventional": 23.6,
+    "index_linked": 9.9
+   },
+   {
+    "year": "2052-53",
+    "conventional": 22.1,
+    "index_linked": 9.5
+   },
+   {
+    "year": "2053-54",
+    "conventional": 20.6,
+    "index_linked": 9.1
+   },
+   {
+    "year": "2054-55",
+    "conventional": 19.3,
+    "index_linked": 8.8
+   },
+   {
+    "year": "2055-56",
+    "conventional": 18.0,
+    "index_linked": 8.4
+   },
+   {
+    "year": "2056-57",
+    "conventional": 16.8,
+    "index_linked": 8.1
+   },
+   {
+    "year": "2057-58",
+    "conventional": 15.7,
+    "index_linked": 7.8
+   },
+   {
+    "year": "2058-59",
+    "conventional": 14.7,
+    "index_linked": 7.4
+   },
+   {
+    "year": "2059-60",
+    "conventional": 13.7,
+    "index_linked": 7.1
+   },
+   {
+    "year": "2060-61",
+    "conventional": 12.8,
+    "index_linked": 6.9
+   },
+   {
+    "year": "2061-62",
+    "conventional": 12.0,
+    "index_linked": 6.6
+   },
+   {
+    "year": "2062-63",
+    "conventional": 11.2,
+    "index_linked": 6.3
+   },
+   {
+    "year": "2063-64",
+    "conventional": 10.5,
+    "index_linked": 6.1
+   },
+   {
+    "year": "2064-65",
+    "conventional": 9.8,
+    "index_linked": 5.8
+   },
+   {
+    "year": "2065-66",
+    "conventional": 9.1,
+    "index_linked": 5.6
+   },
+   {
+    "year": "2066-67",
+    "conventional": 8.5,
+    "index_linked": 5.4
+   },
+   {
+    "year": "2067-68",
+    "conventional": 8.0,
+    "index_linked": 5.1
+   },
+   {
+    "year": "2068-69",
+    "conventional": 7.4,
+    "index_linked": 4.9
+   },
+   {
+    "year": "2069-70",
+    "conventional": 7.0,
+    "index_linked": 4.7
+   },
+   {
+    "year": "2070-71",
+    "conventional": 6.5,
+    "index_linked": 4.5
+   },
+   {
+    "year": "2071-72",
+    "conventional": 6.1,
+    "index_linked": 4.4
+   },
+   {
+    "year": "2072-73",
+    "conventional": 5.7,
+    "index_linked": 4.2
+   },
+   {
+    "year": "2073-74",
+    "conventional": 5.3,
+    "index_linked": 4.0
+   },
+   {
+    "year": "2074-75",
+    "conventional": 5.0,
+    "index_linked": 3.9
+   },
+   {
+    "year": "2075-76",
+    "conventional": 4.6,
+    "index_linked": 3.7
+   }
+  ],
+  "gross": [
+   {
+    "year": "2026-27",
+    "redemptions": 158.6,
+    "net_need": 144.6,
+    "gross": 303.2,
+    "gross_pct": 9.58
+   },
+   {
+    "year": "2027-28",
+    "redemptions": 149.8,
+    "net_need": 148.1,
+    "gross": 297.9,
+    "gross_pct": 9.09
+   },
+   {
+    "year": "2028-29",
+    "redemptions": 190.0,
+    "net_need": 151.3,
+    "gross": 341.3,
+    "gross_pct": 10.07
+   },
+   {
+    "year": "2029-30",
+    "redemptions": 233.8,
+    "net_need": 108.5,
+    "gross": 342.3,
+    "gross_pct": 9.76
+   },
+   {
+    "year": "2030-31",
+    "redemptions": 224.5,
+    "net_need": 120.5,
+    "gross": 345.1,
+    "gross_pct": 9.5
+   },
+   {
+    "year": "2031-32",
+    "redemptions": 231.9,
+    "net_need": 116.7,
+    "gross": 348.6,
+    "gross_pct": 9.26
+   },
+   {
+    "year": "2032-33",
+    "redemptions": 225.6,
+    "net_need": 116.4,
+    "gross": 342.0,
+    "gross_pct": 8.77
+   },
+   {
+    "year": "2033-34",
+    "redemptions": 264.5,
+    "net_need": 115.9,
+    "gross": 380.4,
+    "gross_pct": 9.42
+   },
+   {
+    "year": "2034-35",
+    "redemptions": 306.7,
+    "net_need": 115.3,
+    "gross": 422.0,
+    "gross_pct": 10.09
+   },
+   {
+    "year": "2035-36",
+    "redemptions": 297.5,
+    "net_need": 114.6,
+    "gross": 412.1,
+    "gross_pct": 9.51
+   }
+  ],
+  "gilts_bn": 2498.0,
+  "linker_share": 0.24,
+  "avg_maturity_conventional": 13.0,
+  "avg_maturity_linkers": 17.0,
+  "bills_bn": 90.0,
+  "nsandi_bn": 250.0,
+  "reserves_bn": 520.0,
+  "apf_bn": 400.0,
+  "apf_share": 0.16,
+  "floating_share": 0.549,
+  "repricing_1y_bn": 1589.0,
+  "debt_bn": 2658.0,
+  "as_of": "2026-09-30"
+ },
+ "scenarios": [
+  {
+   "id": "rates_100",
+   "name": "Rates +100bp",
+   "description": "Bank Rate and gilt yields 1pp higher for good from next year.",
+   "stability_bn": -6.72,
+   "investment_pp": -0.06,
+   "psnd_end": 102.99,
+   "interest_end": 232.74,
+   "paths": [
+    {
+     "year": "2025-26",
+     "psnfl_pct": 82.43,
+     "psnd_pct": 90.63,
+     "psnb_pct": 4.36,
+     "interest_bn": 110.24
+    },
+    {
+     "year": "2026-27",
+     "psnfl_pct": 83.09,
+     "psnd_pct": 92.71,
+     "psnb_pct": 4.09,
+     "interest_bn": 124.38
+    },
+    {
+     "year": "2027-28",
+     "psnfl_pct": 84.03,
+     "psnd_pct": 94.62,
+     "psnb_pct": 3.6,
+     "interest_bn": 139.68
+    },
+    {
+     "year": "2028-29",
+     "psnfl_pct": 84.79,
+     "psnd_pct": 96.33,
+     "psnb_pct": 3.38,
+     "interest_bn": 153.94
+    },
+    {
+     "year": "2029-30",
+     "psnfl_pct": 84.85,
+     "psnd_pct": 97.21,
+     "psnb_pct": 2.69,
+     "interest_bn": 166.89
+    },
+    {
+     "year": "2030-31",
+     "psnfl_pct": 84.67,
+     "psnd_pct": 97.84,
+     "psnb_pct": 2.61,
+     "interest_bn": 173.35
+    },
+    {
+     "year": "2031-32",
+     "psnfl_pct": 84.69,
+     "psnd_pct": 98.65,
+     "psnb_pct": 2.77,
+     "interest_bn": 184.92
+    },
+    {
+     "year": "2032-33",
+     "psnfl_pct": 84.87,
+     "psnd_pct": 99.6,
+     "psnb_pct": 2.93,
+     "interest_bn": 196.95
+    },
+    {
+     "year": "2033-34",
+     "psnfl_pct": 85.18,
+     "psnd_pct": 100.65,
+     "psnb_pct": 3.08,
+     "interest_bn": 209.17
+    },
+    {
+     "year": "2034-35",
+     "psnfl_pct": 85.6,
+     "psnd_pct": 101.79,
+     "psnb_pct": 3.2,
+     "interest_bn": 220.86
+    },
+    {
+     "year": "2035-36",
+     "psnfl_pct": 86.12,
+     "psnd_pct": 102.99,
+     "psnb_pct": 3.31,
+     "interest_bn": 232.74
+    }
+   ]
+  },
+  {
+   "id": "term_premium",
+   "name": "Gilt term-premium shock",
+   "description": "Gilt yields 1.5pp higher with an unchanged Bank Rate (a fiscal risk premium).",
+   "stability_bn": -3.71,
+   "investment_pp": 0.0,
+   "psnd_end": 102.53,
+   "interest_end": 234.12,
+   "paths": [
+    {
+     "year": "2025-26",
+     "psnfl_pct": 82.43,
+     "psnd_pct": 90.63,
+     "psnb_pct": 4.36,
+     "interest_bn": 110.24
+    },
+    {
+     "year": "2026-27",
+     "psnfl_pct": 82.86,
+     "psnd_pct": 92.48,
+     "psnb_pct": 3.85,
+     "interest_bn": 116.95
+    },
+    {
+     "year": "2027-28",
+     "psnfl_pct": 83.63,
+     "psnd_pct": 94.22,
+     "psnb_pct": 3.42,
+     "interest_bn": 133.82
+    },
+    {
+     "year": "2028-29",
+     "psnfl_pct": 84.28,
+     "psnd_pct": 95.83,
+     "psnb_pct": 3.26,
+     "interest_bn": 149.71
+    },
+    {
+     "year": "2029-30",
+     "psnfl_pct": 84.28,
+     "psnd_pct": 96.64,
+     "psnb_pct": 2.61,
+     "interest_bn": 163.88
+    },
+    {
+     "year": "2030-31",
+     "psnfl_pct": 84.07,
+     "psnd_pct": 97.24,
+     "psnb_pct": 2.56,
+     "interest_bn": 171.57
+    },
+    {
+     "year": "2031-32",
+     "psnfl_pct": 84.08,
+     "psnd_pct": 98.05,
+     "psnb_pct": 2.75,
+     "interest_bn": 184.09
+    },
+    {
+     "year": "2032-33",
+     "psnfl_pct": 84.28,
+     "psnd_pct": 99.01,
+     "psnb_pct": 2.93,
+     "interest_bn": 196.81
+    },
+    {
+     "year": "2033-34",
+     "psnfl_pct": 84.63,
+     "psnd_pct": 100.1,
+     "psnb_pct": 3.09,
+     "interest_bn": 209.72
+    },
+    {
+     "year": "2034-35",
+     "psnfl_pct": 85.09,
+     "psnd_pct": 101.28,
+     "psnb_pct": 3.22,
+     "interest_bn": 221.78
+    },
+    {
+     "year": "2035-36",
+     "psnfl_pct": 85.66,
+     "psnd_pct": 102.53,
+     "psnb_pct": 3.34,
+     "interest_bn": 234.12
+    }
+   ]
+  },
+  {
+   "id": "growth",
+   "name": "Recession",
+   "description": "Real growth 2pp lower for two years; automatic stabilisers widen the deficit.",
+   "stability_bn": -16.93,
+   "investment_pp": -0.16,
+   "psnd_end": 106.69,
+   "interest_end": 203.37,
+   "paths": [
+    {
+     "year": "2025-26",
+     "psnfl_pct": 82.43,
+     "psnd_pct": 90.63,
+     "psnb_pct": 4.36,
+     "interest_bn": 110.24
+    },
+    {
+     "year": "2026-27",
+     "psnfl_pct": 85.55,
+     "psnd_pct": 95.34,
+     "psnb_pct": 4.95,
+     "interest_bn": 114.9
+    },
+    {
+     "year": "2027-28",
+     "psnfl_pct": 89.6,
+     "psnd_pct": 100.54,
+     "psnb_pct": 5.13,
+     "interest_bn": 127.72
+    },
+    {
+     "year": "2028-29",
+     "psnfl_pct": 90.93,
+     "psnd_pct": 102.81,
+     "psnb_pct": 4.15,
+     "interest_bn": 139.29
+    },
+    {
+     "year": "2029-30",
+     "psnfl_pct": 91.09,
+     "psnd_pct": 103.78,
+     "psnb_pct": 3.0,
+     "interest_bn": 150.35
+    },
+    {
+     "year": "2030-31",
+     "psnfl_pct": 90.71,
+     "psnd_pct": 104.2,
+     "psnb_pct": 2.63,
+     "interest_bn": 154.87
+    },
+    {
+     "year": "2031-32",
+     "psnfl_pct": 90.36,
+     "psnd_pct": 104.63,
+     "psnb_pct": 2.61,
+     "interest_bn": 164.4
+    },
+    {
+     "year": "2032-33",
+     "psnfl_pct": 90.05,
+     "psnd_pct": 105.08,
+     "psnb_pct": 2.64,
+     "interest_bn": 174.15
+    },
+    {
+     "year": "2033-34",
+     "psnfl_pct": 89.82,
+     "psnd_pct": 105.57,
+     "psnb_pct": 2.7,
+     "interest_bn": 183.89
+    },
+    {
+     "year": "2034-35",
+     "psnfl_pct": 89.65,
+     "psnd_pct": 106.11,
+     "psnb_pct": 2.77,
+     "interest_bn": 193.63
+    },
+    {
+     "year": "2035-36",
+     "psnfl_pct": 89.56,
+     "psnd_pct": 106.69,
+     "psnb_pct": 2.83,
+     "interest_bn": 203.37
+    }
+   ]
+  },
+  {
+   "id": "inflation",
+   "name": "Inflation shock",
+   "description": "Inflation 3pp higher for two years, Bank Rate 1.5pp and gilts 1pp higher in response.",
+   "stability_bn": 7.68,
+   "investment_pp": 0.21,
+   "psnd_end": 96.71,
+   "interest_end": 218.87,
+   "paths": [
+    {
+     "year": "2025-26",
+     "psnfl_pct": 82.43,
+     "psnd_pct": 90.63,
+     "psnb_pct": 4.36,
+     "interest_bn": 110.24
+    },
+    {
+     "year": "2026-27",
+     "psnfl_pct": 81.4,
+     "psnd_pct": 90.8,
+     "psnb_pct": 4.72,
+     "interest_bn": 148.23
+    },
+    {
+     "year": "2027-28",
+     "psnfl_pct": 80.6,
+     "psnd_pct": 90.7,
+     "psnb_pct": 4.09,
+     "interest_bn": 164.02
+    },
+    {
+     "year": "2028-29",
+     "psnfl_pct": 81.13,
+     "psnd_pct": 92.2,
+     "psnb_pct": 3.03,
+     "interest_bn": 149.32
+    },
+    {
+     "year": "2029-30",
+     "psnfl_pct": 80.92,
+     "psnd_pct": 92.83,
+     "psnb_pct": 2.29,
+     "interest_bn": 160.82
+    },
+    {
+     "year": "2030-31",
+     "psnfl_pct": 80.45,
+     "psnd_pct": 93.18,
+     "psnb_pct": 2.18,
+     "interest_bn": 165.82
+    },
+    {
+     "year": "2031-32",
+     "psnfl_pct": 80.17,
+     "psnd_pct": 93.71,
+     "psnb_pct": 2.31,
+     "interest_bn": 176.37
+    },
+    {
+     "year": "2032-33",
+     "psnfl_pct": 80.02,
+     "psnd_pct": 94.34,
+     "psnb_pct": 2.44,
+     "interest_bn": 187.27
+    },
+    {
+     "year": "2033-34",
+     "psnfl_pct": 79.99,
+     "psnd_pct": 95.07,
+     "psnb_pct": 2.56,
+     "interest_bn": 198.24
+    },
+    {
+     "year": "2034-35",
+     "psnfl_pct": 80.06,
+     "psnd_pct": 95.86,
+     "psnb_pct": 2.65,
+     "interest_bn": 208.5
+    },
+    {
+     "year": "2035-36",
+     "psnfl_pct": 80.2,
+     "psnd_pct": 96.71,
+     "psnb_pct": 2.73,
+     "interest_bn": 218.87
+    }
+   ]
+  },
+  {
+   "id": "replay_2022",
+   "name": "2022 replay",
+   "description": "As in 2022\u201323: inflation up 6pp then 3pp, Bank Rate up 3pp, gilts up 2.5pp, growth 1pp lower.",
+   "stability_bn": -20.24,
+   "investment_pp": -0.44,
+   "psnd_end": 102.68,
+   "interest_end": 248.65,
+   "paths": [
+    {
+     "year": "2025-26",
+     "psnfl_pct": 82.43,
+     "psnd_pct": 90.63,
+     "psnb_pct": 4.36,
+     "interest_bn": 110.24
+    },
+    {
+     "year": "2026-27",
+     "psnfl_pct": 81.17,
+     "psnd_pct": 90.42,
+     "psnb_pct": 5.98,
+     "interest_bn": 174.12
+    },
+    {
+     "year": "2027-28",
+     "psnfl_pct": 82.44,
+     "psnd_pct": 92.49,
+     "psnb_pct": 5.42,
+     "interest_bn": 181.3
+    },
+    {
+     "year": "2028-29",
+     "psnfl_pct": 83.82,
+     "psnd_pct": 94.84,
+     "psnb_pct": 3.97,
+     "interest_bn": 165.33
+    },
+    {
+     "year": "2029-30",
+     "psnfl_pct": 84.26,
+     "psnd_pct": 96.12,
+     "psnb_pct": 3.04,
+     "interest_bn": 178.23
+    },
+    {
+     "year": "2030-31",
+     "psnfl_pct": 84.31,
+     "psnd_pct": 97.0,
+     "psnb_pct": 2.83,
+     "interest_bn": 185.16
+    },
+    {
+     "year": "2031-32",
+     "psnfl_pct": 84.49,
+     "psnd_pct": 97.99,
+     "psnb_pct": 2.92,
+     "interest_bn": 197.75
+    },
+    {
+     "year": "2032-33",
+     "psnfl_pct": 84.78,
+     "psnd_pct": 99.06,
+     "psnb_pct": 3.04,
+     "interest_bn": 210.93
+    },
+    {
+     "year": "2033-34",
+     "psnfl_pct": 85.19,
+     "psnd_pct": 100.22,
+     "psnb_pct": 3.17,
+     "interest_bn": 224.38
+    },
+    {
+     "year": "2034-35",
+     "psnfl_pct": 85.66,
+     "psnd_pct": 101.43,
+     "psnb_pct": 3.25,
+     "interest_bn": 236.14
+    },
+    {
+     "year": "2035-36",
+     "psnfl_pct": 86.22,
+     "psnd_pct": 102.68,
+     "psnb_pct": 3.35,
+     "interest_bn": 248.65
+    }
+   ]
+  },
+  {
+   "id": "replay_2008",
+   "name": "2008 replay",
+   "description": "As in 2008\u201310: growth 5pp lower then 1pp, deficit 3% of GDP wider for three years, Bank Rate cut 3pp.",
+   "stability_bn": -68.65,
+   "investment_pp": -1.4,
+   "psnd_end": 123.13,
+   "interest_end": 174.56,
+   "paths": [
+    {
+     "year": "2025-26",
+     "psnfl_pct": 82.43,
+     "psnd_pct": 90.63,
+     "psnb_pct": 4.36,
+     "interest_bn": 110.24
+    },
+    {
+     "year": "2026-27",
+     "psnfl_pct": 91.93,
+     "psnd_pct": 101.97,
+     "psnb_pct": 8.84,
+     "interest_bn": 89.18
+    },
+    {
+     "year": "2027-28",
+     "psnfl_pct": 97.54,
+     "psnd_pct": 108.63,
+     "psnb_pct": 7.74,
+     "interest_bn": 99.95
+    },
+    {
+     "year": "2028-29",
+     "psnfl_pct": 100.24,
+     "psnd_pct": 112.27,
+     "psnb_pct": 5.82,
+     "interest_bn": 117.72
+    },
+    {
+     "year": "2029-30",
+     "psnfl_pct": 101.64,
+     "psnd_pct": 114.47,
+     "psnb_pct": 4.58,
+     "interest_bn": 128.59
+    },
+    {
+     "year": "2030-31",
+     "psnfl_pct": 102.4,
+     "psnd_pct": 116.02,
+     "psnb_pct": 4.16,
+     "interest_bn": 132.91
+    },
+    {
+     "year": "2031-32",
+     "psnfl_pct": 103.1,
+     "psnd_pct": 117.5,
+     "psnb_pct": 4.1,
+     "interest_bn": 141.34
+    },
+    {
+     "year": "2032-33",
+     "psnfl_pct": 103.77,
+     "psnd_pct": 118.92,
+     "psnb_pct": 4.09,
+     "interest_bn": 149.49
+    },
+    {
+     "year": "2033-34",
+     "psnfl_pct": 104.44,
+     "psnd_pct": 120.32,
+     "psnb_pct": 4.11,
+     "interest_bn": 157.46
+    },
+    {
+     "year": "2034-35",
+     "psnfl_pct": 105.15,
+     "psnd_pct": 121.72,
+     "psnb_pct": 4.17,
+     "interest_bn": 166.07
+    },
+    {
+     "year": "2035-36",
+     "psnfl_pct": 105.88,
+     "psnd_pct": 123.13,
+     "psnb_pct": 4.23,
+     "interest_bn": 174.56
+    }
+   ]
+  },
+  {
+   "id": "combined",
+   "name": "Combined adverse",
+   "description": "Recession plus a gilt risk premium: growth 1.5pp lower for two years, gilts 1.5pp and Bank Rate 1pp higher.",
+   "stability_bn": -48.48,
+   "investment_pp": -1.04,
+   "psnd_end": 114.81,
+   "interest_end": 242.99,
+   "paths": [
+    {
+     "year": "2025-26",
+     "psnfl_pct": 82.43,
+     "psnd_pct": 90.63,
+     "psnb_pct": 4.36,
+     "interest_bn": 110.24
+    },
+    {
+     "year": "2026-27",
+     "psnfl_pct": 85.67,
+     "psnd_pct": 95.42,
+     "psnb_pct": 5.48,
+     "interest_bn": 125.07
+    },
+    {
+     "year": "2027-28",
+     "psnfl_pct": 89.75,
+     "psnd_pct": 100.6,
+     "psnb_pct": 5.59,
+     "interest_bn": 141.72
+    },
+    {
+     "year": "2028-29",
+     "psnfl_pct": 91.81,
+     "psnd_pct": 103.6,
+     "psnb_pct": 4.9,
+     "interest_bn": 157.41
+    },
+    {
+     "year": "2029-30",
+     "psnfl_pct": 92.85,
+     "psnd_pct": 105.45,
+     "psnb_pct": 3.92,
+     "interest_bn": 171.4
+    },
+    {
+     "year": "2030-31",
+     "psnfl_pct": 93.43,
+     "psnd_pct": 106.84,
+     "psnb_pct": 3.68,
+     "interest_bn": 178.91
+    },
+    {
+     "year": "2031-32",
+     "psnfl_pct": 94.11,
+     "psnd_pct": 108.3,
+     "psnb_pct": 3.75,
+     "interest_bn": 191.48
+    },
+    {
+     "year": "2032-33",
+     "psnfl_pct": 94.88,
+     "psnd_pct": 109.83,
+     "psnb_pct": 3.87,
+     "interest_bn": 204.5
+    },
+    {
+     "year": "2033-34",
+     "psnfl_pct": 95.76,
+     "psnd_pct": 111.44,
+     "psnb_pct": 4.0,
+     "interest_bn": 217.77
+    },
+    {
+     "year": "2034-35",
+     "psnfl_pct": 96.71,
+     "psnd_pct": 113.1,
+     "psnb_pct": 4.11,
+     "interest_bn": 230.24
+    },
+    {
+     "year": "2035-36",
+     "psnfl_pct": 97.74,
+     "psnd_pct": 114.81,
+     "psnb_pct": 4.22,
+     "interest_bn": 242.99
+    }
+   ]
+  }
+ ],
+ "tracker": {
+  "year": "2026-27",
+  "months_observed": 6,
+  "latest_month": "2026-09",
+  "ytd_bn": 49.4,
+  "ytd_previous_bn": 52.1,
+  "ytd_obr_profile_bn": 60.3,
+  "obr_full_year_bn": 115.5,
+  "implied_full_year_bn": 93.1,
+  "previous_full_year_bn": 99.8,
+  "typical_share": 0.53,
+  "next_release": "20 November 2026",
+  "next_month": "2026-10",
+  "next_month_forecast_bn": 10.6,
+  "months": [
+   {
+    "month": "2026-04",
+    "current": 7.8,
+    "previous": 9.2,
+    "obr_profile": 10.6
+   },
+   {
+    "month": "2026-05",
+    "current": 8.9,
+    "previous": 9.3,
+    "obr_profile": 10.7
+   },
+   {
+    "month": "2026-06",
+    "current": 6.9,
+    "previous": 7.5,
+    "obr_profile": 8.7
+   },
+   {
+    "month": "2026-07",
+    "current": 10.2,
+    "previous": 7.0,
+    "obr_profile": 8.1
+   },
+   {
+    "month": "2026-08",
+    "current": 7.1,
+    "previous": 9.9,
+    "obr_profile": 11.4
+   },
+   {
+    "month": "2026-09",
+    "current": 8.6,
+    "previous": 9.2,
+    "obr_profile": 10.7
+   },
+   {
+    "month": "2026-10",
+    "current": null,
+    "previous": 9.2,
+    "obr_profile": 10.6
+   },
+   {
+    "month": "2026-11",
+    "current": null,
+    "previous": 10.1,
+    "obr_profile": 11.6
+   },
+   {
+    "month": "2026-12",
+    "current": null,
+    "previous": 8.0,
+    "obr_profile": 9.3
+   },
+   {
+    "month": "2027-01",
+    "current": null,
+    "previous": 2.6,
+    "obr_profile": 3.0
+   },
+   {
+    "month": "2027-02",
+    "current": null,
+    "previous": 8.5,
+    "obr_profile": 9.8
+   },
+   {
+    "month": "2027-03",
+    "current": null,
+    "previous": 9.3,
+    "obr_profile": 10.8
+   }
+  ]
+ },
+ "market": {
+  "gauges": [
+   {
+    "id": "gilt_2y",
+    "label": "2y gilt",
+    "unit": "%",
+    "latest": 5.04,
+    "obr_window": 4.24,
+    "year_ago": 4.24
+   },
+   {
+    "id": "gilt_10y",
+    "label": "10y gilt",
+    "unit": "%",
+    "latest": 5.2,
+    "obr_window": 4.4,
+    "year_ago": 4.4
+   },
+   {
+    "id": "gilt_30y",
+    "label": "30y gilt",
+    "unit": "%",
+    "latest": 5.6,
+    "obr_window": 4.8,
+    "year_ago": 4.8
+   },
+   {
+    "id": "real_10y",
+    "label": "10y real yield",
+    "unit": "%",
+    "latest": 2.0,
+    "obr_window": 1.2,
+    "year_ago": 1.2
+   },
+   {
+    "id": "rpi_10y",
+    "label": "10y implied RPI",
+    "unit": "%",
+    "latest": 3.2,
+    "obr_window": 3.2,
+    "year_ago": 3.2
+   },
+   {
+    "id": "rpi_5y5y",
+    "label": "5y5y implied RPI",
+    "unit": "%",
+    "latest": 3.2,
+    "obr_window": 3.2,
+    "year_ago": 3.2
+   },
+   {
+    "id": "ois_2y",
+    "label": "2y OIS",
+    "unit": "%",
+    "latest": 4.8,
+    "obr_window": 4.0,
+    "year_ago": 4.0
+   },
+   {
+    "id": "ois_10y",
+    "label": "10y OIS",
+    "unit": "%",
+    "latest": 4.8,
+    "obr_window": 4.0,
+    "year_ago": 4.0
+   },
+   {
+    "id": "gilt_ois_10y",
+    "label": "10y gilt \u2212 OIS",
+    "unit": "bp",
+    "latest": 40.0,
+    "obr_window": 40.0,
+    "year_ago": 40.0
+   },
+   {
+    "id": "term_10s30s",
+    "label": "10s30s gilt curve",
+    "unit": "bp",
+    "latest": 40.0,
+    "obr_window": 40.0,
+    "year_ago": 40.0
+   }
+  ],
+  "series": [
+   {
+    "date": "2025-01-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-07",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-08",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-14",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-15",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-21",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-22",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-28",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-29",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-30",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-01-31",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-07",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-14",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-21",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-02-28",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-07",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-14",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-21",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-28",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-03-31",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-01",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-07",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-08",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-14",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-15",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-21",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-22",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-28",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-29",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-04-30",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-01",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-07",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-08",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-14",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-15",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-21",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-22",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-28",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-29",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-05-30",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-06-30",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-01",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-07",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-08",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-14",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-15",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-21",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-22",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-28",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-29",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-30",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-07-31",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-01",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-07",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-08",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-14",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-15",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-21",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-22",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-28",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-08-29",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-01",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-08",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-15",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-22",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-29",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-09-30",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-01",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-07",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-08",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-14",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-15",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-21",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-22",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-28",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-29",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-30",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-10-31",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-07",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-14",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-21",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-11-28",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-01",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-08",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-15",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-22",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-29",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-30",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2025-12-31",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-01",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-07",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-08",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-14",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-15",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-21",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-22",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-28",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-29",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-01-30",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-02-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-02",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-03",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-04",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-05",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-06",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-09",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-10",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-11",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-12",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-13",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-16",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-17",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-18",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-19",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-20",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-23",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-24",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-25",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-26",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-27",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-30",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-03-31",
+    "gilt_10y": 4.4,
+    "gilt_30y": 4.8,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-01",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-02",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-03",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-06",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-07",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-08",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-09",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-10",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-13",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-14",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-15",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-16",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-17",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-20",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-21",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-22",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-23",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-24",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-27",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-28",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-29",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-04-30",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-01",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-04",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-05",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-06",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-07",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-08",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-11",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-12",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-13",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-14",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-15",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-18",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-19",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-20",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-21",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-22",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-25",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-26",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-27",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-28",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-05-29",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-01",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-02",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-03",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-04",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-05",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-08",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-09",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-10",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-11",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-12",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-15",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-16",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-17",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-18",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-19",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-22",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-23",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-24",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-25",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-26",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-29",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-06-30",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-01",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-02",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-03",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-06",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-07",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-08",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-09",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-10",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-13",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-14",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-15",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-16",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-17",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-20",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-21",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-22",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-23",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-24",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-27",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-28",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-29",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-30",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-07-31",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-03",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-04",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-05",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-06",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-07",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-10",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-11",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-12",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-13",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-14",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-17",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-18",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-19",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-20",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-21",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-24",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-25",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-26",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-27",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-28",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-08-31",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-01",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-02",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-03",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-04",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-07",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-08",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-09",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-10",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-11",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-14",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-15",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-16",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-17",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-18",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-21",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-22",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-23",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-24",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-25",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-28",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-29",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-09-30",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-01",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-02",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-05",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-06",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-07",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-08",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-09",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-12",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-13",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-14",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-15",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-16",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-19",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   },
+   {
+    "date": "2026-10-20",
+    "gilt_10y": 5.2,
+    "gilt_30y": 5.6,
+    "gilt_ois_10y": 40.0
+   }
+  ],
+  "curve": [
+   {
+    "maturity": 0.5,
+    "latest": 5.01,
+    "obr_window": 4.21,
+    "ois_latest": 4.8
+   },
+   {
+    "maturity": 1,
+    "latest": 5.02,
+    "obr_window": 4.22,
+    "ois_latest": 4.8
+   },
+   {
+    "maturity": 2,
+    "latest": 5.04,
+    "obr_window": 4.24,
+    "ois_latest": 4.8
+   },
+   {
+    "maturity": 3,
+    "latest": 5.06,
+    "obr_window": 4.26,
+    "ois_latest": 4.8
+   },
+   {
+    "maturity": 5,
+    "latest": 5.1,
+    "obr_window": 4.3,
+    "ois_latest": 4.8
+   },
+   {
+    "maturity": 7,
+    "latest": 5.14,
+    "obr_window": 4.34,
+    "ois_latest": 4.8
+   },
+   {
+    "maturity": 10,
+    "latest": 5.2,
+    "obr_window": 4.4,
+    "ois_latest": 4.8
+   },
+   {
+    "maturity": 15,
+    "latest": 5.3,
+    "obr_window": 4.5,
+    "ois_latest": 4.8
+   },
+   {
+    "maturity": 20,
+    "latest": 5.4,
+    "obr_window": 4.6,
+    "ois_latest": 4.8
+   },
+   {
+    "maturity": 25,
+    "latest": 5.5,
+    "obr_window": 4.7,
+    "ois_latest": 4.8
+   },
+   {
+    "maturity": 30,
+    "latest": 5.6,
+    "obr_window": 4.8,
+    "ois_latest": null
+   },
+   {
+    "maturity": 40,
+    "latest": 5.8,
+    "obr_window": 5.0,
+    "ois_latest": null
+   }
+  ]
+ },
+ "model": {
+  "var": {
+   "sample": "1993Q1 to 2026Q2",
+   "observations": 122,
+   "max_eigenvalue": 0.9402842985473906,
+   "shock_sd": {
+    "growth": 2.3989454690179084,
+    "inflation": 1.954396329104671,
+    "bank_rate": 0.23231940293604017,
+    "gilt_10y": 0.2605348722587942
+   }
+  },
+  "bohn": {
+   "rho": 0.0297,
+   "se": 0.0034,
+   "r2": 0.7637,
+   "n": 26,
+   "used": 0.0297,
+   "resid_sd": 0.3357,
+   "sample": "1998-99 to 2025-26"
+  },
+  "paths": 5000,
+  "cyclical": {
+   "note": "Semi-elasticity of the primary balance to the output gap (OBR cyclical adjustment is about 0.5\u20130.6) and output-gap persistence.",
+   "pb_semi_elasticity": 0.55,
+   "gap_persistence": 0.6
+  },
+  "issuance_mix": {
+   "note": "Assumed split of gross financing (a typical recent DMO remit); edit to match the current remit.",
+   "short": {
+    "share": 0.33,
+    "maturity": 3
+   },
+   "medium": {
+    "share": 0.3,
+    "maturity": 8
+   },
+   "long": {
+    "share": 0.17,
+    "maturity": 25
+   },
+   "index_linked": {
+    "share": 0.1,
+    "maturity": 20
+   },
+   "bills": {
+    "share": 0.1,
+    "maturity": 0.5
+   }
+  },
+  "apf": {
+   "note": "OBR March 2026 assumption: \u00a365bn a year reduction in the APF (redemptions plus \u00a332bn of active sales).",
+   "reduction_per_year_bn": 65,
+   "average_price": 0.8
+  },
+  "rules_note": "Both rules are assessed in 2029-30 until it becomes the third year of the forecast, then in the third year (rolling). Since the November 2025 Budget the OBR formally assesses the rules once a year, at the Budget.",
+  "extension_note": "Years after the OBR horizon: real growth, GDP deflator and primary balance held at the OBR's final year; rates from the market curves."
+ }
+}

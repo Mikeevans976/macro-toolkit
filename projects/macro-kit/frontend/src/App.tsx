@@ -4,11 +4,12 @@ import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import AppShell from './components/AppShell'
 import { HEATMAP_REGIONS } from './features/heatmap/regions'
-import { QUANT_MACRO_MODELS } from './features/quant-macro/models'
+import { DSA_COUNTRIES, QUANT_MACRO_MODELS } from './features/quant-macro/models'
 
 // Pages are code-split: each tool loads (and builds its synthetic data) only when opened.
 const RegionalHeatmapPage = lazy(() => import('./features/heatmap/RegionalHeatmapPage'))
 const NowcastPage = lazy(() => import('./features/quant-macro/NowcastPage'))
+const DsaPage = lazy(() => import('./features/quant-macro/DsaPage'))
 const SwapsRV = lazy(() => import('./pages/SwapsRV'))
 const EGBRV = lazy(() => import('./pages/EGBRV'))
 const GlobalYields = lazy(() => import('./pages/GlobalYields'))
@@ -68,6 +69,9 @@ export default function App() {
         ))}
         {QUANT_MACRO_MODELS.map(m => (
           <Route key={m.slug} path={`/tools/${m.toolId}`} element={<ProtectedRoute><NowcastPage slug={m.slug} /></ProtectedRoute>} />
+        ))}
+        {DSA_COUNTRIES.map(c => (
+          <Route key={c.toolId} path={`/tools/${c.toolId}`} element={<ProtectedRoute><DsaPage country={c.country} /></ProtectedRoute>} />
         ))}
         <Route path="/tools/swaps-rv" element={<ProtectedRoute><SwapsRV /></ProtectedRoute>} />
         <Route path="/tools/egb-rv" element={<ProtectedRoute><EGBRV /></ProtectedRoute>} />

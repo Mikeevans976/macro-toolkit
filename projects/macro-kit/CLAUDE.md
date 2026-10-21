@@ -79,6 +79,8 @@ cd frontend && npm run build && cd .. && python backend/main.py
 | `nowcast.py` | Quant Macro engine: mixed-frequency DFM (statsmodels `DynamicFactorMQ`), quarterly moments, news/weights, survey bridge |
 | `quant_macro.py` | Quant Macro models (`MODELS`), saved fits and background jobs (update / refit / backtest), payload (quarters, next print, evolution, catalysts, central bank) and the real-time backtest |
 | `vintages.py` | Quant Macro real-time data: SQLite vintage store (`var/quant_macro/vintages.db`), ONS revisions triangles, source assembly |
+| `debt_sustainability.py` | UK debt sustainability monitor: OBR vs market-priced baseline, live fiscal-rule headroom, gilt-by-gilt interest model, stochastic fans, scenarios |
+| `fiscal_data.py` | Public fiscal data: ONS PUSF, OBR EFO PDF parser, Bank of England yield curves and IADB, DMO gilts-in-issue reader |
 | `curves_flies_config.py` | Config for curves/flies tool |
 | `seasonality_backtester.py` | Seasonality backtest engine |
 | `data/series_catalogue_*.json` | Single source of truth for indicator tickers/lags per region |
@@ -156,6 +158,20 @@ Nowcasts and forecasts of growth, inflation and labour-market variables per G10 
 | Page | `frontend/src/features/quant-macro/` | `models.ts` generates `/tools/{toolId}` routes; fixtures from `backend/scripts/make_nowcast_fixture.py` |
 
 Vintages are real-time: `Panel.vintage(d)` rebuilds the data as published on day d, first prints and revisions included; values are stored in ticker units and transformed per vintage. News splits each change into releases (weight × surprise), revisions (weight × revision) and grouped older revisions, and adds up exactly. The backtest re-estimates on the first day of each calendar quarter with that day's data and scores against the first estimate (and today's value). ONS monthly GDP vintages start in July 2018 (monthly GDP did not exist before), retail sales in 2020 and RTI payrolls in Dec 2019; earlier periods use the Bloomberg fallback. An ONS series whose values disagree with the Bloomberg ticker is ignored (units check). Live data need the target and 60% of the panel, else the payload falls back to simulation and lists `missing_series`. 2020-03 to 2021-06 is treated as missing. Back up `var/quant_macro/vintages.db`: the snapshots cannot be recreated.
+
+### Debt sustainability (UK)
+
+`frontend/src/features/quant-macro/DsaPage.tsx` (route `/tools/uk-debt-sustainability`), driven by `GET /api/tools/quant-macro/dsa/{country}` (plus `/status`, `POST /refresh`, `POST /upload`). These paths have one more segment than the nowcast routes, so they never collide. The payload is saved (`var/debt_sustainability/uk/payload.json`), refreshed in the background when over an hour old, and computed synchronously only on first use (~30 s).
+
+| Piece | Where | Notes |
+|-------|-------|-------|
+| Data | `backend/fiscal_data.py` | ONS PUSF CSV (daily check, each release kept; the CSV signs deficits negative, `PUSF_FLIP` makes them positive), Bank of England daily spot curves (nominal, real, implied RPI, OIS: the 2025-to-present archive once, then the current-month zip), BoE IADB + ONS quarterly history. Everything public, no Bloomberg |
+| OBR forecast | `backend/data/obr/efo_<yyyy-mm>.json` | Parsed from the EFO PDF (Annex A tables A.3, A.7, A.9; Table 5.3; ready reckoners; market cut-off) by `scripts/import_obr_efo.py` or the page's Upload button. obr.uk blocks scripts: the PDF is also on assets.publishing.service.gov.uk |
+| Rules and assumptions | `backend/data/fiscal_rules_uk.json` | Target year, issuance mix, reconstructed-portfolio shape, APF run-down, cyclical semi-elasticity, extension horizon |
+| Gilt portfolio | upload | The DMO site blocks scripts; upload its gilts-in-issue (D1A) report as CSV/XLSX/XML. Without it the portfolio is reconstructed from ONS totals, coupons calibrated to ONS interest |
+| Engine | `backend/debt_sustainability.py` | The interest model runs on the BoE curves averaged over the OBR's 10-day window and on the latest curves; only the difference is added to the OBR forecast (so the model's level never replaces the OBR's). Attribution: time, Bank Rate, gilts, RPI. VAR(2) shocks (1993+, pandemic excluded) → 5,000 paths |
+
+Checks that hold on real data: the cut-off curves reproduce the OBR's Bank Rate path (A.3), and +1pp on all rates moves 2030-31 interest by ~£16bn against the OBR's £15bn ready reckoner. Tests run on synthetic inputs (`tests/dsa_synthetic.py`, also used by `scripts/make_dsa_fixture.py` for the frontend fixtures). For a new OBR forecast: upload the PDF (or run the import script and commit the JSON).
 
 ### Adding a model
 

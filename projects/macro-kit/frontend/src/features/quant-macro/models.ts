@@ -16,3 +16,8 @@ export const QUANT_MACRO_CATEGORY = { id: 'quant-macro', name: 'Quant Macro' } a
 export const QUANT_MACRO_MODELS: QuantMacroModel[] = [
   { slug: 'uk-gdp', toolId: 'uk-gdp-nowcast', title: 'UK GDP Nowcast', country: 'GB', variable: 'growth' },
 ]
+
+// Debt sustainability monitors (DsaPage, GET /api/tools/quant-macro/dsa/{country}).
+export const DSA_COUNTRIES = [
+  { country: 'uk', toolId: 'uk-debt-sustainability', title: 'UK Debt Sustainability', flag: 'GB' as CountryCode },
+]

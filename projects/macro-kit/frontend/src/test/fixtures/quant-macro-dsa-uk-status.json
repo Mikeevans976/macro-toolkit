@@ -1,0 +1,13 @@
+{
+ "slug": "uk",
+ "computed_at": "2026-10-21T09:00:00",
+ "as_of": "2026-10-20",
+ "job": {
+  "kind": "update",
+  "state": "idle",
+  "step": null,
+  "started_at": null,
+  "finished_at": null,
+  "error": null
+ }
+}

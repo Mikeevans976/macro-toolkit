@@ -45,6 +45,7 @@ from euribor_positioning_router import router as positioning_router
 from routers import (
     agents,
     correlation_regimes,
+    debt_sustainability,
     egb_rv,
     fair_value_models,
     fitted_bond_curves,
@@ -127,6 +128,15 @@ async def lifespan(_app: FastAPI):
                 logger.exception("Quant Macro warm-up failed; will compute on first request")
         threading.Thread(target=_warm_quant_macro, name="quant-macro-warmup", daemon=True).start()
 
+        def _warm_dsa() -> None:
+            try:
+                from debt_sustainability import warm_cache
+                warm_cache()
+                logger.info("Debt sustainability monitor warmed")
+            except Exception:
+                logger.exception("Debt sustainability warm-up failed; will compute on first request")
+        threading.Thread(target=_warm_dsa, name="dsa-warmup", daemon=True).start()
+
         def _warm_fx_ipca() -> None:
             try:
                 from fx_ipca import warm_cache
@@ -161,6 +171,7 @@ app.include_router(positioning_router)
 for _tool in (
     agents,
     correlation_regimes,
+    debt_sustainability,
     egb_rv,
     fair_value_models,
     fitted_bond_curves,

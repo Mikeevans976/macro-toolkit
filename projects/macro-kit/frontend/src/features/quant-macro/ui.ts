@@ -58,9 +58,14 @@ export const button: React.CSSProperties = {
   padding: '5px 12px', cursor: 'pointer', whiteSpace: 'nowrap',
 }
 
+export const lastOf = <T,>(a: readonly T[]): T | undefined => a[a.length - 1]
+
 export const num = (x: number | null | undefined, d = 2) => (x == null ? '—' : x.toFixed(d))
-export const signed = (x: number | null | undefined, d = 2) =>
-  x == null ? '—' : `${x > 0 ? '+' : x < 0 ? '−' : ''}${Math.abs(x).toFixed(d)}`
+export const signed = (x: number | null | undefined, d = 2) => {
+  if (x == null) return '—'
+  const mag = Math.abs(x).toFixed(d)
+  return `${Number(mag) === 0 ? '' : x > 0 ? '+' : '−'}${mag}`
+}
 export const signColor = (x: number | null | undefined, eps = 0.005) =>
   x == null || Math.abs(x) < eps ? fg[2] : x > 0 ? pos : neg
 

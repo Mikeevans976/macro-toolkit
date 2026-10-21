@@ -111,6 +111,7 @@ export const TOOL_GLYPH: Record<string, GlyphName> = {
   'print-analysis': 'candles',
   momentum: 'trend',
   'fair-value-models': 'balance',
+  'uk-debt-sustainability': 'balance',
   'inflation-pca': 'pca',
   'inflation-fixings': 'pin',
 }

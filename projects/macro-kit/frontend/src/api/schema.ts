@@ -1277,6 +1277,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/quant-macro/dsa/{country}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dsa
+         * @description Debt sustainability monitor: OBR vs market baseline, live fiscal-rule headroom, fan charts,
+         *     scenarios, debt interest, financing, the monthly borrowing tracker and market gauges.
+         *     Refreshed in the background when over an hour old; computed here only on first use (~30 s).
+         */
+        get: operations["dsa_api_tools_quant_macro_dsa__country__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro/dsa/{country}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dsa Refresh
+         * @description Download the latest data and recompute (background job).
+         */
+        post: operations["dsa_refresh_api_tools_quant_macro_dsa__country__refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro/dsa/{country}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dsa Status
+         * @description When the payload was computed, and the refresh job's progress.
+         */
+        get: operations["dsa_status_api_tools_quant_macro_dsa__country__status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro/dsa/{country}/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dsa Upload
+         * @description Upload an OBR Economic and fiscal outlook (PDF) or the DMO gilts-in-issue report
+         *     (D1A as CSV, XLSX or XML); then recompute in the background.
+         */
+        post: operations["dsa_upload_api_tools_quant_macro_dsa__country__upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tools/quant-macro/{model}": {
         parameters: {
             query?: never;
@@ -1312,7 +1395,7 @@ export interface paths {
         put?: never;
         /**
          * Quant Macro Run Backtest
-         * @description Run the full real-time backtest, re-estimating every quarter (background job, ~15–20 min).
+         * @description Run the full real-time backtest, re-estimating every quarter (background job, ~5–10 min).
          */
         post: operations["quant_macro_run_backtest_api_tools_quant_macro__model__backtest_post"];
         delete?: never;
@@ -1689,6 +1772,11 @@ export interface components {
             /** Tenor */
             tenor: number;
         };
+        /** Body_dsa_upload_api_tools_quant_macro_dsa__country__upload_post */
+        Body_dsa_upload_api_tools_quant_macro_dsa__country__upload_post: {
+            /** File */
+            file: string;
+        };
         /** Body_login_api_auth_login_post */
         Body_login_api_auth_login_post: {
             /** Client Id */
@@ -2016,6 +2104,536 @@ export interface components {
              * @enum {string}
              */
             yields: "live" | "simulation";
+        };
+        /** DebtSustainability */
+        DebtSustainability: {
+            /** As Of */
+            as_of: string;
+            /** Computed At */
+            computed_at: string;
+            /** Country */
+            country: string;
+            dynamics: components["schemas"]["DsaDynamics"];
+            fan: components["schemas"]["DsaFan"];
+            financing: components["schemas"]["DsaFinancing"];
+            interest: components["schemas"]["DsaInterest"];
+            market: components["schemas"]["DsaMarket"];
+            model: components["schemas"]["DsaModel"];
+            probabilities: components["schemas"]["DsaProbabilities"];
+            /** Projection */
+            projection: components["schemas"]["DsaProjectionRow"][];
+            /** Rules */
+            rules: components["schemas"]["DsaRule"][];
+            /** Scenarios */
+            scenarios: components["schemas"]["DsaScenario"][];
+            /** Slug */
+            slug: string;
+            sources: components["schemas"]["DsaSources"];
+            /** Target Year */
+            target_year: string;
+            /** Title */
+            title: string;
+            tracker: components["schemas"]["DsaTracker"];
+        };
+        /** DsaAttribution */
+        DsaAttribution: {
+            /** Bank Rate */
+            bank_rate: number | null;
+            /** Gilts */
+            gilts: number | null;
+            /** Inflation */
+            inflation: number | null;
+            /** Time */
+            time: number | null;
+        };
+        /** DsaCurvePoint */
+        DsaCurvePoint: {
+            /** Latest */
+            latest: number | null;
+            /** Maturity */
+            maturity: number;
+            /** Obr Window */
+            obr_window: number | null;
+            /** Ois Latest */
+            ois_latest: number | null;
+        };
+        /** DsaDynamics */
+        DsaDynamics: {
+            /** History */
+            history: components["schemas"]["DsaDynamicsRow"][];
+            /** Market */
+            market: components["schemas"]["DsaDynamicsRow"][];
+            /** Obr */
+            obr: components["schemas"]["DsaDynamicsRow"][];
+        };
+        /** DsaDynamicsRow */
+        DsaDynamicsRow: {
+            /** Change */
+            change: number | null;
+            /** Debt */
+            debt: number | null;
+            /** Effective Rate */
+            effective_rate: number | null;
+            /** Growth */
+            growth: number | null;
+            /** Interest */
+            interest: number | null;
+            /** Nominal Growth */
+            nominal_growth: number | null;
+            /** Other */
+            other: number | null;
+            /** Primary */
+            primary: number | null;
+            /** R Minus G */
+            r_minus_g: number | null;
+            /** Stabilising Primary */
+            stabilising_primary: number | null;
+            /** Year */
+            year: string;
+        };
+        /** DsaFan */
+        DsaFan: {
+            /** Interest Receipts */
+            interest_receipts: components["schemas"]["DsaFanRow"][];
+            /** Psnb Pct */
+            psnb_pct: components["schemas"]["DsaFanRow"][];
+            /** Psnd Pct */
+            psnd_pct: components["schemas"]["DsaFanRow"][];
+            /** Psnfl Pct */
+            psnfl_pct: components["schemas"]["DsaFanRow"][];
+        };
+        /** DsaFanRow */
+        DsaFanRow: {
+            /** P10 */
+            p10: number | null;
+            /** P25 */
+            p25: number | null;
+            /** P5 */
+            p5: number | null;
+            /** P50 */
+            p50: number | null;
+            /** P75 */
+            p75: number | null;
+            /** P90 */
+            p90: number | null;
+            /** P95 */
+            p95: number | null;
+            /** Year */
+            year: string;
+        };
+        /** DsaFinancing */
+        DsaFinancing: {
+            /** Apf Bn */
+            apf_bn: number | null;
+            /** Apf Share */
+            apf_share: number | null;
+            /** As Of */
+            as_of: string;
+            /** Avg Maturity Conventional */
+            avg_maturity_conventional: number | null;
+            /** Avg Maturity Linkers */
+            avg_maturity_linkers: number | null;
+            /** Bills Bn */
+            bills_bn: number | null;
+            /** Debt Bn */
+            debt_bn: number | null;
+            /** Floating Share */
+            floating_share: number | null;
+            /** Gilts Bn */
+            gilts_bn: number | null;
+            /** Gross */
+            gross: components["schemas"]["DsaGross"][];
+            /** Linker Share */
+            linker_share: number | null;
+            /** Nsandi Bn */
+            nsandi_bn: number | null;
+            /** Profile */
+            profile: components["schemas"]["DsaMaturity"][];
+            /** Repricing 1Y Bn */
+            repricing_1y_bn: number | null;
+            /** Reserves Bn */
+            reserves_bn: number | null;
+        };
+        /** DsaGauge */
+        DsaGauge: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Latest */
+            latest: number | null;
+            /** Obr Window */
+            obr_window: number | null;
+            /** Unit */
+            unit: string;
+            /** Year Ago */
+            year_ago: number | null;
+        };
+        /** DsaGross */
+        DsaGross: {
+            /** Gross */
+            gross: number | null;
+            /** Gross Pct */
+            gross_pct: number | null;
+            /** Net Need */
+            net_need: number | null;
+            /** Redemptions */
+            redemptions: number | null;
+            /** Year */
+            year: string;
+        };
+        /** DsaHistoryPoint */
+        DsaHistoryPoint: {
+            /** Date */
+            date: string;
+            /** Value */
+            value: number | null;
+        };
+        /** DsaInterest */
+        DsaInterest: {
+            /** History */
+            history: components["schemas"]["DsaInterestHistory"][];
+            obr_reckoner: components["schemas"]["DsaReckoner"];
+            /** Rows */
+            rows: components["schemas"]["DsaInterestRow"][];
+        };
+        /** DsaInterestHistory */
+        DsaInterestHistory: {
+            /** Apf */
+            apf: number | null;
+            /** Interest */
+            interest: number | null;
+            /** Uplift */
+            uplift: number | null;
+            /** Year */
+            year: string;
+        };
+        /** DsaInterestRow */
+        DsaInterestRow: {
+            /** Apf Offset */
+            apf_offset: number | null;
+            /** Change */
+            change: number | null;
+            /** Conventional */
+            conventional: number | null;
+            /** Effective Rate */
+            effective_rate: number | null;
+            /** Floating */
+            floating: number | null;
+            /** Index Linked */
+            index_linked: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "forecast" | "extension";
+            /** Market */
+            market: number | null;
+            /** Model Obr Curves */
+            model_obr_curves: number | null;
+            /** Model Total */
+            model_total: number | null;
+            /** Obr */
+            obr: number | null;
+            /** Sens Bank Rate 100 */
+            sens_bank_rate_100: number | null;
+            /** Sens Gilts 100 */
+            sens_gilts_100: number | null;
+            /** Sens Rates 100 */
+            sens_rates_100: number | null;
+            /** Sens Rpi 100 */
+            sens_rpi_100: number | null;
+            /** Year */
+            year: string;
+        };
+        /** DsaJob */
+        DsaJob: {
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Kind */
+            kind: string;
+            /** Started At */
+            started_at: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "idle" | "running" | "done" | "error";
+            /** Step */
+            step: string | null;
+        };
+        /** DsaMarket */
+        DsaMarket: {
+            /** Curve */
+            curve: components["schemas"]["DsaCurvePoint"][];
+            /** Gauges */
+            gauges: components["schemas"]["DsaGauge"][];
+            /** Series */
+            series: components["schemas"]["DsaMarketPoint"][];
+        };
+        /** DsaMarketPoint */
+        DsaMarketPoint: {
+            /** Date */
+            date: string;
+            /** Gilt 10Y */
+            gilt_10y: number | null;
+            /** Gilt 30Y */
+            gilt_30y: number | null;
+            /** Gilt Ois 10Y */
+            gilt_ois_10y: number | null;
+        };
+        /** DsaMaturity */
+        DsaMaturity: {
+            /** Conventional */
+            conventional: number | null;
+            /** Index Linked */
+            index_linked: number | null;
+            /** Year */
+            year: string;
+        };
+        /** DsaModel */
+        DsaModel: {
+            /** Apf */
+            apf: {
+                [key: string]: unknown;
+            };
+            /** Bohn */
+            bohn: {
+                [key: string]: unknown;
+            };
+            /** Cyclical */
+            cyclical: {
+                [key: string]: unknown;
+            };
+            /** Extension Note */
+            extension_note: string;
+            /** Issuance Mix */
+            issuance_mix: {
+                [key: string]: unknown;
+            };
+            /** Paths */
+            paths: number;
+            /** Rules Note */
+            rules_note: string;
+            /** Var */
+            var: {
+                [key: string]: unknown;
+            };
+        };
+        /** DsaProbabilities */
+        DsaProbabilities: {
+            /** Both */
+            both: number | null;
+            /** Debt Above 100 */
+            debt_above_100: number | null;
+            /** Debt Falling End */
+            debt_falling_end: number | null;
+            /** End Year */
+            end_year: string;
+            /** From Year */
+            from_year: string;
+            /** Investment */
+            investment: number | null;
+            /** Stability */
+            stability: number | null;
+        };
+        /** DsaProjectionRow */
+        DsaProjectionRow: {
+            /** Cbd Bn */
+            cbd_bn: number | null;
+            /** Interest Bn */
+            interest_bn: number | null;
+            /** Interest Receipts */
+            interest_receipts: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "outturn" | "forecast" | "extension";
+            /** Obr Cbd Bn */
+            obr_cbd_bn: number | null;
+            /** Obr Interest Bn */
+            obr_interest_bn: number | null;
+            /** Obr Psnb Pct */
+            obr_psnb_pct: number | null;
+            /** Obr Psnd Pct */
+            obr_psnd_pct: number | null;
+            /** Obr Psnfl Pct */
+            obr_psnfl_pct: number | null;
+            /** Psnb Pct */
+            psnb_pct: number | null;
+            /** Psnd Pct */
+            psnd_pct: number | null;
+            /** Psnfl Pct */
+            psnfl_pct: number | null;
+            /** Year */
+            year: string;
+        };
+        /** DsaReckoner */
+        DsaReckoner: {
+            /** Rates 1Pp Bn */
+            rates_1pp_bn: number | null;
+            /** Rpi 1Pp Bn */
+            rpi_1pp_bn: number | null;
+            /** Year */
+            year: string | null;
+        };
+        /** DsaRule */
+        DsaRule: {
+            attribution: components["schemas"]["DsaAttribution"];
+            /** Change Bn */
+            change_bn: number | null;
+            /** Description */
+            description: string;
+            /** History */
+            history: components["schemas"]["DsaHistoryPoint"][];
+            /** Id */
+            id: string;
+            /** Market Bn */
+            market_bn: number | null;
+            /** Market Pp */
+            market_pp: number | null;
+            /** Measure */
+            measure: string;
+            /** Name */
+            name: string;
+            /** Obr Bn */
+            obr_bn: number | null;
+            /** Obr Pp */
+            obr_pp: number | null;
+            /** Probability */
+            probability: number | null;
+            /** Unit */
+            unit: string;
+        };
+        /** DsaScenario */
+        DsaScenario: {
+            /** Description */
+            description: string;
+            /** Id */
+            id: string;
+            /** Interest End */
+            interest_end: number | null;
+            /** Investment Pp */
+            investment_pp: number | null;
+            /** Name */
+            name: string;
+            /** Paths */
+            paths: components["schemas"]["DsaScenarioPoint"][];
+            /** Psnd End */
+            psnd_end: number | null;
+            /** Stability Bn */
+            stability_bn: number | null;
+        };
+        /** DsaScenarioPoint */
+        DsaScenarioPoint: {
+            /** Interest Bn */
+            interest_bn: number | null;
+            /** Psnb Pct */
+            psnb_pct: number | null;
+            /** Psnd Pct */
+            psnd_pct: number | null;
+            /** Psnfl Pct */
+            psnfl_pct: number | null;
+            /** Year */
+            year: string;
+        };
+        /** DsaSources */
+        DsaSources: {
+            /** Curves Cutoff */
+            curves_cutoff: string;
+            /** Curves Latest */
+            curves_latest: string;
+            /** Obr Cutoff */
+            obr_cutoff: string;
+            /** Obr Edition */
+            obr_edition: string;
+            /** Obr Source */
+            obr_source: string | null;
+            /** Pusf Editions */
+            pusf_editions: string[];
+            /** Pusf Latest Month */
+            pusf_latest_month: string;
+            /** Pusf Next Release */
+            pusf_next_release: string | null;
+            /** Pusf Release */
+            pusf_release: string | null;
+            /** Register Note */
+            register_note: string;
+            /**
+             * Register Source
+             * @enum {string}
+             */
+            register_source: "dmo" | "reconstructed";
+            /** Register Upload */
+            register_upload: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** DsaStatus */
+        DsaStatus: {
+            /** As Of */
+            as_of: string | null;
+            /** Computed At */
+            computed_at: string | null;
+            job: components["schemas"]["DsaJob"];
+            /** Slug */
+            slug: string;
+        };
+        /** DsaTracker */
+        DsaTracker: {
+            /** Implied Full Year Bn */
+            implied_full_year_bn: number | null;
+            /** Latest Month */
+            latest_month: string;
+            /** Months */
+            months: components["schemas"]["DsaTrackerMonth"][];
+            /** Months Observed */
+            months_observed: number;
+            /** Next Month */
+            next_month: string;
+            /** Next Month Forecast Bn */
+            next_month_forecast_bn: number | null;
+            /** Next Release */
+            next_release: string | null;
+            /** Obr Full Year Bn */
+            obr_full_year_bn: number | null;
+            /** Previous Full Year Bn */
+            previous_full_year_bn: number | null;
+            /** Typical Share */
+            typical_share: number | null;
+            /** Year */
+            year: string;
+            /** Ytd Bn */
+            ytd_bn: number | null;
+            /** Ytd Obr Profile Bn */
+            ytd_obr_profile_bn: number | null;
+            /** Ytd Previous Bn */
+            ytd_previous_bn: number | null;
+        };
+        /** DsaTrackerMonth */
+        DsaTrackerMonth: {
+            /** Current */
+            current: number | null;
+            /** Month */
+            month: string;
+            /** Obr Profile */
+            obr_profile: number | null;
+            /** Previous */
+            previous: number | null;
+        };
+        /** DsaUpload */
+        DsaUpload: {
+            /** Detail */
+            detail: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "obr" | "dmo";
+            status: components["schemas"]["DsaStatus"];
         };
         /** ExpiryChain */
         ExpiryChain: {
@@ -5673,6 +6291,134 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NowcastModelSummary"][];
+                };
+            };
+        };
+    };
+    dsa_api_tools_quant_macro_dsa__country__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                country: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DebtSustainability"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dsa_refresh_api_tools_quant_macro_dsa__country__refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                country: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DsaStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dsa_status_api_tools_quant_macro_dsa__country__status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                country: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DsaStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dsa_upload_api_tools_quant_macro_dsa__country__upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                country: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_dsa_upload_api_tools_quant_macro_dsa__country__upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DsaUpload"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
