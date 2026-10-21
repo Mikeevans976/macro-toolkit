@@ -13,6 +13,7 @@ outputs below. The original per-region URLs (``/api/tools/uk-heatmap/factors``
 """
 from __future__ import annotations
 
+import threading
 from enum import Enum
 from typing import Callable
 
@@ -23,8 +24,18 @@ from heatmap_regions import REGIONS
 from regional_heatmap import RegionalHeatmap
 from schemas.heatmap import DailyFactors, FairValue, HeatmapDashboard, PCRegressions, YieldPCA
 
-# Each engine precomputes its DFM + yield PCA on construction (~20 ms/region).
-_ENGINES: dict[str, RegionalHeatmap] = {slug: RegionalHeatmap(cfg) for slug, cfg in REGIONS.items()}
+# Each engine fetches its data and precomputes its DFM + yield PCA on construction,
+# so it is built on first request rather than at import: with Bloomberg down every
+# region waits on connection timeouts, which held server startup for ~1 hour.
+_ENGINES: dict[str, RegionalHeatmap] = {}
+_LOCKS: dict[str, threading.Lock] = {slug: threading.Lock() for slug in REGIONS}
+
+
+def _engine(slug: str) -> RegionalHeatmap:
+    with _LOCKS[slug]:
+        if slug not in _ENGINES:
+            _ENGINES[slug] = RegionalHeatmap(REGIONS[slug])
+        return _ENGINES[slug]
 
 Region = Enum("Region", {slug.replace("-", "_"): slug for slug in REGIONS}, type=str)
 
@@ -50,14 +61,14 @@ router = APIRouter(tags=["heatmaps"], dependencies=[Depends(get_current_user)])
 def heatmap_dashboard(region: Region):
     """Indicators, DFM factors, yield PCA, regressions, fair value, curve and
     breakeven regimes and scenario probabilities for one region."""
-    return {**_ENGINES[region.value].get_dashboard(), "region": region.value}
+    return {**_engine(region.value).get_dashboard(), "region": region.value}
 
 
 @router.get("/api/tools/heatmap/{region}/{view}",
             response_model=DailyFactors | YieldPCA | PCRegressions | FairValue)
 def heatmap_view(region: Region, view: View):
     """One output of a regional macro heatmap."""
-    return _VIEW_METHODS[view](_ENGINES[region.value])
+    return _VIEW_METHODS[view](_engine(region.value))
 
 
 @router.get("/api/tools/{region}-heatmap/{view}", include_in_schema=False)
