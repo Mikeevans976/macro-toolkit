@@ -423,3 +423,64 @@ Market prices of bonds
 - **Normal (bp) vol everywhere;** EWMA for realised vol.
 - **Run every credit-linked trade under several adjusted-CDS scenarios** (30/45/60%), and report the net CDS, DO and FX exposure in a default.
 - **Correct hedge ratios:** PCA on CM tenors, re-mapped to actual bonds by BPV; futures sized by OABPV; options weighted BPV×delta for conditional trades and PCA for vega-sector trades.
+
+---
+
+## 24. Audit against the book (2026-10-20)
+
+Sections 0–23 were written without the book to hand. This section records a chapter-by-chapter read of Part II (Ch 5–20, pp. 137–391) against them. **Verdict:** every model and chart in the plan is in the book, and the book has no major model the plan misses. What the plan lacks is detail: the book's worked numbers (which make exact unit tests), several definitions, and a few corrections. Part I (Ch 2–4) has not been audited yet.
+
+### 24.1 Corrections (the plan, or code built from it, is wrong)
+
+| Item | Plan / code said | Book says (page) | Fix |
+|---|---|---|---|
+| 11.3 term-rate model | `b` undefined; code labels it "return earned on the capital" | `b` is the bank's cost of low-cost borrowed funds (e.g. retail deposits) for the secured loan; the capital share q·d is funded at g instead (p. 209). `p` is the default probability **over the loan period**; R and L are per-period rates | Relabel `b` in `funding_models.py`, the schema and the page; label annualised inputs as an approximation |
+| 13.1 CDS scenarios | 30/45/60% of the CDS for every settlement type | 30–60% is the range for the **FX component** (local-currency CDS ÷ USD CDS, p. 241). The delivery option takes another 6% (p. 242), so physically settled scenarios are **24/39/54%**; cash-settled stay 30/45/60% | Make `CDS_SCENARIOS` depend on settlement |
+| 18.1 Fed schedule | Loaded the discount-window margins (1/1/2/3/5% by duration) | Table 18.1 (Oct 2023) is a Fed schedule **by maturity**: bills 1.0%; notes and bonds 2.0% < 10Y, 2.9% 10–30Y; TIPS 2.9/5.7/5.7%; STRIPS 3.8/6.5/9.9% (p. 323). This 2% is the haircut behind Fig 12.4 (p. 221) | Add the book's schedule (with its current official source) next to the discount-window one, labelled by facility |
+| 11.2 example | "d 8% → 12% ⇒ Bund €STR-ASW −20 → −30bp" didn't follow from 10% × 20% × 8% | The example assumes the whole −20bp ASW is g·q·d, so a 50% rise in d scales it by 50% (p. 206) | None in code; the plan's wording was the problem |
+
+Checked and **correct**: the ECB schedule in `data/haircut_schedules.json` is identical to the book's Table 18.3 (DE/FR/ES = steps 1–2, Italy = step 3, p. 324). Italy has since moved to steps 1–2 (DBRS A (low)), so the BTP-downgrade toggle reproduces the book's case. The BoE schedule we loaded (18 Jun 2026) is steeper than the book's Table 18.2 (2023); ours is current. The ASW sign convention (RFR + X) and the CCBS convention (spread on the non-USD leg) match the book (pp. 188, 274).
+
+### 24.2 Worked numbers to add as unit tests
+
+| Ch | Example | Book values (page) | Status |
+|---|---|---|---|
+| 5 | Convexity, Bund 3.25% Jul-32 | price 122.713, yield 2.197%; ±25bp → +6.36 / −5.96; expected return +0.2% (±25bp), +0.7% (±50), +1.5% (±75), +2.6% (±100) (p. 140) | new (5.3) |
+| 5 | 30Y zero at 2.25%, ±100bp | expected return 4.5%; 50Y 12.8%; 100Y 54.3%; 200Y 276.2%; 500Y 7,320%. Probability of a yield fall that keeps the expected return at 4.53%: 50Y 42%, 75Y 35%, 100Y 29%, 200Y 12.5%, 500Y 0.7% (pp. 140–141) | new (5.3) |
+| 7 | JGB multi-factor delivery option | one-factor DO < 1 sen vs multi-factor 7 sen (p. 164) | new (7.3) |
+| 8 | Bund fit, 7 Dec 2012 | knots 0, 0.5, 1, 1.5, 2, 5, 7, 10, 12, 15, 20, 30, 35; mean absolute residual 9c / 0.9bp; coefficients size €0.025 per bn, age −€0.027 per year, Schatz 3.6, Bobl 2.8, Bund 2.1, Buxl 2.4bp (pp. 174–177). Our generator uses Schatz 3.5, Bund 2.2 and different knots | align `fitted_bond_curves.py` |
+| 11 | Compounding | O/N fixed at 5% for a year → 6M LIBOR 4–5bp higher (p. 207) | new |
+| 12 | 10Y Bund €STR-ASW | −16 (g·q·d) + 15 (adjusted CDS) − 6 (specialness, Fig 12.2) = **−7bp** (p. 225) | new (12.1) |
+| 12 | Haircut term, 5Y UST | 2% × 5% = 10bp; inverted ≈ 8bp in Sep 2023 (p. 221) | covered (18.1 test) |
+| 13 | EGB CDS PCA | PC1 92%; 10bp DE ⇒ 26bp FR ⇒ 64bp IT (pp. 247–249) | new (13.3) |
+| 13 | Core CDS PCA trades | sell FR / buy 1.4× AT, 42bp; DE or NL vs AT, 23 / 29bp (p. 252) | new (13.3) |
+| 13 | Risk-free BTP PCA | Table 13.1: corr(PC1, 2Y/5Y/10Y) 0.95/0.98/0.79 → 0.99/1.00/0.96; 2s5s steepener at 5:3, 73bp; risk-free JGB 2s10s flattener 47bp (pp. 259–262) | new (13.4) |
+| 14 | ICBS vs CCBS | SOFR–ED spread = −0.51 × 2Y JPY CCBS + 3.77, R² 0.51; EUR 3s6s vs EURUSD corr 0.68, vs EUR/USD CCBS −0.62 (pp. 267–269) | new (14.1) |
+| 15 | CCBS drivers | 2Y JPY CCBS = −0.0996 × (UST − JGB 2Y ASW) − 7.44, R² 0.34; JPY CCBS PC1 = −106.8 × 5Y realised vol − 1.78, R² 0.86; EUR/USD CCBS vs EURUSD corr 0.84 / 0.80 / 0.78 (2009–11); SOFR–€STR −20 vs SOFR–Euribor −28bp (pp. 279–285) | new (15.2) |
+| 16 | JGB USD ASW | (−1 + 12 + 64.5) / 0.95 = +79bp (p. 290) | **done** (`test_asset_basis_swap.py`) |
+| 16 | Headroom | 10Y JGB USD ASW 79 vs CDS 130 → 51bp; Korea 2008–09 violations paid 25–132bp over 3 days to 8 weeks (pp. 300–302) | new (16.3) |
+| 17 | UST 3.375% May-33 → GBP | clean 88.94 + accrued 1.43 = 90.37; SOFR+30; FX 1.22 → GBP 81.97; CCBS −19 → SONIA+11; reverse ASW pays GBP 2.23 **semi-annually** = 4.46% (pp. 316–317) | partly done; the engine needs T+2 and a semi-annual GBP fixed leg to match exactly |
+| 17 | Interpolated swap spread | 10% bond at 4.98%, 5% bond at 5.00%, swap 5.35% → −37 / −35bp (p. 311) | new (confirms the YTM − swap sign) |
+| 18 | Shadow cost (Box 18.1) | deposits 2%, equity 10%: 10% equity-funded → 2.8%; 4.5% → 2.36%; displacing a 7% asset → 7% (p. 326) | new (18.2) |
+| 18 | BTP–Bund haircut effect | 47bp at 10Y, 54bp at 30Y for zeros at 600bp (p. 323). A simple bucket lookup on the same ECB table gives 54 / 48, so the book likely averages the haircut over the bond's remaining life | open: confirm the method, then match |
+| 19 | Breakeven-implied CPI | 6M1Y receiver breaks even at 30.4bp ⇔ CPI −0.08; 1Y2Y at −0.17 (p. 355) | new (19.2) |
+| 19 | Implied vs realised, JPY 5Y | 19bp implied vs 16bp realised (p. 362); EWMA weights 1, 0.97, 0.95, … on weekly data (p. 366) | new (19.4); our default half-life (21 daily observations) decays faster than the book's |
+| 19 | Box trade | realised 5Y − 2Y spread 6–27bp vs 3bp implied, ≈ 10bp average profit; level/slope corr 0.71; non-directional ratio 1.23 (pp. 370–371) | new (19.4) |
+| 19 | Vega-sector PCA | JPY gamma/vega border tilts: about 4y expiry for 1Y tails, 3y for 2Y, 2y for 5Y; Table 19.1 factor correlations (pp. 373–378) | new (19.5) |
+
+### 24.3 Additions the plan is missing
+
+- **Ch 5:** convexity explains the shape of PC1 (long rates are less volatile than short ones); a note for the PCA page.
+- **Ch 6:** calibrate the policy-path jump process to 1M **and** 3M SOFR futures plus FF futures in one model. Details are in Huggins & Schaller (2022), *SOFR Futures and Options* (Figs 6.2–6.4, Table 2.2).
+- **Ch 7:** a change of notional coupon at listing moves the DO; the net basis must be ≥ 0; trading the net basis against futures options only works when short↔long CTD switches dominate (p. 159); run correlation and squeeze scenarios as well as vol scenarios; the recommended action is to buy cheap DOs via long CTD net basis.
+- **Ch 8:** exclude bonds under 1Y (money markets are modelled separately); add a "maximum smoothness" spline option; precompute A⁻¹ for the cubic spline (p. 175); before trading, find out *why* a bond is rich (repo squeeze risk); keep switches and flies within one sector.
+- **Ch 9:** carry on the actual bonds, mean reversion on the CM series (avoids rolldown); 1-factor PCA residuals let long-only funds pick the cheapest segment; prefer the bucketing (Stanton) model to OU at the final stage; MVOU for portfolio impact.
+- **Ch 11:** repo mechanics that affect carry: repricing, right of substitution, fails, tri-party vs bilateral haircuts; SOFR ≤ SRF rate since 28 Jul 2021.
+- **Ch 12:** Table 12.1 driver matrix (which drivers apply to SOFR, OIS and LIBOR ASW); off-par bonds = par-bond fair spread + par vs off-coupon yield spread (p. 230); expected specialness = sum of discounted daily specialness over the bond's life; the SOFR–FF futures spread hedges the government vs corporate basis.
+- **Ch 13:** risk-free curves use the **adjusted** CDS for analysis but the **unadjusted** CDS for trades, to avoid being under-hedged in a default (p. 254); trade checklist: FX, DO, repo near default, redenomination; strip implied default probabilities and flag negative forwards.
+- **Ch 15:** CIP formula and FX-forward "richness"; flows from Japanese investors rolling 1Y hedges (short end) and PRDC hedging (20–30Y); the "dollars going special" collateral view.
+- **Ch 16:** do **not** trade spreads between two USD-ASW-vs-CDS bases across maturities or issuers (p. 301); Bund vs UST USD ASW corr 0.73; JGB USD ASW vs Japan CDS corr 0.78.
+- **Ch 17:** all swaps T+2; the spread is added to *compounded* SOFR; the CCBS notional is par via the par-ASW up-front; Fig 17.1 (Bund-yardstick fitted curve: USTs +20bp at 1Y, +45bp at 5Y) and Fig 17.2 (SOFR-ASW curves: Bunds < Gilts < USTs, Gilts steepest because of BoE haircuts, Bunds excessively rich at the long end).
+- **Ch 18:** haircut arbitrage (the BoE lends more against a bullet gilt than against strips that replicate it, p. 324); 74% of hedge funds' Treasury repo has zero or negative haircuts; the Sept-2019 repo spike (JPM's liquidity constraint) as a case for the arbitrage-capital index; collateral-agreement terms can outweigh dealer pricing.
+- **Ch 19:** conditional swap-spread trades compare swaption vol with futures-option vol (Fig 19.12; the pre-Lehman swaption premium has gone); hold type-③ trades only well within the factors' mean-reversion horizon.
+- **Ch 20:** when the official sector is on the other side, raise entry thresholds or prefer higher-PC trades, which policy affects less (p. 388, fn 3).

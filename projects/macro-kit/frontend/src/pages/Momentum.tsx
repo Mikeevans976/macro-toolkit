@@ -2,12 +2,14 @@ import { useState } from 'react'
 import PageTitle from '../components/PageTitle'
 import MonitorView from '../features/momentum/MonitorView'
 import SeriesView, { type SeriesRequest } from '../features/momentum/SeriesView'
+import GuideView from '../features/momentum/GuideView'
 import { ACCENT, BG, FG3, MUTED, NUM } from '../features/momentum/format'
 
-type Tab = 'monitor' | 'series'
+type Tab = 'monitor' | 'series' | 'guide'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'monitor', label: 'CTA Monitor' },
   { id: 'series', label: 'Single Series' },
+  { id: 'guide', label: 'How it works' },
 ]
 
 export default function Momentum() {
@@ -61,6 +63,7 @@ export default function Momentum() {
       <div style={{ display: tab === 'series' ? 'block' : 'none' }}>
         <SeriesView aumBn={aumBn} request={request} />
       </div>
+      {tab === 'guide' && <GuideView />}
     </div>
   )
 }

@@ -793,6 +793,7 @@ A model of what a diversified trend follower holds. Two views:
 
 - **CTA Monitor:** ~70 rows (46 CTA futures across bonds, STIR, FX, equity indices and commodities; plus cash yields, curves/spreads and DXY for reference). Per row: trend regime, the four speeds in σ, model position (% of max), 1-week change, the next-close level that flips the position, the flat-price 1-week flow, and for futures the $ notional, contracts and flow as % of 20-day volume. Below: sector totals with 1-week flow scenarios (±1σ, ±2σ, flat), the fit to the SG Trend Index and the model's P&L and drawdown.
 - **Single Series:** any ticker or weighted expression (`USGG10YR Index - USGG2YR Index`), with trigger levels, a scenario grid (1w/2w × −2σ..+2σ) and sizing.
+- **How it works:** in-app methodology (`features/momentum/GuideView.tsx`) with a worked S&P 500 example. Its numbers were computed with `momentum.py` on a stylised series, so update them if the signal maths changes.
 
 #### Signal
 
