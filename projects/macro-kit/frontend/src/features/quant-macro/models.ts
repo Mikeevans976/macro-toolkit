@@ -21,3 +21,8 @@ export const QUANT_MACRO_MODELS: QuantMacroModel[] = [
 export const DSA_COUNTRIES = [
   { country: 'uk', toolId: 'uk-debt-sustainability', title: 'UK Debt Sustainability', flag: 'GB' as CountryCode },
 ]
+
+// Labour market nowcasts (LabourPage, GET /api/tools/quant-macro/labour/{country}).
+export const LABOUR_COUNTRIES = [
+  { country: 'uk', toolId: 'uk-labour-nowcast', title: 'UK Labour Market Nowcast', flag: 'GB' as CountryCode },
+]

@@ -1,0 +1,34 @@
+{
+  "_meta": {
+    "description": "Bank of England staff judgements on the UK labour market, entered by hand from each Monetary Policy Report. The Bank publishes its underlying employment growth measure as a chart only; 'underlying_value' is the staff's verbal judgement read as a number (e.g. 'around zero' = 0.0) and is approximate. Unemployment projections are quoted exactly.",
+    "method": "Bank staff's indicator-based measure of underlying employment growth is constructed using a dynamic factor model following the approach of Doz et al (2011). The model extracts a common component from monthly survey indicators, capturing comovements across series. The common component is scaled to align with LFS employment growth between 2000-19.",
+    "method_source": "Monetary Policy Report, chart notes (May 2025 to July 2026)"
+  },
+  "reports": [
+    {"report": "May 2025", "data_through": null,
+     "underlying_text": "Underlying employment growth has also softened recently.", "underlying_value": null,
+     "unemployment": [],
+     "url": "https://www.bankofengland.co.uk/monetary-policy-report/2025/may-2025"},
+    {"report": "August 2025", "data_through": "2025-07",
+     "underlying_text": "Bank staff judge that underlying employment growth, based on the signal from a range of measures, has been around zero since the end of last year.", "underlying_value": 0.0,
+     "unemployment": [],
+     "url": "https://www.bankofengland.co.uk/monetary-policy-report/2025/august-2025"},
+    {"report": "November 2025", "data_through": "2025-10",
+     "underlying_text": "A range of indicators suggests that underlying employment growth remains close to zero.", "underlying_value": 0.0,
+     "unemployment": [],
+     "url": "https://www.bankofengland.co.uk/monetary-policy-report/2025/november-2025"},
+    {"report": "February 2026", "data_through": "2026-01",
+     "underlying_text": "Underlying employment growth has been around zero over the past year.", "underlying_value": 0.0,
+     "unemployment": [{"period": "2026Q2", "value": 5.3, "text": "The unemployment rate is expected to rise further to 5.3% by mid-2026."}],
+     "url": "https://www.bankofengland.co.uk/monetary-policy-report/2026/february-2026"},
+    {"report": "April 2026", "data_through": "2026-03",
+     "underlying_text": "Bank staff judge that underlying employment growth, based on the signal from a range of measures, has remained flat since early 2025.", "underlying_value": 0.0,
+     "unemployment": [{"period": "2026Q2", "value": 5.1, "text": "Bank staff project the unemployment rate to rise to 5.1% in 2026 Q2."}],
+     "url": "https://www.bankofengland.co.uk/monetary-policy-report/2026/april-2026"},
+    {"report": "July 2026", "data_through": null,
+     "underlying_text": "Bank staff judge that underlying employment growth has been broadly flat since early 2025, based on the signal from a range of measures.", "underlying_value": 0.0,
+     "unemployment": [{"period": "2026Q3", "value": 5.0, "text": "Bank staff project the unemployment rate to rise gradually to 5.0% in 2026 Q3 and 5.1% in Q4."},
+                      {"period": "2026Q4", "value": 5.1, "text": "Bank staff project the unemployment rate to rise gradually to 5.0% in 2026 Q3 and 5.1% in Q4."}],
+     "url": "https://www.bankofengland.co.uk/monetary-policy-report/2026/july-2026"}
+  ]
+}

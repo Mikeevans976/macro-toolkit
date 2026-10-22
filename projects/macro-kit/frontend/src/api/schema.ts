@@ -1360,6 +1360,88 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/quant-macro/labour/{country}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Labour
+         * @description Underlying employment growth (Bank of England staff method), indicator contributions,
+         *     next LFS / payroll / unemployment prints and the Bank's companion analyses.
+         *     Refreshed in the background on a new day; computed here only on first use.
+         */
+        get: operations["labour_api_tools_quant_macro_labour__country__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro/labour/{country}/refit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Labour Refit
+         * @description Re-estimate the factor model and its scaling on today's data (background job).
+         */
+        post: operations["labour_refit_api_tools_quant_macro_labour__country__refit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro/labour/{country}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Labour Refresh
+         * @description Download the latest data and run it through the saved parameters (background job).
+         */
+        post: operations["labour_refresh_api_tools_quant_macro_labour__country__refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/quant-macro/labour/{country}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Labour Status
+         * @description When the model was fitted and the payload computed, and job progress.
+         */
+        get: operations["labour_status_api_tools_quant_macro_labour__country__status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tools/quant-macro/{model}": {
         parameters: {
             query?: never;
@@ -2929,6 +3011,410 @@ export interface components {
             issuer: string;
             /** Points */
             points: components["schemas"]["SpreadPoint"][];
+        };
+        /** LabourBoeProjection */
+        LabourBoeProjection: {
+            /** Report */
+            report: string;
+            /** Value */
+            value: number;
+        };
+        /** LabourContribution */
+        LabourContribution: {
+            /** Constant */
+            constant: number | null;
+            /** Contributions */
+            contributions: {
+                [key: string]: number | null;
+            };
+            /** Month */
+            month: string;
+            /** Total */
+            total: number | null;
+        };
+        /** LabourGdpImplied */
+        LabourGdpImplied: {
+            /** Lags */
+            lags: number;
+            /** Latest Gdp Quarter */
+            latest_gdp_quarter: string;
+            /** R2 */
+            r2: number;
+            /** Rows */
+            rows: components["schemas"]["LabourGdpRow"][];
+            /** Sample */
+            sample: string;
+        };
+        /** LabourGdpRow */
+        LabourGdpRow: {
+            /** Implied */
+            implied: number | null;
+            /** Quarter */
+            quarter: string;
+            /** Underlying */
+            underlying: number | null;
+        };
+        /** LabourIndicator */
+        LabourIndicator: {
+            /** Contribution */
+            contribution: number | null;
+            /** First Month */
+            first_month: string | null;
+            /** Group */
+            group: string;
+            /** Id */
+            id: string;
+            /** In Model */
+            in_model: boolean;
+            /** Latest */
+            latest: number | null;
+            /** Latest Month */
+            latest_month: string | null;
+            /** Latest Transformed */
+            latest_transformed: number | null;
+            /** Loading */
+            loading: number | null;
+            /** Missing */
+            missing: string | null;
+            /** Name */
+            name: string;
+            /** Notes */
+            notes: string;
+            /** Short */
+            short: string;
+            /** Source */
+            source: string;
+            /** Transform */
+            transform: string;
+            /** Units */
+            units: string;
+            /** Z */
+            z: number | null;
+        };
+        /** LabourJob */
+        LabourJob: {
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Kind */
+            kind: string;
+            /** Started At */
+            started_at: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "idle" | "running" | "done" | "error";
+            /** Step */
+            step: string | null;
+        };
+        /** LabourJobs */
+        LabourJobs: {
+            refit: components["schemas"]["LabourJob"];
+            update: components["schemas"]["LabourJob"];
+        };
+        /** LabourLatest */
+        LabourLatest: {
+            /** Boe Report */
+            boe_report: string | null;
+            /** Boe Text */
+            boe_text: string | null;
+            /** Boe Value */
+            boe_value: number | null;
+            /** Hi */
+            hi: number | null;
+            /** Lo */
+            lo: number | null;
+            /** Month */
+            month: string;
+            /** Previous */
+            previous: number | null;
+            /** Previous Month */
+            previous_month: string;
+            /** Three Months Ago */
+            three_months_ago: number | null;
+            /** Underlying */
+            underlying: number | null;
+        };
+        /** LabourLfsNext */
+        LabourLfsNext: {
+            /** Forecast */
+            forecast: number | null;
+            /** Hi */
+            hi: number | null;
+            /** Latest */
+            latest: number | null;
+            /** Latest Period */
+            latest_period: string;
+            /** Lo */
+            lo: number | null;
+            /** Noise Sd */
+            noise_sd: number | null;
+            /** Noise Sd 2000 19 */
+            noise_sd_2000_19: number | null;
+            /** Period */
+            period: string;
+            /** Release */
+            release: string | null;
+            /** Sd */
+            sd: number | null;
+        };
+        /** LabourModel */
+        LabourModel: {
+            /** A */
+            a: number | null;
+            /** B */
+            b: number | null;
+            /** Data Through */
+            data_through: string;
+            /** Exclude */
+            exclude: string[][];
+            /** Fitted At */
+            fitted_at: string;
+            /** Ids */
+            ids: string[];
+            /** Missing */
+            missing: number;
+            /** N Indicators */
+            n_indicators: number;
+            /** Phi */
+            phi: (number | null)[];
+            /** Q */
+            q: number | null;
+            /** R2 */
+            r2: number | null;
+            /** Resid Sd */
+            resid_sd: number | null;
+            /** Scale Window */
+            scale_window: string[];
+        };
+        /** LabourNews */
+        LabourNews: {
+            /** By Indicator */
+            by_indicator: {
+                [key: string]: number | null;
+            };
+            /** Change */
+            change: number | null;
+            /** Current */
+            current: number | null;
+            /** Month */
+            month: string;
+            /** New Month */
+            new_month: string | null;
+            /** Previous */
+            previous: number | null;
+            /** Previous Computed At */
+            previous_computed_at: string | null;
+            /** Same Model */
+            same_model: boolean;
+        };
+        /** LabourNextPrints */
+        LabourNextPrints: {
+            /** Labour Force Growth */
+            labour_force_growth: number | null;
+            lfs_employment: components["schemas"]["LabourLfsNext"];
+            payrolls: components["schemas"]["LabourPayrollNext"] | null;
+            /** Unemployment */
+            unemployment: components["schemas"]["LabourUnemployment"][];
+            unemployment_latest: components["schemas"]["LabourUnemploymentLatest"];
+        };
+        /** LabourNowcast */
+        LabourNowcast: {
+            /** As Of */
+            as_of: string;
+            /** Computed At */
+            computed_at: string;
+            /** Contributions */
+            contributions: components["schemas"]["LabourContribution"][];
+            /** Country */
+            country: string;
+            /** Data Source */
+            data_source: string;
+            gdp_implied: components["schemas"]["LabourGdpImplied"] | null;
+            /** Indicators */
+            indicators: components["schemas"]["LabourIndicator"][];
+            latest: components["schemas"]["LabourLatest"];
+            model: components["schemas"]["LabourModel"];
+            news?: components["schemas"]["LabourNews"] | null;
+            next_prints: components["schemas"]["LabourNextPrints"];
+            /**
+             * Runs
+             * @default []
+             */
+            runs: components["schemas"]["LabourRun"][];
+            /** Series */
+            series: components["schemas"]["LabourPoint"][];
+            /** Slug */
+            slug: string;
+            /** Sources */
+            sources: {
+                [key: string]: components["schemas"]["LabourSource"];
+            };
+            /** Staff */
+            staff: components["schemas"]["LabourStaffReport"][];
+            /** Staff Method */
+            staff_method: string;
+            svar: components["schemas"]["LabourSvar"] | null;
+            /** Title */
+            title: string;
+        };
+        /** LabourPayrollNext */
+        LabourPayrollNext: {
+            /** Change K */
+            change_k: number | null;
+            /** Growth3 */
+            growth3: number | null;
+            /** Hi K */
+            hi_k: number | null;
+            /** Latest Change K */
+            latest_change_k: number | null;
+            /** Latest Growth3 */
+            latest_growth3: number | null;
+            /** Latest Period */
+            latest_period: string;
+            /** Lo K */
+            lo_k: number | null;
+            /** Period */
+            period: string;
+        };
+        /** LabourPoint */
+        LabourPoint: {
+            /** Hi */
+            hi: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "estimate" | "projection" | "pandemic";
+            /** Lfs */
+            lfs: number | null;
+            /** Lo */
+            lo: number | null;
+            /** Month */
+            month: string;
+            /** Payrolls */
+            payrolls: number | null;
+            /** Underlying */
+            underlying: number | null;
+        };
+        /** LabourRun */
+        LabourRun: {
+            /** Computed At */
+            computed_at: string;
+            /** Fitted At */
+            fitted_at: string;
+            /** Month */
+            month: string;
+            /** Underlying */
+            underlying: number | null;
+        };
+        /** LabourSource */
+        LabourSource: {
+            /** Error */
+            error: string | null;
+            /** File */
+            file: string | null;
+            /** Latest */
+            latest: string | null;
+            /** Name */
+            name: string;
+            /** Next Release */
+            next_release: string | null;
+            /** Release */
+            release: string | null;
+        };
+        /** LabourStaffProjection */
+        LabourStaffProjection: {
+            /** Period */
+            period: string;
+            /** Text */
+            text: string;
+            /** Value */
+            value: number;
+        };
+        /** LabourStaffReport */
+        LabourStaffReport: {
+            /** Data Through */
+            data_through: string | null;
+            /** Report */
+            report: string;
+            /** Underlying Text */
+            underlying_text: string;
+            /** Underlying Value */
+            underlying_value: number | null;
+            /** Unemployment */
+            unemployment: components["schemas"]["LabourStaffProjection"][];
+            /** Url */
+            url: string;
+        };
+        /** LabourStatus */
+        LabourStatus: {
+            /** As Of */
+            as_of: string | null;
+            /** Computed At */
+            computed_at: string | null;
+            jobs: components["schemas"]["LabourJobs"];
+            /** Model Data Through */
+            model_data_through: string | null;
+            /** Model Fitted At */
+            model_fitted_at: string | null;
+            /** Slug */
+            slug: string;
+        };
+        /** LabourSvar */
+        LabourSvar: {
+            /** Accepted */
+            accepted: number;
+            /** Impact */
+            impact: {
+                [key: string]: number[];
+            };
+            /** Lags */
+            lags: number;
+            /** Ok */
+            ok: boolean;
+            /** Rows */
+            rows: components["schemas"]["LabourSvarRow"][];
+            /** Sample */
+            sample: string;
+        };
+        /** LabourSvarRow */
+        LabourSvarRow: {
+            /** Baseline */
+            baseline: number;
+            /** Demand */
+            demand: number;
+            /** Employment */
+            employment: number;
+            /** Month */
+            month: string;
+            /** Supply */
+            supply: number;
+        };
+        /** LabourUnemployment */
+        LabourUnemployment: {
+            boe: components["schemas"]["LabourBoeProjection"] | null;
+            /** Employment Growth */
+            employment_growth: number | null;
+            /** Hi */
+            hi: number | null;
+            /** Lo */
+            lo: number | null;
+            /** Month */
+            month: string;
+            /** Period */
+            period: string;
+            /** Projection */
+            projection: number | null;
+        };
+        /** LabourUnemploymentLatest */
+        LabourUnemploymentLatest: {
+            /** Period */
+            period: string;
+            /** Value */
+            value: number | null;
         };
         /** MacroOptionsSnapshot */
         MacroOptionsSnapshot: {
@@ -6410,6 +6896,130 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DsaUpload"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    labour_api_tools_quant_macro_labour__country__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                country: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabourNowcast"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    labour_refit_api_tools_quant_macro_labour__country__refit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                country: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabourStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    labour_refresh_api_tools_quant_macro_labour__country__refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                country: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabourStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    labour_status_api_tools_quant_macro_labour__country__status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                country: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabourStatus"];
                 };
             };
             /** @description Validation Error */

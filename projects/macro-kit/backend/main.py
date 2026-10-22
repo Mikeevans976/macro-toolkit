@@ -54,6 +54,7 @@ from routers import (
     heatmaps,
     inflation_fixings,
     inflation_pca,
+    labour_nowcast,
     macro_options,
     mean_reversion,
     momentum,
@@ -137,6 +138,15 @@ async def lifespan(_app: FastAPI):
                 logger.exception("Debt sustainability warm-up failed; will compute on first request")
         threading.Thread(target=_warm_dsa, name="dsa-warmup", daemon=True).start()
 
+        def _warm_labour() -> None:
+            try:
+                from labour_nowcast import warm_cache
+                warm_cache()
+                logger.info("Labour market nowcast warmed")
+            except Exception:
+                logger.exception("Labour market nowcast warm-up failed; will compute on first request")
+        threading.Thread(target=_warm_labour, name="labour-warmup", daemon=True).start()
+
         def _warm_fx_ipca() -> None:
             try:
                 from fx_ipca import warm_cache
@@ -180,6 +190,7 @@ for _tool in (
     heatmaps,
     inflation_fixings,
     inflation_pca,
+    labour_nowcast,
     macro_options,
     mean_reversion,
     momentum,

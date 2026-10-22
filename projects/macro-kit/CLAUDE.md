@@ -81,6 +81,8 @@ cd frontend && npm run build && cd .. && python backend/main.py
 | `vintages.py` | Quant Macro real-time data: SQLite vintage store (`var/quant_macro/vintages.db`), ONS revisions triangles, source assembly |
 | `debt_sustainability.py` | UK debt sustainability monitor: OBR vs market-priced baseline, live fiscal-rule headroom, gilt-by-gilt interest model, stochastic fans, scenarios |
 | `fiscal_data.py` | Public fiscal data: ONS PUSF, OBR EFO PDF parser, Bank of England yield curves and IADB, DMO gilts-in-issue reader |
+| `labour_nowcast.py` | UK Labour Market Nowcast: Bank of England staff's underlying employment growth (DGR factor model scaled to the LFS), contributions/news, next prints, GDP-implied employment, demand/supply SVAR |
+| `labour_data.py` | Public labour data: ONS LMS and PAYE RTI, Bank Agents' scores (new + historic spliced), DMP monthly workbook; Bloomberg-only surveys from the catalogue |
 | `curves_flies_config.py` | Config for curves/flies tool |
 | `seasonality_backtester.py` | Seasonality backtest engine |
 | `data/series_catalogue_*.json` | Single source of truth for indicator tickers/lags per region |
@@ -172,6 +174,18 @@ Vintages are real-time: `Panel.vintage(d)` rebuilds the data as published on day
 | Engine | `backend/debt_sustainability.py` | The interest model runs on the BoE curves averaged over the OBR's 10-day window and on the latest curves; only the difference is added to the OBR forecast (so the model's level never replaces the OBR's). Attribution: time, Bank Rate, gilts, RPI. VAR(2) shocks (1993+, pandemic excluded) → 5,000 paths |
 
 Checks that hold on real data: the cut-off curves reproduce the OBR's Bank Rate path (A.3), and +1pp on all rates moves 2030-31 interest by ~£16bn against the OBR's £15bn ready reckoner. Tests run on synthetic inputs (`tests/dsa_synthetic.py`, also used by `scripts/make_dsa_fixture.py` for the frontend fixtures). For a new OBR forecast: upload the PDF (or run the import script and commit the JSON).
+
+### Labour market nowcast (UK)
+
+`frontend/src/features/quant-macro/LabourPage.tsx` (route `/tools/uk-labour-nowcast`), driven by `GET /api/tools/quant-macro/labour/{country}` (plus `/status`, `POST /refresh`, `POST /refit`). It rebuilds Bank of England staff's "indicator-based measure of underlying employment growth" as the MPR describes it (since May 2025): a Doz–Giannone–Reichlin two-step dynamic factor model on monthly indicators, scaled to LFS employment growth (3m/3m) over 2000–19.
+
+| Piece | Where | Notes |
+|-------|-------|-------|
+| Indicators | `backend/data/series_catalogue_labour_uk.json` | Public: Agents' employment intentions and recruitment difficulties, DMP realised/expected employment growth, HMRC payrolls, ONS vacancies. Bank sources only on Bloomberg (S&P Global PMI, KPMG/REC, Lloyds) have `ticker_bloomberg: null` until set and probed; with Bloomberg as the data source they join on the next Refit |
+| Bank staff judgements | `backend/data/boe_labour_staff_uk.json` | Entered by hand from each MPR, quoted; the Bank publishes the measure as a chart, so `underlying_value` is the verbal judgement read as a number. Add each new MPR here |
+| Engine | `backend/labour_nowcast.py` | EM principal component (ragged panel) → AR(2) factor → Kalman filter/smoother once (state f_t, f_t-1, f_t-2 so the three-month average has an exact variance). Parameters saved (`var/labour_nowcast/uk/model.json`) and re-estimated only by Refit, so news between runs splits exactly by indicator (the smoother is linear in the data) |
+
+Pandemic months (2020-03 to 2021-06) are left out of estimation and carry no information. The unemployment projection rolls the latest LFS levels forward monthly (employment at the underlying rate, labour force at its trend). Tests run on `tests/labour_synthetic.py`, also used by `scripts/make_labour_fixture.py`.
 
 ### Adding a model
 

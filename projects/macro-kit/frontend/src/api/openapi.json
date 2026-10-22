@@ -4190,6 +4190,1625 @@
     "title": "IssuerCurve",
     "type": "object"
    },
+   "LabourBoeProjection": {
+    "properties": {
+     "report": {
+      "title": "Report",
+      "type": "string"
+     },
+     "value": {
+      "title": "Value",
+      "type": "number"
+     }
+    },
+    "required": [
+     "report",
+     "value"
+    ],
+    "title": "LabourBoeProjection",
+    "type": "object"
+   },
+   "LabourContribution": {
+    "properties": {
+     "constant": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Constant"
+     },
+     "contributions": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Contributions",
+      "type": "object"
+     },
+     "month": {
+      "title": "Month",
+      "type": "string"
+     },
+     "total": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Total"
+     }
+    },
+    "required": [
+     "month",
+     "constant",
+     "total",
+     "contributions"
+    ],
+    "title": "LabourContribution",
+    "type": "object"
+   },
+   "LabourGdpImplied": {
+    "properties": {
+     "lags": {
+      "title": "Lags",
+      "type": "integer"
+     },
+     "latest_gdp_quarter": {
+      "title": "Latest Gdp Quarter",
+      "type": "string"
+     },
+     "r2": {
+      "title": "R2",
+      "type": "number"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/LabourGdpRow"
+      },
+      "title": "Rows",
+      "type": "array"
+     },
+     "sample": {
+      "title": "Sample",
+      "type": "string"
+     }
+    },
+    "required": [
+     "r2",
+     "lags",
+     "sample",
+     "latest_gdp_quarter",
+     "rows"
+    ],
+    "title": "LabourGdpImplied",
+    "type": "object"
+   },
+   "LabourGdpRow": {
+    "properties": {
+     "implied": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Implied"
+     },
+     "quarter": {
+      "title": "Quarter",
+      "type": "string"
+     },
+     "underlying": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Underlying"
+     }
+    },
+    "required": [
+     "quarter",
+     "implied",
+     "underlying"
+    ],
+    "title": "LabourGdpRow",
+    "type": "object"
+   },
+   "LabourIndicator": {
+    "properties": {
+     "contribution": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Contribution"
+     },
+     "first_month": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "First Month"
+     },
+     "group": {
+      "title": "Group",
+      "type": "string"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "in_model": {
+      "title": "In Model",
+      "type": "boolean"
+     },
+     "latest": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest"
+     },
+     "latest_month": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest Month"
+     },
+     "latest_transformed": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest Transformed"
+     },
+     "loading": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Loading"
+     },
+     "missing": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Missing"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "notes": {
+      "title": "Notes",
+      "type": "string"
+     },
+     "short": {
+      "title": "Short",
+      "type": "string"
+     },
+     "source": {
+      "title": "Source",
+      "type": "string"
+     },
+     "transform": {
+      "title": "Transform",
+      "type": "string"
+     },
+     "units": {
+      "title": "Units",
+      "type": "string"
+     },
+     "z": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Z"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "short",
+     "group",
+     "source",
+     "units",
+     "transform",
+     "notes",
+     "in_model",
+     "missing",
+     "latest_month",
+     "latest",
+     "latest_transformed",
+     "z",
+     "loading",
+     "contribution",
+     "first_month"
+    ],
+    "title": "LabourIndicator",
+    "type": "object"
+   },
+   "LabourJob": {
+    "properties": {
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "finished_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Finished At"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "started_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Started At"
+     },
+     "state": {
+      "enum": [
+       "idle",
+       "running",
+       "done",
+       "error"
+      ],
+      "title": "State",
+      "type": "string"
+     },
+     "step": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step"
+     }
+    },
+    "required": [
+     "kind",
+     "state",
+     "step",
+     "started_at",
+     "finished_at",
+     "error"
+    ],
+    "title": "LabourJob",
+    "type": "object"
+   },
+   "LabourJobs": {
+    "properties": {
+     "refit": {
+      "$ref": "#/components/schemas/LabourJob"
+     },
+     "update": {
+      "$ref": "#/components/schemas/LabourJob"
+     }
+    },
+    "required": [
+     "update",
+     "refit"
+    ],
+    "title": "LabourJobs",
+    "type": "object"
+   },
+   "LabourLatest": {
+    "properties": {
+     "boe_report": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Boe Report"
+     },
+     "boe_text": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Boe Text"
+     },
+     "boe_value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Boe Value"
+     },
+     "hi": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi"
+     },
+     "lo": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo"
+     },
+     "month": {
+      "title": "Month",
+      "type": "string"
+     },
+     "previous": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Previous"
+     },
+     "previous_month": {
+      "title": "Previous Month",
+      "type": "string"
+     },
+     "three_months_ago": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Three Months Ago"
+     },
+     "underlying": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Underlying"
+     }
+    },
+    "required": [
+     "month",
+     "underlying",
+     "lo",
+     "hi",
+     "previous_month",
+     "previous",
+     "three_months_ago",
+     "boe_report",
+     "boe_text",
+     "boe_value"
+    ],
+    "title": "LabourLatest",
+    "type": "object"
+   },
+   "LabourLfsNext": {
+    "properties": {
+     "forecast": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Forecast"
+     },
+     "hi": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi"
+     },
+     "latest": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest"
+     },
+     "latest_period": {
+      "title": "Latest Period",
+      "type": "string"
+     },
+     "lo": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo"
+     },
+     "noise_sd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Noise Sd"
+     },
+     "noise_sd_2000_19": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Noise Sd 2000 19"
+     },
+     "period": {
+      "title": "Period",
+      "type": "string"
+     },
+     "release": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Release"
+     },
+     "sd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sd"
+     }
+    },
+    "required": [
+     "period",
+     "release",
+     "forecast",
+     "sd",
+     "lo",
+     "hi",
+     "latest_period",
+     "latest",
+     "noise_sd",
+     "noise_sd_2000_19"
+    ],
+    "title": "LabourLfsNext",
+    "type": "object"
+   },
+   "LabourModel": {
+    "properties": {
+     "a": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "A"
+     },
+     "b": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "B"
+     },
+     "data_through": {
+      "title": "Data Through",
+      "type": "string"
+     },
+     "exclude": {
+      "items": {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      },
+      "title": "Exclude",
+      "type": "array"
+     },
+     "fitted_at": {
+      "title": "Fitted At",
+      "type": "string"
+     },
+     "ids": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Ids",
+      "type": "array"
+     },
+     "missing": {
+      "title": "Missing",
+      "type": "integer"
+     },
+     "n_indicators": {
+      "title": "N Indicators",
+      "type": "integer"
+     },
+     "phi": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Phi",
+      "type": "array"
+     },
+     "q": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Q"
+     },
+     "r2": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "R2"
+     },
+     "resid_sd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Resid Sd"
+     },
+     "scale_window": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Scale Window",
+      "type": "array"
+     }
+    },
+    "required": [
+     "fitted_at",
+     "data_through",
+     "n_indicators",
+     "ids",
+     "phi",
+     "q",
+     "a",
+     "b",
+     "r2",
+     "resid_sd",
+     "scale_window",
+     "exclude",
+     "missing"
+    ],
+    "title": "LabourModel",
+    "type": "object"
+   },
+   "LabourNews": {
+    "properties": {
+     "by_indicator": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "By Indicator",
+      "type": "object"
+     },
+     "change": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Change"
+     },
+     "current": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Current"
+     },
+     "month": {
+      "title": "Month",
+      "type": "string"
+     },
+     "new_month": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "New Month"
+     },
+     "previous": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Previous"
+     },
+     "previous_computed_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Previous Computed At"
+     },
+     "same_model": {
+      "title": "Same Model",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "month",
+     "previous_computed_at",
+     "previous",
+     "current",
+     "change",
+     "by_indicator",
+     "same_model",
+     "new_month"
+    ],
+    "title": "LabourNews",
+    "type": "object"
+   },
+   "LabourNextPrints": {
+    "properties": {
+     "labour_force_growth": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Labour Force Growth"
+     },
+     "lfs_employment": {
+      "$ref": "#/components/schemas/LabourLfsNext"
+     },
+     "payrolls": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LabourPayrollNext"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "unemployment": {
+      "items": {
+       "$ref": "#/components/schemas/LabourUnemployment"
+      },
+      "title": "Unemployment",
+      "type": "array"
+     },
+     "unemployment_latest": {
+      "$ref": "#/components/schemas/LabourUnemploymentLatest"
+     }
+    },
+    "required": [
+     "lfs_employment",
+     "unemployment",
+     "unemployment_latest",
+     "labour_force_growth",
+     "payrolls"
+    ],
+    "title": "LabourNextPrints",
+    "type": "object"
+   },
+   "LabourNowcast": {
+    "properties": {
+     "as_of": {
+      "title": "As Of",
+      "type": "string"
+     },
+     "computed_at": {
+      "title": "Computed At",
+      "type": "string"
+     },
+     "contributions": {
+      "items": {
+       "$ref": "#/components/schemas/LabourContribution"
+      },
+      "title": "Contributions",
+      "type": "array"
+     },
+     "country": {
+      "title": "Country",
+      "type": "string"
+     },
+     "data_source": {
+      "title": "Data Source",
+      "type": "string"
+     },
+     "gdp_implied": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LabourGdpImplied"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "indicators": {
+      "items": {
+       "$ref": "#/components/schemas/LabourIndicator"
+      },
+      "title": "Indicators",
+      "type": "array"
+     },
+     "latest": {
+      "$ref": "#/components/schemas/LabourLatest"
+     },
+     "model": {
+      "$ref": "#/components/schemas/LabourModel"
+     },
+     "news": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LabourNews"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "next_prints": {
+      "$ref": "#/components/schemas/LabourNextPrints"
+     },
+     "runs": {
+      "default": [],
+      "items": {
+       "$ref": "#/components/schemas/LabourRun"
+      },
+      "title": "Runs",
+      "type": "array"
+     },
+     "series": {
+      "items": {
+       "$ref": "#/components/schemas/LabourPoint"
+      },
+      "title": "Series",
+      "type": "array"
+     },
+     "slug": {
+      "title": "Slug",
+      "type": "string"
+     },
+     "sources": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/LabourSource"
+      },
+      "title": "Sources",
+      "type": "object"
+     },
+     "staff": {
+      "items": {
+       "$ref": "#/components/schemas/LabourStaffReport"
+      },
+      "title": "Staff",
+      "type": "array"
+     },
+     "staff_method": {
+      "title": "Staff Method",
+      "type": "string"
+     },
+     "svar": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LabourSvar"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     }
+    },
+    "required": [
+     "slug",
+     "title",
+     "country",
+     "as_of",
+     "computed_at",
+     "data_source",
+     "latest",
+     "series",
+     "contributions",
+     "indicators",
+     "next_prints",
+     "gdp_implied",
+     "svar",
+     "staff",
+     "staff_method",
+     "sources",
+     "model"
+    ],
+    "title": "LabourNowcast",
+    "type": "object"
+   },
+   "LabourPayrollNext": {
+    "properties": {
+     "change_k": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Change K"
+     },
+     "growth3": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Growth3"
+     },
+     "hi_k": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi K"
+     },
+     "latest_change_k": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest Change K"
+     },
+     "latest_growth3": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest Growth3"
+     },
+     "latest_period": {
+      "title": "Latest Period",
+      "type": "string"
+     },
+     "lo_k": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo K"
+     },
+     "period": {
+      "title": "Period",
+      "type": "string"
+     }
+    },
+    "required": [
+     "period",
+     "change_k",
+     "lo_k",
+     "hi_k",
+     "growth3",
+     "latest_period",
+     "latest_change_k",
+     "latest_growth3"
+    ],
+    "title": "LabourPayrollNext",
+    "type": "object"
+   },
+   "LabourPoint": {
+    "properties": {
+     "hi": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi"
+     },
+     "kind": {
+      "enum": [
+       "estimate",
+       "projection",
+       "pandemic"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "lfs": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lfs"
+     },
+     "lo": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo"
+     },
+     "month": {
+      "title": "Month",
+      "type": "string"
+     },
+     "payrolls": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Payrolls"
+     },
+     "underlying": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Underlying"
+     }
+    },
+    "required": [
+     "month",
+     "kind",
+     "underlying",
+     "lo",
+     "hi",
+     "lfs",
+     "payrolls"
+    ],
+    "title": "LabourPoint",
+    "type": "object"
+   },
+   "LabourRun": {
+    "properties": {
+     "computed_at": {
+      "title": "Computed At",
+      "type": "string"
+     },
+     "fitted_at": {
+      "title": "Fitted At",
+      "type": "string"
+     },
+     "month": {
+      "title": "Month",
+      "type": "string"
+     },
+     "underlying": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Underlying"
+     }
+    },
+    "required": [
+     "computed_at",
+     "month",
+     "underlying",
+     "fitted_at"
+    ],
+    "title": "LabourRun",
+    "type": "object"
+   },
+   "LabourSource": {
+    "properties": {
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "file": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "File"
+     },
+     "latest": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latest"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "next_release": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Release"
+     },
+     "release": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Release"
+     }
+    },
+    "required": [
+     "name",
+     "file",
+     "latest",
+     "release",
+     "next_release",
+     "error"
+    ],
+    "title": "LabourSource",
+    "type": "object"
+   },
+   "LabourStaffProjection": {
+    "properties": {
+     "period": {
+      "title": "Period",
+      "type": "string"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     },
+     "value": {
+      "title": "Value",
+      "type": "number"
+     }
+    },
+    "required": [
+     "period",
+     "value",
+     "text"
+    ],
+    "title": "LabourStaffProjection",
+    "type": "object"
+   },
+   "LabourStaffReport": {
+    "properties": {
+     "data_through": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Data Through"
+     },
+     "report": {
+      "title": "Report",
+      "type": "string"
+     },
+     "underlying_text": {
+      "title": "Underlying Text",
+      "type": "string"
+     },
+     "underlying_value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Underlying Value"
+     },
+     "unemployment": {
+      "items": {
+       "$ref": "#/components/schemas/LabourStaffProjection"
+      },
+      "title": "Unemployment",
+      "type": "array"
+     },
+     "url": {
+      "title": "Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "report",
+     "data_through",
+     "underlying_text",
+     "underlying_value",
+     "unemployment",
+     "url"
+    ],
+    "title": "LabourStaffReport",
+    "type": "object"
+   },
+   "LabourStatus": {
+    "properties": {
+     "as_of": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Of"
+     },
+     "computed_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Computed At"
+     },
+     "jobs": {
+      "$ref": "#/components/schemas/LabourJobs"
+     },
+     "model_data_through": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model Data Through"
+     },
+     "model_fitted_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model Fitted At"
+     },
+     "slug": {
+      "title": "Slug",
+      "type": "string"
+     }
+    },
+    "required": [
+     "slug",
+     "computed_at",
+     "as_of",
+     "model_fitted_at",
+     "model_data_through",
+     "jobs"
+    ],
+    "title": "LabourStatus",
+    "type": "object"
+   },
+   "LabourSvar": {
+    "properties": {
+     "accepted": {
+      "title": "Accepted",
+      "type": "integer"
+     },
+     "impact": {
+      "additionalProperties": {
+       "items": {
+        "type": "number"
+       },
+       "type": "array"
+      },
+      "title": "Impact",
+      "type": "object"
+     },
+     "lags": {
+      "title": "Lags",
+      "type": "integer"
+     },
+     "ok": {
+      "title": "Ok",
+      "type": "boolean"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/LabourSvarRow"
+      },
+      "title": "Rows",
+      "type": "array"
+     },
+     "sample": {
+      "title": "Sample",
+      "type": "string"
+     }
+    },
+    "required": [
+     "ok",
+     "lags",
+     "accepted",
+     "sample",
+     "impact",
+     "rows"
+    ],
+    "title": "LabourSvar",
+    "type": "object"
+   },
+   "LabourSvarRow": {
+    "properties": {
+     "baseline": {
+      "title": "Baseline",
+      "type": "number"
+     },
+     "demand": {
+      "title": "Demand",
+      "type": "number"
+     },
+     "employment": {
+      "title": "Employment",
+      "type": "number"
+     },
+     "month": {
+      "title": "Month",
+      "type": "string"
+     },
+     "supply": {
+      "title": "Supply",
+      "type": "number"
+     }
+    },
+    "required": [
+     "month",
+     "employment",
+     "baseline",
+     "demand",
+     "supply"
+    ],
+    "title": "LabourSvarRow",
+    "type": "object"
+   },
+   "LabourUnemployment": {
+    "properties": {
+     "boe": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LabourBoeProjection"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "employment_growth": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Employment Growth"
+     },
+     "hi": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hi"
+     },
+     "lo": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lo"
+     },
+     "month": {
+      "title": "Month",
+      "type": "string"
+     },
+     "period": {
+      "title": "Period",
+      "type": "string"
+     },
+     "projection": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Projection"
+     }
+    },
+    "required": [
+     "period",
+     "month",
+     "projection",
+     "lo",
+     "hi",
+     "employment_growth",
+     "boe"
+    ],
+    "title": "LabourUnemployment",
+    "type": "object"
+   },
+   "LabourUnemploymentLatest": {
+    "properties": {
+     "period": {
+      "title": "Period",
+      "type": "string"
+     },
+     "value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value"
+     }
+    },
+    "required": [
+     "period",
+     "value"
+    ],
+    "title": "LabourUnemploymentLatest",
+    "type": "object"
+   },
    "MacroOptionsSnapshot": {
     "properties": {
      "as_of": {
@@ -12846,6 +14465,186 @@
      }
     ],
     "summary": "Dsa Upload"
+   }
+  },
+  "/api/tools/quant-macro/labour/{country}": {
+   "get": {
+    "description": "Underlying employment growth (Bank of England staff method), indicator contributions,\nnext LFS / payroll / unemployment prints and the Bank's companion analyses.\nRefreshed in the background on a new day; computed here only on first use.",
+    "operationId": "labour_api_tools_quant_macro_labour__country__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "country",
+      "required": true,
+      "schema": {
+       "title": "Country",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LabourNowcast"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Labour"
+   }
+  },
+  "/api/tools/quant-macro/labour/{country}/refit": {
+   "post": {
+    "description": "Re-estimate the factor model and its scaling on today's data (background job).",
+    "operationId": "labour_refit_api_tools_quant_macro_labour__country__refit_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "country",
+      "required": true,
+      "schema": {
+       "title": "Country",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LabourStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Labour Refit"
+   }
+  },
+  "/api/tools/quant-macro/labour/{country}/refresh": {
+   "post": {
+    "description": "Download the latest data and run it through the saved parameters (background job).",
+    "operationId": "labour_refresh_api_tools_quant_macro_labour__country__refresh_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "country",
+      "required": true,
+      "schema": {
+       "title": "Country",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LabourStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Labour Refresh"
+   }
+  },
+  "/api/tools/quant-macro/labour/{country}/status": {
+   "get": {
+    "description": "When the model was fitted and the payload computed, and job progress.",
+    "operationId": "labour_status_api_tools_quant_macro_labour__country__status_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "country",
+      "required": true,
+      "schema": {
+       "title": "Country",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LabourStatus"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "security": [
+     {
+      "OAuth2PasswordBearer": []
+     }
+    ],
+    "summary": "Labour Status"
    }
   },
   "/api/tools/quant-macro/{model}": {

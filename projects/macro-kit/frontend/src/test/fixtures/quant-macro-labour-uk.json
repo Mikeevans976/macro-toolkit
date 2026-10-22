@@ -1,0 +1,3904 @@
+{
+ "slug": "uk",
+ "title": "UK Labour Market Nowcast",
+ "country": "GB",
+ "as_of": "2026-10-22",
+ "computed_at": "2026-10-22T09:00:00",
+ "data_source": "bloomberg",
+ "latest": {
+  "month": "2026-09",
+  "underlying": 0.406,
+  "lo": 0.36,
+  "hi": 0.451,
+  "previous_month": "2026-08",
+  "previous": 0.372,
+  "three_months_ago": 0.446,
+  "boe_report": "July 2026",
+  "boe_text": "Bank staff judge that underlying employment growth has been broadly flat since early 2025, based on the signal from a range of measures.",
+  "boe_value": 0.0
+ },
+ "series": [
+  {
+   "month": "2005-01",
+   "kind": "estimate",
+   "underlying": 0.185,
+   "lo": 0.126,
+   "hi": 0.245,
+   "lfs": 0.382,
+   "payrolls": null
+  },
+  {
+   "month": "2005-02",
+   "kind": "estimate",
+   "underlying": 0.173,
+   "lo": 0.114,
+   "hi": 0.232,
+   "lfs": 0.177,
+   "payrolls": null
+  },
+  {
+   "month": "2005-03",
+   "kind": "estimate",
+   "underlying": 0.161,
+   "lo": 0.102,
+   "hi": 0.221,
+   "lfs": -0.015,
+   "payrolls": null
+  },
+  {
+   "month": "2005-04",
+   "kind": "estimate",
+   "underlying": 0.159,
+   "lo": 0.1,
+   "hi": 0.219,
+   "lfs": -0.323,
+   "payrolls": null
+  },
+  {
+   "month": "2005-05",
+   "kind": "estimate",
+   "underlying": 0.142,
+   "lo": 0.083,
+   "hi": 0.201,
+   "lfs": -0.251,
+   "payrolls": null
+  },
+  {
+   "month": "2005-06",
+   "kind": "estimate",
+   "underlying": 0.168,
+   "lo": 0.109,
+   "hi": 0.228,
+   "lfs": 0.044,
+   "payrolls": null
+  },
+  {
+   "month": "2005-07",
+   "kind": "estimate",
+   "underlying": 0.197,
+   "lo": 0.138,
+   "hi": 0.256,
+   "lfs": 0.246,
+   "payrolls": null
+  },
+  {
+   "month": "2005-08",
+   "kind": "estimate",
+   "underlying": 0.23,
+   "lo": 0.171,
+   "hi": 0.289,
+   "lfs": 0.406,
+   "payrolls": null
+  },
+  {
+   "month": "2005-09",
+   "kind": "estimate",
+   "underlying": 0.217,
+   "lo": 0.158,
+   "hi": 0.276,
+   "lfs": 0.346,
+   "payrolls": null
+  },
+  {
+   "month": "2005-10",
+   "kind": "estimate",
+   "underlying": 0.18,
+   "lo": 0.121,
+   "hi": 0.239,
+   "lfs": 0.267,
+   "payrolls": null
+  },
+  {
+   "month": "2005-11",
+   "kind": "estimate",
+   "underlying": 0.091,
+   "lo": 0.032,
+   "hi": 0.151,
+   "lfs": 0.196,
+   "payrolls": null
+  },
+  {
+   "month": "2005-12",
+   "kind": "estimate",
+   "underlying": 0.001,
+   "lo": -0.058,
+   "hi": 0.06,
+   "lfs": 0.1,
+   "payrolls": null
+  },
+  {
+   "month": "2006-01",
+   "kind": "estimate",
+   "underlying": -0.053,
+   "lo": -0.112,
+   "hi": 0.006,
+   "lfs": 0.15,
+   "payrolls": null
+  },
+  {
+   "month": "2006-02",
+   "kind": "estimate",
+   "underlying": -0.036,
+   "lo": -0.095,
+   "hi": 0.023,
+   "lfs": -0.182,
+   "payrolls": null
+  },
+  {
+   "month": "2006-03",
+   "kind": "estimate",
+   "underlying": 0.002,
+   "lo": -0.057,
+   "hi": 0.061,
+   "lfs": -0.233,
+   "payrolls": null
+  },
+  {
+   "month": "2006-04",
+   "kind": "estimate",
+   "underlying": 0.037,
+   "lo": -0.023,
+   "hi": 0.096,
+   "lfs": -0.048,
+   "payrolls": null
+  },
+  {
+   "month": "2006-05",
+   "kind": "estimate",
+   "underlying": 0.071,
+   "lo": 0.012,
+   "hi": 0.13,
+   "lfs": 0.343,
+   "payrolls": null
+  },
+  {
+   "month": "2006-06",
+   "kind": "estimate",
+   "underlying": 0.115,
+   "lo": 0.056,
+   "hi": 0.174,
+   "lfs": 0.493,
+   "payrolls": null
+  },
+  {
+   "month": "2006-07",
+   "kind": "estimate",
+   "underlying": 0.175,
+   "lo": 0.115,
+   "hi": 0.234,
+   "lfs": 0.456,
+   "payrolls": null
+  },
+  {
+   "month": "2006-08",
+   "kind": "estimate",
+   "underlying": 0.229,
+   "lo": 0.17,
+   "hi": 0.288,
+   "lfs": 0.301,
+   "payrolls": null
+  },
+  {
+   "month": "2006-09",
+   "kind": "estimate",
+   "underlying": 0.306,
+   "lo": 0.246,
+   "hi": 0.365,
+   "lfs": 0.395,
+   "payrolls": null
+  },
+  {
+   "month": "2006-10",
+   "kind": "estimate",
+   "underlying": 0.352,
+   "lo": 0.293,
+   "hi": 0.411,
+   "lfs": 0.231,
+   "payrolls": null
+  },
+  {
+   "month": "2006-11",
+   "kind": "estimate",
+   "underlying": 0.417,
+   "lo": 0.358,
+   "hi": 0.476,
+   "lfs": 0.508,
+   "payrolls": null
+  },
+  {
+   "month": "2006-12",
+   "kind": "estimate",
+   "underlying": 0.482,
+   "lo": 0.423,
+   "hi": 0.541,
+   "lfs": 0.595,
+   "payrolls": null
+  },
+  {
+   "month": "2007-01",
+   "kind": "estimate",
+   "underlying": 0.511,
+   "lo": 0.452,
+   "hi": 0.57,
+   "lfs": 0.76,
+   "payrolls": null
+  },
+  {
+   "month": "2007-02",
+   "kind": "estimate",
+   "underlying": 0.52,
+   "lo": 0.46,
+   "hi": 0.579,
+   "lfs": 0.662,
+   "payrolls": null
+  },
+  {
+   "month": "2007-03",
+   "kind": "estimate",
+   "underlying": 0.452,
+   "lo": 0.393,
+   "hi": 0.511,
+   "lfs": 0.253,
+   "payrolls": null
+  },
+  {
+   "month": "2007-04",
+   "kind": "estimate",
+   "underlying": 0.393,
+   "lo": 0.334,
+   "hi": 0.452,
+   "lfs": 0.116,
+   "payrolls": null
+  },
+  {
+   "month": "2007-05",
+   "kind": "estimate",
+   "underlying": 0.285,
+   "lo": 0.226,
+   "hi": 0.344,
+   "lfs": 0.184,
+   "payrolls": null
+  },
+  {
+   "month": "2007-06",
+   "kind": "estimate",
+   "underlying": 0.168,
+   "lo": 0.109,
+   "hi": 0.227,
+   "lfs": 0.149,
+   "payrolls": null
+  },
+  {
+   "month": "2007-07",
+   "kind": "estimate",
+   "underlying": 0.112,
+   "lo": 0.052,
+   "hi": 0.171,
+   "lfs": 0.156,
+   "payrolls": null
+  },
+  {
+   "month": "2007-08",
+   "kind": "estimate",
+   "underlying": 0.107,
+   "lo": 0.048,
+   "hi": 0.166,
+   "lfs": -0.272,
+   "payrolls": null
+  },
+  {
+   "month": "2007-09",
+   "kind": "estimate",
+   "underlying": 0.166,
+   "lo": 0.107,
+   "hi": 0.225,
+   "lfs": -0.095,
+   "payrolls": null
+  },
+  {
+   "month": "2007-10",
+   "kind": "estimate",
+   "underlying": 0.222,
+   "lo": 0.163,
+   "hi": 0.281,
+   "lfs": -0.018,
+   "payrolls": null
+  },
+  {
+   "month": "2007-11",
+   "kind": "estimate",
+   "underlying": 0.237,
+   "lo": 0.178,
+   "hi": 0.296,
+   "lfs": 0.166,
+   "payrolls": null
+  },
+  {
+   "month": "2007-12",
+   "kind": "estimate",
+   "underlying": 0.266,
+   "lo": 0.207,
+   "hi": 0.325,
+   "lfs": 0.357,
+   "payrolls": null
+  },
+  {
+   "month": "2008-01",
+   "kind": "estimate",
+   "underlying": 0.28,
+   "lo": 0.221,
+   "hi": 0.339,
+   "lfs": 0.089,
+   "payrolls": null
+  },
+  {
+   "month": "2008-02",
+   "kind": "estimate",
+   "underlying": 0.335,
+   "lo": 0.275,
+   "hi": 0.394,
+   "lfs": 0.114,
+   "payrolls": null
+  },
+  {
+   "month": "2008-03",
+   "kind": "estimate",
+   "underlying": 0.346,
+   "lo": 0.287,
+   "hi": 0.405,
+   "lfs": -0.075,
+   "payrolls": null
+  },
+  {
+   "month": "2008-04",
+   "kind": "estimate",
+   "underlying": 0.34,
+   "lo": 0.281,
+   "hi": 0.399,
+   "lfs": 0.058,
+   "payrolls": null
+  },
+  {
+   "month": "2008-05",
+   "kind": "estimate",
+   "underlying": 0.321,
+   "lo": 0.261,
+   "hi": 0.38,
+   "lfs": 0.265,
+   "payrolls": null
+  },
+  {
+   "month": "2008-06",
+   "kind": "estimate",
+   "underlying": 0.32,
+   "lo": 0.261,
+   "hi": 0.379,
+   "lfs": 0.387,
+   "payrolls": null
+  },
+  {
+   "month": "2008-07",
+   "kind": "estimate",
+   "underlying": 0.324,
+   "lo": 0.265,
+   "hi": 0.383,
+   "lfs": 0.288,
+   "payrolls": null
+  },
+  {
+   "month": "2008-08",
+   "kind": "estimate",
+   "underlying": 0.294,
+   "lo": 0.234,
+   "hi": 0.353,
+   "lfs": 0.084,
+   "payrolls": null
+  },
+  {
+   "month": "2008-09",
+   "kind": "estimate",
+   "underlying": 0.247,
+   "lo": 0.188,
+   "hi": 0.306,
+   "lfs": 0.075,
+   "payrolls": null
+  },
+  {
+   "month": "2008-10",
+   "kind": "estimate",
+   "underlying": 0.219,
+   "lo": 0.159,
+   "hi": 0.278,
+   "lfs": 0.02,
+   "payrolls": null
+  },
+  {
+   "month": "2008-11",
+   "kind": "estimate",
+   "underlying": 0.237,
+   "lo": 0.178,
+   "hi": 0.296,
+   "lfs": 0.067,
+   "payrolls": null
+  },
+  {
+   "month": "2008-12",
+   "kind": "estimate",
+   "underlying": 0.258,
+   "lo": 0.198,
+   "hi": 0.317,
+   "lfs": -0.048,
+   "payrolls": null
+  },
+  {
+   "month": "2009-01",
+   "kind": "estimate",
+   "underlying": 0.29,
+   "lo": 0.231,
+   "hi": 0.349,
+   "lfs": 0.114,
+   "payrolls": null
+  },
+  {
+   "month": "2009-02",
+   "kind": "estimate",
+   "underlying": 0.295,
+   "lo": 0.236,
+   "hi": 0.355,
+   "lfs": 0.137,
+   "payrolls": null
+  },
+  {
+   "month": "2009-03",
+   "kind": "estimate",
+   "underlying": 0.273,
+   "lo": 0.214,
+   "hi": 0.333,
+   "lfs": 0.204,
+   "payrolls": null
+  },
+  {
+   "month": "2009-04",
+   "kind": "estimate",
+   "underlying": 0.242,
+   "lo": 0.182,
+   "hi": 0.301,
+   "lfs": 0.258,
+   "payrolls": null
+  },
+  {
+   "month": "2009-05",
+   "kind": "estimate",
+   "underlying": 0.205,
+   "lo": 0.146,
+   "hi": 0.264,
+   "lfs": 0.174,
+   "payrolls": null
+  },
+  {
+   "month": "2009-06",
+   "kind": "estimate",
+   "underlying": 0.203,
+   "lo": 0.143,
+   "hi": 0.262,
+   "lfs": 0.343,
+   "payrolls": null
+  },
+  {
+   "month": "2009-07",
+   "kind": "estimate",
+   "underlying": 0.203,
+   "lo": 0.144,
+   "hi": 0.262,
+   "lfs": 0.301,
+   "payrolls": null
+  },
+  {
+   "month": "2009-08",
+   "kind": "estimate",
+   "underlying": 0.186,
+   "lo": 0.126,
+   "hi": 0.245,
+   "lfs": 0.376,
+   "payrolls": null
+  },
+  {
+   "month": "2009-09",
+   "kind": "estimate",
+   "underlying": 0.193,
+   "lo": 0.134,
+   "hi": 0.252,
+   "lfs": -0.034,
+   "payrolls": null
+  },
+  {
+   "month": "2009-10",
+   "kind": "estimate",
+   "underlying": 0.195,
+   "lo": 0.135,
+   "hi": 0.254,
+   "lfs": -0.022,
+   "payrolls": null
+  },
+  {
+   "month": "2009-11",
+   "kind": "estimate",
+   "underlying": 0.244,
+   "lo": 0.185,
+   "hi": 0.303,
+   "lfs": 0.047,
+   "payrolls": null
+  },
+  {
+   "month": "2009-12",
+   "kind": "estimate",
+   "underlying": 0.309,
+   "lo": 0.25,
+   "hi": 0.369,
+   "lfs": 0.331,
+   "payrolls": null
+  },
+  {
+   "month": "2010-01",
+   "kind": "estimate",
+   "underlying": 0.369,
+   "lo": 0.31,
+   "hi": 0.429,
+   "lfs": 0.399,
+   "payrolls": null
+  },
+  {
+   "month": "2010-02",
+   "kind": "estimate",
+   "underlying": 0.387,
+   "lo": 0.328,
+   "hi": 0.446,
+   "lfs": 0.323,
+   "payrolls": null
+  },
+  {
+   "month": "2010-03",
+   "kind": "estimate",
+   "underlying": 0.329,
+   "lo": 0.27,
+   "hi": 0.388,
+   "lfs": 0.468,
+   "payrolls": null
+  },
+  {
+   "month": "2010-04",
+   "kind": "estimate",
+   "underlying": 0.271,
+   "lo": 0.211,
+   "hi": 0.33,
+   "lfs": 0.521,
+   "payrolls": null
+  },
+  {
+   "month": "2010-05",
+   "kind": "estimate",
+   "underlying": 0.262,
+   "lo": 0.203,
+   "hi": 0.321,
+   "lfs": 0.588,
+   "payrolls": null
+  },
+  {
+   "month": "2010-06",
+   "kind": "estimate",
+   "underlying": 0.311,
+   "lo": 0.252,
+   "hi": 0.37,
+   "lfs": 0.329,
+   "payrolls": null
+  },
+  {
+   "month": "2010-07",
+   "kind": "estimate",
+   "underlying": 0.355,
+   "lo": 0.296,
+   "hi": 0.414,
+   "lfs": 0.309,
+   "payrolls": null
+  },
+  {
+   "month": "2010-08",
+   "kind": "estimate",
+   "underlying": 0.405,
+   "lo": 0.346,
+   "hi": 0.464,
+   "lfs": 0.313,
+   "payrolls": null
+  },
+  {
+   "month": "2010-09",
+   "kind": "estimate",
+   "underlying": 0.47,
+   "lo": 0.411,
+   "hi": 0.529,
+   "lfs": 0.481,
+   "payrolls": null
+  },
+  {
+   "month": "2010-10",
+   "kind": "estimate",
+   "underlying": 0.537,
+   "lo": 0.478,
+   "hi": 0.596,
+   "lfs": 0.607,
+   "payrolls": null
+  },
+  {
+   "month": "2010-11",
+   "kind": "estimate",
+   "underlying": 0.554,
+   "lo": 0.494,
+   "hi": 0.613,
+   "lfs": 0.655,
+   "payrolls": null
+  },
+  {
+   "month": "2010-12",
+   "kind": "estimate",
+   "underlying": 0.493,
+   "lo": 0.433,
+   "hi": 0.552,
+   "lfs": 0.651,
+   "payrolls": null
+  },
+  {
+   "month": "2011-01",
+   "kind": "estimate",
+   "underlying": 0.413,
+   "lo": 0.354,
+   "hi": 0.472,
+   "lfs": 0.309,
+   "payrolls": null
+  },
+  {
+   "month": "2011-02",
+   "kind": "estimate",
+   "underlying": 0.334,
+   "lo": 0.275,
+   "hi": 0.393,
+   "lfs": 0.104,
+   "payrolls": null
+  },
+  {
+   "month": "2011-03",
+   "kind": "estimate",
+   "underlying": 0.354,
+   "lo": 0.295,
+   "hi": 0.414,
+   "lfs": -0.116,
+   "payrolls": null
+  },
+  {
+   "month": "2011-04",
+   "kind": "estimate",
+   "underlying": 0.364,
+   "lo": 0.305,
+   "hi": 0.424,
+   "lfs": 0.176,
+   "payrolls": null
+  },
+  {
+   "month": "2011-05",
+   "kind": "estimate",
+   "underlying": 0.43,
+   "lo": 0.371,
+   "hi": 0.489,
+   "lfs": 0.402,
+   "payrolls": null
+  },
+  {
+   "month": "2011-06",
+   "kind": "estimate",
+   "underlying": 0.43,
+   "lo": 0.371,
+   "hi": 0.489,
+   "lfs": 0.628,
+   "payrolls": null
+  },
+  {
+   "month": "2011-07",
+   "kind": "estimate",
+   "underlying": 0.411,
+   "lo": 0.352,
+   "hi": 0.47,
+   "lfs": 0.304,
+   "payrolls": null
+  },
+  {
+   "month": "2011-08",
+   "kind": "estimate",
+   "underlying": 0.329,
+   "lo": 0.269,
+   "hi": 0.388,
+   "lfs": -0.198,
+   "payrolls": null
+  },
+  {
+   "month": "2011-09",
+   "kind": "estimate",
+   "underlying": 0.257,
+   "lo": 0.197,
+   "hi": 0.316,
+   "lfs": -0.28,
+   "payrolls": null
+  },
+  {
+   "month": "2011-10",
+   "kind": "estimate",
+   "underlying": 0.252,
+   "lo": 0.193,
+   "hi": 0.311,
+   "lfs": -0.204,
+   "payrolls": null
+  },
+  {
+   "month": "2011-11",
+   "kind": "estimate",
+   "underlying": 0.296,
+   "lo": 0.236,
+   "hi": 0.355,
+   "lfs": 0.139,
+   "payrolls": null
+  },
+  {
+   "month": "2011-12",
+   "kind": "estimate",
+   "underlying": 0.304,
+   "lo": 0.245,
+   "hi": 0.363,
+   "lfs": 0.254,
+   "payrolls": null
+  },
+  {
+   "month": "2012-01",
+   "kind": "estimate",
+   "underlying": 0.287,
+   "lo": 0.228,
+   "hi": 0.346,
+   "lfs": 0.32,
+   "payrolls": null
+  },
+  {
+   "month": "2012-02",
+   "kind": "estimate",
+   "underlying": 0.251,
+   "lo": 0.192,
+   "hi": 0.31,
+   "lfs": 0.308,
+   "payrolls": null
+  },
+  {
+   "month": "2012-03",
+   "kind": "estimate",
+   "underlying": 0.179,
+   "lo": 0.12,
+   "hi": 0.239,
+   "lfs": 0.028,
+   "payrolls": null
+  },
+  {
+   "month": "2012-04",
+   "kind": "estimate",
+   "underlying": 0.125,
+   "lo": 0.066,
+   "hi": 0.185,
+   "lfs": 0.153,
+   "payrolls": null
+  },
+  {
+   "month": "2012-05",
+   "kind": "estimate",
+   "underlying": 0.057,
+   "lo": -0.003,
+   "hi": 0.116,
+   "lfs": 0.42,
+   "payrolls": null
+  },
+  {
+   "month": "2012-06",
+   "kind": "estimate",
+   "underlying": 0.06,
+   "lo": 0.001,
+   "hi": 0.119,
+   "lfs": 0.525,
+   "payrolls": null
+  },
+  {
+   "month": "2012-07",
+   "kind": "estimate",
+   "underlying": 0.079,
+   "lo": 0.02,
+   "hi": 0.138,
+   "lfs": 0.415,
+   "payrolls": null
+  },
+  {
+   "month": "2012-08",
+   "kind": "estimate",
+   "underlying": 0.115,
+   "lo": 0.056,
+   "hi": 0.174,
+   "lfs": 0.337,
+   "payrolls": null
+  },
+  {
+   "month": "2012-09",
+   "kind": "estimate",
+   "underlying": 0.127,
+   "lo": 0.068,
+   "hi": 0.187,
+   "lfs": 0.438,
+   "payrolls": null
+  },
+  {
+   "month": "2012-10",
+   "kind": "estimate",
+   "underlying": 0.125,
+   "lo": 0.065,
+   "hi": 0.184,
+   "lfs": 0.478,
+   "payrolls": null
+  },
+  {
+   "month": "2012-11",
+   "kind": "estimate",
+   "underlying": 0.15,
+   "lo": 0.09,
+   "hi": 0.209,
+   "lfs": 0.457,
+   "payrolls": null
+  },
+  {
+   "month": "2012-12",
+   "kind": "estimate",
+   "underlying": 0.203,
+   "lo": 0.143,
+   "hi": 0.262,
+   "lfs": 0.473,
+   "payrolls": null
+  },
+  {
+   "month": "2013-01",
+   "kind": "estimate",
+   "underlying": 0.208,
+   "lo": 0.149,
+   "hi": 0.267,
+   "lfs": 0.634,
+   "payrolls": null
+  },
+  {
+   "month": "2013-02",
+   "kind": "estimate",
+   "underlying": 0.198,
+   "lo": 0.139,
+   "hi": 0.257,
+   "lfs": 0.541,
+   "payrolls": null
+  },
+  {
+   "month": "2013-03",
+   "kind": "estimate",
+   "underlying": 0.201,
+   "lo": 0.142,
+   "hi": 0.26,
+   "lfs": 0.451,
+   "payrolls": null
+  },
+  {
+   "month": "2013-04",
+   "kind": "estimate",
+   "underlying": 0.219,
+   "lo": 0.16,
+   "hi": 0.278,
+   "lfs": 0.414,
+   "payrolls": null
+  },
+  {
+   "month": "2013-05",
+   "kind": "estimate",
+   "underlying": 0.248,
+   "lo": 0.188,
+   "hi": 0.307,
+   "lfs": 0.531,
+   "payrolls": null
+  },
+  {
+   "month": "2013-06",
+   "kind": "estimate",
+   "underlying": 0.275,
+   "lo": 0.216,
+   "hi": 0.334,
+   "lfs": 0.75,
+   "payrolls": null
+  },
+  {
+   "month": "2013-07",
+   "kind": "estimate",
+   "underlying": 0.309,
+   "lo": 0.25,
+   "hi": 0.368,
+   "lfs": 0.792,
+   "payrolls": null
+  },
+  {
+   "month": "2013-08",
+   "kind": "estimate",
+   "underlying": 0.341,
+   "lo": 0.282,
+   "hi": 0.4,
+   "lfs": 0.541,
+   "payrolls": null
+  },
+  {
+   "month": "2013-09",
+   "kind": "estimate",
+   "underlying": 0.346,
+   "lo": 0.286,
+   "hi": 0.405,
+   "lfs": 0.412,
+   "payrolls": null
+  },
+  {
+   "month": "2013-10",
+   "kind": "estimate",
+   "underlying": 0.31,
+   "lo": 0.251,
+   "hi": 0.369,
+   "lfs": 0.365,
+   "payrolls": null
+  },
+  {
+   "month": "2013-11",
+   "kind": "estimate",
+   "underlying": 0.285,
+   "lo": 0.225,
+   "hi": 0.344,
+   "lfs": 0.4,
+   "payrolls": null
+  },
+  {
+   "month": "2013-12",
+   "kind": "estimate",
+   "underlying": 0.25,
+   "lo": 0.191,
+   "hi": 0.309,
+   "lfs": 0.273,
+   "payrolls": null
+  },
+  {
+   "month": "2014-01",
+   "kind": "estimate",
+   "underlying": 0.273,
+   "lo": 0.213,
+   "hi": 0.332,
+   "lfs": 0.265,
+   "payrolls": null
+  },
+  {
+   "month": "2014-02",
+   "kind": "estimate",
+   "underlying": 0.25,
+   "lo": 0.191,
+   "hi": 0.309,
+   "lfs": 0.483,
+   "payrolls": null
+  },
+  {
+   "month": "2014-03",
+   "kind": "estimate",
+   "underlying": 0.227,
+   "lo": 0.168,
+   "hi": 0.287,
+   "lfs": 0.488,
+   "payrolls": null
+  },
+  {
+   "month": "2014-04",
+   "kind": "estimate",
+   "underlying": 0.221,
+   "lo": 0.162,
+   "hi": 0.28,
+   "lfs": 0.373,
+   "payrolls": null
+  },
+  {
+   "month": "2014-05",
+   "kind": "estimate",
+   "underlying": 0.271,
+   "lo": 0.212,
+   "hi": 0.33,
+   "lfs": 0.202,
+   "payrolls": null
+  },
+  {
+   "month": "2014-06",
+   "kind": "estimate",
+   "underlying": 0.356,
+   "lo": 0.296,
+   "hi": 0.415,
+   "lfs": 0.388,
+   "payrolls": null
+  },
+  {
+   "month": "2014-07",
+   "kind": "estimate",
+   "underlying": 0.464,
+   "lo": 0.405,
+   "hi": 0.523,
+   "lfs": 0.47,
+   "payrolls": null
+  },
+  {
+   "month": "2014-08",
+   "kind": "estimate",
+   "underlying": 0.539,
+   "lo": 0.48,
+   "hi": 0.599,
+   "lfs": 0.546,
+   "payrolls": null
+  },
+  {
+   "month": "2014-09",
+   "kind": "estimate",
+   "underlying": 0.599,
+   "lo": 0.54,
+   "hi": 0.659,
+   "lfs": 0.536,
+   "payrolls": null
+  },
+  {
+   "month": "2014-10",
+   "kind": "estimate",
+   "underlying": 0.604,
+   "lo": 0.545,
+   "hi": 0.663,
+   "lfs": 0.468,
+   "payrolls": null
+  },
+  {
+   "month": "2014-11",
+   "kind": "estimate",
+   "underlying": 0.613,
+   "lo": 0.554,
+   "hi": 0.673,
+   "lfs": 0.714,
+   "payrolls": null
+  },
+  {
+   "month": "2014-12",
+   "kind": "estimate",
+   "underlying": 0.602,
+   "lo": 0.543,
+   "hi": 0.661,
+   "lfs": 0.635,
+   "payrolls": null
+  },
+  {
+   "month": "2015-01",
+   "kind": "estimate",
+   "underlying": 0.565,
+   "lo": 0.509,
+   "hi": 0.621,
+   "lfs": 0.794,
+   "payrolls": 0.428
+  },
+  {
+   "month": "2015-02",
+   "kind": "estimate",
+   "underlying": 0.489,
+   "lo": 0.437,
+   "hi": 0.541,
+   "lfs": 0.461,
+   "payrolls": 0.372
+  },
+  {
+   "month": "2015-03",
+   "kind": "estimate",
+   "underlying": 0.446,
+   "lo": 0.397,
+   "hi": 0.496,
+   "lfs": 0.446,
+   "payrolls": 0.38
+  },
+  {
+   "month": "2015-04",
+   "kind": "estimate",
+   "underlying": 0.422,
+   "lo": 0.372,
+   "hi": 0.471,
+   "lfs": 0.479,
+   "payrolls": 0.315
+  },
+  {
+   "month": "2015-05",
+   "kind": "estimate",
+   "underlying": 0.42,
+   "lo": 0.37,
+   "hi": 0.469,
+   "lfs": 0.645,
+   "payrolls": 0.363
+  },
+  {
+   "month": "2015-06",
+   "kind": "estimate",
+   "underlying": 0.364,
+   "lo": 0.314,
+   "hi": 0.413,
+   "lfs": 0.504,
+   "payrolls": 0.343
+  },
+  {
+   "month": "2015-07",
+   "kind": "estimate",
+   "underlying": 0.333,
+   "lo": 0.284,
+   "hi": 0.382,
+   "lfs": 0.208,
+   "payrolls": 0.41
+  },
+  {
+   "month": "2015-08",
+   "kind": "estimate",
+   "underlying": 0.311,
+   "lo": 0.262,
+   "hi": 0.36,
+   "lfs": -0.07,
+   "payrolls": 0.4
+  },
+  {
+   "month": "2015-09",
+   "kind": "estimate",
+   "underlying": 0.327,
+   "lo": 0.277,
+   "hi": 0.376,
+   "lfs": 0.131,
+   "payrolls": 0.375
+  },
+  {
+   "month": "2015-10",
+   "kind": "estimate",
+   "underlying": 0.339,
+   "lo": 0.29,
+   "hi": 0.388,
+   "lfs": 0.286,
+   "payrolls": 0.369
+  },
+  {
+   "month": "2015-11",
+   "kind": "estimate",
+   "underlying": 0.319,
+   "lo": 0.27,
+   "hi": 0.368,
+   "lfs": 0.504,
+   "payrolls": 0.322
+  },
+  {
+   "month": "2015-12",
+   "kind": "estimate",
+   "underlying": 0.275,
+   "lo": 0.226,
+   "hi": 0.324,
+   "lfs": 0.417,
+   "payrolls": 0.297
+  },
+  {
+   "month": "2016-01",
+   "kind": "estimate",
+   "underlying": 0.237,
+   "lo": 0.188,
+   "hi": 0.286,
+   "lfs": 0.357,
+   "payrolls": 0.257
+  },
+  {
+   "month": "2016-02",
+   "kind": "estimate",
+   "underlying": 0.227,
+   "lo": 0.178,
+   "hi": 0.276,
+   "lfs": 0.186,
+   "payrolls": 0.238
+  },
+  {
+   "month": "2016-03",
+   "kind": "estimate",
+   "underlying": 0.243,
+   "lo": 0.194,
+   "hi": 0.292,
+   "lfs": -0.036,
+   "payrolls": 0.29
+  },
+  {
+   "month": "2016-04",
+   "kind": "estimate",
+   "underlying": 0.263,
+   "lo": 0.213,
+   "hi": 0.312,
+   "lfs": 0.036,
+   "payrolls": 0.303
+  },
+  {
+   "month": "2016-05",
+   "kind": "estimate",
+   "underlying": 0.299,
+   "lo": 0.25,
+   "hi": 0.348,
+   "lfs": 0.161,
+   "payrolls": 0.375
+  },
+  {
+   "month": "2016-06",
+   "kind": "estimate",
+   "underlying": 0.316,
+   "lo": 0.267,
+   "hi": 0.366,
+   "lfs": 0.447,
+   "payrolls": 0.335
+  },
+  {
+   "month": "2016-07",
+   "kind": "estimate",
+   "underlying": 0.298,
+   "lo": 0.249,
+   "hi": 0.347,
+   "lfs": 0.232,
+   "payrolls": 0.283
+  },
+  {
+   "month": "2016-08",
+   "kind": "estimate",
+   "underlying": 0.252,
+   "lo": 0.203,
+   "hi": 0.301,
+   "lfs": 0.098,
+   "payrolls": 0.226
+  },
+  {
+   "month": "2016-09",
+   "kind": "estimate",
+   "underlying": 0.247,
+   "lo": 0.198,
+   "hi": 0.296,
+   "lfs": 0.087,
+   "payrolls": 0.212
+  },
+  {
+   "month": "2016-10",
+   "kind": "estimate",
+   "underlying": 0.259,
+   "lo": 0.21,
+   "hi": 0.308,
+   "lfs": 0.209,
+   "payrolls": 0.237
+  },
+  {
+   "month": "2016-11",
+   "kind": "estimate",
+   "underlying": 0.282,
+   "lo": 0.232,
+   "hi": 0.331,
+   "lfs": 0.225,
+   "payrolls": 0.332
+  },
+  {
+   "month": "2016-12",
+   "kind": "estimate",
+   "underlying": 0.289,
+   "lo": 0.24,
+   "hi": 0.338,
+   "lfs": 0.285,
+   "payrolls": 0.388
+  },
+  {
+   "month": "2017-01",
+   "kind": "estimate",
+   "underlying": 0.292,
+   "lo": 0.245,
+   "hi": 0.338,
+   "lfs": 0.365,
+   "payrolls": 0.348
+  },
+  {
+   "month": "2017-02",
+   "kind": "estimate",
+   "underlying": 0.29,
+   "lo": 0.247,
+   "hi": 0.333,
+   "lfs": 0.396,
+   "payrolls": 0.253
+  },
+  {
+   "month": "2017-03",
+   "kind": "estimate",
+   "underlying": 0.243,
+   "lo": 0.203,
+   "hi": 0.284,
+   "lfs": 0.075,
+   "payrolls": 0.159
+  },
+  {
+   "month": "2017-04",
+   "kind": "estimate",
+   "underlying": 0.151,
+   "lo": 0.111,
+   "hi": 0.192,
+   "lfs": -0.067,
+   "payrolls": 0.085
+  },
+  {
+   "month": "2017-05",
+   "kind": "estimate",
+   "underlying": 0.031,
+   "lo": -0.009,
+   "hi": 0.071,
+   "lfs": -0.095,
+   "payrolls": 0.011
+  },
+  {
+   "month": "2017-06",
+   "kind": "estimate",
+   "underlying": -0.084,
+   "lo": -0.125,
+   "hi": -0.044,
+   "lfs": -0.142,
+   "payrolls": -0.031
+  },
+  {
+   "month": "2017-07",
+   "kind": "estimate",
+   "underlying": -0.161,
+   "lo": -0.201,
+   "hi": -0.121,
+   "lfs": -0.231,
+   "payrolls": -0.014
+  },
+  {
+   "month": "2017-08",
+   "kind": "estimate",
+   "underlying": -0.152,
+   "lo": -0.193,
+   "hi": -0.112,
+   "lfs": -0.499,
+   "payrolls": -0.009
+  },
+  {
+   "month": "2017-09",
+   "kind": "estimate",
+   "underlying": -0.114,
+   "lo": -0.155,
+   "hi": -0.074,
+   "lfs": -0.271,
+   "payrolls": 0.015
+  },
+  {
+   "month": "2017-10",
+   "kind": "estimate",
+   "underlying": -0.087,
+   "lo": -0.128,
+   "hi": -0.047,
+   "lfs": -0.284,
+   "payrolls": -0.036
+  },
+  {
+   "month": "2017-11",
+   "kind": "estimate",
+   "underlying": -0.087,
+   "lo": -0.128,
+   "hi": -0.047,
+   "lfs": -0.152,
+   "payrolls": -0.046
+  },
+  {
+   "month": "2017-12",
+   "kind": "estimate",
+   "underlying": -0.069,
+   "lo": -0.109,
+   "hi": -0.029,
+   "lfs": -0.295,
+   "payrolls": -0.061
+  },
+  {
+   "month": "2018-01",
+   "kind": "estimate",
+   "underlying": -0.016,
+   "lo": -0.056,
+   "hi": 0.025,
+   "lfs": -0.116,
+   "payrolls": 0.032
+  },
+  {
+   "month": "2018-02",
+   "kind": "estimate",
+   "underlying": 0.014,
+   "lo": -0.027,
+   "hi": 0.054,
+   "lfs": 0.327,
+   "payrolls": 0.015
+  },
+  {
+   "month": "2018-03",
+   "kind": "estimate",
+   "underlying": 0.064,
+   "lo": 0.023,
+   "hi": 0.104,
+   "lfs": 0.543,
+   "payrolls": 0.093
+  },
+  {
+   "month": "2018-04",
+   "kind": "estimate",
+   "underlying": 0.124,
+   "lo": 0.083,
+   "hi": 0.164,
+   "lfs": 0.747,
+   "payrolls": 0.168
+  },
+  {
+   "month": "2018-05",
+   "kind": "estimate",
+   "underlying": 0.171,
+   "lo": 0.131,
+   "hi": 0.212,
+   "lfs": 0.399,
+   "payrolls": 0.252
+  },
+  {
+   "month": "2018-06",
+   "kind": "estimate",
+   "underlying": 0.203,
+   "lo": 0.162,
+   "hi": 0.243,
+   "lfs": 0.329,
+   "payrolls": 0.312
+  },
+  {
+   "month": "2018-07",
+   "kind": "estimate",
+   "underlying": 0.177,
+   "lo": 0.136,
+   "hi": 0.217,
+   "lfs": 0.048,
+   "payrolls": 0.25
+  },
+  {
+   "month": "2018-08",
+   "kind": "estimate",
+   "underlying": 0.185,
+   "lo": 0.145,
+   "hi": 0.226,
+   "lfs": 0.215,
+   "payrolls": 0.249
+  },
+  {
+   "month": "2018-09",
+   "kind": "estimate",
+   "underlying": 0.178,
+   "lo": 0.138,
+   "hi": 0.219,
+   "lfs": 0.216,
+   "payrolls": 0.221
+  },
+  {
+   "month": "2018-10",
+   "kind": "estimate",
+   "underlying": 0.224,
+   "lo": 0.184,
+   "hi": 0.265,
+   "lfs": 0.028,
+   "payrolls": 0.286
+  },
+  {
+   "month": "2018-11",
+   "kind": "estimate",
+   "underlying": 0.256,
+   "lo": 0.215,
+   "hi": 0.296,
+   "lfs": 0.023,
+   "payrolls": 0.32
+  },
+  {
+   "month": "2018-12",
+   "kind": "estimate",
+   "underlying": 0.273,
+   "lo": 0.232,
+   "hi": 0.313,
+   "lfs": -0.095,
+   "payrolls": 0.318
+  },
+  {
+   "month": "2019-01",
+   "kind": "estimate",
+   "underlying": 0.283,
+   "lo": 0.242,
+   "hi": 0.323,
+   "lfs": 0.135,
+   "payrolls": 0.295
+  },
+  {
+   "month": "2019-02",
+   "kind": "estimate",
+   "underlying": 0.286,
+   "lo": 0.245,
+   "hi": 0.326,
+   "lfs": 0.054,
+   "payrolls": 0.301
+  },
+  {
+   "month": "2019-03",
+   "kind": "estimate",
+   "underlying": 0.285,
+   "lo": 0.244,
+   "hi": 0.325,
+   "lfs": 0.269,
+   "payrolls": 0.307
+  },
+  {
+   "month": "2019-04",
+   "kind": "estimate",
+   "underlying": 0.277,
+   "lo": 0.236,
+   "hi": 0.317,
+   "lfs": 0.44,
+   "payrolls": 0.382
+  },
+  {
+   "month": "2019-05",
+   "kind": "estimate",
+   "underlying": 0.262,
+   "lo": 0.222,
+   "hi": 0.303,
+   "lfs": 0.367,
+   "payrolls": 0.33
+  },
+  {
+   "month": "2019-06",
+   "kind": "estimate",
+   "underlying": 0.271,
+   "lo": 0.231,
+   "hi": 0.312,
+   "lfs": 0.256,
+   "payrolls": 0.323
+  },
+  {
+   "month": "2019-07",
+   "kind": "estimate",
+   "underlying": 0.286,
+   "lo": 0.246,
+   "hi": 0.327,
+   "lfs": 0.223,
+   "payrolls": 0.224
+  },
+  {
+   "month": "2019-08",
+   "kind": "estimate",
+   "underlying": 0.346,
+   "lo": 0.306,
+   "hi": 0.387,
+   "lfs": 0.393,
+   "payrolls": 0.355
+  },
+  {
+   "month": "2019-09",
+   "kind": "estimate",
+   "underlying": 0.403,
+   "lo": 0.363,
+   "hi": 0.444,
+   "lfs": 0.416,
+   "payrolls": 0.417
+  },
+  {
+   "month": "2019-10",
+   "kind": "estimate",
+   "underlying": 0.456,
+   "lo": 0.416,
+   "hi": 0.497,
+   "lfs": 0.406,
+   "payrolls": 0.522
+  },
+  {
+   "month": "2019-11",
+   "kind": "estimate",
+   "underlying": 0.45,
+   "lo": 0.409,
+   "hi": 0.49,
+   "lfs": 0.459,
+   "payrolls": 0.462
+  },
+  {
+   "month": "2019-12",
+   "kind": "estimate",
+   "underlying": 0.404,
+   "lo": 0.364,
+   "hi": 0.445,
+   "lfs": 0.438,
+   "payrolls": 0.388
+  },
+  {
+   "month": "2020-01",
+   "kind": "estimate",
+   "underlying": 0.338,
+   "lo": 0.297,
+   "hi": 0.378,
+   "lfs": 0.458,
+   "payrolls": 0.312
+  },
+  {
+   "month": "2020-02",
+   "kind": "estimate",
+   "underlying": 0.302,
+   "lo": 0.261,
+   "hi": 0.343,
+   "lfs": 0.328,
+   "payrolls": 0.275
+  },
+  {
+   "month": "2020-03",
+   "kind": "pandemic",
+   "underlying": 0.294,
+   "lo": 0.216,
+   "hi": 0.373,
+   "lfs": 0.243,
+   "payrolls": 0.34
+  },
+  {
+   "month": "2020-04",
+   "kind": "pandemic",
+   "underlying": 0.298,
+   "lo": 0.162,
+   "hi": 0.433,
+   "lfs": -0.026,
+   "payrolls": 0.318
+  },
+  {
+   "month": "2020-05",
+   "kind": "pandemic",
+   "underlying": 0.287,
+   "lo": 0.09,
+   "hi": 0.484,
+   "lfs": 0.03,
+   "payrolls": 0.318
+  },
+  {
+   "month": "2020-06",
+   "kind": "pandemic",
+   "underlying": 0.279,
+   "lo": 0.052,
+   "hi": 0.506,
+   "lfs": 0.053,
+   "payrolls": 0.278
+  },
+  {
+   "month": "2020-07",
+   "kind": "pandemic",
+   "underlying": 0.272,
+   "lo": 0.026,
+   "hi": 0.518,
+   "lfs": 0.454,
+   "payrolls": 0.265
+  },
+  {
+   "month": "2020-08",
+   "kind": "pandemic",
+   "underlying": 0.265,
+   "lo": 0.007,
+   "hi": 0.523,
+   "lfs": 0.354,
+   "payrolls": 0.168
+  },
+  {
+   "month": "2020-09",
+   "kind": "pandemic",
+   "underlying": 0.259,
+   "lo": -0.007,
+   "hi": 0.524,
+   "lfs": 0.377,
+   "payrolls": 0.14
+  },
+  {
+   "month": "2020-10",
+   "kind": "pandemic",
+   "underlying": 0.253,
+   "lo": -0.017,
+   "hi": 0.523,
+   "lfs": 0.146,
+   "payrolls": 0.141
+  },
+  {
+   "month": "2020-11",
+   "kind": "pandemic",
+   "underlying": 0.246,
+   "lo": -0.025,
+   "hi": 0.518,
+   "lfs": 0.41,
+   "payrolls": 0.26
+  },
+  {
+   "month": "2020-12",
+   "kind": "pandemic",
+   "underlying": 0.24,
+   "lo": -0.032,
+   "hi": 0.512,
+   "lfs": 0.553,
+   "payrolls": 0.259
+  },
+  {
+   "month": "2021-01",
+   "kind": "pandemic",
+   "underlying": 0.233,
+   "lo": -0.037,
+   "hi": 0.503,
+   "lfs": 0.578,
+   "payrolls": 0.153
+  },
+  {
+   "month": "2021-02",
+   "kind": "pandemic",
+   "underlying": 0.226,
+   "lo": -0.04,
+   "hi": 0.491,
+   "lfs": 0.281,
+   "payrolls": 0.087
+  },
+  {
+   "month": "2021-03",
+   "kind": "pandemic",
+   "underlying": 0.217,
+   "lo": -0.041,
+   "hi": 0.475,
+   "lfs": 0.146,
+   "payrolls": 0.06
+  },
+  {
+   "month": "2021-04",
+   "kind": "pandemic",
+   "underlying": 0.207,
+   "lo": -0.039,
+   "hi": 0.453,
+   "lfs": 0.09,
+   "payrolls": 0.133
+  },
+  {
+   "month": "2021-05",
+   "kind": "pandemic",
+   "underlying": 0.196,
+   "lo": -0.032,
+   "hi": 0.423,
+   "lfs": 0.239,
+   "payrolls": 0.164
+  },
+  {
+   "month": "2021-06",
+   "kind": "pandemic",
+   "underlying": 0.182,
+   "lo": -0.015,
+   "hi": 0.379,
+   "lfs": 0.206,
+   "payrolls": 0.162
+  },
+  {
+   "month": "2021-07",
+   "kind": "estimate",
+   "underlying": 0.168,
+   "lo": 0.033,
+   "hi": 0.304,
+   "lfs": 0.219,
+   "payrolls": 0.157
+  },
+  {
+   "month": "2021-08",
+   "kind": "estimate",
+   "underlying": 0.129,
+   "lo": 0.05,
+   "hi": 0.207,
+   "lfs": -0.074,
+   "payrolls": 0.063
+  },
+  {
+   "month": "2021-09",
+   "kind": "estimate",
+   "underlying": 0.125,
+   "lo": 0.084,
+   "hi": 0.166,
+   "lfs": -0.174,
+   "payrolls": 0.141
+  },
+  {
+   "month": "2021-10",
+   "kind": "estimate",
+   "underlying": 0.153,
+   "lo": 0.112,
+   "hi": 0.193,
+   "lfs": 0.014,
+   "payrolls": 0.206
+  },
+  {
+   "month": "2021-11",
+   "kind": "estimate",
+   "underlying": 0.231,
+   "lo": 0.191,
+   "hi": 0.272,
+   "lfs": 0.132,
+   "payrolls": 0.322
+  },
+  {
+   "month": "2021-12",
+   "kind": "estimate",
+   "underlying": 0.291,
+   "lo": 0.25,
+   "hi": 0.331,
+   "lfs": 0.342,
+   "payrolls": 0.337
+  },
+  {
+   "month": "2022-01",
+   "kind": "estimate",
+   "underlying": 0.351,
+   "lo": 0.31,
+   "hi": 0.391,
+   "lfs": 0.317,
+   "payrolls": 0.379
+  },
+  {
+   "month": "2022-02",
+   "kind": "estimate",
+   "underlying": 0.397,
+   "lo": 0.357,
+   "hi": 0.438,
+   "lfs": 0.386,
+   "payrolls": 0.458
+  },
+  {
+   "month": "2022-03",
+   "kind": "estimate",
+   "underlying": 0.453,
+   "lo": 0.412,
+   "hi": 0.493,
+   "lfs": 0.46,
+   "payrolls": 0.49
+  },
+  {
+   "month": "2022-04",
+   "kind": "estimate",
+   "underlying": 0.474,
+   "lo": 0.433,
+   "hi": 0.514,
+   "lfs": 0.537,
+   "payrolls": 0.486
+  },
+  {
+   "month": "2022-05",
+   "kind": "estimate",
+   "underlying": 0.429,
+   "lo": 0.388,
+   "hi": 0.469,
+   "lfs": 0.734,
+   "payrolls": 0.4
+  },
+  {
+   "month": "2022-06",
+   "kind": "estimate",
+   "underlying": 0.339,
+   "lo": 0.298,
+   "hi": 0.379,
+   "lfs": 0.684,
+   "payrolls": 0.309
+  },
+  {
+   "month": "2022-07",
+   "kind": "estimate",
+   "underlying": 0.256,
+   "lo": 0.215,
+   "hi": 0.296,
+   "lfs": 0.262,
+   "payrolls": 0.238
+  },
+  {
+   "month": "2022-08",
+   "kind": "estimate",
+   "underlying": 0.259,
+   "lo": 0.218,
+   "hi": 0.299,
+   "lfs": 0.085,
+   "payrolls": 0.195
+  },
+  {
+   "month": "2022-09",
+   "kind": "estimate",
+   "underlying": 0.278,
+   "lo": 0.237,
+   "hi": 0.318,
+   "lfs": -0.075,
+   "payrolls": 0.193
+  },
+  {
+   "month": "2022-10",
+   "kind": "estimate",
+   "underlying": 0.281,
+   "lo": 0.241,
+   "hi": 0.322,
+   "lfs": 0.176,
+   "payrolls": 0.224
+  },
+  {
+   "month": "2022-11",
+   "kind": "estimate",
+   "underlying": 0.261,
+   "lo": 0.221,
+   "hi": 0.301,
+   "lfs": 0.111,
+   "payrolls": 0.242
+  },
+  {
+   "month": "2022-12",
+   "kind": "estimate",
+   "underlying": 0.231,
+   "lo": 0.19,
+   "hi": 0.271,
+   "lfs": 0.189,
+   "payrolls": 0.212
+  },
+  {
+   "month": "2023-01",
+   "kind": "estimate",
+   "underlying": 0.18,
+   "lo": 0.139,
+   "hi": 0.22,
+   "lfs": 0.378,
+   "payrolls": 0.143
+  },
+  {
+   "month": "2023-02",
+   "kind": "estimate",
+   "underlying": 0.112,
+   "lo": 0.072,
+   "hi": 0.153,
+   "lfs": 0.253,
+   "payrolls": 0.101
+  },
+  {
+   "month": "2023-03",
+   "kind": "estimate",
+   "underlying": 0.069,
+   "lo": 0.028,
+   "hi": 0.109,
+   "lfs": 0.134,
+   "payrolls": 0.069
+  },
+  {
+   "month": "2023-04",
+   "kind": "estimate",
+   "underlying": 0.101,
+   "lo": 0.061,
+   "hi": 0.142,
+   "lfs": -0.456,
+   "payrolls": 0.088
+  },
+  {
+   "month": "2023-05",
+   "kind": "estimate",
+   "underlying": 0.167,
+   "lo": 0.127,
+   "hi": 0.208,
+   "lfs": -0.245,
+   "payrolls": 0.167
+  },
+  {
+   "month": "2023-06",
+   "kind": "estimate",
+   "underlying": 0.267,
+   "lo": 0.226,
+   "hi": 0.307,
+   "lfs": -0.01,
+   "payrolls": 0.254
+  },
+  {
+   "month": "2023-07",
+   "kind": "estimate",
+   "underlying": 0.329,
+   "lo": 0.288,
+   "hi": 0.369,
+   "lfs": 0.324,
+   "payrolls": 0.332
+  },
+  {
+   "month": "2023-08",
+   "kind": "estimate",
+   "underlying": 0.337,
+   "lo": 0.296,
+   "hi": 0.377,
+   "lfs": 0.225,
+   "payrolls": 0.246
+  },
+  {
+   "month": "2023-09",
+   "kind": "estimate",
+   "underlying": 0.277,
+   "lo": 0.236,
+   "hi": 0.317,
+   "lfs": 0.134,
+   "payrolls": 0.189
+  },
+  {
+   "month": "2023-10",
+   "kind": "estimate",
+   "underlying": 0.217,
+   "lo": 0.177,
+   "hi": 0.258,
+   "lfs": -0.024,
+   "payrolls": 0.133
+  },
+  {
+   "month": "2023-11",
+   "kind": "estimate",
+   "underlying": 0.212,
+   "lo": 0.171,
+   "hi": 0.252,
+   "lfs": 0.415,
+   "payrolls": 0.218
+  },
+  {
+   "month": "2023-12",
+   "kind": "estimate",
+   "underlying": 0.246,
+   "lo": 0.205,
+   "hi": 0.286,
+   "lfs": 0.535,
+   "payrolls": 0.283
+  },
+  {
+   "month": "2024-01",
+   "kind": "estimate",
+   "underlying": 0.28,
+   "lo": 0.239,
+   "hi": 0.32,
+   "lfs": 0.643,
+   "payrolls": 0.335
+  },
+  {
+   "month": "2024-02",
+   "kind": "estimate",
+   "underlying": 0.31,
+   "lo": 0.269,
+   "hi": 0.35,
+   "lfs": 0.487,
+   "payrolls": 0.351
+  },
+  {
+   "month": "2024-03",
+   "kind": "estimate",
+   "underlying": 0.365,
+   "lo": 0.324,
+   "hi": 0.405,
+   "lfs": 0.409,
+   "payrolls": 0.429
+  },
+  {
+   "month": "2024-04",
+   "kind": "estimate",
+   "underlying": 0.385,
+   "lo": 0.345,
+   "hi": 0.426,
+   "lfs": 0.354,
+   "payrolls": 0.393
+  },
+  {
+   "month": "2024-05",
+   "kind": "estimate",
+   "underlying": 0.373,
+   "lo": 0.332,
+   "hi": 0.413,
+   "lfs": -0.004,
+   "payrolls": 0.389
+  },
+  {
+   "month": "2024-06",
+   "kind": "estimate",
+   "underlying": 0.308,
+   "lo": 0.267,
+   "hi": 0.348,
+   "lfs": -0.028,
+   "payrolls": 0.28
+  },
+  {
+   "month": "2024-07",
+   "kind": "estimate",
+   "underlying": 0.246,
+   "lo": 0.206,
+   "hi": 0.287,
+   "lfs": -0.19,
+   "payrolls": 0.261
+  },
+  {
+   "month": "2024-08",
+   "kind": "estimate",
+   "underlying": 0.174,
+   "lo": 0.134,
+   "hi": 0.215,
+   "lfs": -0.055,
+   "payrolls": 0.155
+  },
+  {
+   "month": "2024-09",
+   "kind": "estimate",
+   "underlying": 0.118,
+   "lo": 0.077,
+   "hi": 0.158,
+   "lfs": 0.099,
+   "payrolls": 0.133
+  },
+  {
+   "month": "2024-10",
+   "kind": "estimate",
+   "underlying": 0.096,
+   "lo": 0.056,
+   "hi": 0.136,
+   "lfs": 0.218,
+   "payrolls": 0.102
+  },
+  {
+   "month": "2024-11",
+   "kind": "estimate",
+   "underlying": 0.091,
+   "lo": 0.05,
+   "hi": 0.131,
+   "lfs": 0.193,
+   "payrolls": 0.197
+  },
+  {
+   "month": "2024-12",
+   "kind": "estimate",
+   "underlying": 0.126,
+   "lo": 0.085,
+   "hi": 0.166,
+   "lfs": -0.024,
+   "payrolls": 0.254
+  },
+  {
+   "month": "2025-01",
+   "kind": "estimate",
+   "underlying": 0.179,
+   "lo": 0.138,
+   "hi": 0.219,
+   "lfs": 0.191,
+   "payrolls": 0.309
+  },
+  {
+   "month": "2025-02",
+   "kind": "estimate",
+   "underlying": 0.257,
+   "lo": 0.216,
+   "hi": 0.297,
+   "lfs": 0.151,
+   "payrolls": 0.293
+  },
+  {
+   "month": "2025-03",
+   "kind": "estimate",
+   "underlying": 0.278,
+   "lo": 0.238,
+   "hi": 0.319,
+   "lfs": 0.447,
+   "payrolls": 0.23
+  },
+  {
+   "month": "2025-04",
+   "kind": "estimate",
+   "underlying": 0.268,
+   "lo": 0.228,
+   "hi": 0.309,
+   "lfs": 0.582,
+   "payrolls": 0.195
+  },
+  {
+   "month": "2025-05",
+   "kind": "estimate",
+   "underlying": 0.264,
+   "lo": 0.223,
+   "hi": 0.304,
+   "lfs": 0.594,
+   "payrolls": 0.202
+  },
+  {
+   "month": "2025-06",
+   "kind": "estimate",
+   "underlying": 0.29,
+   "lo": 0.249,
+   "hi": 0.33,
+   "lfs": 0.312,
+   "payrolls": 0.324
+  },
+  {
+   "month": "2025-07",
+   "kind": "estimate",
+   "underlying": 0.374,
+   "lo": 0.333,
+   "hi": 0.414,
+   "lfs": 0.22,
+   "payrolls": 0.425
+  },
+  {
+   "month": "2025-08",
+   "kind": "estimate",
+   "underlying": 0.412,
+   "lo": 0.371,
+   "hi": 0.452,
+   "lfs": 0.23,
+   "payrolls": 0.463
+  },
+  {
+   "month": "2025-09",
+   "kind": "estimate",
+   "underlying": 0.396,
+   "lo": 0.356,
+   "hi": 0.437,
+   "lfs": 0.405,
+   "payrolls": 0.357
+  },
+  {
+   "month": "2025-10",
+   "kind": "estimate",
+   "underlying": 0.35,
+   "lo": 0.309,
+   "hi": 0.39,
+   "lfs": 0.218,
+   "payrolls": 0.299
+  },
+  {
+   "month": "2025-11",
+   "kind": "estimate",
+   "underlying": 0.303,
+   "lo": 0.263,
+   "hi": 0.344,
+   "lfs": 0.291,
+   "payrolls": 0.24
+  },
+  {
+   "month": "2025-12",
+   "kind": "estimate",
+   "underlying": 0.325,
+   "lo": 0.284,
+   "hi": 0.365,
+   "lfs": 0.163,
+   "payrolls": 0.267
+  },
+  {
+   "month": "2026-01",
+   "kind": "estimate",
+   "underlying": 0.341,
+   "lo": 0.3,
+   "hi": 0.381,
+   "lfs": 0.412,
+   "payrolls": 0.3
+  },
+  {
+   "month": "2026-02",
+   "kind": "estimate",
+   "underlying": 0.408,
+   "lo": 0.367,
+   "hi": 0.448,
+   "lfs": 0.624,
+   "payrolls": 0.343
+  },
+  {
+   "month": "2026-03",
+   "kind": "estimate",
+   "underlying": 0.451,
+   "lo": 0.411,
+   "hi": 0.492,
+   "lfs": 0.61,
+   "payrolls": 0.416
+  },
+  {
+   "month": "2026-04",
+   "kind": "estimate",
+   "underlying": 0.459,
+   "lo": 0.419,
+   "hi": 0.5,
+   "lfs": 0.585,
+   "payrolls": 0.384
+  },
+  {
+   "month": "2026-05",
+   "kind": "estimate",
+   "underlying": 0.481,
+   "lo": 0.441,
+   "hi": 0.522,
+   "lfs": 0.432,
+   "payrolls": 0.366
+  },
+  {
+   "month": "2026-06",
+   "kind": "estimate",
+   "underlying": 0.446,
+   "lo": 0.406,
+   "hi": 0.487,
+   "lfs": 0.212,
+   "payrolls": 0.267
+  },
+  {
+   "month": "2026-07",
+   "kind": "estimate",
+   "underlying": 0.434,
+   "lo": 0.394,
+   "hi": 0.474,
+   "lfs": -0.006,
+   "payrolls": 0.294
+  },
+  {
+   "month": "2026-08",
+   "kind": "estimate",
+   "underlying": 0.372,
+   "lo": 0.332,
+   "hi": 0.413,
+   "lfs": null,
+   "payrolls": 0.344
+  },
+  {
+   "month": "2026-09",
+   "kind": "estimate",
+   "underlying": 0.406,
+   "lo": 0.36,
+   "hi": 0.451,
+   "lfs": null,
+   "payrolls": 0.394
+  },
+  {
+   "month": "2026-10",
+   "kind": "projection",
+   "underlying": 0.421,
+   "lo": 0.336,
+   "hi": 0.506,
+   "lfs": null,
+   "payrolls": null
+  },
+  {
+   "month": "2026-11",
+   "kind": "projection",
+   "underlying": 0.437,
+   "lo": 0.295,
+   "hi": 0.579,
+   "lfs": null,
+   "payrolls": null
+  },
+  {
+   "month": "2026-12",
+   "kind": "projection",
+   "underlying": 0.402,
+   "lo": 0.202,
+   "hi": 0.602,
+   "lfs": null,
+   "payrolls": null
+  }
+ ],
+ "contributions": [
+  {
+   "month": "2023-10",
+   "constant": 0.2541,
+   "total": 0.2171,
+   "contributions": {
+    "agents_employment": -0.0195,
+    "agents_recruitment": 0.0055,
+    "dmp_realised": 0.0064,
+    "dmp_expected": -0.0038,
+    "payrolls": -0.0211,
+    "vacancies": -0.0045
+   }
+  },
+  {
+   "month": "2023-11",
+   "constant": 0.2541,
+   "total": 0.2115,
+   "contributions": {
+    "agents_employment": -0.0083,
+    "agents_recruitment": 0.0071,
+    "dmp_realised": -0.0029,
+    "dmp_expected": -0.0066,
+    "payrolls": -0.0239,
+    "vacancies": -0.0078
+   }
+  },
+  {
+   "month": "2023-12",
+   "constant": 0.2541,
+   "total": 0.2458,
+   "contributions": {
+    "agents_employment": -0.0058,
+    "agents_recruitment": 0.0207,
+    "dmp_realised": 0.0011,
+    "dmp_expected": 0.0001,
+    "payrolls": -0.015,
+    "vacancies": -0.0094
+   }
+  },
+  {
+   "month": "2024-01",
+   "constant": 0.2541,
+   "total": 0.2797,
+   "contributions": {
+    "agents_employment": -0.0054,
+    "agents_recruitment": 0.0242,
+    "dmp_realised": -0.0003,
+    "dmp_expected": 0.0093,
+    "payrolls": 0.0034,
+    "vacancies": -0.0055
+   }
+  },
+  {
+   "month": "2024-02",
+   "constant": 0.2541,
+   "total": 0.3097,
+   "contributions": {
+    "agents_employment": 0.0019,
+    "agents_recruitment": 0.018,
+    "dmp_realised": 0.0086,
+    "dmp_expected": 0.012,
+    "payrolls": 0.0171,
+    "vacancies": -0.002
+   }
+  },
+  {
+   "month": "2024-03",
+   "constant": 0.2541,
+   "total": 0.3646,
+   "contributions": {
+    "agents_employment": 0.0161,
+    "agents_recruitment": 0.0165,
+    "dmp_realised": 0.0144,
+    "dmp_expected": 0.0265,
+    "payrolls": 0.0309,
+    "vacancies": 0.0061
+   }
+  },
+  {
+   "month": "2024-04",
+   "constant": 0.2541,
+   "total": 0.3852,
+   "contributions": {
+    "agents_employment": 0.022,
+    "agents_recruitment": 0.0084,
+    "dmp_realised": 0.017,
+    "dmp_expected": 0.0338,
+    "payrolls": 0.037,
+    "vacancies": 0.013
+   }
+  },
+  {
+   "month": "2024-05",
+   "constant": 0.2541,
+   "total": 0.3729,
+   "contributions": {
+    "agents_employment": 0.0163,
+    "agents_recruitment": 0.0046,
+    "dmp_realised": 0.0063,
+    "dmp_expected": 0.0322,
+    "payrolls": 0.0394,
+    "vacancies": 0.02
+   }
+  },
+  {
+   "month": "2024-06",
+   "constant": 0.2541,
+   "total": 0.3076,
+   "contributions": {
+    "agents_employment": 0.0103,
+    "agents_recruitment": -0.0063,
+    "dmp_realised": -0.0062,
+    "dmp_expected": 0.0072,
+    "payrolls": 0.0262,
+    "vacancies": 0.0224
+   }
+  },
+  {
+   "month": "2024-07",
+   "constant": 0.2541,
+   "total": 0.2463,
+   "contributions": {
+    "agents_employment": 0.0077,
+    "agents_recruitment": -0.0155,
+    "dmp_realised": -0.0191,
+    "dmp_expected": -0.0121,
+    "payrolls": 0.0123,
+    "vacancies": 0.0189
+   }
+  },
+  {
+   "month": "2024-08",
+   "constant": 0.2541,
+   "total": 0.1742,
+   "contributions": {
+    "agents_employment": -0.0069,
+    "agents_recruitment": -0.019,
+    "dmp_realised": -0.0289,
+    "dmp_expected": -0.0259,
+    "payrolls": -0.0094,
+    "vacancies": 0.0103
+   }
+  },
+  {
+   "month": "2024-09",
+   "constant": 0.2541,
+   "total": 0.1177,
+   "contributions": {
+    "agents_employment": -0.021,
+    "agents_recruitment": -0.0304,
+    "dmp_realised": -0.0262,
+    "dmp_expected": -0.0358,
+    "payrolls": -0.0244,
+    "vacancies": 0.0015
+   }
+  },
+  {
+   "month": "2024-10",
+   "constant": 0.2541,
+   "total": 0.096,
+   "contributions": {
+    "agents_employment": -0.0277,
+    "agents_recruitment": -0.032,
+    "dmp_realised": -0.0224,
+    "dmp_expected": -0.0325,
+    "payrolls": -0.0384,
+    "vacancies": -0.0051
+   }
+  },
+  {
+   "month": "2024-11",
+   "constant": 0.2541,
+   "total": 0.0906,
+   "contributions": {
+    "agents_employment": -0.0359,
+    "agents_recruitment": -0.0356,
+    "dmp_realised": -0.0176,
+    "dmp_expected": -0.0304,
+    "payrolls": -0.0351,
+    "vacancies": -0.0089
+   }
+  },
+  {
+   "month": "2024-12",
+   "constant": 0.2541,
+   "total": 0.1257,
+   "contributions": {
+    "agents_employment": -0.0349,
+    "agents_recruitment": -0.0312,
+    "dmp_realised": -0.0124,
+    "dmp_expected": -0.0144,
+    "payrolls": -0.0236,
+    "vacancies": -0.012
+   }
+  },
+  {
+   "month": "2025-01",
+   "constant": 0.2541,
+   "total": 0.1789,
+   "contributions": {
+    "agents_employment": -0.0259,
+    "agents_recruitment": -0.022,
+    "dmp_realised": -0.006,
+    "dmp_expected": -0.0054,
+    "payrolls": -0.005,
+    "vacancies": -0.011
+   }
+  },
+  {
+   "month": "2025-02",
+   "constant": 0.2541,
+   "total": 0.2566,
+   "contributions": {
+    "agents_employment": -0.0066,
+    "agents_recruitment": -0.0094,
+    "dmp_realised": 0.0075,
+    "dmp_expected": 0.0114,
+    "payrolls": 0.0043,
+    "vacancies": -0.0045
+   }
+  },
+  {
+   "month": "2025-03",
+   "constant": 0.2541,
+   "total": 0.2784,
+   "contributions": {
+    "agents_employment": 0.0048,
+    "agents_recruitment": -0.0009,
+    "dmp_realised": 0.0052,
+    "dmp_expected": 0.0106,
+    "payrolls": 0.0024,
+    "vacancies": 0.0024
+   }
+  },
+  {
+   "month": "2025-04",
+   "constant": 0.2541,
+   "total": 0.2684,
+   "contributions": {
+    "agents_employment": 0.0017,
+    "agents_recruitment": 0.0036,
+    "dmp_realised": 0.0002,
+    "dmp_expected": 0.0082,
+    "payrolls": -0.0075,
+    "vacancies": 0.0082
+   }
+  },
+  {
+   "month": "2025-05",
+   "constant": 0.2541,
+   "total": 0.2637,
+   "contributions": {
+    "agents_employment": 0.0019,
+    "agents_recruitment": 0.0056,
+    "dmp_realised": 0.0064,
+    "dmp_expected": 0.0037,
+    "payrolls": -0.0148,
+    "vacancies": 0.0068
+   }
+  },
+  {
+   "month": "2025-06",
+   "constant": 0.2541,
+   "total": 0.2898,
+   "contributions": {
+    "agents_employment": 0.0065,
+    "agents_recruitment": 0.0047,
+    "dmp_realised": 0.0175,
+    "dmp_expected": 0.0067,
+    "payrolls": -0.0058,
+    "vacancies": 0.006
+   }
+  },
+  {
+   "month": "2025-07",
+   "constant": 0.2541,
+   "total": 0.3738,
+   "contributions": {
+    "agents_employment": 0.0342,
+    "agents_recruitment": 0.0155,
+    "dmp_realised": 0.0293,
+    "dmp_expected": 0.0203,
+    "payrolls": 0.0155,
+    "vacancies": 0.005
+   }
+  },
+  {
+   "month": "2025-08",
+   "constant": 0.2541,
+   "total": 0.4118,
+   "contributions": {
+    "agents_employment": 0.0442,
+    "agents_recruitment": 0.0221,
+    "dmp_realised": 0.0201,
+    "dmp_expected": 0.0253,
+    "payrolls": 0.0389,
+    "vacancies": 0.0071
+   }
+  },
+  {
+   "month": "2025-09",
+   "constant": 0.2541,
+   "total": 0.3965,
+   "contributions": {
+    "agents_employment": 0.0434,
+    "agents_recruitment": 0.0225,
+    "dmp_realised": 0.0101,
+    "dmp_expected": 0.0153,
+    "payrolls": 0.0426,
+    "vacancies": 0.0086
+   }
+  },
+  {
+   "month": "2025-10",
+   "constant": 0.2541,
+   "total": 0.3496,
+   "contributions": {
+    "agents_employment": 0.032,
+    "agents_recruitment": 0.014,
+    "dmp_realised": 0.0062,
+    "dmp_expected": 0.0012,
+    "payrolls": 0.0312,
+    "vacancies": 0.0109
+   }
+  },
+  {
+   "month": "2025-11",
+   "constant": 0.2541,
+   "total": 0.3032,
+   "contributions": {
+    "agents_employment": 0.0272,
+    "agents_recruitment": 0.0047,
+    "dmp_realised": 0.0044,
+    "dmp_expected": -0.009,
+    "payrolls": 0.0113,
+    "vacancies": 0.0104
+   }
+  },
+  {
+   "month": "2025-12",
+   "constant": 0.2541,
+   "total": 0.3248,
+   "contributions": {
+    "agents_employment": 0.0334,
+    "agents_recruitment": 0.0156,
+    "dmp_realised": 0.0037,
+    "dmp_expected": 0.0071,
+    "payrolls": 0.0023,
+    "vacancies": 0.0086
+   }
+  },
+  {
+   "month": "2026-01",
+   "constant": 0.2541,
+   "total": 0.3407,
+   "contributions": {
+    "agents_employment": 0.0387,
+    "agents_recruitment": 0.0178,
+    "dmp_realised": 0.013,
+    "dmp_expected": 0.013,
+    "payrolls": 0.0023,
+    "vacancies": 0.0018
+   }
+  },
+  {
+   "month": "2026-02",
+   "constant": 0.2541,
+   "total": 0.4077,
+   "contributions": {
+    "agents_employment": 0.0502,
+    "agents_recruitment": 0.0248,
+    "dmp_realised": 0.0268,
+    "dmp_expected": 0.0395,
+    "payrolls": 0.0119,
+    "vacancies": 0.0005
+   }
+  },
+  {
+   "month": "2026-03",
+   "constant": 0.2541,
+   "total": 0.4514,
+   "contributions": {
+    "agents_employment": 0.0504,
+    "agents_recruitment": 0.0181,
+    "dmp_realised": 0.0494,
+    "dmp_expected": 0.0517,
+    "payrolls": 0.0255,
+    "vacancies": 0.0023
+   }
+  },
+  {
+   "month": "2026-04",
+   "constant": 0.2541,
+   "total": 0.4595,
+   "contributions": {
+    "agents_employment": 0.0521,
+    "agents_recruitment": 0.0181,
+    "dmp_realised": 0.0448,
+    "dmp_expected": 0.0463,
+    "payrolls": 0.0335,
+    "vacancies": 0.0105
+   }
+  },
+  {
+   "month": "2026-05",
+   "constant": 0.2541,
+   "total": 0.4813,
+   "contributions": {
+    "agents_employment": 0.0584,
+    "agents_recruitment": 0.0335,
+    "dmp_realised": 0.0431,
+    "dmp_expected": 0.0415,
+    "payrolls": 0.0351,
+    "vacancies": 0.0156
+   }
+  },
+  {
+   "month": "2026-06",
+   "constant": 0.2541,
+   "total": 0.4463,
+   "contributions": {
+    "agents_employment": 0.0553,
+    "agents_recruitment": 0.0354,
+    "dmp_realised": 0.0242,
+    "dmp_expected": 0.0353,
+    "payrolls": 0.0225,
+    "vacancies": 0.0195
+   }
+  },
+  {
+   "month": "2026-07",
+   "constant": 0.2541,
+   "total": 0.434,
+   "contributions": {
+    "agents_employment": 0.0405,
+    "agents_recruitment": 0.038,
+    "dmp_realised": 0.0214,
+    "dmp_expected": 0.045,
+    "payrolls": 0.0142,
+    "vacancies": 0.0209
+   }
+  },
+  {
+   "month": "2026-08",
+   "constant": 0.2541,
+   "total": 0.3724,
+   "contributions": {
+    "agents_employment": 0.0106,
+    "agents_recruitment": 0.0166,
+    "dmp_realised": 0.015,
+    "dmp_expected": 0.0414,
+    "payrolls": 0.0132,
+    "vacancies": 0.0217
+   }
+  },
+  {
+   "month": "2026-09",
+   "constant": 0.2541,
+   "total": 0.4056,
+   "contributions": {
+    "agents_employment": 0.0001,
+    "agents_recruitment": 0.0114,
+    "dmp_realised": 0.0182,
+    "dmp_expected": 0.0749,
+    "payrolls": 0.0311,
+    "vacancies": 0.0159
+   }
+  }
+ ],
+ "indicators": [
+  {
+   "id": "agents_employment",
+   "name": "Agents' employment intentions",
+   "short": "Agents empl.",
+   "group": "Bank surveys",
+   "source": "boe_agents",
+   "units": "score (-5 to +5)",
+   "transform": "level",
+   "notes": "Agents' score for employment intentions over the next six months (new scores).",
+   "in_model": true,
+   "missing": null,
+   "latest_month": "2026-08",
+   "latest": 0.298,
+   "latest_transformed": 0.298,
+   "z": -0.46,
+   "loading": 0.884,
+   "contribution": 0.0,
+   "first_month": "2000-01"
+  },
+  {
+   "id": "agents_recruitment",
+   "name": "Agents' recruitment difficulties",
+   "short": "Agents recruit.",
+   "group": "Bank surveys",
+   "source": "boe_agents",
+   "units": "score (-5 to +5)",
+   "transform": "level",
+   "notes": "Agents' score for recruitment difficulties: a measure of labour demand relative to supply.",
+   "in_model": true,
+   "missing": null,
+   "latest_month": "2026-08",
+   "latest": 0.084,
+   "latest_transformed": 0.084,
+   "z": -0.04,
+   "loading": 0.875,
+   "contribution": 0.011,
+   "first_month": "2000-01"
+  },
+  {
+   "id": "dmp_realised",
+   "name": "DMP realised employment growth",
+   "short": "DMP realised",
+   "group": "Bank surveys",
+   "source": "boe_dmp",
+   "units": "% a year, 3m avg",
+   "transform": "level",
+   "notes": "Decision Maker Panel: firms' employment growth over the past year (from 2017).",
+   "in_model": true,
+   "missing": null,
+   "latest_month": "2026-09",
+   "latest": 1.275,
+   "latest_transformed": 1.275,
+   "z": 0.48,
+   "loading": 0.839,
+   "contribution": 0.018,
+   "first_month": "2017-01"
+  },
+  {
+   "id": "dmp_expected",
+   "name": "DMP expected employment growth",
+   "short": "DMP expected",
+   "group": "Bank surveys",
+   "source": "boe_dmp",
+   "units": "% a year, 3m avg",
+   "transform": "level",
+   "notes": "Decision Maker Panel: firms' expected employment growth over the next year (from 2017).",
+   "in_model": true,
+   "missing": null,
+   "latest_month": "2026-09",
+   "latest": 3.0,
+   "latest_transformed": 3.0,
+   "z": 2.63,
+   "loading": 0.883,
+   "contribution": 0.075,
+   "first_month": "2017-01"
+  },
+  {
+   "id": "payrolls",
+   "name": "HMRC payrolled employees",
+   "short": "Payrolls",
+   "group": "Official data",
+   "source": "ons_rti",
+   "units": "% 3m/3m",
+   "transform": "growth3",
+   "notes": "PAYE RTI payrolled employees (from mid-2014); the latest month is a flash estimate, often revised.",
+   "in_model": true,
+   "missing": null,
+   "latest_month": "2026-09",
+   "latest": 34254963.822,
+   "latest_transformed": 0.394,
+   "z": 1.02,
+   "loading": 0.934,
+   "contribution": 0.031,
+   "first_month": "2015-01"
+  },
+  {
+   "id": "vacancies",
+   "name": "ONS vacancies",
+   "short": "Vacancies",
+   "group": "Official data",
+   "source": "ons_lms",
+   "units": "% 3m/3m",
+   "transform": "growth3",
+   "notes": "ONS Vacancy Survey, three months to (from 2001).",
+   "in_model": true,
+   "missing": null,
+   "latest_month": "2026-08",
+   "latest": 1753.556,
+   "latest_transformed": 7.897,
+   "z": 1.99,
+   "loading": 0.691,
+   "contribution": 0.016,
+   "first_month": "2001-11"
+  },
+  {
+   "id": "pmi_employment_services",
+   "name": "S&P Global UK services PMI: employment",
+   "short": "PMI services empl.",
+   "group": "Private surveys",
+   "source": "bloomberg",
+   "units": "index (50 = no change)",
+   "transform": "level",
+   "notes": "Used by the Bank; proprietary, Bloomberg only.",
+   "in_model": false,
+   "missing": "Bloomberg series (data source is not Bloomberg)",
+   "latest_month": null,
+   "latest": null,
+   "latest_transformed": null,
+   "z": null,
+   "loading": null,
+   "contribution": null,
+   "first_month": null
+  },
+  {
+   "id": "pmi_employment_manufacturing",
+   "name": "S&P Global UK manufacturing PMI: employment",
+   "short": "PMI mfg empl.",
+   "group": "Private surveys",
+   "source": "bloomberg",
+   "units": "index (50 = no change)",
+   "transform": "level",
+   "notes": "Used by the Bank; proprietary, Bloomberg only.",
+   "in_model": false,
+   "missing": "Bloomberg series (data source is not Bloomberg)",
+   "latest_month": null,
+   "latest": null,
+   "latest_transformed": null,
+   "z": null,
+   "loading": null,
+   "contribution": null,
+   "first_month": null
+  },
+  {
+   "id": "rec_permanent_placements",
+   "name": "KPMG/REC permanent placements",
+   "short": "REC perm.",
+   "group": "Private surveys",
+   "source": "bloomberg",
+   "units": "index (50 = no change)",
+   "transform": "level",
+   "notes": "KPMG/REC UK Report on Jobs; used by the Bank; Bloomberg only.",
+   "in_model": false,
+   "missing": "Bloomberg series (data source is not Bloomberg)",
+   "latest_month": null,
+   "latest": null,
+   "latest_transformed": null,
+   "z": null,
+   "loading": null,
+   "contribution": null,
+   "first_month": null
+  },
+  {
+   "id": "rec_temporary_billings",
+   "name": "KPMG/REC temporary billings",
+   "short": "REC temp.",
+   "group": "Private surveys",
+   "source": "bloomberg",
+   "units": "index (50 = no change)",
+   "transform": "level",
+   "notes": "KPMG/REC UK Report on Jobs; Bloomberg only.",
+   "in_model": false,
+   "missing": "Bloomberg series (data source is not Bloomberg)",
+   "latest_month": null,
+   "latest": null,
+   "latest_transformed": null,
+   "z": null,
+   "loading": null,
+   "contribution": null,
+   "first_month": null
+  },
+  {
+   "id": "lloyds_staffing",
+   "name": "Lloyds Business Barometer: staffing expectations",
+   "short": "Lloyds staffing",
+   "group": "Private surveys",
+   "source": "bloomberg",
+   "units": "net balance",
+   "transform": "level",
+   "notes": "Used by the Bank; Bloomberg only.",
+   "in_model": false,
+   "missing": "Bloomberg series (data source is not Bloomberg)",
+   "latest_month": null,
+   "latest": null,
+   "latest_transformed": null,
+   "z": null,
+   "loading": null,
+   "contribution": null,
+   "first_month": null
+  }
+ ],
+ "next_prints": {
+  "lfs_employment": {
+   "period": "2026-08",
+   "release": "17 November 2026",
+   "forecast": 0.372,
+   "sd": 0.202,
+   "lo": -0.024,
+   "hi": 0.769,
+   "latest_period": "2026-07",
+   "latest": -0.006,
+   "noise_sd": 0.201,
+   "noise_sd_2000_19": 0.201
+  },
+  "unemployment": [
+   {
+    "period": "2026Q3",
+    "month": "2026-09",
+    "projection": 3.84,
+    "lo": 3.82,
+    "hi": 3.87,
+    "employment_growth": 0.406,
+    "boe": {
+     "report": "July 2026",
+     "value": 5.0
+    }
+   },
+   {
+    "period": "2026Q4",
+    "month": "2026-12",
+    "projection": 3.72,
+    "lo": 3.55,
+    "hi": 3.88,
+    "employment_growth": 0.402,
+    "boe": {
+     "report": "July 2026",
+     "value": 5.1
+    }
+   }
+  ],
+  "unemployment_latest": {
+   "period": "2026-07",
+   "value": 3.91
+  },
+  "labour_force_growth": 0.287,
+  "payrolls": {
+   "period": "2026-10",
+   "change_k": 43.9,
+   "lo_k": 6.1,
+   "hi_k": 81.7,
+   "growth3": 0.393,
+   "latest_period": "2026-09",
+   "latest_change_k": 39.2,
+   "latest_growth3": 0.394
+  }
+ },
+ "gdp_implied": {
+  "r2": 0.07091194864663586,
+  "lags": 6,
+  "sample": "2000Q1 to 2019Q4",
+  "rows": [
+   {
+    "quarter": "2015Q1",
+    "implied": 0.238,
+    "underlying": 0.446
+   },
+   {
+    "quarter": "2015Q2",
+    "implied": 0.237,
+    "underlying": 0.364
+   },
+   {
+    "quarter": "2015Q3",
+    "implied": 0.257,
+    "underlying": 0.327
+   },
+   {
+    "quarter": "2015Q4",
+    "implied": 0.283,
+    "underlying": 0.275
+   },
+   {
+    "quarter": "2016Q1",
+    "implied": 0.293,
+    "underlying": 0.243
+   },
+   {
+    "quarter": "2016Q2",
+    "implied": 0.221,
+    "underlying": 0.316
+   },
+   {
+    "quarter": "2016Q3",
+    "implied": 0.227,
+    "underlying": 0.247
+   },
+   {
+    "quarter": "2016Q4",
+    "implied": 0.262,
+    "underlying": 0.289
+   },
+   {
+    "quarter": "2017Q1",
+    "implied": 0.272,
+    "underlying": 0.243
+   },
+   {
+    "quarter": "2017Q2",
+    "implied": 0.186,
+    "underlying": -0.084
+   },
+   {
+    "quarter": "2017Q3",
+    "implied": 0.165,
+    "underlying": -0.114
+   },
+   {
+    "quarter": "2017Q4",
+    "implied": 0.22,
+    "underlying": -0.069
+   },
+   {
+    "quarter": "2018Q1",
+    "implied": 0.276,
+    "underlying": 0.064
+   },
+   {
+    "quarter": "2018Q2",
+    "implied": 0.302,
+    "underlying": 0.203
+   },
+   {
+    "quarter": "2018Q3",
+    "implied": 0.287,
+    "underlying": 0.178
+   },
+   {
+    "quarter": "2018Q4",
+    "implied": 0.276,
+    "underlying": 0.273
+   },
+   {
+    "quarter": "2019Q1",
+    "implied": 0.293,
+    "underlying": 0.285
+   },
+   {
+    "quarter": "2019Q2",
+    "implied": 0.265,
+    "underlying": 0.271
+   },
+   {
+    "quarter": "2019Q3",
+    "implied": 0.288,
+    "underlying": 0.403
+   },
+   {
+    "quarter": "2019Q4",
+    "implied": 0.29,
+    "underlying": 0.404
+   },
+   {
+    "quarter": "2020Q1",
+    "implied": 0.333,
+    "underlying": 0.294
+   },
+   {
+    "quarter": "2023Q1",
+    "implied": 0.313,
+    "underlying": 0.069
+   },
+   {
+    "quarter": "2023Q2",
+    "implied": 0.357,
+    "underlying": 0.267
+   },
+   {
+    "quarter": "2023Q3",
+    "implied": 0.304,
+    "underlying": 0.277
+   },
+   {
+    "quarter": "2023Q4",
+    "implied": 0.274,
+    "underlying": 0.246
+   },
+   {
+    "quarter": "2024Q1",
+    "implied": 0.303,
+    "underlying": 0.365
+   },
+   {
+    "quarter": "2024Q2",
+    "implied": 0.345,
+    "underlying": 0.308
+   },
+   {
+    "quarter": "2024Q3",
+    "implied": 0.274,
+    "underlying": 0.118
+   },
+   {
+    "quarter": "2024Q4",
+    "implied": 0.259,
+    "underlying": 0.126
+   },
+   {
+    "quarter": "2025Q1",
+    "implied": 0.283,
+    "underlying": 0.278
+   },
+   {
+    "quarter": "2025Q2",
+    "implied": 0.33,
+    "underlying": 0.29
+   },
+   {
+    "quarter": "2025Q3",
+    "implied": 0.233,
+    "underlying": 0.396
+   },
+   {
+    "quarter": "2025Q4",
+    "implied": 0.218,
+    "underlying": 0.325
+   },
+   {
+    "quarter": "2026Q1",
+    "implied": 0.279,
+    "underlying": 0.451
+   },
+   {
+    "quarter": "2026Q2",
+    "implied": 0.273,
+    "underlying": 0.446
+   },
+   {
+    "quarter": "2026Q3",
+    "implied": 0.237,
+    "underlying": 0.406
+   }
+  ],
+  "latest_gdp_quarter": "2026Q2"
+ },
+ "svar": {
+  "ok": true,
+  "lags": 5,
+  "accepted": 1899,
+  "rows": [
+   {
+    "month": "2022-01",
+    "employment": 0.3505369197627813,
+    "baseline": 0.33171671514247625,
+    "demand": -0.008645491346998284,
+    "supply": 0.02746569596730332
+   },
+   {
+    "month": "2022-02",
+    "employment": 0.39729434217260606,
+    "baseline": 0.332714935760841,
+    "demand": 0.007923603758069005,
+    "supply": 0.056655802653696075
+   },
+   {
+    "month": "2022-03",
+    "employment": 0.45266807480685206,
+    "baseline": 0.32512759801570407,
+    "demand": 0.035630793601650126,
+    "supply": 0.09190968318949788
+   },
+   {
+    "month": "2022-04",
+    "employment": 0.47369007366047977,
+    "baseline": 0.3125934334517745,
+    "demand": 0.05751597752844384,
+    "supply": 0.10358066268026143
+   },
+   {
+    "month": "2022-05",
+    "employment": 0.42880850564651984,
+    "baseline": 0.31086376260242987,
+    "demand": 0.03771750050994527,
+    "supply": 0.08022724253414473
+   },
+   {
+    "month": "2022-06",
+    "employment": 0.3388896520631041,
+    "baseline": 0.30916993199642256,
+    "demand": -0.016832425273926043,
+    "supply": 0.046552145340607615
+   },
+   {
+    "month": "2022-07",
+    "employment": 0.2559335488303114,
+    "baseline": 0.30805887476772675,
+    "demand": -0.06262168575837897,
+    "supply": 0.010496359820963587
+   },
+   {
+    "month": "2022-08",
+    "employment": 0.25884257851778875,
+    "baseline": 0.3001499904646467,
+    "demand": -0.047399769090131806,
+    "supply": 0.006092357143273855
+   },
+   {
+    "month": "2022-09",
+    "employment": 0.27756416368247444,
+    "baseline": 0.2906164569502047,
+    "demand": -0.019388123481942424,
+    "supply": 0.006335830214212134
+   },
+   {
+    "month": "2022-10",
+    "employment": 0.2813043544255252,
+    "baseline": 0.27933335682028876,
+    "demand": -0.014748203738128646,
+    "supply": 0.016719201343365114
+   },
+   {
+    "month": "2022-11",
+    "employment": 0.2609575927215826,
+    "baseline": 0.2711720148933094,
+    "demand": -0.037928243395222785,
+    "supply": 0.027713821223495964
+   },
+   {
+    "month": "2022-12",
+    "employment": 0.23081677616533144,
+    "baseline": 0.2648608619934948,
+    "demand": -0.055531302318320826,
+    "supply": 0.021487216490157494
+   },
+   {
+    "month": "2023-01",
+    "employment": 0.17986998989486486,
+    "baseline": 0.2615075844025197,
+    "demand": -0.06479275917533085,
+    "supply": -0.016844835332323997
+   },
+   {
+    "month": "2023-02",
+    "employment": 0.11235364920993043,
+    "baseline": 0.2587187689527204,
+    "demand": -0.0770480674425598,
+    "supply": -0.06931705230023019
+   },
+   {
+    "month": "2023-03",
+    "employment": 0.0688562524836101,
+    "baseline": 0.25680966966515073,
+    "demand": -0.07381176579116142,
+    "supply": -0.11414165139037923
+   },
+   {
+    "month": "2023-04",
+    "employment": 0.10140234850365912,
+    "baseline": 0.25461581074421913,
+    "demand": -0.04471001863799727,
+    "supply": -0.10850344360256278
+   },
+   {
+    "month": "2023-05",
+    "employment": 0.1671060528160599,
+    "baseline": 0.25306888725239474,
+    "demand": -0.0015552305955619447,
+    "supply": -0.08440760384077291
+   },
+   {
+    "month": "2023-06",
+    "employment": 0.266647031070131,
+    "baseline": 0.25178754685201593,
+    "demand": 0.06192830979995599,
+    "supply": -0.04706882558184093
+   },
+   {
+    "month": "2023-07",
+    "employment": 0.32884103307271506,
+    "baseline": 0.2513662937669324,
+    "demand": 0.109359534547452,
+    "supply": -0.031884795241669345
+   },
+   {
+    "month": "2023-08",
+    "employment": 0.33680012159747597,
+    "baseline": 0.25121729724064457,
+    "demand": 0.13244253965914624,
+    "supply": -0.04685971530231485
+   },
+   {
+    "month": "2023-09",
+    "employment": 0.27662162132903184,
+    "baseline": 0.251482291284741,
+    "demand": 0.10624689314765634,
+    "supply": -0.08110756310336545
+   },
+   {
+    "month": "2023-10",
+    "employment": 0.21709936711377986,
+    "baseline": 0.25167981358837654,
+    "demand": 0.05568975945400986,
+    "supply": -0.09027020592860653
+   },
+   {
+    "month": "2023-11",
+    "employment": 0.21153214768550146,
+    "baseline": 0.2520117831483441,
+    "demand": 0.027093297548612096,
+    "supply": -0.06757293301145474
+   },
+   {
+    "month": "2023-12",
+    "employment": 0.24581990349174238,
+    "baseline": 0.2522633396965513,
+    "demand": 0.00639647711863549,
+    "supply": -0.012839913323444429
+   },
+   {
+    "month": "2024-01",
+    "employment": 0.2797301069202406,
+    "baseline": 0.25264268328136136,
+    "demand": 0.016148182378499618,
+    "supply": 0.01093924126037963
+   },
+   {
+    "month": "2024-02",
+    "employment": 0.3097074964800719,
+    "baseline": 0.25298267236923155,
+    "demand": 0.018110708883915937,
+    "supply": 0.03861411522692443
+   },
+   {
+    "month": "2024-03",
+    "employment": 0.3646146421553552,
+    "baseline": 0.2533911583035397,
+    "demand": 0.04290985364860052,
+    "supply": 0.068313630203215
+   },
+   {
+    "month": "2024-04",
+    "employment": 0.38519052544372073,
+    "baseline": 0.25371482664219885,
+    "demand": 0.03821235270665355,
+    "supply": 0.09326334609486833
+   },
+   {
+    "month": "2024-05",
+    "employment": 0.3729390679003094,
+    "baseline": 0.25402977037421276,
+    "demand": 0.02139399536681915,
+    "supply": 0.09751530215927749
+   },
+   {
+    "month": "2024-06",
+    "employment": 0.3076369749776321,
+    "baseline": 0.2542431975234017,
+    "demand": -0.008811883420447232,
+    "supply": 0.06220566087467763
+   },
+   {
+    "month": "2024-07",
+    "employment": 0.2462538385033586,
+    "baseline": 0.2544364273053913,
+    "demand": -0.03327155909950913,
+    "supply": 0.02508897029747642
+   },
+   {
+    "month": "2024-08",
+    "employment": 0.17417005655190898,
+    "baseline": 0.2545582867554423,
+    "demand": -0.06820578828703641,
+    "supply": -0.012182441916496898
+   },
+   {
+    "month": "2024-09",
+    "employment": 0.11772936346126889,
+    "baseline": 0.25467328608425255,
+    "demand": -0.09595276335992721,
+    "supply": -0.04099115926305642
+   },
+   {
+    "month": "2024-10",
+    "employment": 0.09603641703084115,
+    "baseline": 0.2547394813979056,
+    "demand": -0.0950424278965539,
+    "supply": -0.06366063647051053
+   },
+   {
+    "month": "2024-11",
+    "employment": 0.09060424829009073,
+    "baseline": 0.2547995858915234,
+    "demand": -0.09256489925369094,
+    "supply": -0.07163043834774172
+   },
+   {
+    "month": "2024-12",
+    "employment": 0.1256573553820651,
+    "baseline": 0.25482112938167845,
+    "demand": -0.06874858481584449,
+    "supply": -0.06041518918376884
+   },
+   {
+    "month": "2025-01",
+    "employment": 0.17890880410283697,
+    "baseline": 0.2548383391810587,
+    "demand": -0.04353315659523854,
+    "supply": -0.03239637848298315
+   },
+   {
+    "month": "2025-02",
+    "employment": 0.2566339374801446,
+    "baseline": 0.254830471922582,
+    "demand": 0.019293237299352818,
+    "supply": -0.017489771741790193
+   },
+   {
+    "month": "2025-03",
+    "employment": 0.2784462372680523,
+    "baseline": 0.25482489302949207,
+    "demand": 0.040778817224966055,
+    "supply": -0.017157472986405853
+   },
+   {
+    "month": "2025-04",
+    "employment": 0.2683604252317387,
+    "baseline": 0.254805850966998,
+    "demand": 0.03747408362294165,
+    "supply": -0.023919509358200912
+   },
+   {
+    "month": "2025-05",
+    "employment": 0.26369044931251273,
+    "baseline": 0.2547923127219676,
+    "demand": 0.025779921884403163,
+    "supply": -0.01688178529385803
+   },
+   {
+    "month": "2025-06",
+    "employment": 0.2897790882794862,
+    "baseline": 0.254771084620891,
+    "demand": 0.020424578708927162,
+    "supply": 0.01458342494966803
+   },
+   {
+    "month": "2025-07",
+    "employment": 0.3737656968885447,
+    "baseline": 0.25475558082544725,
+    "demand": 0.08385970832881401,
+    "supply": 0.03515040773428349
+   },
+   {
+    "month": "2025-08",
+    "employment": 0.4117874861741896,
+    "baseline": 0.2547357786344192,
+    "demand": 0.12015114696634585,
+    "supply": 0.036900560573424515
+   },
+   {
+    "month": "2025-09",
+    "employment": 0.3964817430035481,
+    "baseline": 0.25472179029601905,
+    "demand": 0.14452900552574882,
+    "supply": -0.002769052818219757
+   },
+   {
+    "month": "2025-10",
+    "employment": 0.3496493364532195,
+    "baseline": 0.25470606978232707,
+    "demand": 0.13580552797102907,
+    "supply": -0.040862261300136635
+   },
+   {
+    "month": "2025-11",
+    "employment": 0.30317123821384107,
+    "baseline": 0.2546959096023375,
+    "demand": 0.14126378957471847,
+    "supply": -0.09278846096321493
+   },
+   {
+    "month": "2025-12",
+    "employment": 0.32479019286546895,
+    "baseline": 0.25468522408726485,
+    "demand": 0.18845191991926213,
+    "supply": -0.11834695114105803
+   },
+   {
+    "month": "2026-01",
+    "employment": 0.34071558202813795,
+    "baseline": 0.25467906651288663,
+    "demand": 0.23385305333956824,
+    "supply": -0.1478165378243169
+   },
+   {
+    "month": "2026-02",
+    "employment": 0.40774682088879083,
+    "baseline": 0.25467260366064254,
+    "demand": 0.2992786303383591,
+    "supply": -0.14620441311021082
+   },
+   {
+    "month": "2026-03",
+    "employment": 0.4514425981610076,
+    "baseline": 0.25466950595137694,
+    "demand": 0.3312021981315619,
+    "supply": -0.13442910592193122
+   },
+   {
+    "month": "2026-04",
+    "employment": 0.459479833153429,
+    "baseline": 0.25466611744776696,
+    "demand": 0.3292649264439919,
+    "supply": -0.12445121073832986
+   },
+   {
+    "month": "2026-05",
+    "employment": 0.4813285261945589,
+    "baseline": 0.2546651744745403,
+    "demand": 0.3092592819790602,
+    "supply": -0.0825959302590416
+   },
+   {
+    "month": "2026-06",
+    "employment": 0.4462782963667423,
+    "baseline": 0.2546638993136418,
+    "demand": 0.28730259569045624,
+    "supply": -0.09568819863735571
+   },
+   {
+    "month": "2026-07",
+    "employment": 0.4340137340436476,
+    "baseline": 0.2546643001957834,
+    "demand": 0.2653082050344665,
+    "supply": -0.08595877118660228
+   },
+   {
+    "month": "2026-08",
+    "employment": 0.37240262002630964,
+    "baseline": 0.2546642611259796,
+    "demand": 0.23555278818605202,
+    "supply": -0.11781442928572197
+   }
+  ],
+  "impact": {
+   "demand": [
+    0.019322350121193647,
+    0.24712109818404224
+   ],
+   "supply": [
+    0.01786139672852221,
+    -0.2278667782679551
+   ]
+  },
+  "sample": "2000-11 to 2019-12"
+ },
+ "staff": [
+  {
+   "report": "May 2025",
+   "data_through": null,
+   "underlying_text": "Underlying employment growth has also softened recently.",
+   "underlying_value": null,
+   "unemployment": [],
+   "url": "https://www.bankofengland.co.uk/monetary-policy-report/2025/may-2025"
+  },
+  {
+   "report": "August 2025",
+   "data_through": "2025-07",
+   "underlying_text": "Bank staff judge that underlying employment growth, based on the signal from a range of measures, has been around zero since the end of last year.",
+   "underlying_value": 0.0,
+   "unemployment": [],
+   "url": "https://www.bankofengland.co.uk/monetary-policy-report/2025/august-2025"
+  },
+  {
+   "report": "November 2025",
+   "data_through": "2025-10",
+   "underlying_text": "A range of indicators suggests that underlying employment growth remains close to zero.",
+   "underlying_value": 0.0,
+   "unemployment": [],
+   "url": "https://www.bankofengland.co.uk/monetary-policy-report/2025/november-2025"
+  },
+  {
+   "report": "February 2026",
+   "data_through": "2026-01",
+   "underlying_text": "Underlying employment growth has been around zero over the past year.",
+   "underlying_value": 0.0,
+   "unemployment": [
+    {
+     "period": "2026Q2",
+     "value": 5.3,
+     "text": "The unemployment rate is expected to rise further to 5.3% by mid-2026."
+    }
+   ],
+   "url": "https://www.bankofengland.co.uk/monetary-policy-report/2026/february-2026"
+  },
+  {
+   "report": "April 2026",
+   "data_through": "2026-03",
+   "underlying_text": "Bank staff judge that underlying employment growth, based on the signal from a range of measures, has remained flat since early 2025.",
+   "underlying_value": 0.0,
+   "unemployment": [
+    {
+     "period": "2026Q2",
+     "value": 5.1,
+     "text": "Bank staff project the unemployment rate to rise to 5.1% in 2026 Q2."
+    }
+   ],
+   "url": "https://www.bankofengland.co.uk/monetary-policy-report/2026/april-2026"
+  },
+  {
+   "report": "July 2026",
+   "data_through": null,
+   "underlying_text": "Bank staff judge that underlying employment growth has been broadly flat since early 2025, based on the signal from a range of measures.",
+   "underlying_value": 0.0,
+   "unemployment": [
+    {
+     "period": "2026Q3",
+     "value": 5.0,
+     "text": "Bank staff project the unemployment rate to rise gradually to 5.0% in 2026 Q3 and 5.1% in Q4."
+    },
+    {
+     "period": "2026Q4",
+     "value": 5.1,
+     "text": "Bank staff project the unemployment rate to rise gradually to 5.0% in 2026 Q3 and 5.1% in Q4."
+    }
+   ],
+   "url": "https://www.bankofengland.co.uk/monetary-policy-report/2026/july-2026"
+  }
+ ],
+ "staff_method": "Bank staff's indicator-based measure of underlying employment growth is constructed using a dynamic factor model following the approach of Doz et al (2011). The model extracts a common component from monthly survey indicators, capturing comovements across series. The common component is scaled to align with LFS employment growth between 2000-19.",
+ "sources": {
+  "lms": {
+   "name": "ONS Labour Market Statistics",
+   "file": "lms.csv",
+   "latest": "2026-07",
+   "release": "2026-10-20",
+   "next_release": "17 November 2026",
+   "error": null
+  },
+  "rti": {
+   "name": "HMRC PAYE RTI (ONS)",
+   "file": "rtisa.xlsx",
+   "latest": "2026-09",
+   "release": null,
+   "next_release": null,
+   "error": null
+  },
+  "agents": {
+   "name": "Bank of England Agents' scores",
+   "file": "agentsscores.xlsx",
+   "latest": "2026-08",
+   "release": null,
+   "next_release": null,
+   "error": null
+  },
+  "dmp": {
+   "name": "Decision Maker Panel",
+   "file": "monthly-dmp-data.xlsx",
+   "latest": "2026-09",
+   "release": null,
+   "next_release": null,
+   "error": null
+  }
+ },
+ "model": {
+  "fitted_at": "2026-10-22T08:59:00",
+  "data_through": "2026-09",
+  "n_indicators": 6,
+  "ids": [
+   "agents_employment",
+   "agents_recruitment",
+   "dmp_realised",
+   "dmp_expected",
+   "payrolls",
+   "vacancies"
+  ],
+  "phi": [
+   0.738,
+   0.079
+  ],
+  "q": 0.355,
+  "a": 0.254,
+  "b": 0.16,
+  "r2": 0.356,
+  "resid_sd": 0.201,
+  "scale_window": [
+   "2000-01",
+   "2019-12"
+  ],
+  "exclude": [
+   [
+    "2020-03",
+    "2021-06"
+   ]
+  ],
+  "missing": 5
+ },
+ "news": {
+  "month": "2026-09",
+  "previous_computed_at": "2026-10-21T09:00:00",
+  "previous": 0.3515,
+  "current": 0.4056,
+  "change": 0.0541,
+  "by_indicator": {
+   "agents_employment": 0.0,
+   "agents_recruitment": 0.0,
+   "dmp_realised": 0.0,
+   "dmp_expected": 0.0541,
+   "payrolls": 0.0,
+   "vacancies": 0.0
+  },
+  "same_model": true,
+  "new_month": null
+ },
+ "runs": [
+  {
+   "computed_at": "2026-10-21T09:00:00",
+   "month": "2026-09",
+   "underlying": 0.351,
+   "fitted_at": "2026-10-22T08:59:00"
+  },
+  {
+   "computed_at": "2026-10-22T09:00:00",
+   "month": "2026-09",
+   "underlying": 0.406,
+   "fitted_at": "2026-10-22T08:59:00"
+  }
+ ]
+}

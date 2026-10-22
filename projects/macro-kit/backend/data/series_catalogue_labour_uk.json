@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "description": "Indicators of UK employment growth for the Labour Market Nowcast (labour_nowcast.py), following Bank of England staff's indicator-based measure of underlying employment growth (Monetary Policy Report, from May 2025): a dynamic factor model (Doz, Giannone and Reichlin, 2011) on monthly indicators from the Bank's Agents, the DMP survey, HMRC, KPMG/REC, Lloyds, the ONS and S&P Global, scaled to LFS employment growth over 2000-19.",
+    "start": "2000-01",
+    "scale_window": ["2000-01", "2019-12"],
+    "exclude": [["2020-03", "2021-06"]],
+    "field_reference": {
+      "source": "ons_lms | ons_rti | boe_agents | boe_dmp | bloomberg",
+      "transform": "level, or growth3 (% change on three months earlier)",
+      "factor": "true: enters the factor model; false: shown for comparison only",
+      "ticker_bloomberg": "Bloomberg-only surveys: set and verify the ticker on the Terminal (python scripts/probe_catalogue.py data/series_catalogue_labour_uk.json); null = not used"
+    }
+  },
+  "series": [
+    {"id": "agents_employment", "name": "Agents' employment intentions", "short": "Agents empl.", "group": "Bank surveys", "source": "boe_agents",
+     "transform": "level", "factor": true, "units": "score (-5 to +5)", "notes": "Agents' score for employment intentions over the next six months (new scores)."},
+    {"id": "agents_recruitment", "name": "Agents' recruitment difficulties", "short": "Agents recruit.", "group": "Bank surveys", "source": "boe_agents",
+     "transform": "level", "factor": true, "units": "score (-5 to +5)", "notes": "Agents' score for recruitment difficulties: a measure of labour demand relative to supply."},
+    {"id": "dmp_realised", "name": "DMP realised employment growth", "short": "DMP realised", "group": "Bank surveys", "source": "boe_dmp",
+     "transform": "level", "factor": true, "units": "% a year, 3m avg", "notes": "Decision Maker Panel: firms' employment growth over the past year (from 2017)."},
+    {"id": "dmp_expected", "name": "DMP expected employment growth", "short": "DMP expected", "group": "Bank surveys", "source": "boe_dmp",
+     "transform": "level", "factor": true, "units": "% a year, 3m avg", "notes": "Decision Maker Panel: firms' expected employment growth over the next year (from 2017)."},
+    {"id": "payrolls", "name": "HMRC payrolled employees", "short": "Payrolls", "group": "Official data", "source": "ons_rti",
+     "transform": "growth3", "factor": true, "units": "% 3m/3m", "notes": "PAYE RTI payrolled employees (from mid-2014); the latest month is a flash estimate, often revised."},
+    {"id": "vacancies", "name": "ONS vacancies", "short": "Vacancies", "group": "Official data", "source": "ons_lms",
+     "transform": "growth3", "factor": true, "units": "% 3m/3m", "notes": "ONS Vacancy Survey, three months to (from 2001)."},
+    {"id": "pmi_employment_services", "name": "S&P Global UK services PMI: employment", "short": "PMI services empl.", "group": "Private surveys", "source": "bloomberg",
+     "transform": "level", "factor": true, "ticker_bloomberg": null, "units": "index (50 = no change)", "notes": "Used by the Bank; proprietary, Bloomberg only."},
+    {"id": "pmi_employment_manufacturing", "name": "S&P Global UK manufacturing PMI: employment", "short": "PMI mfg empl.", "group": "Private surveys", "source": "bloomberg",
+     "transform": "level", "factor": true, "ticker_bloomberg": null, "units": "index (50 = no change)", "notes": "Used by the Bank; proprietary, Bloomberg only."},
+    {"id": "rec_permanent_placements", "name": "KPMG/REC permanent placements", "short": "REC perm.", "group": "Private surveys", "source": "bloomberg",
+     "transform": "level", "factor": true, "ticker_bloomberg": null, "units": "index (50 = no change)", "notes": "KPMG/REC UK Report on Jobs; used by the Bank; Bloomberg only."},
+    {"id": "rec_temporary_billings", "name": "KPMG/REC temporary billings", "short": "REC temp.", "group": "Private surveys", "source": "bloomberg",
+     "transform": "level", "factor": true, "ticker_bloomberg": null, "units": "index (50 = no change)", "notes": "KPMG/REC UK Report on Jobs; Bloomberg only."},
+    {"id": "lloyds_staffing", "name": "Lloyds Business Barometer: staffing expectations", "short": "Lloyds staffing", "group": "Private surveys", "source": "bloomberg",
+     "transform": "level", "factor": true, "ticker_bloomberg": null, "units": "net balance", "notes": "Used by the Bank; Bloomberg only."}
+  ]
+}
