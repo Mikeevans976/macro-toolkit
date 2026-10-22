@@ -15,6 +15,7 @@ export const QUANT_MACRO_CATEGORY = { id: 'quant-macro', name: 'Quant Macro' } a
 
 export const QUANT_MACRO_MODELS: QuantMacroModel[] = [
   { slug: 'uk-gdp', toolId: 'uk-gdp-nowcast', title: 'UK GDP Nowcast', country: 'GB', variable: 'growth' },
+  { slug: 'us-gdp', toolId: 'us-gdp-nowcast', title: 'US GDP Nowcast', country: 'US', variable: 'growth' },
 ]
 
 // Debt sustainability monitors (DsaPage, GET /api/tools/quant-macro/dsa/{country}).
@@ -25,4 +26,5 @@ export const DSA_COUNTRIES = [
 // Labour market nowcasts (LabourPage, GET /api/tools/quant-macro/labour/{country}).
 export const LABOUR_COUNTRIES = [
   { country: 'uk', toolId: 'uk-labour-nowcast', title: 'UK Labour Market Nowcast', flag: 'GB' as CountryCode },
+  { country: 'us', toolId: 'us-labour-nowcast', title: 'US Labour Market Nowcast', flag: 'US' as CountryCode },
 ]

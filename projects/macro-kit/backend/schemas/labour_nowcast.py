@@ -59,6 +59,9 @@ class LabourIndicator(BaseModel):
 
 
 class LabourLfsNext(BaseModel):
+    kind: Literal["growth3", "change"] = "growth3"
+    units: str = "% 3m/3m"
+    underlying: F = None
     period: str
     release: Optional[str]
     forecast: F
@@ -199,6 +202,17 @@ class LabourRun(BaseModel):
     fitted_at: str
 
 
+class LabourLabels(BaseModel):
+    target: str
+    target_short: str
+    unemployment: str
+    institution: str
+    staff: str
+    report: str
+    method: str
+    flash: Optional[str]
+
+
 class LabourNowcast(BaseModel):
     slug: str
     title: str
@@ -206,6 +220,7 @@ class LabourNowcast(BaseModel):
     as_of: str
     computed_at: str
     data_source: str
+    labels: LabourLabels
     latest: LabourLatest
     series: list[LabourPoint]
     contributions: list[LabourContribution]

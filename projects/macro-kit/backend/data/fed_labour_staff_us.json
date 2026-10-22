@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "description": "FOMC judgements on the US labour market, entered by hand: the labour-market sentence of each post-meeting statement (quoted) and, at SEP meetings, the median unemployment rate projection for Q4 of the current year. The Fed publishes no numeric 'underlying employment' measure, so underlying_value is left empty.",
+    "method": "Fed comparison: the FOMC statement's labour-market assessment and the Summary of Economic Projections median unemployment rate (Q4 average).",
+    "method_source": "FOMC statements and Summary of Economic Projections, 2026"
+  },
+  "reports": [
+    {"report": "January 2026", "data_through": "2025-12",
+     "underlying_text": "Job gains have remained low, and the unemployment rate has shown some signs of stabilization.", "underlying_value": null,
+     "unemployment": [],
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260128a.htm"},
+    {"report": "March 2026", "data_through": "2026-02",
+     "underlying_text": "Job gains have remained low, and the unemployment rate has been little changed in recent months.", "underlying_value": null,
+     "unemployment": [{"period": "2026Q4", "value": 4.4, "text": "SEP median unemployment rate, Q4 2026 (March 2026)."}],
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260318a.htm"},
+    {"report": "April 2026", "data_through": "2026-03",
+     "underlying_text": "Job gains have remained low, on average, and the unemployment rate has been little changed in recent months.", "underlying_value": null,
+     "unemployment": [],
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260429a.htm"},
+    {"report": "June 2026", "data_through": "2026-05",
+     "underlying_text": "Job gains have kept pace with the workforce, and the unemployment rate has changed little.", "underlying_value": null,
+     "unemployment": [{"period": "2026Q4", "value": 4.3, "text": "SEP median unemployment rate, Q4 2026 (June 2026)."}],
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm"},
+    {"report": "July 2026", "data_through": "2026-06",
+     "underlying_text": "Job gains have kept pace with the workforce, and the unemployment rate has changed little.", "underlying_value": null,
+     "unemployment": [],
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260729a.htm"},
+    {"report": "September 2026", "data_through": "2026-08",
+     "underlying_text": "Job gains have kept pace with the workforce, and the unemployment rate has changed little.", "underlying_value": null,
+     "unemployment": [{"period": "2026Q4", "value": 4.1, "text": "SEP median unemployment rate, Q4 2026 (September 2026)."}],
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm"}
+  ]
+}

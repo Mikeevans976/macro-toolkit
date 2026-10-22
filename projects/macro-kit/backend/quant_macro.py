@@ -52,7 +52,24 @@ MODELS: dict[str, nc.NowcastSpec] = {
         central_bank_file="central_bank_nowcasts_uk.json",
         bridge_series="pmi_comp",
     ),
+    "us-gdp": nc.NowcastSpec(
+        slug="us-gdp",
+        title="US GDP Nowcast",
+        country="US",
+        target="gdp",
+        target_label="GDP",
+        catalogue="series_catalogue_nowcast_us.json",
+        quarterly_ticker="GDP CQOQ Index",
+        central_bank_file="gdpnow",
+        bridge_series="ism_mfg",
+        target_freq="Q",
+        target_units="% q/q saar",
+        forecast_quarters=4,
+        policy_file="fomc_sep_us.json",
+        factor_orders=(("Global", 2),),
+    ),
 }
+FETCH_PUBLIC = True              # tests switch off public downloads (GDPNow)
 
 Z68, Z90 = 0.9945, 1.6449
 LIVE_REFRESH_MINUTES = 60        # with live data, re-read Bloomberg at most this often
@@ -161,7 +178,7 @@ class Fitted:
 
 
 def _frame(spec: nc.NowcastSpec, panel: nc.Panel, as_of: pd.Timestamp) -> tuple[pd.PeriodIndex, pd.DataFrame]:
-    index = pd.period_range(spec.start, nc.horizon_end(as_of), freq="M")
+    index = pd.period_range(spec.start, nc.horizon_end(as_of, spec.forecast_quarters), freq="M")
     return index, nc.model_data(spec, panel.vintage(as_of)).reindex(index)
 
 
@@ -361,7 +378,7 @@ def _evolution(m: Fitted, quarters: list[pd.Period]) -> list[dict]:
 
     Each step's change splits exactly into new releases (weight × surprise), tracked revisions
     (weight × revision) and, if any, revisions to older periods reported as one item."""
-    target = m.spec.target
+    target, freq = m.spec.target, m.spec.target_freq
     series = m.series
     start = quarters[0].start_time.normalize()
     m0, m1 = nc.quarter_months(quarters[0])[0], m.index[-1]
@@ -371,7 +388,7 @@ def _evolution(m: Fitted, quarters: list[pd.Period]) -> list[dict]:
     def snapshot(r, d, releases):
         out = {"date": _iso(d), "nowcasts": {}, "sds": {}, "by_group": {}, "releases": releases}
         for q in quarters:
-            mean, sd = nc.quarter_nowcast(r, target, q)
+            mean, sd = nc.quarter_nowcast(r, target, q, freq)
             out["nowcasts"][str(q)] = _r(mean)
             out["sds"][str(q)] = _r(sd)
         return out
@@ -381,9 +398,9 @@ def _evolution(m: Fitted, quarters: list[pd.Period]) -> list[dict]:
     for d in dates:
         cur = m.at(d)
         news = nc.compute_news(cur, prev, target, m0, m1, details_from)
-        total = nc.quarter_total_impacts(news, target, quarters)
+        total = nc.quarter_total_impacts(news, target, quarters, freq)
         releases = []
-        for (period, sid), row in nc.quarter_impacts(news, target, quarters).iterrows():
+        for (period, sid), row in nc.quarter_impacts(news, target, quarters, freq).iterrows():
             releases.append({
                 "series_id": sid, "kind": "release", "period": str(period),
                 "observed": _r(news.update_realized.get((period, sid))),
@@ -391,7 +408,7 @@ def _evolution(m: Fitted, quarters: list[pd.Period]) -> list[dict]:
                 "news": _r(news.news.get((period, sid))),
                 "impacts": {q: _r(v, 5) for q, v in row.items()},
             })
-        for (period, sid), row in nc.quarter_revision_impacts(news, target, quarters).iterrows():
+        for (period, sid), row in nc.quarter_revision_impacts(news, target, quarters, freq).iterrows():
             releases.append({
                 "series_id": sid, "kind": "revision", "period": str(period),
                 "observed": _r(news.revised.get((period, sid))),
@@ -431,7 +448,13 @@ def _catalysts(m: Fitted, quarters: list[pd.Period]) -> dict[str, dict]:
     so each weight is the impact of a surprise given everything due before it came in line."""
     target = m.spec.target
     vint = m.frame(m.as_of)
-    nxt = {c: vint[c].last_valid_index() + 1 for c in m.cols if vint[c].last_valid_index() is not None}
+    series = m.series
+
+    def next_period(c: str) -> pd.Period:          # quarterly series: the next quarter's last month
+        last = vint[c].last_valid_index()
+        return (last.asfreq("Q") + 1).asfreq("M", "end") if nc.is_quarterly(series[c]) else last + 1
+
+    nxt = {c: next_period(c) for c in m.cols if vint[c].last_valid_index() is not None}
     nxt = {c: p for c, p in nxt.items() if p <= m.index[-1]}
     if not nxt:
         return {}
@@ -451,7 +474,7 @@ def _catalysts(m: Fitted, quarters: list[pd.Period]) -> dict[str, dict]:
         for c in batch:
             frame.loc[rows[c]["period"], c] = rows[c]["expected"]
         cur = nc.apply_vintage(m.res, frame)
-        w = nc.quarter_weights(nc.compute_news(cur, prev, target, m0, m1), target, quarters)
+        w = nc.quarter_weights(nc.compute_news(cur, prev, target, m0, m1), target, quarters, m.spec.target_freq)
         for c in batch:
             key = (rows[c]["period"], c)
             rows[c]["weights"] = {str(q): float(w.loc[key, str(q)]) if key in w.index else 0.0 for q in quarters}
@@ -462,23 +485,38 @@ def _catalysts(m: Fitted, quarters: list[pd.Period]) -> dict[str, dict]:
 
 def build_payload(m: Fitted) -> dict:
     spec, panel, as_of, res = m.spec, m.panel, m.as_of, m.res
-    target = spec.target
+    target, freq = spec.target, spec.target_freq
+    quarterly = freq == "Q"
     series = m.series
     vint = panel.vintage(as_of)
     g = vint[target]
     q_now = pd.Period(as_of, "Q")
     lq = _last_released_quarter(g)
     released = list(pd.period_range(lq - 3, lq, freq="Q"))
-    unreleased = list(pd.period_range(lq + 1, q_now + 1, freq="Q"))
+    unreleased = list(pd.period_range(lq + 1, q_now + spec.forecast_quarters, freq="Q"))
 
     path_start = min(pd.Period(as_of, "M") - 24, nc.quarter_months(released[0])[0])
     months = pd.period_range(path_start, m.index[-1], freq="M")
-    mu, cov = nc.target_moments(res, target, months)
-    pos = {p: i for i, p in enumerate(months)}
+    if quarterly:                      # no monthly target: quarters come straight from the quarterly row
+        mu = cov = None
+        pos = {}
+    else:
+        mu, cov = nc.target_moments(res, target, months)
+        pos = {p: i for i, p in enumerate(months)}
 
     def q_moments(q: pd.Period) -> tuple[float, float]:
+        if quarterly:
+            return nc.quarter_nowcast(res, target, q, "Q")
         ix = [pos[p] for p in nc.quarter_months(q)]
         return float(nc.TRIANGLE @ mu[ix]), float(np.sqrt(max(nc.TRIANGLE @ cov[np.ix_(ix, ix)] @ nc.TRIANGLE, 0)))
+
+    monthly_cols = [c for c in m.cols if not nc.is_quarterly(series[c])]
+
+    def months_in(q: pd.Period) -> int:
+        qm = pd.period_range(q.asfreq("M", "start"), q.asfreq("M", "end"), freq="M")
+        if not quarterly:
+            return int(g.reindex(qm).notna().sum())
+        return int(vint[monthly_cols].reindex(qm).notna().any(axis=1).sum())
 
     q_cons = panel.calendar.get("_quarterly", {}).get("consensus")
     quarter_rows = []
@@ -489,15 +527,15 @@ def build_payload(m: Fitted) -> dict:
         quarter_rows.append({
             "quarter": str(q),
             "status": _status(q, q_now, is_rel),
-            "actual": _r(nc.triangle_qoq(g, q)) if is_rel else None,
+            "actual": _r(nc.quarter_value(g, q, freq)) if is_rel else None,
             "nowcast": None if is_rel else _r(mean),
             "sd": None if is_rel else _r(sd),
             **({k: None for k in ("lo68", "hi68", "lo90", "hi90")} if is_rel else _band(mean, sd)),
             "bridge": None if is_rel or m.bridge is None else _r(m.bridge.predict(vint, q)),
             "consensus": _r(q_cons) if (not is_rel and q == unreleased[0]) else None,
             "release_date": _iso(m.release_date(target, q.asfreq("M", "end"))),
-            "months_observed": int(g.reindex(qm).notna().sum()),
-            "months": [{
+            "months_observed": months_in(q),
+            "months": [] if quarterly else [{
                 "month": str(p),
                 "actual": _r(g.get(p)) if not pd.isna(g.get(p, np.nan)) else None,
                 "model": _r(mu[pos[p]]),
@@ -506,29 +544,41 @@ def build_payload(m: Fitted) -> dict:
         })
 
     monthly_path = []
-    for p in months[months >= pd.Period(as_of, "M") - 24]:
+    for p in ([] if quarterly else months[months >= pd.Period(as_of, "M") - 24]):
         sd = float(np.sqrt(max(cov[pos[p], pos[p]], 0)))
         actual = g.get(p, np.nan)
         monthly_path.append({"month": str(p), "actual": None if pd.isna(actual) else _r(actual),
                              "model": _r(mu[pos[p]]), **_band(float(mu[pos[p]]), sd)})
 
-    p_next = g.last_valid_index() + 1
-    nm, ns = float(mu[pos[p_next]]), float(np.sqrt(max(cov[pos[p_next], pos[p_next]], 0)))
-    q_of_next = p_next.asfreq("Q")
-    next_q = None
-    if p_next == q_of_next.asfreq("M", "end"):
-        qm_, qs_ = q_moments(q_of_next)
-        next_q = {"quarter": str(q_of_next), "model": _r(qm_), "sd": _r(qs_), **_band(qm_, qs_), "consensus": _r(q_cons)}
-    next_print = {
-        "series_id": target, "label": f"{spec.target_label} {p_next.strftime('%b %Y')} (m/m)",
-        "period": str(p_next), "release_date": _iso(m.release_date(target, p_next)),
-        "model": _r(nm), "sd": _r(ns), **_band(nm, ns),
-        "consensus": _r(panel.calendar.get(target, {}).get("consensus")),
-        "quarter": next_q,
-    }
+    if quarterly:                      # the next print is the next quarter's first estimate
+        q_next = lq + 1
+        nm, ns = q_moments(q_next)
+        p_next = q_next.asfreq("M", "end")
+        next_print = {
+            "series_id": target, "label": f"{spec.target_label} {q_next.quarter}Q {q_next.year} ({spec.target_units})",
+            "period": str(p_next), "release_date": _iso(m.release_date(target, p_next)),
+            "model": _r(nm), "sd": _r(ns), **_band(nm, ns), "consensus": _r(q_cons), "quarter": None,
+        }
+    else:
+        p_next = g.last_valid_index() + 1
+        nm, ns = float(mu[pos[p_next]]), float(np.sqrt(max(cov[pos[p_next], pos[p_next]], 0)))
+        q_of_next = p_next.asfreq("Q")
+        next_q = None
+        if p_next == q_of_next.asfreq("M", "end"):
+            qm_, qs_ = q_moments(q_of_next)
+            next_q = {"quarter": str(q_of_next), "model": _r(qm_), "sd": _r(qs_), **_band(qm_, qs_), "consensus": _r(q_cons)}
+        next_print = {
+            "series_id": target, "label": f"{spec.target_label} {p_next.strftime('%b %Y')} (m/m)",
+            "period": str(p_next), "release_date": _iso(m.release_date(target, p_next)),
+            "model": _r(nm), "sd": _r(ns), **_band(nm, ns),
+            "consensus": _r(panel.calendar.get(target, {}).get("consensus")),
+            "quarter": next_q,
+        }
 
-    evolution = _evolution(m, unreleased)
-    catalysts = _catalysts(m, unreleased)
+    # News and catalysts for the quarters up to next quarter; further-out forecasts barely move
+    tracked = [q for q in unreleased if q <= q_now + 1]
+    evolution = _evolution(m, tracked)
+    catalysts = _catalysts(m, tracked)
 
     last_news: dict[str, dict] = {}
     for step in evolution:
@@ -573,6 +623,8 @@ def build_payload(m: Fitted) -> dict:
         "title": spec.title,
         "country": spec.country,
         "target_label": spec.target_label,
+        "target_freq": freq,
+        "target_units": spec.target_units,
         "as_of": _iso(as_of),
         "computed_at": _now(),
         "data_source": panel.source,
@@ -600,14 +652,53 @@ def build_payload(m: Fitted) -> dict:
         "evolution": evolution,
         "indicators": indicators,
         "central_bank": _central_bank(m, g, unreleased, evolution, quarter_rows),
+        "policy": _policy(spec, g, quarter_rows),
     }
+
+
+def _policy(spec: nc.NowcastSpec, g: pd.Series, quarter_rows: list[dict]) -> dict | None:
+    """Policymakers' projections (FOMC SEP medians) against the model's calendar-year growth.
+
+    Annual growth is Q4 on Q4: the four quarters of the year compounded (annualised q/q rates
+    de-annualised), using outturns where published and the model's nowcasts otherwise."""
+    if not spec.policy_file:
+        return None
+    data = json.loads((nc.DATA_DIR / spec.policy_file).read_text(encoding="utf-8"))
+    by_q = {r["quarter"]: (r["actual"] if r["actual"] is not None else r["nowcast"]) for r in quarter_rows}
+    for q in pd.period_range(g.dropna().index.min().asfreq("Q"), g.dropna().index.max().asfreq("Q"), freq="Q"):
+        if str(q) not in by_q:
+            v = nc.quarter_value(g, q, spec.target_freq)
+            if v is not None:
+                by_q[str(q)] = v
+    years = []
+    for y in data["years"]:
+        qs = [f"{y}Q{i}" for i in range(1, 5)]
+        vals = [by_q.get(q) for q in qs]
+        model = None
+        if all(v is not None for v in vals):
+            if spec.target_units.endswith("saar"):
+                model = 100 * (np.prod([(1 + v / 100) ** 0.25 for v in vals]) - 1)
+            else:
+                model = 100 * (np.prod([1 + v / 100 for v in vals]) - 1)
+        outturn = sum(1 for q in qs for r in quarter_rows if r["quarter"] == q and r["actual"] is not None)
+        years.append({"year": y, "model": _r(model), "quarters_published": outturn})
+    return {**data, "model_years": years}
 
 
 def _central_bank(m: Fitted, g: pd.Series, unreleased: list[pd.Period], evolution: list[dict],
                   quarter_rows: list[dict]) -> dict | None:
     if not m.spec.central_bank_file:
         return None
-    data = json.loads((nc.DATA_DIR / m.spec.central_bank_file).read_text(encoding="utf-8"))
+    if m.spec.central_bank_file == "gdpnow":
+        if not FETCH_PUBLIC:
+            return None
+        import fed_data
+
+        data = fed_data.gdpnow(_root() / "sources" / "fed")
+        if data is None:
+            return None
+    else:
+        data = json.loads((nc.DATA_DIR / m.spec.central_bank_file).read_text(encoding="utf-8"))
     now = {r["quarter"]: r["nowcast"] for r in quarter_rows}
 
     def model_on(day: str, quarter: str) -> float | None:
@@ -617,7 +708,7 @@ def _central_bank(m: Fitted, g: pd.Series, unreleased: list[pd.Period], evolutio
     estimates = []
     for e in sorted(data["estimates"], key=lambda e: (e["published"], e["quarter"])):
         q = pd.Period(e["quarter"], "Q")
-        estimates.append({**e, "actual": _r(nc.triangle_qoq(g, q))})
+        estimates.append({**e, "actual": _r(nc.quarter_value(g, q, m.spec.target_freq))})
     comparisons = []
     for q in unreleased:
         mine = [e for e in estimates if e["quarter"] == str(q)]
@@ -647,7 +738,7 @@ def build_backtest(spec: nc.NowcastSpec, panel: nc.Panel, as_of: pd.Timestamp, p
     Every origin uses only the data public that day (first prints and revisions as published),
     and parameters re-estimated on the first day of its calendar quarter with the data public
     then. Scored against the first estimate (the print markets trade) and today's value."""
-    target = spec.target
+    target, freq = spec.target, spec.target_freq
     t0 = time.monotonic()
     g_now = panel.vintage(as_of)[target]
     lq = _last_released_quarter(g_now)
@@ -683,18 +774,18 @@ def build_backtest(spec: nc.NowcastSpec, panel: nc.Panel, as_of: pd.Timestamp, p
     rows = []
     for q in quarters:
         r = pd.Timestamp(rel[q.asfreq("M", "end")])
-        first = nc.triangle_qoq(panel.vintage(r)[target], q)
-        latest = nc.triangle_qoq(g_now, q)
+        first = nc.quarter_value(panel.vintage(r)[target], q, freq)
+        latest = nc.quarter_value(g_now, q, freq)
         dfm, bridge, naive = [], [], []
         for d in origins[q]:
             index, res, br = fits[pd.Period(d, "Q")]
             vint = panel.vintage(d)
             frame = nc.model_data(spec, vint).reindex(index)[list(res.model.endog_names)]
             out = nc.apply_vintage(res, frame)
-            dfm.append(_r(float(nc.TRIANGLE @ nc.target_means(out, target, nc.quarter_months(q)))))
+            dfm.append(_r(nc.quarter_mean(out, target, q, freq)))
             bridge.append(_r(br.predict(vint, q)) if br else None)
             gd = vint[target]
-            naive.append(_r(nc.triangle_qoq(gd, _last_released_quarter(gd))))
+            naive.append(_r(nc.quarter_value(gd, _last_released_quarter(gd), freq)))
         rows.append({"quarter": str(q), "release_date": _iso(r), "actual": _r(first), "actual_latest": _r(latest),
                      "dfm": dfm, "bridge": bridge, "naive": naive})
 

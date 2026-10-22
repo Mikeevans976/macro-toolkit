@@ -82,7 +82,8 @@ cd frontend && npm run build && cd .. && python backend/main.py
 | `debt_sustainability.py` | UK debt sustainability monitor: OBR vs market-priced baseline, live fiscal-rule headroom, gilt-by-gilt interest model, stochastic fans, scenarios |
 | `fiscal_data.py` | Public fiscal data: ONS PUSF, OBR EFO PDF parser, Bank of England yield curves and IADB, DMO gilts-in-issue reader |
 | `labour_nowcast.py` | UK Labour Market Nowcast: Bank of England staff's underlying employment growth (DGR factor model scaled to the LFS), contributions/news, next prints, GDP-implied employment, demand/supply SVAR |
-| `labour_data.py` | Public labour data: ONS LMS and PAYE RTI, Bank Agents' scores (new + historic spliced), DMP monthly workbook; Bloomberg-only surveys from the catalogue |
+| `labour_data.py` | Public labour data: ONS LMS and PAYE RTI, Bank Agents' scores (new + historic spliced), DMP monthly workbook; Bloomberg-only surveys from the catalogue; US loader (Bloomberg, else `simulate_us`) |
+| `fed_data.py` | Federal Reserve public data: Atlanta Fed GDPNow history (archive + current quarter) from its workbook |
 | `curves_flies_config.py` | Config for curves/flies tool |
 | `seasonality_backtester.py` | Seasonality backtest engine |
 | `data/series_catalogue_*.json` | Single source of truth for indicator tickers/lags per region |
@@ -186,6 +187,13 @@ Checks that hold on real data: the cut-off curves reproduce the OBR's Bank Rate 
 | Engine | `backend/labour_nowcast.py` | EM principal component (ragged panel) → AR(2) factor → Kalman filter/smoother once (state f_t, f_t-1, f_t-2 so the three-month average has an exact variance). Parameters saved (`var/labour_nowcast/uk/model.json`) and re-estimated only by Refit, so news between runs splits exactly by indicator (the smoother is linear in the data) |
 
 Pandemic months (2020-03 to 2021-06) are left out of estimation and carry no information. The unemployment projection rolls the latest LFS levels forward monthly (employment at the underlying rate, labour force at its trend). Tests run on `tests/labour_synthetic.py`, also used by `scripts/make_labour_fixture.py`.
+
+### United States
+
+The same tools for the US, on simulated data until the live pipeline is connected (FRED/ALFRED needs an API key; the fredgraph download pages reset connections from this machine; catalogues carry `fred` ids and best-guess Bloomberg tickers).
+
+- **US GDP Nowcast** (`us-gdp` in `MODELS`, catalogue `series_catalogue_nowcast_us.json`): the NY Fed Staff Nowcast / GDPNow panel with a **quarterly target** (`target_freq="Q"`, real GDP % q/q saar). Quarterly series go last in `DynamicFactorMQ` (`k_endog_monthly`), whose design row already carries the triangle, so a quarter's value is that row times the state in its last month (`nc.quarter_weights_of`). `nc.apply_vintage` must pass `k_endog_monthly` again (statsmodels' `apply()` drops it and silently treats every column as monthly). `forecast_quarters=4` runs the model four quarters ahead for the FOMC comparison; news and catalysts cover quarters up to next quarter only. GDPNow is downloaded (`central_bank_file="gdpnow"`, `qm.FETCH_PUBLIC`); the FOMC SEP medians are entered by hand in `data/fomc_sep_us.json` (`policy_file`), compared Q4/Q4.
+- **US Labour Market Nowcast** (`labour_nowcast.COUNTRIES["us"]`, catalogue `series_catalogue_labour_us.json`): the UK labour engine with a country config: underlying payroll growth from claims, JOLTS, ISM and regional Fed employment indices, ADP, Conference Board, NFIB; the next print is a monthly change in thousands; unemployment is compared as a quarterly average with the SEP. FOMC statement quotes and SEP unemployment medians in `data/fed_labour_staff_us.json`.
 
 ### Adding a model
 

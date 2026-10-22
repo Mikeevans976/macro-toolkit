@@ -4570,6 +4570,61 @@
     "title": "LabourJobs",
     "type": "object"
    },
+   "LabourLabels": {
+    "properties": {
+     "flash": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flash"
+     },
+     "institution": {
+      "title": "Institution",
+      "type": "string"
+     },
+     "method": {
+      "title": "Method",
+      "type": "string"
+     },
+     "report": {
+      "title": "Report",
+      "type": "string"
+     },
+     "staff": {
+      "title": "Staff",
+      "type": "string"
+     },
+     "target": {
+      "title": "Target",
+      "type": "string"
+     },
+     "target_short": {
+      "title": "Target Short",
+      "type": "string"
+     },
+     "unemployment": {
+      "title": "Unemployment",
+      "type": "string"
+     }
+    },
+    "required": [
+     "target",
+     "target_short",
+     "unemployment",
+     "institution",
+     "staff",
+     "report",
+     "method",
+     "flash"
+    ],
+    "title": "LabourLabels",
+    "type": "object"
+   },
    "LabourLatest": {
     "properties": {
      "boe_report": {
@@ -4708,6 +4763,15 @@
       ],
       "title": "Hi"
      },
+     "kind": {
+      "default": "growth3",
+      "enum": [
+       "growth3",
+       "change"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
      "latest": {
       "anyOf": [
        {
@@ -4781,6 +4845,22 @@
        }
       ],
       "title": "Sd"
+     },
+     "underlying": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Underlying"
+     },
+     "units": {
+      "default": "% 3m/3m",
+      "title": "Units",
+      "type": "string"
      }
     },
     "required": [
@@ -5110,6 +5190,9 @@
       "title": "Indicators",
       "type": "array"
      },
+     "labels": {
+      "$ref": "#/components/schemas/LabourLabels"
+     },
      "latest": {
       "$ref": "#/components/schemas/LabourLatest"
      },
@@ -5188,6 +5271,7 @@
      "as_of",
      "computed_at",
      "data_source",
+     "labels",
      "latest",
      "series",
      "contributions",
@@ -7376,6 +7460,16 @@
      "next_print": {
       "$ref": "#/components/schemas/NowcastNextPrint"
      },
+     "policy": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/NowcastPolicy"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
      "quarters": {
       "items": {
        "$ref": "#/components/schemas/NowcastQuarter"
@@ -7387,8 +7481,22 @@
       "title": "Slug",
       "type": "string"
      },
+     "target_freq": {
+      "default": "M",
+      "enum": [
+       "M",
+       "Q"
+      ],
+      "title": "Target Freq",
+      "type": "string"
+     },
      "target_label": {
       "title": "Target Label",
+      "type": "string"
+     },
+     "target_units": {
+      "default": "% q/q",
+      "title": "Target Units",
       "type": "string"
      },
      "title": {
@@ -8732,6 +8840,145 @@
      "hi90"
     ],
     "title": "NowcastPathPoint",
+    "type": "object"
+   },
+   "NowcastPolicy": {
+    "properties": {
+     "gdp": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "title": "Gdp",
+      "type": "object"
+     },
+     "institution": {
+      "title": "Institution",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "model_years": {
+      "items": {
+       "$ref": "#/components/schemas/NowcastPolicyYear"
+      },
+      "title": "Model Years",
+      "type": "array"
+     },
+     "previous": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/NowcastPolicyPrevious"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "published": {
+      "title": "Published",
+      "type": "string"
+     },
+     "release": {
+      "title": "Release",
+      "type": "string"
+     },
+     "unemployment": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "title": "Unemployment",
+      "type": "object"
+     },
+     "url": {
+      "title": "Url",
+      "type": "string"
+     },
+     "years": {
+      "items": {
+       "type": "integer"
+      },
+      "title": "Years",
+      "type": "array"
+     }
+    },
+    "required": [
+     "institution",
+     "label",
+     "release",
+     "published",
+     "url",
+     "years",
+     "gdp",
+     "unemployment",
+     "model_years"
+    ],
+    "title": "NowcastPolicy",
+    "type": "object"
+   },
+   "NowcastPolicyPrevious": {
+    "properties": {
+     "gdp": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "title": "Gdp",
+      "type": "object"
+     },
+     "release": {
+      "title": "Release",
+      "type": "string"
+     },
+     "unemployment": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "title": "Unemployment",
+      "type": "object"
+     },
+     "url": {
+      "title": "Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "release",
+     "url",
+     "gdp",
+     "unemployment"
+    ],
+    "title": "NowcastPolicyPrevious",
+    "type": "object"
+   },
+   "NowcastPolicyYear": {
+    "properties": {
+     "model": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model"
+     },
+     "quarters_published": {
+      "title": "Quarters Published",
+      "type": "integer"
+     },
+     "year": {
+      "title": "Year",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "year",
+     "model",
+     "quarters_published"
+    ],
+    "title": "NowcastPolicyYear",
     "type": "object"
    },
    "NowcastQuarter": {

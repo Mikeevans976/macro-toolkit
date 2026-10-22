@@ -3114,6 +3114,25 @@ export interface components {
             refit: components["schemas"]["LabourJob"];
             update: components["schemas"]["LabourJob"];
         };
+        /** LabourLabels */
+        LabourLabels: {
+            /** Flash */
+            flash: string | null;
+            /** Institution */
+            institution: string;
+            /** Method */
+            method: string;
+            /** Report */
+            report: string;
+            /** Staff */
+            staff: string;
+            /** Target */
+            target: string;
+            /** Target Short */
+            target_short: string;
+            /** Unemployment */
+            unemployment: string;
+        };
         /** LabourLatest */
         LabourLatest: {
             /** Boe Report */
@@ -3143,6 +3162,12 @@ export interface components {
             forecast: number | null;
             /** Hi */
             hi: number | null;
+            /**
+             * Kind
+             * @default growth3
+             * @enum {string}
+             */
+            kind: "growth3" | "change";
             /** Latest */
             latest: number | null;
             /** Latest Period */
@@ -3159,6 +3184,13 @@ export interface components {
             release: string | null;
             /** Sd */
             sd: number | null;
+            /** Underlying */
+            underlying?: number | null;
+            /**
+             * Units
+             * @default % 3m/3m
+             */
+            units: string;
         };
         /** LabourModel */
         LabourModel: {
@@ -3235,6 +3267,7 @@ export interface components {
             gdp_implied: components["schemas"]["LabourGdpImplied"] | null;
             /** Indicators */
             indicators: components["schemas"]["LabourIndicator"][];
+            labels: components["schemas"]["LabourLabels"];
             latest: components["schemas"]["LabourLatest"];
             model: components["schemas"]["LabourModel"];
             news?: components["schemas"]["LabourNews"] | null;
@@ -3836,12 +3869,24 @@ export interface components {
             /** Monthly Path */
             monthly_path: components["schemas"]["NowcastPathPoint"][];
             next_print: components["schemas"]["NowcastNextPrint"];
+            policy?: components["schemas"]["NowcastPolicy"] | null;
             /** Quarters */
             quarters: components["schemas"]["NowcastQuarter"][];
             /** Slug */
             slug: string;
+            /**
+             * Target Freq
+             * @default M
+             * @enum {string}
+             */
+            target_freq: "M" | "Q";
             /** Target Label */
             target_label: string;
+            /**
+             * Target Units
+             * @default % q/q
+             */
+            target_units: string;
             /** Title */
             title: string;
         };
@@ -4167,6 +4212,56 @@ export interface components {
             model: number | null;
             /** Month */
             month: string;
+        };
+        /** NowcastPolicy */
+        NowcastPolicy: {
+            /** Gdp */
+            gdp: {
+                [key: string]: number;
+            };
+            /** Institution */
+            institution: string;
+            /** Label */
+            label: string;
+            /** Model Years */
+            model_years: components["schemas"]["NowcastPolicyYear"][];
+            previous?: components["schemas"]["NowcastPolicyPrevious"] | null;
+            /** Published */
+            published: string;
+            /** Release */
+            release: string;
+            /** Unemployment */
+            unemployment: {
+                [key: string]: number;
+            };
+            /** Url */
+            url: string;
+            /** Years */
+            years: number[];
+        };
+        /** NowcastPolicyPrevious */
+        NowcastPolicyPrevious: {
+            /** Gdp */
+            gdp: {
+                [key: string]: number;
+            };
+            /** Release */
+            release: string;
+            /** Unemployment */
+            unemployment: {
+                [key: string]: number;
+            };
+            /** Url */
+            url: string;
+        };
+        /** NowcastPolicyYear */
+        NowcastPolicyYear: {
+            /** Model */
+            model: number | null;
+            /** Quarters Published */
+            quarters_published: number;
+            /** Year */
+            year: number;
         };
         /** NowcastQuarter */
         NowcastQuarter: {

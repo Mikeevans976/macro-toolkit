@@ -131,6 +131,12 @@ categories:
       - id: uk-labour-nowcast
         name: UK Labour Market Nowcast
         url: /tools/uk-labour-nowcast
+      - id: us-gdp-nowcast
+        name: US GDP Nowcast
+        url: /tools/us-gdp-nowcast
+      - id: us-labour-nowcast
+        name: US Labour Market Nowcast
+        url: /tools/us-labour-nowcast
       - id: uk-debt-sustainability
         name: UK Debt Sustainability
         url: /tools/uk-debt-sustainability

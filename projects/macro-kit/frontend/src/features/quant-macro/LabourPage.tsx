@@ -8,14 +8,15 @@ import { LABOUR_GROUP_COLOR, type Labour, type LabourJob, type LabourStatus } fr
 import { QUANT_MACRO_CATEGORY } from './models'
 import { BG, button, card, monthLabel, num, sectionLabel, signColor, signed, stampLabel, td, tdText, th } from './ui'
 
-// UK Labour Market Nowcast: Bank of England staff's underlying employment growth measure,
-// rebuilt. The backend (labour_nowcast.py) does all the modelling; this page renders it.
+// Labour Market Nowcasts (UK, US): Bank of England staff's underlying employment growth
+// measure, rebuilt (and applied to US payrolls). The backend (labour_nowcast.py) does all the
+// modelling; this page renders it, with country wording from the payload's labels.
 
 const TABS = [
   { id: 'underlying', label: 'Underlying employment' },
   { id: 'contributions', label: 'Contributions & news' },
   { id: 'prints', label: 'Next prints' },
-  { id: 'boe', label: 'Bank of England' },
+  { id: 'boe', label: 'Central bank' },
   { id: 'model', label: 'Indicators & model' },
 ] as const
 type Tab = (typeof TABS)[number]['id']
@@ -23,10 +24,10 @@ const RANGES = [{ id: '2005-01', label: 'Since 2005' }, { id: '2015-01', label: 
 
 const pp = (x: number | null | undefined, d = 2) => (x == null ? '—' : `${signed(x, d)}%`)
 
-function Tabs({ value, onChange }: { value: Tab; onChange: (t: Tab) => void }) {
+function Tabs({ value, onChange, institution }: { value: Tab; onChange: (t: Tab) => void; institution: string }) {
   return (
     <div role="tablist" style={{ display: 'flex', gap: 4, borderBottom: `1px solid ${line}`, flexWrap: 'wrap' }}>
-      {TABS.map(t => (
+      {TABS.map(t => ({ ...t, label: t.id === 'boe' ? institution : t.label })).map(t => (
         <button key={t.id} role="tab" aria-selected={t.id === value} onClick={() => onChange(t.id)}
           style={{
             background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px', fontSize: 12,
@@ -99,35 +100,65 @@ function Underlying({ data }: { data: Labour }) {
   const lfs = data.next_prints.lfs_employment
   const pay = data.next_prints.payrolls
   const change = l.underlying != null && l.three_months_ago != null ? l.underlying - l.three_months_ago : null
+  const L = data.labels
+  const uk = data.country === 'GB'
+  const sep = data.next_prints.unemployment.find(u => u.boe)?.boe
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={grid(190)}>
         <Stat label={`Underlying employment growth, ${monthLabel(l.month)}`} value={pp(l.underlying)} color={signColor(l.underlying, 0.02)}
           sub={<>3m on 3m · 95% band {num(l.lo, 2)} to {num(l.hi, 2)}</>} />
         <Stat label="Change over three months" value={change == null ? '—' : `${signed(change, 2)}pp`} sub={<>From {pp(l.three_months_ago)}</>} />
-        <Stat label={`LFS employment, 3 months to ${monthLabel(lfs.latest_period)}`} value={pp(lfs.latest)}
-          sub={<>Official; the Bank puts less weight on it while LFS samples are small</>} />
-        <Stat label={`HMRC payrolls, ${monthLabel(pay?.latest_period ?? l.month)}`} value={pp(pay?.latest_growth3)}
-          sub={<>3m on 3m · latest month {pay?.latest_change_k == null ? '—' : `${signed(pay.latest_change_k, 1)}k`} (flash)</>} />
-        <Stat label={`Bank staff, ${l.boe_report ?? '—'} MPR`} value={l.boe_value == null ? '—' : pp(l.boe_value, 1)}
-          sub={<>"{l.boe_text}"</>} />
+        {uk ? (
+          <Stat label={`LFS employment, 3 months to ${monthLabel(lfs.latest_period)}`} value={pp(lfs.latest)}
+            sub={<>Official; the Bank puts less weight on it while LFS samples are small</>} />
+        ) : (
+          <Stat label={`${L.target}, ${monthLabel(lfs.latest_period)}`} value={lfs.latest == null ? '—' : `${signed(lfs.latest, 0)}k`}
+            sub={<>Monthly change, thousands · {pp(data.series.find(s => s.month === lfs.latest_period)?.lfs)} 3m/3m</>} />
+        )}
+        {pay ? (
+          <Stat label={`${L.flash}, ${monthLabel(pay.latest_period)}`} value={pp(pay.latest_growth3)}
+            sub={<>3m on 3m · latest month {pay.latest_change_k == null ? '—' : `${signed(pay.latest_change_k, 1)}k`} (flash)</>} />
+        ) : (
+          <Stat label={`${L.unemployment}, ${monthLabel(data.next_prints.unemployment_latest.period)}`}
+            value={`${num(data.next_prints.unemployment_latest.value, 1)}%`} sub={<>Household survey</>} />
+        )}
+        {uk ? (
+          <Stat label={`Bank staff, ${l.boe_report ?? '—'} MPR`} value={l.boe_value == null ? '—' : pp(l.boe_value, 1)}
+            sub={<>"{l.boe_text}"</>} />
+        ) : (
+          <Stat label={`${L.staff}, ${l.boe_report ?? '—'}`} value={sep ? `${num(sep.value, 1)}%` : '—'}
+            sub={<>SEP unemployment, Q4 · "{l.boe_text}"</>} />
+        )}
       </div>
       <div style={card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
           <div style={sectionLabel}>Employment growth, % three months on three months</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <Toggle label="Payrolls" value={payrolls ? 'on' : 'off'} onChange={v => setPayrolls(v === 'on')}
-              options={[{ id: 'on', label: 'With payrolls' }, { id: 'off', label: 'Without' }]} />
+            {L.flash && <Toggle label="Payrolls" value={payrolls ? 'on' : 'off'} onChange={v => setPayrolls(v === 'on')}
+              options={[{ id: 'on', label: 'With payrolls' }, { id: 'off', label: 'Without' }]} />}
             <Toggle label="Range" value={from} onChange={setFrom} options={RANGES} />
           </div>
         </div>
-        <UnderlyingChart series={data.series} staff={data.staff} from={from} showPayrolls={payrolls} />
-        <p style={note}>
-          Underlying growth is the common component of {data.model.n_indicators} monthly indicators (dynamic factor model, Doz, Giannone and Reichlin 2011),
-          scaled to LFS employment growth over {data.model.scale_window.join(' to ')}, as Bank staff do. Diamonds: Bank staff's judgement in each
-          Monetary Policy Report, read from its text (the Bank publishes the measure as a chart only). Dashed: the factor's projection to the next prints.
-          {data.model.missing > 0 && <> {data.model.missing} of the Bank's survey series are Bloomberg-only and not in this estimate (Indicators & model tab).</>}
-        </p>
+        <UnderlyingChart series={data.series} staff={data.staff} from={from} showPayrolls={payrolls}
+          labels={{ target: L.target, flash: L.flash ?? null, staff: L.staff }} />
+        {uk ? (
+          <p style={note}>
+            Underlying growth is the common component of {data.model.n_indicators} monthly indicators (dynamic factor model, Doz, Giannone and Reichlin 2011),
+            scaled to LFS employment growth over {data.model.scale_window.join(' to ')}, as Bank staff do. Diamonds: Bank staff's judgement in each
+            Monetary Policy Report, read from its text (the Bank publishes the measure as a chart only). Dashed: the factor's projection to the next prints.
+            {data.model.missing > 0 && <> {data.model.missing} of the Bank's survey series are Bloomberg-only and not in this estimate (Indicators & model tab).</>}
+          </p>
+        ) : (
+          <p style={note}>
+            Underlying growth is the common component of {data.model.n_indicators} monthly labour indicators (dynamic factor model, Doz, Giannone and
+            Reichlin 2011), scaled to {L.target.toLowerCase()} growth over {data.model.scale_window.join(' to ')}: the Bank of England staff's method
+            applied to US data (the Fed publishes no such measure). Dashed: the factor's projection to the next prints.
+          </p>
+        )}
+        {data.data_source === 'simulation' && (
+          <p style={{ ...note, color: warn }}>Simulated data: the live pipeline for these series is not connected yet.</p>
+        )}
       </div>
     </div>
   )
@@ -201,9 +232,23 @@ function Prints({ data }: { data: Labour }) {
   const np = data.next_prints
   const lfs = np.lfs_employment
   const pay = np.payrolls
+  const L = data.labels
+  const uk = data.country === 'GB'
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={grid(260)}>
+        {lfs.kind === 'change' ? (
+          <div style={card}>
+            <div style={sectionLabel}>{L.target}, {monthLabel(lfs.period)}</div>
+            <div style={{ fontFamily: fontNum, fontSize: 24, color: fg[1] }}>{lfs.forecast == null ? '—' : `${signed(lfs.forecast, 0)}k`}</div>
+            <p style={note}>95% range {signed(lfs.lo, 0)}k to {signed(lfs.hi, 0)}k · release {lfs.release ?? '—'}</p>
+            <p style={{ ...note, marginTop: 6 }}>
+              Previous print {lfs.latest == null ? '—' : `${signed(lfs.latest, 0)}k`} ({monthLabel(lfs.latest_period)}). Underlying growth of {pp(lfs.underlying)} 3m/3m,
+              spread over three months; the range adds the month-to-month noise of the published change (s.d. {num(lfs.noise_sd, 0)}k;
+              {' '}{num(lfs.noise_sd_2000_19, 0)}k over 2000–19).
+            </p>
+          </div>
+        ) : (
         <div style={card}>
           <div style={sectionLabel}>LFS employment, 3 months to {monthLabel(lfs.period)}</div>
           <div style={{ fontFamily: fontNum, fontSize: 24, color: fg[1] }}>{pp(lfs.forecast)}</div>
@@ -213,21 +258,24 @@ function Prints({ data }: { data: Labour }) {
             {num(lfs.noise_sd, 2)}pp ({num(lfs.noise_sd_2000_19, 2)}pp over 2000–19).
           </p>
         </div>
+        )}
+        {pay && (
         <div style={card}>
-          <div style={sectionLabel}>HMRC payrolls flash, {pay ? monthLabel(pay.period) : '—'}</div>
+          <div style={sectionLabel}>{L.flash} flash, {pay ? monthLabel(pay.period) : '—'}</div>
           <div style={{ fontFamily: fontNum, fontSize: 24, color: fg[1] }}>{pay?.change_k == null ? '—' : `${signed(pay.change_k, 1)}k`}</div>
           <p style={note}>95% range {pay ? `${signed(pay.lo_k, 0)}k to ${signed(pay.hi_k, 0)}k` : '—'} · 3m/3m {pp(pay?.growth3)}</p>
           <p style={{ ...note, marginTop: 6 }}>Latest {pay?.latest_change_k == null ? '—' : `${signed(pay.latest_change_k, 1)}k`} ({pay ? monthLabel(pay.latest_period) : '—'}, flash). Released with the LFS.</p>
         </div>
+        )}
       </div>
       <div style={{ ...card, overflowX: 'auto' }}>
-        <div style={sectionLabel}>LFS unemployment rate: projections against the Bank's</div>
+        <div style={sectionLabel}>{L.unemployment}: projections against the {uk ? "Bank's" : 'FOMC SEP'}</div>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Quarter', 'This model', '95% range', 'Underlying employment growth', 'Bank staff', 'MPR'].map((h, i) =>
+          <thead><tr>{['Quarter', 'This model', '95% range', 'Underlying employment growth', uk ? 'Bank staff' : 'SEP median', uk ? 'MPR' : 'Meeting'].map((h, i) =>
             <th key={h} style={{ ...th, textAlign: i ? 'right' : 'left' }}>{h}</th>)}</tr></thead>
           <tbody>
             <tr>
-              <td style={tdText}>3 months to {monthLabel(np.unemployment_latest.period)} (latest)</td>
+              <td style={tdText}>{uk ? '3 months to ' : ''}{monthLabel(np.unemployment_latest.period)} (latest)</td>
               <td style={td}>{num(np.unemployment_latest.value, 1)}%</td><td style={td} /><td style={td} /><td style={td} /><td style={td} />
             </tr>
             {np.unemployment.map(u => (
@@ -243,9 +291,13 @@ function Prints({ data }: { data: Labour }) {
           </tbody>
         </table>
         <p style={{ ...note, marginTop: 8 }}>
-          From the latest LFS levels, employment grows at the underlying rate and the labour force at its trend over the past year
-          ({pp(np.labour_force_growth)} 3m/3m). The range reflects uncertainty in underlying employment only. The Bank's projections were made with
-          earlier data.
+          {uk
+            ? <>From the latest LFS levels, employment grows at the underlying rate and the labour force at its trend over the past year
+              ({pp(np.labour_force_growth)} 3m/3m). The range reflects uncertainty in underlying employment only. The Bank's projections were made with
+              earlier data.</>
+            : <>Quarterly averages of the monthly rate, as in the SEP. From the latest household-survey levels, employment grows at the underlying
+              rate and the labour force at its trend over the past year ({pp(np.labour_force_growth)} 3m/3m). The range reflects uncertainty in
+              underlying employment only. The SEP median is for Q4.</>}
         </p>
       </div>
     </div>
@@ -256,12 +308,13 @@ function Prints({ data }: { data: Labour }) {
 
 function Boe({ data }: { data: Labour }) {
   const at = Object.fromEntries(data.series.map(s => [s.month, s.underlying]))
+  const uk = data.country === 'GB'
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ ...card, overflowX: 'auto' }}>
-        <div style={sectionLabel}>Bank staff's judgement in each Monetary Policy Report</div>
+        <div style={sectionLabel}>{uk ? "Bank staff's judgement in each Monetary Policy Report" : "The FOMC's labour-market assessment at each meeting"}</div>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Report', 'Staff judgement on underlying employment', 'Read as', 'This model', 'Unemployment projections'].map((h, i) =>
+          <thead><tr>{[uk ? 'Report' : 'Meeting', uk ? 'Staff judgement on underlying employment' : 'Statement', 'Read as', 'This model', 'Unemployment projections'].map((h, i) =>
             <th key={h} style={{ ...th, textAlign: i === 0 || i === 1 || i === 4 ? 'left' : 'right' }}>{h}</th>)}</tr></thead>
           <tbody>
             {[...data.staff].reverse().map(r => (
@@ -276,7 +329,9 @@ function Boe({ data }: { data: Labour }) {
           </tbody>
         </table>
         <p style={{ ...note, marginTop: 8 }}>
-          "This model" is today's estimate for the month the Bank's chart ended, with data published since. The Bank's method: {data.staff_method}
+          {uk
+            ? <>"This model" is today's estimate for the month the Bank's chart ended, with data published since. The Bank's method: {data.staff_method}</>
+            : <>"This model" is today's estimate for the month before each meeting, with data published since. {data.staff_method}</>}
         </p>
       </div>
       <div style={grid(420)}>
@@ -285,9 +340,10 @@ function Boe({ data }: { data: Labour }) {
             <div style={sectionLabel}>Employment growth implied by GDP momentum (% q/q)</div>
             <GdpImpliedChart g={data.gdp_implied} />
             <p style={note}>
-              As in the Bank's chart: underlying employment growth regressed on {data.gdp_implied.lags} lags of quarterly GDP growth
-              ({data.gdp_implied.sample}, R² {num(data.gdp_implied.r2, 2)}). GDP data to {data.gdp_implied.latest_gdp_quarter}. When employment runs below
-              the GDP-implied path, the Bank has read it as cost pressures (NICs, NLW) weighing on hiring.
+              {uk ? "As in the Bank's chart" : "The Bank of England's chart applied to US data"}: underlying employment growth regressed on{' '}
+              {data.gdp_implied.lags} lags of quarterly GDP growth ({data.gdp_implied.sample}, R² {num(data.gdp_implied.r2, 2)}). GDP data to{' '}
+              {data.gdp_implied.latest_gdp_quarter}.
+              {uk && <> When employment runs below the GDP-implied path, the Bank has read it as cost pressures (NICs, NLW) weighing on hiring.</>}
             </p>
           </div>
         )}
@@ -296,7 +352,8 @@ function Boe({ data }: { data: Labour }) {
             <div style={sectionLabel}>Labour demand and supply behind employment growth (pp)</div>
             <SvarChart svar={data.svar} />
             <p style={note}>
-              As in the April 2026 MPR: a bivariate structural VAR in underlying employment and real AWE growth ({data.svar.sample}, {data.svar.lags} lags),
+              {uk ? 'As in the April 2026 MPR' : 'The April 2026 MPR method applied to US data'}: a bivariate structural VAR in underlying employment and
+              real {uk ? 'AWE' : 'average hourly earnings'} growth ({data.svar.sample}, {data.svar.lags} lags),
               identified by sign restrictions. Demand moves employment and real wages the same way, supply in opposite directions
               ({data.svar.accepted} admissible rotations; the one closest to their median is used).
             </p>
@@ -311,6 +368,7 @@ function Boe({ data }: { data: Labour }) {
 
 function Model({ data }: { data: Labour }) {
   const m = data.model
+  const uk = data.country === 'GB'
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ ...card, overflowX: 'auto' }}>
@@ -337,8 +395,11 @@ function Model({ data }: { data: Labour }) {
         </table>
         {m.missing > 0 && (
           <p style={{ ...note, marginTop: 8 }}>
-            Greyed rows are in the Bank's model but only on Bloomberg (S&P Global PMI, KPMG/REC, Lloyds). Set their tickers in
-            backend/data/series_catalogue_labour_uk.json, check them on the Terminal, and Refit with Bloomberg as the data source to add them.
+            {uk
+              ? <>Greyed rows are in the Bank's model but only on Bloomberg (S&P Global PMI, KPMG/REC, Lloyds). Set their tickers in
+                backend/data/series_catalogue_labour_uk.json, check them on the Terminal, and Refit with Bloomberg as the data source to add them.</>
+              : <>Greyed rows have no data from the live source yet. Set their tickers (or FRED ids, once that pipeline is connected) in
+                backend/data/series_catalogue_labour_us.json and Refit.</>}
           </p>
         )}
       </div>
@@ -351,11 +412,11 @@ function Model({ data }: { data: Labour }) {
           <div style={sectionLabel}>Model</div>
           <div style={{ display: 'grid', gap: 8 }}>
             <p style={p}><b style={{ color: fg[1] }}>Factor.</b> Indicators standardised; first principal component by EM (the panel is ragged:
-              DMP from 2017, payrolls from 2014); AR(2) factor ({num(m.phi[0], 2)}, {num(m.phi[1], 2)}); then the Kalman filter and smoother once
+              {uk ? ' DMP from 2017, payrolls from 2014' : ' JOLTS from December 2000, Empire State from 2001'}); AR(2) factor ({num(m.phi[0], 2)}, {num(m.phi[1], 2)}); then the Kalman filter and smoother once
               on all the data. Months {m.exclude.map(w => w.join(' to ')).join(', ')} are left out of estimation and carry no information.</p>
-            <p style={p}><b style={{ color: fg[1] }}>Scaling.</b> LFS employment growth (3m/3m) = {num(m.a, 3)} + {num(m.b, 3)} × three-month average
-              of the factor over {m.scale_window.join(' to ')} (R² {num(m.r2, 2)}, residual s.d. {num(m.resid_sd, 2)}pp; the LFS is noisy month to
-              month, and the factor is meant to look through that noise).</p>
+            <p style={p}><b style={{ color: fg[1] }}>Scaling.</b> {data.labels.target} growth (3m/3m) = {num(m.a, 3)} + {num(m.b, 3)} × three-month average
+              of the factor over {m.scale_window.join(' to ')} (R² {num(m.r2, 2)}, residual s.d. {num(m.resid_sd, 2)}pp; the published series is
+              noisy month to month, and the factor is meant to look through that noise).</p>
             <p style={p}><b style={{ color: fg[1] }}>Updating.</b> New data run through the saved parameters (fitted {stampLabel(m.fitted_at)} on data to{' '}
               {monthLabel(m.data_through)}), so news between runs is attributable. Refit re-estimates them.</p>
           </div>
@@ -428,9 +489,9 @@ export default function LabourPage({ country = 'uk' }: { country?: string }) {
     <div style={{ background: BG, minHeight: '100vh' }}>
       <header style={{ ...headerBar, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 24px', flexWrap: 'wrap' }}>
         <PageTitle category={QUANT_MACRO_CATEGORY.name} categoryId={QUANT_MACRO_CATEGORY.id}
-          flag={<CountryFlag country="GB" height={14} />}
-          title="UK Labour Market Nowcast"
-          subtitle={data ? <>Bank of England staff method · {data.model.n_indicators} indicators · data to {monthLabel(data.latest.month)}</> : 'Underlying employment growth'} />
+          flag={<CountryFlag country={country === 'us' ? 'US' : 'GB'} height={14} />}
+          title={data?.title ?? (country === 'us' ? 'US Labour Market Nowcast' : 'UK Labour Market Nowcast')}
+          subtitle={data ? <>{data.labels.method} · {data.model.n_indicators} indicators · data to {monthLabel(data.latest.month)}</> : 'Underlying employment growth'} />
         {data && <Controls status={status} onRefresh={() => post('/refresh')} onRefit={() => post('/refit')} />}
       </header>
       <main style={{ padding: '20px 24px' }}>
@@ -438,7 +499,7 @@ export default function LabourPage({ country = 'uk' }: { country?: string }) {
         {!data && !error && <div style={{ color: fg[3], fontSize: 13 }}>Loading (the first run downloads the data and fits the model, about a minute)…</div>}
         {data && (
           <div style={{ display: 'grid', gap: 16 }}>
-            <Tabs value={tab} onChange={setTab} />
+            <Tabs value={tab} onChange={setTab} institution={data.labels.institution} />
             {tab === 'underlying' && <Underlying data={data} />}
             {tab === 'contributions' && <Contributions data={data} />}
             {tab === 'prints' && <Prints data={data} />}

@@ -4,7 +4,17 @@
  "country": "GB",
  "as_of": "2026-10-22",
  "computed_at": "2026-10-22T09:00:00",
- "data_source": "bloomberg",
+ "data_source": "live",
+ "labels": {
+  "target": "LFS employment",
+  "target_short": "LFS",
+  "unemployment": "LFS unemployment rate",
+  "institution": "Bank of England",
+  "staff": "Bank staff",
+  "report": "MPR",
+  "method": "Bank of England staff method",
+  "flash": "HMRC payrolls"
+ },
  "latest": {
   "month": "2026-09",
   "underlying": 0.406,
@@ -3078,6 +3088,8 @@
  ],
  "next_prints": {
   "lfs_employment": {
+   "kind": "growth3",
+   "units": "% 3m/3m",
    "period": "2026-08",
    "release": "17 November 2026",
    "forecast": 0.372,
@@ -3087,7 +3099,8 @@
    "latest_period": "2026-07",
    "latest": -0.006,
    "noise_sd": 0.201,
-   "noise_sd_2000_19": 0.201
+   "noise_sd_2000_19": 0.201,
+   "underlying": 0.372
   },
   "unemployment": [
    {

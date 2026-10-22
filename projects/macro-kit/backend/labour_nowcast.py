@@ -40,10 +40,33 @@ from settings import settings
 
 logger = logging.getLogger(__name__)
 
-COUNTRIES = {"uk": {"title": "UK Labour Market Nowcast", "country": "GB"}}
+COUNTRIES = {
+    "uk": {
+        "title": "UK Labour Market Nowcast", "country": "GB", "loader": "uk",
+        "catalogue": "series_catalogue_labour_uk.json", "staff": "boe_labour_staff_uk.json",
+        # LFS series are three-month averages: the quarter's value is its last month
+        "target": "lfs_employment", "employment": "lfs_employment", "active": "lfs_active",
+        "unemployment": "lfs_unemployment_rate", "real_wage": "real_awe", "flash": "payrolls",
+        "next_print": "growth3", "quarter_average": False, "gdp": "uk",
+        "labels": {"target": "LFS employment", "target_short": "LFS", "unemployment": "LFS unemployment rate",
+                   "institution": "Bank of England", "staff": "Bank staff", "report": "MPR",
+                   "method": "Bank of England staff method", "flash": "HMRC payrolls"},
+    },
+    "us": {
+        "title": "US Labour Market Nowcast", "country": "US", "loader": "us",
+        "catalogue": "series_catalogue_labour_us.json", "staff": "fed_labour_staff_us.json",
+        # Payrolls are monthly levels; the unemployment rate is compared as a quarterly average (SEP)
+        "target": "payrolls", "employment": "household_employment", "active": "labour_force",
+        "unemployment": "unemployment_rate", "real_wage": "real_ahe", "flash": None,
+        "next_print": "change", "quarter_average": True, "gdp": "us",
+        "labels": {"target": "Nonfarm payrolls", "target_short": "Payrolls", "unemployment": "Unemployment rate",
+                   "institution": "Federal Reserve", "staff": "FOMC", "report": "FOMC statement",
+                   "method": "Bank of England-style factor model on US labour indicators", "flash": None},
+    },
+}
 ROOT: Path | None = None             # tests point this at a temporary directory
-INPUTS = None                        # tests: a function returning ld.LabourData (no downloads)
-QUARTERLY = None                     # tests: a function returning the quarterly GDP history
+INPUTS = None                        # tests: slug -> ld.LabourData (no downloads)
+QUARTERLY = None                     # tests: slug -> quarterly GDP growth (% q/q)
 HISTORY_KEPT = 400
 Z95 = 1.959964
 
@@ -389,10 +412,11 @@ def _quarter_end(m: pd.Period) -> bool:
 
 def build(slug: str, data: ld.LabourData, gdp_q: pd.Series | None, params: Params | None, refit: bool,
           progress=lambda s: None) -> tuple[dict, Params]:
-    cat = ld.catalogue()
-    staff = ld.staff_judgements()
+    cfg = COUNTRIES[slug]
+    cat = ld.catalogue(cfg["catalogue"])
+    staff = ld.staff_judgements(cfg["staff"])
     mo = data.monthly
-    lfs = ld.lfs_growth(mo)
+    lfs = ld.transform(mo[cfg["target"]], "growth3")          # the target's 3m/3m growth (%)
     last_lfs = lfs.dropna().index.max()
     # horizon: the next LFS print and the two quarters after the latest LFS quarter
     q_ends = [m for m in pd.period_range(last_lfs + 1, last_lfs + 6, freq="M") if _quarter_end(m)][:2]
@@ -425,39 +449,74 @@ def build(slug: str, data: ld.LabourData, gdp_q: pd.Series | None, params: Param
     k_next = pos[last_lfs + 1]
     recent = (lfs - pd.Series(under, index=idx)).dropna().loc[str(last_lfs - 23):]
     noise = max(params.resid_sd, float(recent.std()) if len(recent) > 6 else 0.0)
-    lfs_next = {
-        "period": str(last_lfs + 1), "release": data.sources["lms"].next_release if "lms" in data.sources else None,
-        "forecast": _r(under[k_next]), "sd": _r(math.hypot(under_sd[k_next], noise)),
-        "lo": _r(under[k_next] - Z95 * math.hypot(under_sd[k_next], noise)), "hi": _r(under[k_next] + Z95 * math.hypot(under_sd[k_next], noise)),
-        "latest_period": str(last_lfs), "latest": _r(lfs[last_lfs]), "noise_sd": _r(noise), "noise_sd_2000_19": _r(params.resid_sd),
-    }
+    release = next((s_.next_release for s_ in data.sources.values() if s_.next_release), None)
+    if release is None and cfg["next_print"] == "change":
+        # BLS Employment Situation: usually the first Friday of the month after the reference month
+        first = (last_lfs + 2).start_time
+        release = (first + pd.Timedelta(days=(4 - first.dayofweek) % 7)).strftime("%d %B %Y") + " (typical)"
+    if cfg["next_print"] == "change":
+        # monthly change (thousands): the underlying 3m/3m rate spread over three months, plus
+        # the month-to-month noise of the published change around it
+        lvl = mo[cfg["target"]]
+        implied = lvl.shift(1) * pd.Series(under, index=idx).reindex(lvl.index) / 300
+        chg = lvl.diff()
+        resid = (chg - implied).dropna()
+        resid = resid[~_excluded(resid.index, cat["_meta"]["exclude"])]
+        lo_w, hi_w = cat["_meta"]["scale_window"]
+        sd_hist = float(resid.loc[lo_w:hi_w].std()) if len(resid.loc[lo_w:hi_w]) > 12 else float(resid.std())
+        sd_recent = float(resid.iloc[-24:].std()) if len(resid) > 30 else sd_hist
+        noise_c = max(sd_hist, sd_recent)
+        base = float(lvl[last_lfs])
+        mean_c = base * under[k_next] / 300
+        sd_c = math.hypot(base * under_sd[k_next] / 300, noise_c)
+        lfs_next = {
+            "kind": "change", "units": "000s", "period": str(last_lfs + 1), "release": release,
+            "forecast": _r(mean_c, 1), "sd": _r(sd_c, 1), "lo": _r(mean_c - Z95 * sd_c, 1), "hi": _r(mean_c + Z95 * sd_c, 1),
+            "latest_period": str(last_lfs), "latest": _r(chg.get(last_lfs), 1), "noise_sd": _r(noise_c, 1),
+            "noise_sd_2000_19": _r(sd_hist, 1), "underlying": _r(under[k_next]),
+        }
+    else:
+        lfs_next = {
+            "kind": "growth3", "units": "% 3m/3m", "period": str(last_lfs + 1), "release": release,
+            "forecast": _r(under[k_next]), "sd": _r(math.hypot(under_sd[k_next], noise)),
+            "lo": _r(under[k_next] - Z95 * math.hypot(under_sd[k_next], noise)), "hi": _r(under[k_next] + Z95 * math.hypot(under_sd[k_next], noise)),
+            "latest_period": str(last_lfs), "latest": _r(lfs[last_lfs]), "noise_sd": _r(noise), "noise_sd_2000_19": _r(params.resid_sd),
+            "underlying": _r(under[k_next]),
+        }
 
     # Unemployment rate: the latest LFS levels (three-month averages) rolled forward a month
     # at a time, employment by underlying growth and the labour force by its trend over the
     # past year (a 3m/3m rate spread evenly over its three months)
-    emp, act = mo["lfs_employment"], mo["lfs_active"]
+    emp, act = mo[cfg["employment"]], mo[cfg["active"]]
+    last_emp = min(emp.dropna().index.max(), act.dropna().index.max())
     g_lf = float(ld.transform(act, "growth3").dropna().iloc[-12:].mean())
 
     def level(series: pd.Series, m: pd.Period, growth) -> float:
-        if m <= last_lfs:
+        if m <= last_emp:
             return float(series[m])
         return level(series, m - 1, growth) * (1 + growth(m) / 300)
+
+    u_obs = mo[cfg["unemployment"]]
+
+    def rate(m: pd.Period, shift: float) -> float:
+        if m <= last_emp and pd.notna(u_obs.get(m, np.nan)):
+            return float(u_obs[m])
+        e = level(emp, m, lambda mm: under[pos[mm]] + shift * under_sd[pos[mm]])
+        return 100 * (1 - e / level(act, m, lambda mm: g_lf))
 
     unemp = []
     for m in q_ends:
         k = pos[m]
-        u = {}
-        for name, shift in (("mid", 0.0), ("lo", -Z95), ("hi", Z95)):
-            e = level(emp, m, lambda mm: under[pos[mm]] + shift * under_sd[pos[mm]])
-            a_ = level(act, m, lambda mm: g_lf)
-            u[name] = 100 * (1 - e / a_)
+        months = [m - 2, m - 1, m] if cfg["quarter_average"] else [m]
+        u = {name: float(np.mean([rate(mm, shift) for mm in months]))
+             for name, shift in (("mid", 0.0), ("lo", -Z95), ("hi", Z95))}
         boe = [{"report": r["report"], "value": x["value"]} for r in staff["reports"] for x in r["unemployment"] if x["period"] == f"{m.year}Q{m.quarter}"]
         unemp.append({"period": f"{m.year}Q{m.quarter}", "month": str(m), "projection": _r(u["mid"], 2), "lo": _r(u["hi"], 2), "hi": _r(u["lo"], 2),
                       "employment_growth": _r(under[k]), "boe": boe[-1] if boe else None})
-    unemp_latest = {"period": str(last_lfs), "value": _r(mo["lfs_unemployment_rate"].get(last_lfs), 2)}
+    unemp_latest = {"period": str(u_obs.dropna().index.max()), "value": _r(u_obs.dropna().iloc[-1], 2)}
 
-    # HMRC payrolls: next flash from the factor (3m/3m growth regression)
-    pay = mo["payrolls"].dropna() if "payrolls" in mo else pd.Series(dtype=float)
+    # A separate timelier payroll measure (UK: HMRC flash) from the factor (3m/3m growth regression)
+    pay = mo[cfg["flash"]].dropna() if cfg["flash"] and cfg["flash"] in mo else pd.Series(dtype=float)
     payroll_next = None
     if len(pay) > 36:
         g3 = ld.transform(pay, "growth3")
@@ -487,7 +546,7 @@ def build(slug: str, data: ld.LabourData, gdp_q: pd.Series | None, params: Param
         gdp_block = {**ginfo, "rows": [{"quarter": str(q), "implied": _r(v), "underlying": _r(q_under.get(q))}
                                        for q, v in implied.items() if q >= pd.Period("2015Q1")],
                      "latest_gdp_quarter": str(gdp_q.dropna().index.max())}
-    awe = ld.transform(mo["real_awe"], "growth3") if "real_awe" in mo else None
+    awe = ld.transform(mo[cfg["real_wage"]], "growth3") if cfg["real_wage"] in mo else None
     svar = None
     if awe is not None:
         yy = pd.DataFrame({"employment": under_s[under_s.index <= last_data], "real_awe": awe.reindex(idx)})
@@ -532,11 +591,12 @@ def build(slug: str, data: ld.LabourData, gdp_q: pd.Series | None, params: Param
             "contribution": _r(contrib[sid][k_last]) if j is not None else None,
             "first_month": str(tr.index.min()) if len(tr) else None,
         })
-    latest_staff = next((r for r in reversed(staff["reports"]) if r.get("underlying_value") is not None), None)
+    latest_staff = staff["reports"][-1] if staff["reports"] else None
     payload = {
         "slug": slug, "title": COUNTRIES[slug]["title"], "country": COUNTRIES[slug]["country"],
         "as_of": pd.Timestamp.today().strftime("%Y-%m-%d"), "computed_at": _now(),
-        "data_source": settings.data_source,
+        "data_source": data.source,
+        "labels": cfg["labels"],
         "latest": {"month": str(last_data), "underlying": _r(under[k_last]), "lo": _r(under[k_last] - Z95 * under_sd[k_last]),
                    "hi": _r(under[k_last] + Z95 * under_sd[k_last]),
                    "previous_month": str(last_data - 1), "previous": _r(under[k_last - 1]),
@@ -612,10 +672,19 @@ def _dir(slug: str) -> Path:
     return d
 
 
-def _quarterly_gdp() -> pd.Series | None:
+def _quarterly_gdp(slug: str) -> pd.Series | None:
+    """Real GDP growth, % q/q: UK from the ONS, US from the US GDP nowcast's panel (q/q saar / 4)."""
     if QUARTERLY is not None:
-        return QUARTERLY()
+        return QUARTERLY(slug)
     try:
+        if COUNTRIES[slug]["gdp"] == "us":
+            import quant_macro as qm
+
+            spec = qm.MODELS["us-gdp"]
+            g = qm.load_panel(spec, pd.Timestamp.today().normalize(), settings.data_source).values[spec.target].dropna()
+            g = g[[m.month % 3 == 0 for m in g.index]] / 4
+            g.index = pd.PeriodIndex([m.asfreq("Q") for m in g.index], freq="Q")
+            return g
         import fiscal_data as fd
 
         q = fd.quarterly_history(_root() / "sources")
@@ -625,16 +694,24 @@ def _quarterly_gdp() -> pd.Series | None:
         return None
 
 
+def load_data(slug: str) -> ld.LabourData:
+    if INPUTS is not None:
+        return INPUTS(slug)
+    if COUNTRIES[slug]["loader"] == "us":
+        return ld.load_us(_root() / "sources" / slug, settings.data_source)
+    return ld.load(_root() / "sources", settings.data_source)
+
+
 def _update(slug: str, job: Job | None, refit: bool = False) -> dict:
     with _compute_lock:
         def progress(s: str) -> None:
             if job:
                 job.step = s
         progress("Downloading data")
-        data = INPUTS() if INPUTS else ld.load(_root() / "sources", settings.data_source)
+        data = load_data(slug)
         saved = _read(_dir(slug) / "model.json")
         params = Params.from_json(saved) if saved else None
-        payload, params = build(slug, data, _quarterly_gdp(), params, refit, progress)
+        payload, params = build(slug, data, _quarterly_gdp(slug), params, refit, progress)
         _write(_dir(slug) / "model.json", params.to_json())
         prev = _payloads.get(slug) or _read(_dir(slug) / "payload.json")
         payload["news"] = news(prev, payload)

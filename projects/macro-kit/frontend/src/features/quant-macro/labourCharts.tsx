@@ -15,8 +15,9 @@ const legend = { wrapperStyle: { fontSize: 11, color: fg[3] }, iconSize: 9 }
 
 // ─── Underlying employment growth with its band, the LFS and payrolls ───
 
-export function UnderlyingChart({ series, staff, from, showPayrolls }: {
+export function UnderlyingChart({ series, staff, from, showPayrolls, labels }: {
   series: LabourPoint[]; staff: LabourStaffReport[]; from: string; showPayrolls: boolean
+  labels: { target: string; flash: string | null; staff: string }
 }) {
   const boeAt: Record<string, number> = {}
   for (const r of staff) if (r.data_through && r.underlying_value != null) boeAt[r.data_through] = r.underlying_value
@@ -45,11 +46,11 @@ export function UnderlyingChart({ series, staff, from, showPayrolls }: {
           formatter={(v: unknown, name: string) => [Array.isArray(v) ? `${num(v[0], 2)} to ${num(v[1], 2)}%` : `${signed(Number(v), 2)}%`, name]} />
         <Legend {...legend} />
         <Area dataKey="band" name="95% band" stroke="none" fill={accent} fillOpacity={0.18} isAnimationActive={false} legendType="square" />
-        <Line dataKey="lfs" name="LFS employment" stroke={OUTTURN} strokeWidth={1.5} dot={false} isAnimationActive={false} />
-        {showPayrolls && <Line dataKey="payrolls" name="HMRC payrolls" stroke={PAYROLL} strokeWidth={1.5} dot={false} isAnimationActive={false} />}
+        <Line dataKey="lfs" name={labels.target} stroke={OUTTURN} strokeWidth={1.5} dot={false} isAnimationActive={false} />
+        {showPayrolls && labels.flash && <Line dataKey="payrolls" name={labels.flash} stroke={PAYROLL} strokeWidth={1.5} dot={false} isAnimationActive={false} />}
         <Line dataKey="underlying" name="Underlying (factor model)" stroke={accent} strokeWidth={2.5} dot={false} isAnimationActive={false} />
         <Line dataKey="projection" name="Projection" stroke={accent} strokeWidth={2} strokeDasharray="4 3" dot={false} isAnimationActive={false} legendType="none" />
-        <Scatter dataKey="boe" name="Bank staff judgement" fill={BG} stroke={BOE} strokeWidth={1.5} shape="diamond" isAnimationActive={false} />
+        <Scatter dataKey="boe" name={`${labels.staff} judgement`} fill={BG} stroke={BOE} strokeWidth={1.5} shape="diamond" isAnimationActive={false} />
       </ComposedChart>
     </ResponsiveContainer>
   )

@@ -27,7 +27,7 @@ from tests import labour_synthetic as syn
 def state_dir(tmp_path_factory):
     saved = ln.ROOT, ln.INPUTS, ln.QUARTERLY
     ln.ROOT = tmp_path_factory.mktemp("labour")
-    ln.INPUTS, ln.QUARTERLY = syn.data, syn.gdp
+    ln.INPUTS, ln.QUARTERLY = (lambda slug: syn.data()), (lambda slug: syn.gdp())
     ln._payloads.clear()
     yield ln.ROOT
     ln.ROOT, ln.INPUTS, ln.QUARTERLY = saved

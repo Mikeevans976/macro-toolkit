@@ -171,11 +171,39 @@ class NowcastCentralBank(BaseModel):
     comparisons: list[NowcastCbComparison]
 
 
+class NowcastPolicyYear(BaseModel):
+    year: int
+    model: Optional[float]
+    quarters_published: int
+
+
+class NowcastPolicyPrevious(BaseModel):
+    release: str
+    url: str
+    gdp: dict[str, float]
+    unemployment: dict[str, float]
+
+
+class NowcastPolicy(BaseModel):
+    institution: str
+    label: str
+    release: str
+    published: str
+    url: str
+    years: list[int]
+    gdp: dict[str, float]
+    unemployment: dict[str, float]
+    previous: Optional[NowcastPolicyPrevious] = None
+    model_years: list[NowcastPolicyYear]
+
+
 class Nowcast(BaseModel):
     slug: str
     title: str
     country: str
     target_label: str
+    target_freq: Literal["M", "Q"] = "M"
+    target_units: str = "% q/q"
     as_of: str
     computed_at: str
     data_source: Source
@@ -188,6 +216,7 @@ class Nowcast(BaseModel):
     evolution: list[NowcastStep]
     indicators: list[NowcastIndicator]
     central_bank: Optional[NowcastCentralBank]
+    policy: Optional[NowcastPolicy] = None
 
 
 class NowcastBacktestStats(BaseModel):

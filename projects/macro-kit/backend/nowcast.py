@@ -9,14 +9,17 @@ Model (statsmodels ``DynamicFactorMQ``, estimated by EM on the monthly panel)
   e_it = ρ_i e_i,t-1 + ε_it      idiosyncratic AR(1), carried in the state
 
 Missing data are native: the ragged edge, series that start late and the
-excluded COVID window are all just NaN. The target is a monthly growth rate
-g_t (UK: monthly GDP, % m/m). Quarterly growth of the 3-month-average level is
+excluded COVID window are all just NaN. The target is either
 
-  q_t = (g_t + 2 g_{t-1} + 3 g_{t-2} + 2 g_{t-3} + g_{t-4}) / 3
-
-so its mean and variance follow from the smoothed states, including the
-cross-month covariances (RTS: Cov(α_s, α_t | Y) = J_s Cov(α_{s+1}, α_t | Y),
-J_s = P_{s|s} T' P_{s+1|s}^-1).
+  monthly (UK: monthly GDP, % m/m): quarterly growth of the 3-month-average level is
+      q_t = (g_t + 2 g_{t-1} + 3 g_{t-2} + 2 g_{t-3} + g_{t-4}) / 3
+    so its mean and variance follow from the smoothed states, including the
+    cross-month covariances (RTS: Cov(α_s, α_t | Y) = J_s Cov(α_{s+1}, α_t | Y),
+    J_s = P_{s|s} T' P_{s+1|s}^-1); or
+  quarterly (US: real GDP, % q/q saar): observed in the last month of each quarter.
+    DynamicFactorMQ puts quarterly series last and builds the same triangle into
+    their design rows (Mariano and Murasawa), so the quarter's value is that row
+    times the state in its last month, with no cross-month terms.
 
 News (Bańbura & Modugno): with the parameters fixed, the change in the
 nowcast between two data vintages is Σ_j w_j (x_j − E_old[x_j]); computed by
@@ -67,6 +70,10 @@ class NowcastSpec:
     maxiter: int = 300
     backtest_from: str = "2012Q1"
     horizons: tuple[int, ...] = (-120, -90, -60, -30, -1)   # days before the first estimate
+    target_freq: str = "M"             # "M": monthly target aggregated to quarters; "Q": quarterly target
+    target_units: str = "% q/q"        # units of the quarterly figure
+    forecast_quarters: int = 1         # quarters after the current one carried in the model
+    policy_file: str | None = None     # policymakers' projections (e.g. FOMC SEP), in data/
 
 
 @dataclass
@@ -149,9 +156,9 @@ def load_catalogue(name: str) -> tuple[dict, ...]:
 # Calendar helpers
 # ---------------------------------------------------------------------------
 
-def horizon_end(as_of: pd.Timestamp) -> pd.Period:
-    """Last month of the quarter after the current one."""
-    return (pd.Period(as_of, "Q") + 1).asfreq("M", "end")
+def horizon_end(as_of: pd.Timestamp, ahead: int = 1) -> pd.Period:
+    """Last month of the quarter ``ahead`` quarters after the current one."""
+    return (pd.Period(as_of, "Q") + ahead).asfreq("M", "end")
 
 
 def _next_weekday(d: pd.DatetimeIndex) -> pd.DatetimeIndex:
@@ -174,6 +181,27 @@ def triangle_qoq(g: pd.Series, q: pd.Period) -> float | None:
     """Quarterly growth of quarter q from monthly growth rates, if all five months are known."""
     vals = g.reindex(quarter_months(q))
     return None if vals.isna().any() else float(TRIANGLE @ vals.to_numpy())
+
+
+def quarter_weights_of(q: pd.Period, freq: str) -> tuple[pd.PeriodIndex, np.ndarray]:
+    """Months and weights that make quarter q from the target's model values: the triangle
+    over five months for a monthly target, the last month alone for a quarterly one (whose
+    design row already carries the triangle)."""
+    if freq == "Q":
+        return pd.PeriodIndex([q.asfreq("M", "end")], freq="M"), np.array([1.0])
+    return quarter_months(q), TRIANGLE
+
+
+def quarter_value(g: pd.Series, q: pd.Period, freq: str = "M") -> float | None:
+    """Published quarterly growth of quarter q (monthly target: triangle; quarterly: its value)."""
+    if freq == "Q":
+        v = g.get(q.asfreq("M", "end"), np.nan)
+        return None if pd.isna(v) else float(v)
+    return triangle_qoq(g, q)
+
+
+def is_quarterly(s: dict) -> bool:
+    return s.get("frequency", "M") == "Q"
 
 
 # ---------------------------------------------------------------------------
@@ -205,7 +233,7 @@ def simulate_panel(spec: NowcastSpec, as_of: pd.Timestamp) -> Panel:
 
     # Revisions come from their own generator so the history above is unchanged by them.
     rev_rng = np.random.default_rng(zlib.crc32(f"{spec.slug}:revisions".encode()))
-    end = horizon_end(as_of)
+    end = horizon_end(as_of, spec.forecast_quarters)
     keep = idx <= end
     frames, info = [], {}
     for s in series:
@@ -216,8 +244,12 @@ def simulate_panel(spec: NowcastSpec, as_of: pd.Timestamp) -> Panel:
             u[t] = p["rho"] * u[t - 1] + e[t]
         block = next((b for b in s["blocks"] if b != "Global"), None)
         x = p["mean"] + p["load"] * f + 0.4 * abs(p["load"]) * blocks.get(block, 0.0) + p["noise"] * u
+        if is_quarterly(s):              # quarterly: the triangle of the latent monthly path, at quarter ends
+            agg = np.full(n, np.nan)
+            agg[4:] = np.convolve(x, TRIANGLE[::-1], mode="valid")
+            x = np.where(np.asarray(idx.month) % 3 == 0, agg, np.nan)
         x = np.round(x, 2)
-        ok = keep & (idx >= pd.Period(s["start"], "M"))
+        ok = keep & (idx >= pd.Period(s["start"], "M")) & ~np.isnan(x)
         rel = typical_release(idx, s["release_lag_days"])
         cfg = s.get("vintages") or {}
         e1, e2 = rev_rng.standard_normal(n), rev_rng.standard_normal(n)
@@ -279,7 +311,7 @@ def fetch_live_panel(spec: NowcastSpec, as_of: pd.Timestamp, store: vt.VintageSt
         except Exception:
             logger.warning("Nowcast %s: %s history unavailable", spec.slug, fld, exc_info=True)
             extra[fld] = pd.DataFrame()
-    idx = pd.period_range("1996-01", horizon_end(as_of), freq="M")
+    idx = pd.period_range("1996-01", horizon_end(as_of, spec.forecast_quarters), freq="M")
 
     latest, first, release, missing = {}, {}, {}, []
     for s in series:
@@ -386,20 +418,28 @@ def model_data(spec: NowcastSpec, vintage: pd.DataFrame, columns: list[str] | No
     return y if columns is None else y[columns]
 
 
+def order_columns(spec: NowcastSpec, cols: list[str]) -> list[str]:
+    """Monthly series first, then quarterly ones (DynamicFactorMQ's convention)."""
+    series = {s["id"]: s for s in load_catalogue(spec.catalogue)}
+    return [c for c in cols if not is_quarterly(series[c])] + [c for c in cols if is_quarterly(series[c])]
+
+
 def _dfm(spec: NowcastSpec, y: pd.DataFrame, standardize):
     from statsmodels.tsa.statespace.dynamic_factor_mq import DynamicFactorMQ
 
     series = {s["id"]: s for s in load_catalogue(spec.catalogue)}
     factors = {c: list(series[c]["blocks"]) for c in y.columns}
+    n_monthly = sum(not is_quarterly(series[c]) for c in y.columns)
+    kw = {"k_endog_monthly": n_monthly} if n_monthly < y.shape[1] else {}
     return DynamicFactorMQ(y, factors=factors, factor_orders=dict(spec.factor_orders),
-                           idiosyncratic_ar1=True, standardize=standardize)
+                           idiosyncratic_ar1=True, standardize=standardize, **kw)
 
 
 def fit_model(spec: NowcastSpec, y: pd.DataFrame, start: dict | None = None):
     """EM estimate of the DFM on frame y; series with too little data are left out.
 
     ``start``: a saved state (``model_state``) to start EM from when it has the same series."""
-    cols = [c for c in y.columns if y[c].notna().sum() >= MIN_OBS]
+    cols = order_columns(spec, [c for c in y.columns if y[c].notna().sum() >= MIN_OBS])
     if spec.target not in cols:
         raise ValueError(f"target {spec.target!r} has too little data")
     mod = _dfm(spec, y[cols], True)
@@ -452,9 +492,12 @@ def restore_model(spec: NowcastSpec, y: pd.DataFrame, state: dict):
 
 def apply_vintage(res, y: pd.DataFrame):
     """Same parameters, new data (pseudo-real-time vintage)."""
+    model = res.model
+    # apply() rebuilds the model from the frame alone: say again which columns are quarterly
+    kw = {"k_endog_monthly": model.k_endog_M} if model.k_endog_M < model.k_endog else {}
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        return res.apply(y[list(res.model.endog_names)])
+        return res.apply(y[list(model.endog_names)], **kw)
 
 
 def _matrix(res, name: str) -> np.ndarray:
@@ -505,50 +548,59 @@ def target_means(res, target: str, months: pd.PeriodIndex) -> np.ndarray:
             + float(np.asarray(model._endog_std)[i]) * (z @ res.smoothed_state[:, pos]))
 
 
-def quarter_nowcast(res, target: str, q: pd.Period) -> tuple[float, float]:
-    """Mean and standard deviation of q/q growth in quarter q."""
-    mean, cov = target_moments(res, target, quarter_months(q))
-    return float(TRIANGLE @ mean), float(np.sqrt(max(TRIANGLE @ cov @ TRIANGLE, 0.0)))
+def quarter_nowcast(res, target: str, q: pd.Period, freq: str = "M") -> tuple[float, float]:
+    """Mean and standard deviation of growth in quarter q."""
+    months, w = quarter_weights_of(q, freq)
+    mean, cov = target_moments(res, target, months)
+    return float(w @ mean), float(np.sqrt(max(w @ cov @ w, 0.0)))
 
 
-def _to_quarters(w: pd.DataFrame, target: str, quarters: list[pd.Period]) -> pd.DataFrame:
-    """Monthly weights on the target (columns: impact date × impacted variable) → q/q weights."""
+def quarter_mean(res, target: str, q: pd.Period, freq: str = "M") -> float:
+    """Mean only (cheap; used by the backtest)."""
+    months, w = quarter_weights_of(q, freq)
+    return float(w @ target_means(res, target, months))
+
+
+def _to_quarters(w: pd.DataFrame, target: str, quarters: list[pd.Period], freq: str = "M") -> pd.DataFrame:
+    """Monthly weights on the target (columns: impact date × impacted variable) → quarterly weights."""
     if w.empty:
         return pd.DataFrame(columns=[str(q) for q in quarters], index=w.index, dtype=float)
     w = w.xs(target, axis=1, level="impacted variable")
     out = {}
     for q in quarters:
-        tri = pd.Series(TRIANGLE, index=quarter_months(q))
+        months, wq = quarter_weights_of(q, freq)
+        tri = pd.Series(wq, index=months)
         cols = [c for c in w.columns if c in tri.index]
         out[str(q)] = w[cols].to_numpy() @ tri[cols].to_numpy() if cols else np.zeros(len(w))
     return pd.DataFrame(out, index=w.index)
 
 
-def quarter_weights(news, target: str, quarters: list[pd.Period]) -> pd.DataFrame:
-    """Weight of each updated (period, series) on each quarter's q/q: pp per unit of surprise."""
-    return _to_quarters(news.weights, target, quarters)
+def quarter_weights(news, target: str, quarters: list[pd.Period], freq: str = "M") -> pd.DataFrame:
+    """Weight of each updated (period, series) on each quarter's growth: pp per unit of surprise."""
+    return _to_quarters(news.weights, target, quarters, freq)
 
 
-def quarter_impacts(news, target: str, quarters: list[pd.Period]) -> pd.DataFrame:
-    """News impacts on each quarter's q/q (weight × news). Rows: (update date, updated variable)."""
-    w = quarter_weights(news, target, quarters)
+def quarter_impacts(news, target: str, quarters: list[pd.Period], freq: str = "M") -> pd.DataFrame:
+    """News impacts on each quarter's growth (weight × news). Rows: (update date, updated variable)."""
+    w = quarter_weights(news, target, quarters, freq)
     return w.mul(news.news.reindex(w.index).to_numpy(), axis=0)
 
 
-def quarter_revision_impacts(news, target: str, quarters: list[pd.Period]) -> pd.DataFrame:
+def quarter_revision_impacts(news, target: str, quarters: list[pd.Period], freq: str = "M") -> pd.DataFrame:
     """Impacts of the individually tracked revisions (weight × revision). Rows: (period, series)."""
     if news.n_revisions_detailed == 0:
         return pd.DataFrame(columns=[str(q) for q in quarters], dtype=float)
-    w = _to_quarters(news.revision_weights, target, quarters)
+    w = _to_quarters(news.revision_weights, target, quarters, freq)
     return w.mul(news.revisions.reindex(w.index).to_numpy(), axis=0)
 
 
-def quarter_total_impacts(news, target: str, quarters: list[pd.Period]) -> dict[str, float]:
-    """Total change in each quarter's q/q between the two vintages (news + revisions)."""
+def quarter_total_impacts(news, target: str, quarters: list[pd.Period], freq: str = "M") -> dict[str, float]:
+    """Total change in each quarter's growth between the two vintages (news + revisions)."""
     tot = news.total_impacts[target]
     out = {}
     for q in quarters:
-        tri = pd.Series(TRIANGLE, index=quarter_months(q))
+        months, wq = quarter_weights_of(q, freq)
+        tri = pd.Series(wq, index=months)
         out[str(q)] = float(tot.reindex(tri.index).fillna(0.0).to_numpy() @ tri.to_numpy())
     return out
 
@@ -594,7 +646,7 @@ def fit_bridge(spec: NowcastSpec, vintage: pd.DataFrame) -> Bridge | None:
     for q in pd.period_range(first, last, freq="Q"):
         if _touches_exclusion(spec, q):
             continue
-        y = triangle_qoq(g, q)
+        y = quarter_value(g, q, spec.target_freq)
         xm = x.reindex(pd.period_range(q.asfreq("M", "start"), q.asfreq("M", "end"), freq="M"))
         if y is not None and xm.notna().all():
             rows.append((y, xm.mean()))

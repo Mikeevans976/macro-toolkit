@@ -64,6 +64,7 @@ class LabourData:
     monthly: pd.DataFrame                    # PeriodIndex[M] × series id, raw units
     sources: dict[str, SourceInfo] = field(default_factory=dict)
     missing: dict[str, str] = field(default_factory=dict)        # series id → why it is missing
+    source: str = "live"                     # "live" | "simulation"
 
 
 def _download(url: str, path: Path, max_age_days: float = 0.5, check=lambda b: True) -> Path | None:
@@ -334,6 +335,83 @@ def transform(x: pd.Series, how: str) -> pd.Series:
     if how == "diff3":
         return x - x.shift(3)
     raise ValueError(how)
+
+
+# ---------------------------------------------------------------------------
+# United States: Bloomberg (FRED once the pipeline is connected), else simulation
+# ---------------------------------------------------------------------------
+
+US_CATALOGUE = "series_catalogue_labour_us.json"
+US_REQUIRED = ("payrolls", "household_employment", "labour_force", "unemployment_rate")
+
+
+def simulate_us(last: pd.Period | None = None) -> LabourData:
+    """Deterministic synthetic US labour market (seeded by name): a common employment cycle
+    with a 2008-09 recession, the official levels it drives and the survey indicators."""
+    import zlib
+
+    cat = catalogue(US_CATALOGUE)
+    last = last or (pd.Period(pd.Timestamp.today(), "M") - 1)
+    idx = pd.period_range("2000-01", last, freq="M")
+    n = len(idx)
+    rng = np.random.default_rng(zlib.crc32(b"labour-us:sim"))
+    shocks = rng.normal(0, 0.35, n)
+    shocks[(idx >= pd.Period("2008-04", "M")) & (idx <= pd.Period("2009-03", "M"))] -= 0.45
+    f = np.zeros(n)
+    for t in range(2, n):
+        f[t] = 1.25 * f[t - 1] - 0.33 * f[t - 2] + shocks[t]
+    f /= f.std()
+
+    def level(start, mean_g, load, noise):
+        g = mean_g + load * f + rng.normal(0, noise, n)
+        return start * np.cumprod(1 + g / 100)
+
+    def survey(centre, load, noise, rho=0.5):
+        e = np.zeros(n)
+        for t in range(1, n):
+            e[t] = rho * e[t - 1] + rng.normal(0, noise)
+        return centre + load * f + e
+
+    lf = level(142_000.0, 0.07, 0.01, 0.08)
+    urate = 4.5 - np.cumsum(0.06 * f - 0.002) * 0.2 + rng.normal(0, 0.08, n)
+    urate = np.clip(urate + 4.3 - urate[-1], 3.3, 10.5)          # recent level close to the real one
+    df = pd.DataFrame({
+        "payrolls": level(131_000.0, 0.07, 0.09, 0.05),
+        "labour_force": lf,
+        "unemployment_rate": np.round(urate, 1),
+        "real_ahe": level(100.0, 0.06, 0.04, 0.25),
+        "claims_initial": level(350.0, 0.0, -2.2, 3.0),
+        "claims_continuing": level(2_800.0, 0.0, -1.8, 1.8),
+        "jolts_openings": level(4_500.0, 0.15, 2.0, 3.0),
+        "jolts_quits": survey(2.2, 0.25, 0.08, 0.8),
+        "jolts_hires": survey(3.8, 0.25, 0.1, 0.7),
+        "adp": level(110_000.0, 0.07, 0.08, 0.06),
+        "ism_mfg_employment": survey(50.0, 3.2, 1.8, 0.6),
+        "ism_services_employment": survey(51.0, 2.6, 1.8, 0.6),
+        "labour_differential": survey(5.0, 9.0, 2.5, 0.8),
+        "nfib_hiring": survey(14.0, 3.0, 1.5, 0.6),
+        "philly_employment": survey(5.0, 9.0, 7.0, 0.4),
+        "empire_employment": survey(4.0, 8.0, 7.0, 0.4),
+    }, index=idx)
+    df["household_employment"] = df["labour_force"] * (1 - df["unemployment_rate"] / 100)
+    df.loc[: pd.Period("2000-11", "M"), ["jolts_openings", "jolts_quits", "jolts_hires"]] = np.nan
+    df.loc[: pd.Period("2001-06", "M"), "empire_employment"] = np.nan
+    df.loc[last:, ["jolts_openings", "jolts_quits", "jolts_hires"]] = np.nan          # JOLTS lags a month
+    sources = {"bls": SourceInfo("Simulated (BLS / JOLTS / surveys)", None, str(last), None, None)}
+    return LabourData(df.loc[cat["_meta"]["start"]:], sources, {}, "simulation")
+
+
+def load_us(root: Path, data_source: str) -> LabourData:
+    """Live from Bloomberg when it is the data source and the core series come back; else simulated."""
+    cat = catalogue(US_CATALOGUE)
+    if data_source == "bloomberg":
+        live, missing = _bloomberg(cat["series"], cat["_meta"]["start"])
+        if all(c in live for c in US_REQUIRED):
+            return LabourData(live.sort_index(), {"bloomberg": SourceInfo("Bloomberg", None, str(live.index.max()))},
+                              missing, "live")
+        logger.warning("US labour: core series missing from Bloomberg (%s); using simulation",
+                       [c for c in US_REQUIRED if c not in live])
+    return simulate_us()
 
 
 def lfs_growth(monthly: pd.DataFrame) -> pd.Series:

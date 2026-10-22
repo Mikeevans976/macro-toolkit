@@ -122,7 +122,9 @@ function Stat({ label, value, sub, color }: { label: string; value: string; sub?
   )
 }
 
-function QuarterCard({ q, cb, cbLabel }: { q: QuarterRow; cb?: { value: number; published: string }; cbLabel: string }) {
+function QuarterCard({ q, cb, cbLabel, units, quarterly }: {
+  q: QuarterRow; cb?: { value: number; published: string }; cbLabel: string; units: string; quarterly: boolean
+}) {
   return (
     <div style={{ ...card, display: 'grid', gap: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -131,17 +133,17 @@ function QuarterCard({ q, cb, cbLabel }: { q: QuarterRow; cb?: { value: number; 
       </div>
       <div>
         <div style={{ fontFamily: fontNum, fontSize: 30, color: fg[1], letterSpacing: '-0.02em' }}>
-          {signed(q.nowcast)}<span style={{ fontSize: 14, color: fg[3] }}>% q/q</span>
+          {signed(q.nowcast)}<span style={{ fontSize: 14, color: fg[3] }}>{units}</span>
         </div>
         <div style={{ fontSize: 11, color: fg[3], fontFamily: fontNum }}>68%: {num(q.lo68)} to {num(q.hi68)} · 90%: {num(q.lo90)} to {num(q.hi90)}</div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
         <Stat label={cbLabel} value={cb ? `${signed(cb.value, 1)}%` : '—'} sub={cb ? `since ${dayLabel(cb.published)}` : 'no estimate'} />
-        <Stat label="PMI bridge" value={q.bridge != null ? `${signed(q.bridge)}%` : '—'} sub={q.bridge == null ? 'no surveys yet' : 'survey-only'} />
+        <Stat label="Survey bridge" value={q.bridge != null ? `${signed(q.bridge)}%` : '—'} sub={q.bridge == null ? 'no surveys yet' : 'survey-only'} />
         <Stat label="Consensus" value={q.consensus != null ? `${signed(q.consensus, 1)}%` : '—'} sub={q.consensus == null ? 'live data only' : 'Bloomberg median'} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: fg[3] }}>
-        <span>GDP months in: <span style={{ fontFamily: fontNum, color: fg[2] }}>{q.months_observed}/3</span></span>
+        <span>{quarterly ? 'Months of data in' : 'GDP months in'}: <span style={{ fontFamily: fontNum, color: fg[2] }}>{q.months_observed}/3</span></span>
         <span>First estimate <span style={{ fontFamily: fontNum, color: fg[2] }}>{dayLabel(q.release_date)}</span></span>
       </div>
     </div>
@@ -150,6 +152,7 @@ function QuarterCard({ q, cb, cbLabel }: { q: QuarterRow; cb?: { value: number; 
 
 function NextPrintCard({ data }: { data: Nowcast }) {
   const n = data.next_print
+  const quarterly = data.target_freq === 'Q'
   return (
     <div style={{ ...card, display: 'grid', gap: 12, borderColor: 'rgba(134,192,222,0.28)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -159,12 +162,12 @@ function NextPrintCard({ data }: { data: Nowcast }) {
       <div>
         <div style={{ fontSize: 11, color: fg[3] }}>{n.label}</div>
         <div style={{ fontFamily: fontNum, fontSize: 30, color: fg[1], letterSpacing: '-0.02em' }}>
-          {signed(n.model)}<span style={{ fontSize: 14, color: fg[3] }}>% m/m</span>
+          {signed(n.model)}<span style={{ fontSize: 14, color: fg[3] }}>{quarterly ? data.target_units.replace('q/q ', '') : '% m/m'}</span>
         </div>
         <div style={{ fontSize: 11, color: fg[3], fontFamily: fontNum }}>68%: {num(n.lo68)} to {num(n.hi68)}</div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
-        <Stat label="Consensus m/m" value={n.consensus != null ? `${signed(n.consensus, 1)}%` : '—'}
+        <Stat label={quarterly ? 'Consensus' : 'Consensus m/m'} value={n.consensus != null ? `${signed(n.consensus, 1)}%` : '—'}
           sub={n.consensus != null && n.model != null ? <>model − cons. <span style={{ color: signColor(n.model - n.consensus) }}>{signed(n.model - n.consensus)}</span></> : 'live data only'} />
         {n.quarter && (
           <Stat label={`${quarterLabel(n.quarter.quarter)} first estimate`} value={`${signed(n.quarter.model)}% q/q`}
@@ -178,6 +181,7 @@ function NextPrintCard({ data }: { data: Nowcast }) {
 function CentralBankPanel({ data }: { data: Nowcast }) {
   const cb = data.central_bank
   if (!cb) return null
+  const downloaded = cb.label === 'GDPNow'
   return (
     <div style={card}>
       <div style={sectionLabel}>Tracking the {cb.institution}</div>
@@ -185,8 +189,8 @@ function CentralBankPanel({ data }: { data: Nowcast }) {
         <p key={c.quarter} style={{ fontSize: 13, color: fg[2], margin: '0 0 10px', lineHeight: 1.55 }}>
           {cb.label} put {quarterLabel(c.quarter)} at <b style={{ color: fg[1], fontFamily: fontNum }}>{signed(c.cb_value, 1)}%</b> ({c.cb_source}, {dayLabel(c.cb_published)}).{' '}
           The model is at <b style={{ color: fg[1], fontFamily: fontNum }}>{signed(c.model_now)}%</b>
-          {c.gap != null && <>, <span style={{ fontFamily: fontNum, color: signColor(c.gap, 0.05) }}>{signed(c.gap)}pp</span> {c.gap >= 0 ? 'above' : 'below'} the Bank</>}.
-          {c.news_since != null && <> Data released since then moved the nowcast by <span style={{ fontFamily: fontNum, color: signColor(c.news_since) }}>{signed(c.news_since)}pp</span>, so the news points to {Math.abs(c.news_since) < 0.03 ? 'little change in' : c.news_since > 0 ? 'an upward revision to' : 'a downward revision to'} the staff estimate.</>}
+          {c.gap != null && <>, <span style={{ fontFamily: fontNum, color: signColor(c.gap, 0.05) }}>{signed(c.gap)}pp</span> {c.gap >= 0 ? 'above' : 'below'} {downloaded ? cb.label : 'the Bank'}</>}.
+          {c.news_since != null && <> Data released since then moved the nowcast by <span style={{ fontFamily: fontNum, color: signColor(c.news_since) }}>{signed(c.news_since)}pp</span>, so the news points to {Math.abs(c.news_since) < 0.03 ? 'little change in' : c.news_since > 0 ? 'an upward revision to' : 'a downward revision to'} {downloaded ? `the next ${cb.label} reading` : 'the staff estimate'}.</>}
         </p>
       ))}
       <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 6 }}>
@@ -200,7 +204,7 @@ function CentralBankPanel({ data }: { data: Nowcast }) {
           </tr>
         </thead>
         <tbody>
-          {[...cb.estimates].reverse().map(e => (
+          {[...cb.estimates].reverse().slice(0, downloaded ? 30 : undefined).map(e => (
             <tr key={`${e.published}-${e.quarter}`} title={e.note ?? undefined}>
               <td style={{ ...td, textAlign: 'left' }}>{e.published}</td>
               <td style={tdText}>
@@ -214,7 +218,53 @@ function CentralBankPanel({ data }: { data: Nowcast }) {
           ))}
         </tbody>
       </table>
-      <div style={{ fontSize: 11, color: fg[4], marginTop: 8 }}>* implied rather than stated; hover for the wording. Estimates are entered by hand from the Bank's publications.</div>
+      <div style={{ fontSize: 11, color: fg[4], marginTop: 8 }}>
+        {downloaded
+          ? <>Every GDPNow update, read from the Atlanta Fed's own workbook each day (latest 30 shown).</>
+          : <>* implied rather than stated; hover for the wording. Estimates are entered by hand from the Bank's publications.</>}
+      </div>
+    </div>
+  )
+}
+
+function PolicyPanel({ data }: { data: Nowcast }) {
+  const pol = data.policy
+  if (!pol) return null
+  const prev = pol.previous
+  return (
+    <div style={card}>
+      <div style={sectionLabel}>{data.target_label} growth against the {pol.label}, % Q4/Q4</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th style={{ ...th, textAlign: 'left' }}>Year</th>
+            <th style={th}>This model</th>
+            <th style={th}>{pol.release}</th>
+            {prev && <th style={th}>{prev.release}</th>}
+            <th style={th}>Unemployment ({pol.release})</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pol.model_years.map(y => (
+            <tr key={y.year}>
+              <td style={tdText}>{y.year}{y.quarters_published > 0 && <span style={{ color: fg[4] }}> · {y.quarters_published}/4 published</span>}</td>
+              <td style={{ ...td, color: fg[1] }}>{y.model == null ? '—' : num(y.model, 1)}</td>
+              <td style={td}>{num(pol.gdp[String(y.year)], 1)}</td>
+              {prev && <td style={{ ...td, color: fg[3] }}>{num(prev.gdp[String(y.year)], 1)}</td>}
+              <td style={td}>{num(pol.unemployment[String(y.year)], 1)}</td>
+            </tr>
+          ))}
+          <tr>
+            <td style={tdText}>Longer run</td><td style={td}>—</td><td style={td}>{num(pol.gdp.longer_run, 1)}</td>
+            {prev && <td style={{ ...td, color: fg[3] }}>{num(prev.gdp.longer_run, 1)}</td>}
+            <td style={td}>{num(pol.unemployment.longer_run, 1)}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style={{ fontSize: 11, color: fg[3], margin: '8px 0 0', lineHeight: 1.5 }}>
+        The model's year compounds its four quarters (outturns where published, nowcasts and forecasts otherwise); it reaches as far as
+        the model forecasts. <a href={pol.url} target="_blank" rel="noreferrer" style={{ color: accent }}>{pol.institution}, {pol.release}</a>.
+      </p>
     </div>
   )
 }
@@ -228,21 +278,25 @@ function NowcastTab({ data }: { data: Nowcast }) {
   }, [data])
   const cbValues = Object.fromEntries(Object.entries(cbLatest).map(([k, v]) => [k, v.value]))
   const cbLabel = data.central_bank?.label ?? 'Central bank'
+  const quarterly = data.target_freq === 'Q'
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(240px, 1fr))`, gap: 16 }}>
         <NextPrintCard data={data} />
-        {open.map(q => <QuarterCard key={q.quarter} q={q} cb={cbLatest[q.quarter]} cbLabel={cbLabel} />)}
+        {open.map(q => <QuarterCard key={q.quarter} q={q} cb={cbLatest[q.quarter]} cbLabel={cbLabel}
+          units={quarterly ? data.target_units.replace('q/q ', '') : '% q/q'} quarterly={quarterly} />)}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1fr)', gap: 16 }}>
         <div style={card}>
-          <div style={sectionLabel}>{data.target_label} growth, % q/q</div>
+          <div style={sectionLabel}>{data.target_label} growth, {data.target_units}</div>
           <QuarterChart quarters={data.quarters} cb={cbValues} cbLabel={cbLabel} />
         </div>
-        <div style={card}>
-          <div style={sectionLabel}>Monthly {data.target_label}, % m/m: outturns and model path</div>
-          <MonthlyPathChart path={data.monthly_path} unit="% m/m" />
-        </div>
+        {data.monthly_path.length > 0 ? (
+          <div style={card}>
+            <div style={sectionLabel}>Monthly {data.target_label}, % m/m: outturns and model path</div>
+            <MonthlyPathChart path={data.monthly_path} unit="% m/m" />
+          </div>
+        ) : <PolicyPanel data={data} />}
       </div>
       <CentralBankPanel data={data} />
     </div>
@@ -490,23 +544,41 @@ function ModelTab({ data }: { data: Nowcast }) {
           Parameters are estimated by EM on {m.sample_start} to {monthLabel(m.last_data)} ({m.em_iterations} iterations),
           with {m.excluded.join(', ')} treated as missing (COVID).
         </p>
-        <p style={p}>
-          The target is monthly {data.target_label} (% m/m). Quarterly growth of the three-month average follows exactly from the
-          monthly path, (g<sub>t</sub> + 2g<sub>t−1</sub> + 3g<sub>t−2</sub> + 2g<sub>t−3</sub> + g<sub>t−4</sub>) / 3, so the same model
-          forecasts the next monthly print and the quarterly first estimate. Months already published enter as data; bands
-          come from the smoothed state covariance, including the covariance across months.
-        </p>
+        {data.target_freq === 'Q' ? (
+          <p style={p}>
+            The target is quarterly {data.target_label} ({data.target_units}), observed in the last month of each quarter. It loads on the
+            same factors through their monthly path, aggregated as (g<sub>t</sub> + 2g<sub>t−1</sub> + 3g<sub>t−2</sub> + 2g<sub>t−3</sub> +
+            g<sub>t−4</sub>) / 3 (Mariano and Murasawa), the approach of the New York Fed Staff Nowcast. Bands come from the smoothed
+            state covariance; the model runs four quarters past the current one for the comparison with the FOMC's projections.
+          </p>
+        ) : (
+          <p style={p}>
+            The target is monthly {data.target_label} (% m/m). Quarterly growth of the three-month average follows exactly from the
+            monthly path, (g<sub>t</sub> + 2g<sub>t−1</sub> + 3g<sub>t−2</sub> + 2g<sub>t−3</sub> + g<sub>t−4</sub>) / 3, so the same model
+            forecasts the next monthly print and the quarterly first estimate. Months already published enter as data; bands
+            come from the smoothed state covariance, including the covariance across months.
+          </p>
+        )}
         <p style={p}>
           News: with parameters fixed, each release moves the nowcast by its weight × (actual − model expectation).
           The weights in the catalysts table say how much a surprise in each upcoming release would move the nowcast,
           assuming everything released before it comes in line.
         </p>
-        <p style={p}>
-          Like the BoE staff's own suite, the toolkit pairs the DFM with a survey bridge equation
-          {data.bridge && <> (q/q on the quarterly average of the composite PMI: β = {num(data.bridge.beta, 3)}, R² = {num(data.bridge.r2)}, n = {data.bridge.n})</>},
-          and the panel includes the Bank's Agents' scores and Decision Maker Panel. The Bank's published staff estimates sit
-          alongside, so the gap between the model and the Bank, and the news since the Bank last spoke, are visible.
-        </p>
+        {data.country === 'US' ? (
+          <p style={p}>
+            The panel follows the New York Fed Staff Nowcast and the Atlanta Fed's GDPNow (surveys, labour, activity, housing), with a
+            survey bridge equation alongside
+            {data.bridge && <> (GDP on the quarterly average of the ISM manufacturing index: β = {num(data.bridge.beta, 3)}, R² = {num(data.bridge.r2)}, n = {data.bridge.n})</>}.
+            GDPNow's every update sits next to the model, and the FOMC's projections next to its calendar-year forecasts.
+          </p>
+        ) : (
+          <p style={p}>
+            Like the BoE staff's own suite, the toolkit pairs the DFM with a survey bridge equation
+            {data.bridge && <> (q/q on the quarterly average of the composite PMI: β = {num(data.bridge.beta, 3)}, R² = {num(data.bridge.r2)}, n = {data.bridge.n})</>},
+            and the panel includes the Bank's Agents' scores and Decision Maker Panel. The Bank's published staff estimates sit
+            alongside, so the gap between the model and the Bank, and the news since the Bank last spoke, are visible.
+          </p>
+        )}
         <p style={p}>
           Data are real-time: every value is stored with the day it became public, first prints and revisions alike, so the
           news history and the backtest see each day's data exactly as published (sources per indicator below).
