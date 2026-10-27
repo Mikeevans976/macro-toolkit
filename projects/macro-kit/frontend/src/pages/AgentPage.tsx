@@ -33,6 +33,11 @@ const TEMPLATES: Record<string, string[]> = {
     'Red-team the most recent desk views recorded this week.',
     'Which of the current consensus rates trades looks most crowded, and why?',
   ],
+  'macro-themes-strategist': [
+    'Score every theme: on track, drifting or broken, and why?',
+    'Update the scenario probabilities for the BoE theme after the latest data.',
+    'What is the worst joint scenario across our themes, and how should we hedge it?',
+  ],
   'head-of-macro-research': [
     'Give me the macro regime across the ten G10 regions: where is momentum improving and deteriorating?',
     'Which regions show the biggest gap between macro fair value and the 10y yield?',
@@ -108,6 +113,10 @@ const TEMPLATES: Record<string, string[]> = {
     'What does government bond supply look like over the next month in EGBs?',
     'Are reserves becoming scarce? What does repo say?',
   ],
+  'rates-vol-strategist': [
+    'Is rates vol cheap or rich versus the event risk ahead?',
+    'Suggest an option structure for a view that the ECB cuts less than priced.',
+  ],
   'head-of-fx-cross-asset': [
     'What do FX, commodities and credit say about the rates view?',
     'Which cross-asset trade would you back today?',
@@ -129,8 +138,8 @@ const TEMPLATES: Record<string, string[]> = {
     'What are credit spreads saying about growth?',
   ],
   'vol-options-strategist': [
-    'Is rates vol cheap or rich versus the event risk ahead?',
-    'Suggest an option structure for a view that the ECB cuts less than priced.',
+    'Is FX vol cheap or rich versus the event risk ahead?',
+    'Suggest an option structure for a weaker dollar over the next three months.',
   ],
   'head-of-quant': [
     'Which pod ideas are crowded or fighting the regime?',
@@ -144,9 +153,13 @@ const TEMPLATES: Record<string, string[]> = {
     'What regime are we in, and how confident are you?',
     'Which historical relationships have broken down recently?',
   ],
-  'signal-research-analyst': [
-    'Test the claim that EUR 2s10s steepens into quarter-end.',
-    'Is the mean reversion in BTP-Bund robust or fragile?',
+  'model-backtest-analyst': [
+    'How good is the UK GDP nowcast in real time, and does it beat consensus?',
+    'Could a model have forecast US payrolls surprises better than consensus?',
+  ],
+  'strategy-backtest-analyst': [
+    'Backtest the latest proposed trade: how often did it hit the target before the stop?',
+    'Test the claim that EUR 2s10s steepens into quarter-end, after costs.',
   ],
   'head-of-trading': [
     'Review the ledger: what is approved, live and at risk?',

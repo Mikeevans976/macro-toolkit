@@ -419,6 +419,33 @@ register(Tool(
     handler=option_implied_cdf,
 ))
 
+
+def macro_options(date: str | None = None) -> dict:
+    from macro_options import get_snapshot
+    s = get_snapshot(date)
+    # Euribor futures are quoted in price points: 1 point = 100bp, so normal vols × 100 are bp/yr
+    expiries = [{"contract": c["id"], "F": c["F"], "option": e["code"], "kind": e["kind"], "expiry": e["expiry"],
+                 "T": e["T"], "atm_normal_vol_bp": round(e["atm_vol"] * 100, 1),
+                 "fit_rmse_ticks": e["fit_rmse_ticks"], "flags": e["flags"],
+                 "smile": [{"strike": q["strike"], "type": q["type"], "iv_bp": round(q["iv"] * 100, 1)}
+                           for q in e["quotes"] if q["iv"] is not None]}
+                for c in s["contracts"] for e in c["expiries"]]
+    return {"data_source": s["data_source"], "live": s["live"], "as_of": s["as_of"], "note": s.get("note"),
+            "rates": s.get("rates"), "ecb_ois_path": s["ois_path"], "expiries": expiries}
+
+
+register(Tool(
+    name="macro_options",
+    description=(
+        "Euribor futures options (Macro Options Monitor): per option expiry the future, ATM normal vol and "
+        "OTM smile in bp/yr, plus €STR, the ECB deposit rate and the €STR OIS-implied ECB meeting path "
+        "(expected rate and move per meeting). Live, or a past day's settlement with date='YYYY-MM-DD'."
+    ),
+    input_schema=schema({"date": {"type": "string", "description": "Past settlement day; omit for live"}}),
+    handler=macro_options,
+    max_chars=10000,
+))
+
 # ---------------------------------------------------------------------------
 # Positioning / technicals / regimes
 # ---------------------------------------------------------------------------
@@ -585,4 +612,35 @@ register(Tool(
         },
     }, ["expression"]),
     handler=seasonality,
+))
+
+# ---------------------------------------------------------------------------
+# Quant Macro nowcast backtests
+# ---------------------------------------------------------------------------
+
+def nowcast_backtest(model: str | None = None) -> object:
+    import quant_macro
+    if model is None:
+        return {"models": quant_macro.list_models(),
+                "note": "Pass a model slug for its last saved real-time backtest."}
+    if model not in quant_macro.MODELS:
+        raise ValueError(f"Unknown model {model!r}. Use one of {list(quant_macro.MODELS)}")
+    bt = quant_macro.get_backtest(model)
+    if bt is None:
+        return (f"No saved backtest for {model}. The PM runs one with 'Run full backtest' on the model's "
+                "Quant Macro page (5-10 minutes).")
+    return bt
+
+
+register(Tool(
+    name="nowcast_backtest",
+    description=(
+        "Quant Macro nowcast models (DFM nowcasts of GDP and other G10 targets) and their last saved real-time "
+        "backtest: for each quarter the DFM, bridge and naive nowcasts at fixed days before the first estimate, "
+        "using only data public on each day; summary RMSE and bias per horizon against the first estimate and "
+        "today's value. Omit `model` to list the models."
+    ),
+    input_schema=schema({"model": {"type": "string", "description": "Model slug, e.g. from the list"}}),
+    handler=nowcast_backtest,
+    max_chars=12000,
 ))

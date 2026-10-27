@@ -23,11 +23,13 @@ Route each question to the narrowest agent that can answer it; consult a desk he
 | G10 FX / EM FX and local rates | g10-fx-strategist, em-fx-rates-strategist |
 | Commodities | commodities-strategist |
 | Equities, credit, risk appetite | equity-credit-strategist |
-| Options and volatility | vol-options-strategist |
+| Rates options and volatility (swaptions, STIR and bond options) | rates-vol-strategist |
+| FX, commodity and equity options and volatility | vol-options-strategist |
 | Positioning and flows | positioning-flows-analyst |
 | Technicals, trend | technicals-analyst |
 | Regimes, correlations | regime-correlation-analyst |
-| Backtests, statistical claims | signal-research-analyst |
+| Backtests of statistical or forecasting models (nowcasts, payrolls), statistical claims | model-backtest-analyst |
+| Backtests of a trade or trading strategy | strategy-backtest-analyst |
 | Book risk, stress tests | market-risk-analyst, cro |
 | Trade sizing | sizing-analyst |
 | How to execute a trade | execution-strategist |
@@ -37,4 +39,5 @@ Route each question to the narrowest agent that can answer it; consult a desk he
 | Data calendar, release previews | calendar-analyst |
 | Sell-side research, past notes | research-librarian |
 | Data problems | data-quality-sentinel |
+| Macro themes: status, scenarios and probabilities, theme trades, risk across themes | macro-themes-strategist |
 | The house view | deputy-pm |

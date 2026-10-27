@@ -264,6 +264,28 @@ register(Tool(
     max_chars=8000,
 ))
 
+# ── trade themes ─────────────────────────────────────────────────────────────
+
+
+def trade_themes() -> object:
+    import json
+
+    from routers.themes import THEMES_PATH, build_themes
+    return build_themes(json.loads(THEMES_PATH.read_text(encoding="utf-8")))
+
+
+register(Tool(
+    name="trade_themes",
+    description=(
+        "The book's macro themes (backend/data/trade_themes.json, from the quarterly review, shown on the "
+        "launchpad Summary): each theme's scenarios with probabilities, the trades under it with max loss and "
+        "P&L per scenario, expected P&L, the interactions between themes, and book totals. Read-only."
+    ),
+    input_schema=schema(),
+    handler=trade_themes,
+    max_chars=16000,
+))
+
 # ── publishing ───────────────────────────────────────────────────────────────
 # (research search lives in pod/tools/research_tools.py, over the research library)
 

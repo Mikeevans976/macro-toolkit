@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { DashboardConfig } from '../types'
 import { loadDashboardConfig } from '../hubData'
 import CategoryCard from './CategoryCard'
 import Glyph from './Glyph'
+import SummaryView from '../features/launchpad/SummaryView'
+import AgentsView from '../features/launchpad/AgentsView'
+
+export type LaunchpadView = 'summary' | 'agents' | 'tools'
+
+const VIEWS: { id: LaunchpadView; label: string; to: string }[] = [
+  { id: 'summary', label: 'Summary', to: '/' },
+  { id: 'agents', label: 'Agents', to: '/agents' },
+  { id: 'tools', label: 'Tools', to: '/tools' },
+]
 
 function greeting(d: Date): string {
   const h = d.getHours()
@@ -19,7 +29,7 @@ function stamp(d: Date): string {
   return `${day} · ${time}`
 }
 
-export default function Dashboard() {
+export default function Dashboard({ view = 'summary' }: { view?: LaunchpadView }) {
   const [config, setConfig] = useState<DashboardConfig | null>(null)
   const [error, setError] = useState('')
   const [username, setUsername] = useState('')
@@ -57,9 +67,11 @@ export default function Dashboard() {
     return () => window.clearInterval(id)
   }, [])
 
-  const toolCount = config?.categories.reduce((acc, c) => acc + c.tools.length, 0) ?? 0
-  const liveCats = config?.categories.filter((c) => c.tools.length > 0).length ?? 0
-  const agentCount = config?.categories.find((c) => c.id === 'agents')?.tools.length ?? 0
+  const agentsCategory = config?.categories.find((c) => c.id === 'agents')
+  const toolCategories = config?.categories.filter((c) => c.id !== 'agents') ?? []
+  const toolCount = toolCategories.reduce((acc, c) => acc + c.tools.length, 0)
+  const liveCats = toolCategories.filter((c) => c.tools.length > 0).length
+  const agentCount = agentsCategory?.tools.length ?? 0
   const firstName = username.split(' ')[0]
 
   return (
@@ -72,7 +84,7 @@ export default function Dashboard() {
         )}
 
         {/* Header */}
-        <header className="flex flex-wrap items-end justify-between gap-6 pb-7 mb-8 border-b border-hairline">
+        <header className="flex flex-wrap items-end justify-between gap-6 pb-7 mb-0">
           <div className="min-w-0">
             <div className="hub-eyebrow mb-2.5">{stamp(now)}</div>
             <h1 className="text-[28px] leading-tight font-normal tracking-[-0.025em] text-fg-1">
@@ -110,16 +122,36 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {!config && !error && (
+        <nav aria-label="Launchpad sections" className="flex gap-1 mb-7 border-b border-hairline">
+          {VIEWS.map((v) => (
+            <NavLink
+              key={v.id}
+              to={v.to}
+              end
+              className={({ isActive }) =>
+                'relative -mb-px px-3 py-2.5 text-[13px] no-underline border-b-2 transition-colors duration-150 ' +
+                (isActive ? 'text-fg-1 border-accent' : 'text-fg-3 border-transparent hover:text-fg-1')
+              }
+            >
+              {v.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        {view === 'summary' && <SummaryView />}
+
+        {view !== 'summary' && !config && !error && (
           <div className="flex items-center justify-center py-32">
             <span className="hub-eyebrow animate-pulse">Loading launchpad</span>
           </div>
         )}
 
-        {config && (
+        {view === 'agents' && <AgentsView />}
+
+        {view === 'tools' && config && (
           <div className="columns-1 md:columns-2 xl:columns-3 gap-4 [column-fill:_balance]">
             {/* Categories with tools first, empty placeholders last */}
-            {[...config.categories.filter((c) => c.tools.length), ...config.categories.filter((c) => !c.tools.length)].map((category, i) => (
+            {[...toolCategories.filter((c) => c.tools.length), ...toolCategories.filter((c) => !c.tools.length)].map((category, i) => (
               <div
                 key={category.id}
                 className="break-inside-avoid mb-4 hub-enter"

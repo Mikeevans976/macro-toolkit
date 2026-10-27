@@ -1,30 +1,39 @@
-# Global Macro Pod — Agent Roster & Hierarchy Proposal
+# Global Macro Pod
 
-**Status:** Draft for review
-**Date:** 2026-10-09
-**Scope:** Agent roster, reporting structure, orchestration architecture, and tools/skills/MCPs per agent.
+**Status:** Built (all 45 agents runnable). Tool gaps tracked per agent in `roster.yaml` (§9).
+**Last updated:** 2026-10-22
+**Scope:** Agent roster, reporting structure, orchestration, tools/skills/MCPs per agent, and how to extend the pod.
+
+The source of truth is the code. This document explains the design; when they disagree, the code wins.
+
+| What | Where |
+|---|---|
+| Roster (agents, desks, tiers, tools, skills, gaps) | `backend/pod/roster.yaml`, loaded by `pod/roster.py` |
+| Runner (tool-use loop, one agent per task) | `backend/pod/runner.py`; model ids in `pod/config.py` |
+| Workflows | `backend/pod/workflows.py` (`WORKFLOWS`, `USE_WHEN`, `workflow_info()`) |
+| Tools | `backend/pod/tools/` (`REGISTRY`; analytics wrappers in `analytics.py`) |
+| Skills | `backend/pod/skills/<name>/SKILL.md` |
+| Trade ledger, alerts | `backend/pod/book.py` |
+| Risk engine, limits | `backend/pod/risk.py`, `pod/limits.yaml` |
+| Research library | `backend/pod/research/` |
+| Run and event storage | `backend/agents/storage.py`, `backend/pod/storage.py` |
+| API | `backend/routers/agents.py` (`/api/agents/*`, `/api/pod/*`) |
+| UI | `frontend/src/pages/AgentsPod.tsx` (pod page), `features/launchpad/AgentsView.tsx` (launchpad Agents tab), `components/podOrgChart.tsx` |
+| Tests | `backend/tests/test_pod.py`, `test_agents_api.py` |
 
 ---
 
-## 1. Starting point
+## 1. History
 
-The current Agents section (`backend/agents/`) is a **Fixed Income pod**: one Head of Fixed Income (Opus) managing four Sonnet specialists in a single hierarchical CrewAI crew.
+Until October 2026 the Agents section was a five-agent **Fixed Income pod** on CrewAI: a Head of Fixed Income (Opus) over a Macro Strategist, RV Analyst, Inflation Watcher and Positioning Monitor, with six analytics tools. It had no FX or cross-asset coverage, regional economists, independent risk, execution or challenge function, and CrewAI's hierarchical process could not guarantee mandatory gates (§6). It was replaced by this pod and its code removed; only the run/event storage (`backend/agents/storage.py`) remains.
 
-| Current agent | Tools |
+| Old FI pod agent | Now |
 |---|---|
-| Head of Fixed Income (manager) | general tools only |
-| Macro Strategist | Macro Factor Heatmap |
-| RV Analyst | Swaps RV Scanner, EGB RV Scanner |
-| Inflation Watcher | Inflation Fixings Monitor |
-| Positioning Monitor | CTA Momentum Signals, Correlation Regime Scanner |
-
-This is a solid core. For a global macro pod it lacks:
-
-- FX and cross-asset coverage
-- regional economists
-- independent risk
-- execution and book management
-- a function whose job is to challenge ideas
+| Head of Fixed Income | Head of Rates (Deputy PM above it) |
+| Macro Strategist | Head of Macro Research + regional economists |
+| RV Analyst | Swaps & Spreads RV Analyst + Sovereign Spreads Analyst |
+| Inflation Watcher | Inflation Strategist |
+| Positioning Monitor | Positioning & Flows + Regime & Correlation + Technicals & Momentum |
 
 ---
 
@@ -47,6 +56,7 @@ Portfolio Manager (human, final approval)
 ├── Deputy PM / Synthesis                         [Opus]  owns house view, ranks ideas, chairs IC
 │   ├── Pod Coordinator (Chief of Staff)          [Haiku] routes questions, schedules runs, minutes
 │   ├── Red Team / Devil's Advocate               [Opus]  pre-mortems every idea; reports only to Deputy PM
+│   ├── Macro Themes Strategist                   [Opus]  themes: identify, track, scenarios, trades, theme risk
 │   │
 │   ├── Head of Macro Research                    [Opus]
 │   │   ├── US Economist (Fed)
@@ -58,26 +68,28 @@ Portfolio Manager (human, final approval)
 │   │   ├── Central Bank Communications Analyst (speech/minutes diffs, hawk-dove scoring)
 │   │   └── Geopolitics & Policy Risk Analyst (elections, tariffs, sanctions)
 │   │
-│   ├── Head of Rates                             [Opus]   ← today's "Head of Fixed Income"
+│   ├── Head of Rates                             [Opus]
 │   │   ├── Front-End / STIR Strategist (OIS, SOFR/Euribor futures, meeting pricing)
 │   │   ├── Curve & Duration Strategist (level/slope, PCA, global yield factors)
 │   │   ├── Swaps & Spreads RV Analyst (swap spreads, ASW, flies)
 │   │   ├── Sovereign Spreads Analyst (EGB, Gilts, JGB, UST; fitted curves)
 │   │   ├── Inflation Strategist (fixings, breakevens, linker fair value)
-│   │   └── Supply & Funding Analyst (issuance, auctions, QT, repo, xccy basis)
+│   │   ├── Supply & Funding Analyst (issuance, auctions, QT, repo, xccy basis)
+│   │   └── Rates Volatility Strategist (swaptions, caps/floors, STIR and bond options)
 │   │
 │   ├── Head of FX & Cross-Asset                  [Opus]
 │   │   ├── G10 FX Strategist (rate differentials, valuation, carry)
 │   │   ├── EM FX & Rates Strategist
 │   │   ├── Commodities Strategist (energy/metals as macro drivers)
 │   │   ├── Equity & Credit Macro Strategist (index, spreads as risk appetite)
-│   │   └── Volatility & Options Strategist (swaption/FX vol; also serves Rates)
+│   │   └── FX & Cross-Asset Volatility Strategist (FX, commodity, equity vol)
 │   │
 │   ├── Head of Quant & Positioning               [Sonnet]
 │   │   ├── Positioning & Flows Analyst (COT, CTA models, Euribor positioning, flows)
 │   │   ├── Technicals & Momentum Analyst
 │   │   ├── Regime & Correlation Analyst
-│   │   └── Signal Research & Backtest Analyst (statistically checks other agents' claims)
+│   │   ├── Model Backtest Analyst (forecasting and statistical models, in real time)
+│   │   └── Trade & Strategy Backtest Analyst (specific trades and trading strategies)
 │   │
 │   ├── Head of Trading & Book                    [Sonnet]
 │   │   ├── Execution Strategist (instrument choice, liquidity, cost, timing, rolls)
@@ -96,7 +108,7 @@ Portfolio Manager (human, final approval)
     └── Portfolio Construction & Sizing Analyst (risk budget, idea correlation, hedges)
 ```
 
-**Size:** about 40 agents: 1 Deputy PM, 6 heads plus the CRO, and the rest specialists or services.
+**Size:** 45 agents: 1 Deputy PM, 6 heads plus the CRO, and the rest specialists or services.
 
 ---
 
@@ -109,6 +121,7 @@ Portfolio Manager (human, final approval)
 | Deputy PM / Synthesis | Opus | PM (human) | Combines desk views into the house view, ranks trade ideas, chairs IC, recommends to PM |
 | Pod Coordinator | Haiku | Deputy PM | Routes ad-hoc questions to the narrowest capable agent, schedules runs, keeps meeting minutes |
 | Red Team / Devil's Advocate | Opus | Deputy PM | Argues against every proposed trade: pre-mortem, consensus check, crowding, what's already priced |
+| Macro Themes Strategist | Opus | Deputy PM | Owns the book's macro themes end to end: identifies them, tracks each thesis against cross-asset prices and sell-side research, builds scenarios with probabilities, translates themes into trades, and manages risk across themes (recommends; the CRO stays independent) |
 | Chief Risk Officer | Opus | PM (human) | Independent risk oversight. Owns limits and can block trades |
 
 ### 4.2 Macro Research
@@ -136,6 +149,7 @@ Portfolio Manager (human, final approval)
 | Sovereign Spreads Analyst | Sonnet | EGB spreads, Gilts/JGB/UST cash RV, fitted curves, CTD |
 | Inflation Strategist | Sonnet | Fixings, breakevens, real yields, linker fair value |
 | Supply & Funding Analyst | Sonnet | Issuance/auction calendars, DMO remits, QT, repo, CB balance sheets, xccy basis |
+| Rates Volatility Strategist | Sonnet | Swaptions, caps/floors, STIR and bond futures options: rich/cheap vol, skew, option-implied policy paths, option structures for the desk's views |
 
 ### 4.4 FX & Cross-Asset desk
 
@@ -146,7 +160,7 @@ Portfolio Manager (human, final approval)
 | EM FX & Rates Strategist | Sonnet | EM FX and local rates, carry-to-risk |
 | Commodities Strategist | Sonnet | Energy/metals/ags as macro and inflation drivers |
 | Equity & Credit Macro Strategist | Sonnet | Index futures, credit spreads, risk-appetite signals |
-| Volatility & Options Strategist | Sonnet | Swaption/FX/cross-asset vol, skew, option-implied scenarios (serves all desks) |
+| FX & Cross-Asset Volatility Strategist | Sonnet | FX, commodity and equity index vol, skew, option structures for non-rates views |
 
 ### 4.5 Quant & Positioning
 
@@ -156,7 +170,8 @@ Portfolio Manager (human, final approval)
 | Positioning & Flows Analyst | Sonnet | CFTC COT, CTA model positioning, Euribor positioning, fund flows |
 | Technicals & Momentum Analyst | Sonnet | Trend, momentum, print/level analysis |
 | Regime & Correlation Analyst | Sonnet | Correlation regimes, cross-asset regime detection |
-| Signal Research & Backtest Analyst | Sonnet | Statistically checks other agents' claims (seasonality, mean reversion, event studies) |
+| Model Backtest Analyst | Sonnet | Real-time, out-of-sample tests of forecasting and statistical models (nowcasts, payrolls, inflation) against naive and consensus; checks other agents' statistical claims |
+| Trade & Strategy Backtest Analyst | Sonnet | Backtests specific trades (entry/target/stop on analogues) and systematic strategies, with costs, carry, robustness and regime splits |
 
 ### 4.6 Trading & Book
 
@@ -188,18 +203,29 @@ Portfolio Manager (human, final approval)
 
 ## 5. Workflows
 
-| Workflow | Path |
-|---|---|
-| **Morning meeting** | Shared Services (news, calendar, data QA) → desks in parallel → Heads summarise → Deputy PM house view → Publisher |
-| **Data or CB event** | Calendar flags a release → relevant Economist + STIR → Head of Rates/FX → alert to Deputy PM if the surprise exceeds a threshold |
-| **Trade lifecycle** | Any specialist proposes → desk Head sponsors → Red Team challenges → Sizing → CRO approves or blocks → PM decides → Execution → Trade Monitor → Journal |
-| **Ad-hoc question** | Coordinator routes it to the narrowest agent or desk that can answer, and only goes up the chain if needed |
+Eleven workflows are built (`WORKFLOWS` in `pod/workflows.py`). `GET /api/agents/workflows` serves each one's stages (which agents run in parallel, in which order), the agent that writes the answer, and when to use it (`USE_WHEN`); the launchpad's Agents tab and the pod page show the same.
+
+| Workflow | Id | Use when | Path |
+|---|---|---|---|
+| **Ask the Pod** | `ask-pod` | A quick or narrow question and you don't know which specialist owns it | Coordinator routes it to the narrowest agent or desk, consults it, returns the answer |
+| **Trade Review** | `trade-review` | You have a specific trade idea and want it through the ledger gates | Coordinator picks the sponsoring desk head → head sponsors → Red Team challenges → Sizing Analyst → CRO → Deputy PM summary → **PM approves or rejects on the pod page** |
+| **Theme Review** | `theme-review` | Checking whether the themes are playing out, the probabilities are right, the trades are still the best ones, and how theme risks add up | Macro Themes Strategist reads `trade_themes`, tracks each theme, updates scenarios, reviews trades and cross-theme risk, consulting specialists as needed; publishes the review |
+| **Morning Briefing** | `morning-briefing` | Start of the day: what changed, house view, morning note. The most expensive run (~37 agent runs) | News Scanner + Calendar Analyst (plus a two-day research digest) → all four research desks' specialists in parallel → desk heads → Red Team → Market Risk + Sizing → CRO → Deputy PM house view → Publisher |
+| **Macro Research Briefing** | `macro-desk` | The economic outlook: cycle, CB reaction functions, politics | Desk specialists in parallel → Head of Macro Research |
+| **Rates Desk Briefing** | `rates-desk` | Where the risk/reward is in rates | Desk specialists in parallel → Head of Rates |
+| **FX & Cross-Asset Briefing** | `fx-desk` | Currencies, commodities, equity and credit, or options to express a view | Desk specialists in parallel → Head of FX & Cross-Asset |
+| **Quant & Positioning Briefing** | `quant-desk` | Whether ideas are crowded, fighting the trend or regime, or statistically backed | Desk specialists in parallel → Head of Quant & Positioning |
+| **Book Review** | `book-review` | Checking live and approved trades: implementation, theses, lessons | Trading & Book desk → Head of Trading & Book |
+| **Risk Review** | `risk-review` | Before adding risk, after a large move, or when trades await sizing and the CRO | Risk desk → CRO |
+| **Research Sweep** | `research-sweep` | New sell-side research has arrived (inbox, drop folder, portals) | Research Librarian ingests the inbox and drop folder, browses each logged-in portal, summarises and records each bank's calls |
+
+Not built: an event-driven **data/CB release** workflow (Calendar flags a release → Economist + STIR → Head → alert above a surprise threshold) and scheduled runs. Both need `schedule_run` (§10).
 
 ---
 
 ## 6. Orchestration architecture
 
-**Decision (proposed):** replace CrewAI with a thin in-house runner on the Anthropic SDK, and write workflows as plain Python. LangGraph is the fallback if workflows become highly dynamic.
+**Decision (implemented):** a thin in-house runner on the Anthropic SDK (`pod/runner.py`) with workflows as plain Python. LangGraph remains the fallback if workflows become highly dynamic. The runner also supports open-weight models through OpenRouter (web search/fetch then run locally, `pod/tools/web_local.py`); the model per agent can be changed from the UI (`PUT /api/agents/{agent_id}/model`).
 
 ### 6.1 What the pod needs from a framework
 
@@ -212,27 +238,20 @@ Portfolio Manager (human, final approval)
 
 | | Fit | Main problem for this pod |
 |---|---|---|
-| **CrewAI** (current) | Fastest to prototype, which is why the FI pod exists | In `Process.hierarchical` the manager LLM decides who runs and when. Agents can be skipped or re-delegated, so mandatory gates aren't guaranteed. The callback code in `crew.py` (`hasattr` probing, output truncation) shows how opaque execution is. Claude features arrive late through LiteLLM. |
+| **CrewAI** (the old FI pod) | Fastest to prototype | In `Process.hierarchical` the manager LLM decides who runs and when. Agents can be skipped or re-delegated, so mandatory gates aren't guaranteed. Execution was opaque (callback probing, output truncation), and Claude features arrive late through LiteLLM. |
 | **LangGraph** | Strongest fit for workflows: explicit state graph, checkpointing, human-in-the-loop interrupts | Heavier abstraction and a learning curve. Most of its power is for dynamic, branching graphs, and these workflows are mostly fixed. |
 | **OpenAI Agents SDK** | Clean handoff model with good tracing | Built OpenAI-first; Claude goes through an adapter. Handoffs suit routing (the Coordinator) but not gated pipelines. Ruled out for a Claude-based pod. |
-| **No framework** (Anthropic SDK directly) | Full control. Native access to MCP, server-side web search and code execution, structured outputs and prompt caching | Agent loop, retries and tracing must be built in-house. That's small, and `storage.py` and SSE streaming already exist. |
+| **No framework** (Anthropic SDK directly) — **chosen** | Full control. Native access to MCP, server-side web search and code execution, structured outputs and prompt caching | Agent loop, retries and tracing must be built in-house. That turned out small (`runner.py`, ~340 lines). |
 
-### 6.3 Proposed design
+### 6.3 Design as built
 
-- **An agent is just data:** a model, a system prompt, a tool list and an output schema (the standard view format from §2). Agent definitions can live in config rather than code.
-- **One runner** (roughly 200–300 lines) handles the tool-use loop, retries, cost and token accounting, logging to the existing SQLite `events` table, and SSE streaming.
-- **Workflows are explicit Python.** For example, the morning meeting runs desks in parallel with `asyncio.gather`, then has each Head summarise, then has the Deputy PM synthesise.
-- **The trade lifecycle is a status machine in the database:**
-  `proposed → sponsored → challenged → sized → risk_approved → pm_approved → live → closed`
-  Each transition is triggered by a specific agent or by the PM in the UI. The gates can't be skipped, and state survives restarts.
-- **Dynamic routing is limited to the Coordinator.** It uses one Haiku call to choose which agent or desk handles an ad-hoc question.
-
-### 6.4 Migration
-
-- The six analytics tools are already plain Python functions. The CrewAI `BaseTool` wrappers in `tools.py` become plain tool schemas plus handlers.
-- The general tools (sandbox files, SQLite, Python, web) port the same way. Web search and fetch may be replaced by Anthropic's server-side tools.
-- `storage.py`, the SSE endpoints and the frontend pages remain unchanged. The event shapes stay compatible.
-- Update the model IDs: `claude-sonnet-4-6` / `claude-opus-4-6` become Opus 5.5, Sonnet 5.5 and Haiku 5.5, per the tiers in §2.
+- **An agent is just data:** an entry in `roster.yaml` (desk, `reports_to`, tier, effort, mandate, tools, skills, `missing_tools`). `pod/roster.py` builds the system prompt from it plus the agent's skills, and adds the baseline kit (§7.2).
+- **One runner** (`pod/runner.py`) runs one agent on one task: a manual tool-use loop (streamed, adaptive thinking, prompt caching, `pause_turn` resumption, a hard turn cap that asks for a final answer, refusal fallback to another model), logging every step to the SQLite `events` table. The SSE endpoint tails that table, authenticated by a 60 s run-scoped ticket.
+- **Workflows are explicit Python** (`pod/workflows.py`): desks fan out with `asyncio.gather`, then each Head summarises, then the Deputy PM synthesises. `consult_agent` lets a manager call a report mid-run.
+- **The trade lifecycle is a status machine in the database** (`pod/book.py`):
+  `proposed → sponsored → challenged → sized → risk_approved → pm_approved → live → closed` (or `rejected`)
+  Each transition is allowed only from given states and only for given roles (e.g. only `red-team` can `challenge`, only `cro` can `risk_approve` or `risk_block`, only the human `pm` can `pm_approve`). The gates can't be skipped, and state survives restarts.
+- **Dynamic routing is limited to the Coordinator.** One Haiku call picks the agent or desk for an ad-hoc question or the sponsoring head for a trade idea.
 
 ---
 
@@ -244,7 +263,7 @@ Portfolio Manager (human, final approval)
 |---|---|---|---|
 | **Tool** | A function the agent calls that returns data or a computation | In-process Python in `backend/`, called by the runner (§6) | Computation on our own data and models. Analytics are tools. |
 | **Server tool** | Anthropic-hosted tool (web search, web fetch, code execution) | Anthropic API | Generic capabilities we shouldn't build ourselves |
-| **Skill** | Packaged methodology: a `SKILL.md` playbook plus reference files and optional scripts, loaded only when relevant | `backend/agents/skills/<name>/` | Know-how the agent needs to *interpret* data correctly: frameworks, checklists, templates, house rules |
+| **Skill** | Packaged methodology: a `SKILL.md` playbook plus reference files and optional scripts, loaded only when relevant | `backend/pod/skills/<name>/` | Know-how the agent needs to *interpret* data correctly: frameworks, checklists, templates, house rules |
 | **MCP server** | A standard connector to an external system | Separate process; the runner connects as an MCP client | Raw data or services outside `macro-kit`: Bloomberg, Haver, public statistics, news, email, drive, the real book |
 
 **Permissions** follow the reporting lines in §3:
@@ -261,66 +280,73 @@ Portfolio Manager (human, final approval)
 
 | Type | Items |
 |---|---|
-| Tools | `submit_view` (standard view schema from §2), `get_house_view`, `read_desk_views`, `search_pod_memory` (past runs, IC notes, trade journal), `sandbox_files`, `sqlite_sandbox` |
-| Server tools | `web_search`, `web_fetch`, `code_execution` (replaces the current `PythonCodeTool`) |
+| Tools | `submit_view` (standard view schema from §2), `get_house_view`, `read_desk_views`, `search_pod_memory` (past runs, IC notes, trade journal), `list_trades`, `research_search`, `research_calls`, `sandbox_read` / `sandbox_write` / `sandbox_edit` / `sandbox_list`, `sqlite_sandbox`, `python_sandbox` (`BASELINE_TOOLS` in `pod/roster.py`) |
+| Server tools | `web_search`, `web_fetch` (Anthropic server tools; run locally for OpenRouter models) |
 | Skills | `pod-view-format` (schema, conviction scale, house style), `evidence-and-citation` (every number cites its tool and as-of time; stale data is flagged) |
 
 ### 7.3 Tool catalogue
 
 Status key:
-- **exists:** already a CrewAI tool in `tools.py`
-- **wrap:** backend module and API route exist; needs a thin agent wrapper
-- **backend:** a dashboard page exists but has no backend function yet (synthetic frontend data)
-- **new:** must be built
+- **built:** registered in `pod/tools/` (the name in brackets is the registered name where it differs)
+- **wrap:** backend module exists; needs a thin agent wrapper
+- **missing:** not built; agents that need it list it under `missing_tools` in `roster.yaml`
 
 | Tool | Status | Source / notes |
 |---|---|---|
-| `macro_factors` | exists | DFM factors. Extend from 4 regions to all 10 heatmaps (EA, UK, US, JP, CA, SE, NO, CH, AU, NZ) |
-| `swaps_rv` | exists | `swaps_rv.py` |
-| `egb_rv` | exists | `egb_rv.py` |
-| `inflation_fixings` | exists | `hicp_fixings.py`, `rpi_fixings.py`, `us_cpi_fixings.py` |
-| `cta_momentum` | exists | `momentum.py` |
-| `correlation_regimes` | exists | `correlation_regimes.py` (scan + pair) |
-| `macro_fair_value` | wrap | Regional `fair-value`, `pc-regressions`, `yield-pca` routes |
-| `pca_analysis` | wrap | `pca_analysis.py` |
-| `mean_reversion` | wrap | `mean_reversion.py` (OU fit, forward distribution, Sharpe MC, Stanton) |
-| `fitted_bond_curves` | wrap | `fitted_bond_curves.py` (curve, bond lookup, new-issue pricing) |
-| `egb_bond_finder` | wrap | `egb_bond_finder.py` |
-| `global_yields` | wrap | `global_yields.py` |
-| `option_implied_cdf` | wrap | `option_derived_cdf.py` |
-| `seasonality_backtest` | wrap | `seasonality_backtester.py` |
-| `fair_value_models` | wrap | `fair_value_models.py` |
-| `inflation_pca` | wrap | `inflation_pca.py` |
-| `print_analysis` | wrap | `print_analysis.py` (print vs consensus, market reaction) |
-| `euribor_positioning` | wrap | `euribor_positioning_router.py` |
-| `macro_options_monitor` | backend | Page `MacroOptionsMonitor.tsx` only |
-| `trade_blotter` | backend | Page only; becomes the read view on `trade_ledger` |
-| `trade_ledger` | new | Trade status machine (§6.3); transitions permissioned by role |
-| `route_question`, `schedule_run`, `consult_agent`, `alert` | new | Orchestration tools for the Coordinator and Heads |
-| `cb_pricing` | new | OIS-implied meeting-by-meeting path for G10 (and later EM) central banks |
-| `econ_calendar` | new | Releases, consensus and prior values (from the Bloomberg ECO screen via `bloomberg-mcp`) |
-| `surprise_index` | new | Data surprise indices by region |
-| `cot_positioning` | new | CFTC COT across rates, FX, commodities and equity index futures (generalises Euribor positioning) |
-| `supply_calendar` | new | Auction and syndication calendar, DMO remits, net supply |
-| `funding_monitor` | new | Repo, CB balance sheets, reserves, xccy basis. Fills the empty Funding section |
-| `cb_text_diff` | new | Statement and minutes diffs plus hawk-dove scoring over the `cb-comms-mcp` corpus |
-| `fx_valuation` | new | Rate differentials, BEER/PPP, REER |
-| `fx_carry_screen` | new | G10 and EM carry, carry-to-vol |
-| `commodity_curves` | new | Futures curves, roll yield, inventories |
-| `cross_asset_snapshot` | new | Equity index, credit spreads, VIX/MOVE, DXY, oil, gold: one-call market state |
-| `vol_surface` | new | Swaption and FX vol surfaces, skew |
-| `options_pricer` | new | Black/Bachelier pricing and greeks for structuring |
-| `technicals` | new | Levels, ranges, moving averages, RSI |
-| `regime_model` | new | HMM or clustering regime classifier |
-| `event_study` | new | Generic event study: market reaction around a list of dates |
-| `risk_engine` | new | DV01/vega/FX-delta aggregation, VaR, scenario P&L on the live book |
-| `scenario_library` | new | Historical and hypothetical stress scenarios as shock vectors |
-| `sizing_engine` | new | Vol targeting, risk budget, correlation between ideas, hedge ratios |
-| `execution_cost` | new | Compares futures, swaps, cash and options; bid-offer, liquidity windows, roll calendar, CTD |
-| `pnl_attribution` | new | P&L by trade, factor and desk; hit rate |
-| `data_health` | new | Freshness, gaps and outliers per series catalogue |
-| `research_search` | new | Vector search over sell-side PDFs and internal notes |
-| `publish_report` | new | Markdown to PDF/HTML, plus a wrapper around `docs/build_ic_slides.py` |
+| `macro_factors` | built | DFM factors for all 30 heatmap regions (10 DM, 20 EM) |
+| `swaps_rv` | built | `swaps_rv.py` |
+| `egb_rv` | built | `egb_rv.py` |
+| `inflation_fixings` | built | `hicp_fixings.py`, `rpi_fixings.py`, `us_cpi_fixings.py` |
+| `cta_momentum` | built | `momentum.py` |
+| `correlation_regimes` | built (+ `correlation_pair`) | `correlation_regimes.py` (scan + pair) |
+| `macro_fair_value` | built | Regional fair value, PC regressions, yield PCA |
+| `pca_analysis` | built | `pca_analysis.py` |
+| `mean_reversion` | built | `mean_reversion.py` (OU fit, forward distribution, Sharpe MC, Stanton) |
+| `fitted_bond_curves` | built (+ `fitted_bond_detail`, `new_issue_pricing`) | `fitted_bond_curves.py` |
+| `egb_bond_finder` | built | `egb_bond_finder.py` |
+| `global_yields` | built | `global_yields.py` |
+| `option_implied_cdf` | built | `option_derived_cdf.py` |
+| `seasonality_backtest` | built (`seasonality`) | `seasonality_backtester.py` |
+| `fair_value_models` | built | `fair_value_models.py` |
+| `inflation_pca` | built | `inflation_pca.py` |
+| `print_analysis` | built (`print_vs_consensus`) | `print_analysis.py` (print vs consensus, market reaction) |
+| `euribor_positioning` | built | `euribor_positioning_router.py` |
+| `macro_options_monitor` | built (`macro_options`) | Euribor options per expiry (ATM vol, smile in bp) and the €STR OIS-implied ECB meeting path; needs Bloomberg (empty in simulation) |
+| `nowcast_backtest` | built | Quant Macro models and their last saved real-time backtest (`quant_macro.get_backtest`) |
+| `trade_themes` | built | The book's themes, scenarios, trades and scenario P&L from `data/trade_themes.json` (read-only) |
+| `price_history` | missing | Generic historical prices for any instrument, for strategy backtests |
+| `trade_blotter` | built (`list_trades`, `trade_note`) | Read view on the ledger |
+| `trade_ledger` | built (`propose_trade`, `advance_trade`) | Trade status machine (§6.3), transitions permissioned by role |
+| `consult_agent`, `alert` | built | Orchestration tools for the Coordinator and Heads |
+| `route_question` | built differently | A routing call inside the workflows rather than a tool |
+| `schedule_run` | missing | Scheduled and event-driven runs |
+| `cb_pricing` | missing | OIS-implied meeting-by-meeting path for G10 (and later EM) central banks. The most-requested gap (12 agents) |
+| `econ_calendar` | built | Bloomberg ECO over the release tickers in `pod/econ_universe.yaml` (verify tickers on the Terminal) |
+| `bloomberg_news`, `bloomberg_reference` | built | B-PIPE headlines (stored by a news subscriber, `pod/bloomberg.py`) and ad hoc reference data |
+| `surprise_index` | missing | Data surprise indices by region (7 agents) |
+| `cot_positioning` | missing | CFTC COT across rates, FX, commodities and equity index futures (5 agents) |
+| `supply_calendar` | missing | Auction and syndication calendar, DMO remits, net supply |
+| `funding_monitor` | missing | Repo, CB balance sheets, reserves, xccy basis |
+| `cb_text_diff` | missing | Statement and minutes diffs plus hawk-dove scoring over the `cb-comms-mcp` corpus |
+| `fx_valuation` | missing | Rate differentials, BEER/PPP, REER |
+| `fx_carry_screen` | missing | G10 and EM carry, carry-to-vol |
+| `commodity_curves` | missing | Futures curves, roll yield, inventories |
+| `cross_asset_snapshot` | missing | Equity index, credit spreads, VIX/MOVE, DXY, oil, gold: one-call market state |
+| `vol_surface` | missing | Swaption and FX vol surfaces, skew |
+| `options_pricer` | missing | Black/Bachelier pricing and greeks for structuring |
+| `technicals` | missing | Levels, ranges, moving averages, RSI |
+| `regime_model` | missing | HMM or clustering regime classifier |
+| `event_study` | missing | Generic event study: market reaction around a list of dates |
+| `risk_engine` | built | `pod/risk.py`: P&L per bp by tenor bucket, parametric scenario P&L and limit breaches on the ledger; limits in `pod/limits.yaml` (placeholders). Historical VaR (`var_model`) missing |
+| `scenario_library` | built | Parametric rate scenarios (bp shocks by bucket) and the risk limits |
+| `sizing_engine` | built | Sizes rate trades to a loss at the stop or a target daily P&L vol |
+| `execution_cost` | missing | Compares futures, swaps, cash and options; bid-offer, liquidity windows, roll calendar, CTD |
+| `pnl_attribution` | missing | P&L by trade, factor and desk; hit rate |
+| `data_health` | built | Freshness, gaps and outliers per series catalogue |
+| `research_search` | built (+ `research_document`, `research_list`, `research_calls`, `research_stats`, `record_research_calls`, `research_update`, `research_sweep_inputs`) | Full-text search and tracked bank calls over `var/research.db` (§9) |
+| `portal_*` | built (`portal_list`, `portal_open`, `portal_fetch`, `portal_click`) | Playwright browsing of bank research portals for the Research Librarian |
+| `publish_report` | built | Saves a finished report (morning note, IC memo) as Markdown in `sandbox/reports/` |
+| `submit_view`, `read_desk_views`, `get_house_view`, `search_pod_memory` | built | Pod infrastructure (baseline kit) |
 
 ### 7.4 Skill catalogue
 
@@ -348,7 +374,10 @@ Status key:
 | `positioning-interpretation` | COT quirks, CTA trigger levels, crowding score | Positioning, Red Team |
 | `technical-analysis-rules` | Pod-approved indicators and how much weight to give them | Technicals |
 | `regime-playbook` | Regime definitions and what has worked in each | Heads, Regime, Deputy PM |
-| `backtest-hygiene` | Look-ahead, multiple testing, real-time vintages, minimum t-stats | Signal Research, Red Team |
+| `backtest-hygiene` | Look-ahead, multiple testing, real-time vintages, minimum t-stats | Both backtesters, Red Team |
+| `forecast-evaluation` | Real-time set-up, benchmarks (naive, consensus), RMSE/bias by horizon, Diebold–Mariano, surprise-sign accuracy, verdict | Model Backtest |
+| `strategy-backtest-protocol` | Rule written first, costs/carry/roll, trade analogues vs unconditional, walk-forward, deflated Sharpe, regime splits | Trade & Strategy Backtest |
+| `macro-themes-framework` | Theme criteria, tracking scorecard, scenario and probability rules, theme → trades with scenario P&L, cross-theme risk | Macro Themes Strategist |
 | `red-team-protocol` | Pre-mortem, what's priced, consensus and crowding check, asymmetry; must output kill criteria | Red Team |
 | `risk-limits-policy` | DV01 per bucket, VaR, stop-loss, concentration limits, escalation | CRO, Market Risk, Sizing |
 | `stress-scenario-library` | 2013 taper tantrum, March 2020, 2022 gilt/LDI, March 2023 SVB, Aug 2024 JPY carry unwind, plus hypotheticals | Market Risk, CRO |
@@ -368,7 +397,7 @@ Skills can run through Anthropic's Agent Skills support (requires the code execu
 
 | MCP server | Status | Provides | Notes |
 |---|---|---|---|
-| `bloomberg-mcp` | In-house | BDH/BDP/BDS, ECO calendar, headlines if licensed | Extends `backend/bbg.py` (only `bdh` today). Main market data source for most desks |
+| `bloomberg-mcp` | Partly built, in-process | BDH/BDP/BDS, ECO calendar, headlines | Built as in-process tools over B-PIPE (`econ_calendar`, `bloomberg_news`, `bloomberg_reference`; §9) rather than an MCP server. Six agents still list it as missing for wider market data |
 | `haver-mcp` | In-house | Haver macro series | Wraps the Haver path in `macro_data_loader.py` |
 | `public-stats-mcp` | In-house (community servers exist for some sources) | FRED/ALFRED (real-time vintages), ECB Data Portal, Eurostat, BoE, ONS, BIS, IMF, OECD, CFTC, EIA, DMO/TreasuryDirect auctions, Fed H.4.1 | One server, many free APIs. ALFRED vintages matter for backtest hygiene |
 | `cb-comms-mcp` | In-house | Corpus of CB statements, minutes, speeches and press conferences, with search | Scraped from CB websites and indexed |
@@ -382,7 +411,7 @@ Skills can run through Anthropic's Agent Skills support (requires the code execu
 
 ### 7.6 Per-agent assignments
 
-Everything below is **in addition to** the baseline kit in §7.2.
+Everything below is **in addition to** the baseline kit in §7.2. These tables are the target design; `roster.yaml` is what each agent actually has, with the gaps under `missing_tools`. Built tools use the registered names in §7.3 (e.g. `seasonality`, `print_vs_consensus`, `propose_trade`/`advance_trade` for `trade_ledger`).
 
 #### Leadership & governance
 
@@ -390,6 +419,7 @@ Everything below is **in addition to** the baseline kit in §7.2.
 |---|---|---|---|
 | Deputy PM | `read_desk_views`, `consult_agent`, `trade_ledger` (rank/recommend), `cross_asset_snapshot`, `risk_engine` (read) | `ic-memo-template`, `regime-playbook`, `sizing-framework` | `google-drive`, `oms-pms-mcp` |
 | Pod Coordinator | `route_question`, `schedule_run`, `consult_agent`, `alert` | `routing-map` | `google-calendar`, `slack`/`gmail` |
+| Macro Themes Strategist | `trade_themes`, `consult_agent`, `propose_trade`, `risk_engine`, `scenario_library`, `sizing_engine`, `correlation_regimes`, `macro_factors`, `option_implied_cdf`, `macro_options`, `cross_asset_snapshot`, `event_study` | `macro-themes-framework`, `geopolitical-scenario-mapping`, `regime-playbook`, `sizing-framework` | `bloomberg-mcp`, `oms-pms-mcp` |
 | Red Team | `option_implied_cdf`, `cb_pricing`, `cot_positioning`, `cta_momentum`, `correlation_regimes`, `seasonality_backtest`, `event_study` | `red-team-protocol`, `backtest-hygiene`, `positioning-interpretation`, `geopolitical-scenario-mapping` | `bloomberg-mcp` |
 | Chief Risk Officer | `risk_engine`, `scenario_library`, `trade_ledger` (approve/block), `alert` | `risk-limits-policy`, `stress-scenario-library` | `oms-pms-mcp` |
 
@@ -405,7 +435,7 @@ The Red Team has its **own data access** on purpose, so it checks a proposal aga
 | Central Bank Communications Analyst | `cb_text_diff`, `cb_pricing` | `cb-text-analysis`, `cb-reaction-functions` | `cb-comms-mcp` |
 | Geopolitics & Policy Risk Analyst | `option_implied_cdf`, `cross_asset_snapshot`, `event_study` | `geopolitical-scenario-mapping` | `news-mcp` |
 
-China & EM has no heatmap today. An EM/China data set is a tools gap.
+The 20 EM heatmaps (`docs/EM_HEATMAPS_PLAN.md`) now cover China and EM through `macro_factors`, but the China & EM Economist and EM FX & Rates Strategist are not yet given that tool in `roster.yaml`; both still list `em-china-data` as missing.
 
 #### Rates desk
 
@@ -418,6 +448,7 @@ China & EM has no heatmap today. An EM/China data set is a tools gap.
 | Sovereign Spreads Analyst | `egb_rv`, `egb_bond_finder`, `fitted_bond_curves`, `mean_reversion`, `supply_calendar` | `rv-screening-methodology`, `sovereign-credit-checklist`, `supply-playbook` | `bloomberg-mcp`, `public-stats-mcp` (DMOs) |
 | Inflation Strategist | `inflation_fixings`, `fair_value_models`, `inflation_pca`, `seasonality_backtest`, `commodity_curves` | `inflation-seasonality`, `commodity-macro-linkages` | `bloomberg-mcp`, `haver-mcp`, `public-stats-mcp` (Eurostat, ONS, BLS) |
 | Supply & Funding Analyst | `supply_calendar`, `funding_monitor` | `supply-playbook`, `funding-plumbing` | `public-stats-mcp` (DMOs, TreasuryDirect, H.4.1, ECB), `bloomberg-mcp` |
+| Rates Volatility Strategist | `macro_options`, `option_implied_cdf`, `vol_surface`, `options_pricer`, `cb_pricing` | `options-structuring`, `stir-mechanics` | `bloomberg-mcp` |
 
 #### FX & Cross-Asset desk
 
@@ -428,7 +459,7 @@ China & EM has no heatmap today. An EM/China data set is a tools gap.
 | EM FX & Rates Strategist | `fx_carry_screen`, `cb_pricing` (EM), `cross_asset_snapshot` | `em-risk-checklist`, `china-macro` | `bloomberg-mcp`, `public-stats-mcp` (IMF, BIS) |
 | Commodities Strategist | `commodity_curves`, `cot_positioning`, `seasonality_backtest` | `commodity-macro-linkages`, `china-macro` | `bloomberg-mcp`, `public-stats-mcp` (EIA) |
 | Equity & Credit Macro Strategist | `cross_asset_snapshot`, `correlation_regimes` | `risk-appetite-indicators` | `bloomberg-mcp` |
-| Volatility & Options Strategist | `macro_options_monitor`, `option_implied_cdf`, `vol_surface`, `options_pricer` | `options-structuring` | `bloomberg-mcp` |
+| FX & Cross-Asset Volatility Strategist | `option_implied_cdf`, `vol_surface`, `options_pricer` | `options-structuring` | `bloomberg-mcp` |
 
 #### Quant & Positioning
 
@@ -438,7 +469,8 @@ China & EM has no heatmap today. An EM/China data set is a tools gap.
 | Positioning & Flows Analyst | `cot_positioning`, `euribor_positioning`, `cta_momentum` | `positioning-interpretation` | `public-stats-mcp` (CFTC), `bloomberg-mcp` |
 | Technicals & Momentum Analyst | `technicals`, `cta_momentum`, `print_analysis` | `technical-analysis-rules` | `bloomberg-mcp` |
 | Regime & Correlation Analyst | `correlation_regimes`, `regime_model`, `pca_analysis` | `regime-playbook` | `bloomberg-mcp` |
-| Signal Research & Backtest Analyst | `seasonality_backtest`, `mean_reversion`, `event_study` | `backtest-hygiene` | `bloomberg-mcp`, `haver-mcp`, `public-stats-mcp` (ALFRED vintages) |
+| Model Backtest Analyst | `nowcast_backtest`, `print_analysis`, `seasonality_backtest`, `mean_reversion`, `event_study` | `backtest-hygiene`, `forecast-evaluation` | `haver-mcp`, `public-stats-mcp` (ALFRED vintages) |
+| Trade & Strategy Backtest Analyst | `seasonality_backtest`, `mean_reversion`, `cta_momentum`, `swaps_rv`, `egb_rv`, `price_history`, `event_study`, `execution_cost` | `backtest-hygiene`, `strategy-backtest-protocol` | `bloomberg-mcp` |
 
 #### Trading & Book
 
@@ -466,71 +498,41 @@ China & EM has no heatmap today. An EM/China data set is a tools gap.
 | Data Quality Sentinel | `data_health`, `alert` | `data-quality-rules` | `bloomberg-mcp`, `haver-mcp` |
 | Publisher | `publish_report` | `house-style-publishing`, `ic-memo-template` | `google-drive`, `gmail` (drafts only) |
 
-### 7.7 Build backlog, ordered for Phase 1 (§9)
+### 7.7 Remaining tool gaps, by demand
 
-1. **Port the 6 existing tools and the general tools** to the new runner (§6.4).
-2. **Wrap the existing backend modules** (status `wrap`, 12 tools). Each is a thin wrapper over a module that already has an API route.
-3. **Pod infrastructure:** `trade_ledger`, `submit_view`, `read_desk_views`, `search_pod_memory`, `route_question`, `alert`.
-4. **`bloomberg-mcp`**, by extending `bbg.py` with BDP/BDS/ECO. Most new tools depend on it.
-5. **Phase 1 analytics:** `cb_pricing`, `risk_engine`, `scenario_library`, `supply_calendar`, `cot_positioning`, `econ_calendar`.
-6. **Phase 1 skills:** baseline skills, plus `red-team-protocol`, `risk-limits-policy`, `cb-reaction-functions`, `rv-screening-methodology`, `curve-trade-construction`, `stir-mechanics`, `inflation-seasonality`, `routing-map`.
-7. **`news-mcp`** (depends on licence) and `public-stats-mcp`.
-8. **Later phases:** FX/commodity/vol tools, `sizing_engine`, `execution_cost`, `cb-comms-mcp`, `oms-pms-mcp`, and backends for Macro Options Monitor and Trade Blotter.
+Counted from `missing_tools` in `roster.yaml` (number of agents waiting on each):
 
----
-
-## 8. Mapping from the current pod
-
-| Current | Proposed |
-|---|---|
-| Head of Fixed Income | Head of Rates (new Deputy PM above it) |
-| Macro Strategist | Head of Macro Research + regional economists (matching the 10 country heatmaps) |
-| RV Analyst | Swaps & Spreads RV Analyst + Sovereign Spreads Analyst |
-| Inflation Watcher | Inflation Strategist |
-| Positioning Monitor | Positioning & Flows + Regime & Correlation + Technicals & Momentum |
-
-### New agents with existing dashboard tools
-
-| Agent | Existing tools |
-|---|---|
-| Front-End / STIR Strategist | Euribor Positioning, Option-Implied Macro Scenario Probabilities |
-| Volatility & Options Strategist | Macro Options Monitor |
-| Curve & Duration Strategist | Fitted Bond Curves, PCA Analysis, Factor Model for Global Yields |
-| Signal Research & Backtest Analyst | Seasonality Backtester, Mean Reversion (OU) |
-| Trade Monitor | Trade Blotter and Trade Watch |
-| Inflation Strategist | Fair Value Models, Inflation PCA (in addition to Fixings Monitor) |
-
-### Main gap
-
-The FX & Cross-Asset desk, the Risk line and Execution have **no tools yet**. That's the main gap to plan for at the tools stage.
+1. **`cb_pricing`** (14): OIS-implied meeting paths beyond the ECB (which `macro_options` covers). The single most useful next tool.
+2. **`surprise_index`** (7).
+3. **`bloomberg-mcp`** wider market data (6), **`haver-mcp`** (6) and **`oms-pms-mcp`** (6).
+4. **`event_study`** (5) and **`cot_positioning`** (5).
+5. **`cross_asset_snapshot`** (4) and **`options_pricer`** (3).
+6. `vol_surface`, `supply_calendar`, `pnl_attribution`, `fx_valuation`, `fx_carry_screen`, `commodity_curves`, `execution_cost`, EM/China data (2 each).
+7. Single requests: `price_history`, `schedule_run`, `funding_monitor`, `cb_text_diff` + `cb-comms-mcp`, `technicals`, `regime_model`, `var_model`, `news-mcp`, the `public-stats-mcp` sources, Bloomberg research (BRES).
 
 ---
 
-## 9. Build phases
+## 8. Build phases (historical)
 
-| Phase | Agents | Notes |
-|---|---|---|
-| **1 — Core** (~13) | Deputy PM, Coordinator, Red Team, CRO, Head of Macro Research, Head of Rates, 6 Rates specialists, Positioning & Flows, News Scanner, Trade Monitor | Mostly reuses existing tools |
-| **2 — Research depth** | Regional economists, CB Communications Analyst, Calendar & Data-Release Analyst, Quant desk | |
-| **3 — Multi-asset** | FX & Cross-Asset desk, rest of Risk, Execution | Needs new data and tools |
+The pod was planned in three phases (core ~13 agents, research depth, multi-asset). All 42 original agents were built at once on 2026-10-13, so the phases now apply only to the tools: §7.7 is the remaining backlog.
 
-### Build status (2026-10-13)
+---
 
-**All 42 agents are built and runnable** (`backend/pod/roster.yaml`), with all 35 skills (`backend/pod/skills/`). The phases above now apply to the **tools**, not the agents.
+## 9. Build status (2026-10-22)
 
-- **Built tools:** the 20 analytics wrappers, sandbox and web tools, views, and:
+**All 45 agents are built and runnable** (`backend/pod/roster.yaml`), with all 39 skills (`backend/pod/skills/`). On 2026-10-22 the Rates Volatility Strategist, the Macro Themes Strategist and two backtesters (models; trades and strategies) were added. The backtesters replace the Signal Research & Backtest Analyst, and the Volatility & Options Strategist became the FX & Cross-Asset Volatility Strategist.
+
+- **Built tools:** 23 analytics wrappers (`pod/tools/analytics.py`, incl. `macro_options` and `nowcast_backtest`), the baseline kit (views, sandbox, web), and:
   - the trade ledger with role-checked gates (`pod/book.py`)
   - the risk engine with parametric scenarios and placeholder limits (`pod/risk.py`, `pod/limits.yaml`)
   - the sizing engine and alerts
-  - `consult_agent`, `data_health`, `research_search` and `publish_report`
-- **Workflows:** ask-pod, trade-review, morning-briefing, one briefing per research desk, book-review, risk-review (`pod/workflows.py`).
-- **Not built yet:** each agent lists its gaps as `missing_tools`. It is told about them, uses primary web sources instead, and shows as "limited" in the UI (36 of 42). The main gaps:
-  - `bloomberg-mcp` and its dependants: `econ_calendar`, `cb_pricing`, FX, commodity and vol analytics, `execution_cost`
-  - `news-mcp`, `oms-pms-mcp` and `pnl_attribution`
-  - EM/China data and the CB communications corpus
+  - `consult_agent`, `data_health`, `publish_report`, `trade_themes`
+  - Bloomberg (`econ_calendar`, `bloomberg_news`, `bloomberg_reference`) and the research library (`research_*`, `portal_*`), below
+- **Workflows:** all eleven in §5 (`pod/workflows.py`).
+- **Not built yet:** 38 of 45 agents list gaps under `missing_tools` (§7.7). They are told about them, use primary web sources instead, and show as "limited" in the UI.
 - **Risk limits in `pod/limits.yaml` are placeholders** until the PM sets them.
 
-### Bloomberg and the research library (2026-10-14)
+### Bloomberg and the research library
 
 - **Bloomberg over B-PIPE** (`bbg.py`): host, application authentication and TLS come from the environment.
   - `econ_calendar` runs over the release tickers in `pod/econ_universe.yaml`; **verify the tickers and fields on the Terminal before relying on it**.
@@ -547,12 +549,20 @@ The FX & Cross-Asset desk, the Risk line and Execution have **no tools yet**. Th
 
 ## 10. Open questions
 
-1. **Scope:** full multi-asset (FX, commodities, equity/credit as tradeable books), or rates-centric macro where FX and cross-asset are mainly inputs? If it's rates-centric, the FX & Cross-Asset desk shrinks to 2–3 agents.
-2. **Should the current FI pod tile stay** as the Rates desk crew, or be replaced by the full pod?
-3. **How much autonomy:** should agents only ever advise, or may the Trade Monitor, Coordinator and similar agents run on a schedule and send alerts (for example by email or push notification)?
+1. **Scope:** full multi-asset (FX, commodities, equity/credit as tradeable books), or rates-centric macro where FX and cross-asset are mainly inputs? *Built as full multi-asset* (the FX & Cross-Asset desk has six agents), but its tools are mostly missing (§7.7). If the book stays rates-centric, those tools can stay low priority.
+2. ~~Should the old FI pod tile stay as the Rates desk crew?~~ *Settled:* the FI pod was removed; the Rates Desk Briefing workflow covers it.
+3. **How much autonomy:** should agents only ever advise, or may the Trade Monitor, Coordinator and similar agents run on a schedule and send alerts (for example by email or push notification)? *Still open.* Agents only advise today: runs start from the UI, alerts appear on the pod page, and `schedule_run` is not built.
 
 ---
 
-## 11. Reviewer notes
+## 11. Extending the pod
 
-<!-- Add suggestions below, or inline anywhere above -->
+**Add an agent.** Add an entry to `agents:` in `backend/pod/roster.yaml` (`id`, `name`, `desk`, `reports_to`, `tier`, `effort`, `role`, `mandate`, `tools`, `skills`, optionally `is_manager` and `missing_tools`). The baseline kit is added automatically. If it should join a workflow, its desk head picks it up through `team_of()`; otherwise add it to a stage in `pod/workflows.py`. Update `routing-map` so the Coordinator can find it.
+
+**Add a tool.** `register(Tool(name=..., description=..., input_schema=..., ...))` in a module under `backend/pod/tools/` (analytics wrappers go in `analytics.py`, calling the backend module in-process). Add the name to each agent's `tools` in `roster.yaml` and remove it from their `missing_tools`.
+
+**Add a skill.** Create `backend/pod/skills/<name>/SKILL.md` and list it under the agents' `skills`.
+
+**Add a workflow.** Write an `async def` taking `(runner, question)` in `pod/workflows.py`, add it to `WORKFLOWS` and `USE_WHEN` (and `HUMAN_STEP` if the PM must act), and describe its stages in `workflow_info()`. The launchpad and pod page pick it up from `/api/agents/workflows`.
+
+Tests: `backend/tests/test_pod.py` (roster, runner, ledger gates, risk, sizing, workflows) and `test_agents_api.py` (run ownership, stream tickets, SSE tailing).

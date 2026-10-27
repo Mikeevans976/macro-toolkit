@@ -1,0 +1,144 @@
+{
+  "title": "Quarterly Review: Q3 2026",
+  "as_of": "2026-10-19",
+  "horizon": "6m",
+  "source": "docs/quarterly_review_q3_2026.md",
+  "notes": [
+    "Max loss: the loss if every stop is hit (the premium, for options).",
+    "Expected P&L: each trade's six-month P&L in each scenario (capped at the target, floored at the stop, options at expiry, carry excluded), weighted by its theme's probabilities.",
+    "Each theme's scenarios are separate, so combinations across themes are illustrative, not a joint model."
+  ],
+  "interactions": [
+    {"lead": "Energy is the common factor.", "text": "Themes 1 and 2 are negatively correlated by design: the full cycle that costs Theme 1 £1.4m is Theme 2's best outcome. Together they make money in every natural pairing of their scenarios (+£0.5m to +£6.3m)."},
+    {"lead": "When the shock fades,", "text": "Theme 2's loss is offset by Theme 1 (one-and-done) and Theme 3 (Bund calls)."},
+    {"lead": "Themes 3 and 4 are opposite bets on Europe:", "text": "a French crisis is what derails the revival."},
+    {"lead": "Theme 5 is the growth hedge:", "text": "a burst rallies rates, which helps Themes 1 and 3 and hurts Themes 2 and 4."},
+    {"lead": "Themes 6 and 7 are a dollar view in two pieces:", "text": "debasement weakens the dollar, which is Theme 7's best scenario. Both also make money in Theme 5's burst, through the steepener, gold and the yen."},
+    {"lead": "The weakest combination", "text": "is a hawkish US status quo: France calms, the AI boom continues, the dollar holds and the BoJ stalls. That is about −£2.5m, and only Themes 1 and 2 pay. This is the book's main open risk."}
+  ],
+  "themes": [
+    {
+      "id": 1,
+      "short": "BoE",
+      "name": "Gradual, short BoE hiking cycle, with heavy gilt supply in the belly",
+      "headline": "Weighted terminal ≈ 4.35% against ~4.88% priced: ~50bp too much hiking, with the skew in our favour. The belly stays cheap except in a growth break.",
+      "scenarios": [
+        {"key": "1", "name": "Gradual and short", "prob": 0.50, "detail": "Terminal 4.25% (Nov, Feb). Oil stabilises; wages cool"},
+        {"key": "2", "name": "Full cycle", "prob": 0.25, "detail": "Terminal 4.75–5.00%. Hormuz stays shut; services and wages re-accelerate"},
+        {"key": "3", "name": "One and done", "prob": 0.20, "detail": "Terminal 3.75–4.00%, cuts H2 2027. US–Iran deal; unemployment rises"},
+        {"key": "4", "name": "Fiscal stress", "prob": 0.05, "detail": "~4.50%, then pause. Headroom < £10bn; LDI-style selloff"}
+      ],
+      "trades": [
+        {"id": "T1", "name": "Receive SONIA 6m×1y", "entry": "4.76%", "target": "4.35%", "stop": "5.06%", "conviction": 4, "size": "£50k/bp", "max_loss_k": 1510, "scenario_pnl_k": [2061, -1106, 2061, 552]},
+        {"id": "T2", "name": "6m×1y receiver spread, ATMF / −75bp", "entry": "Premium ≤ 25bp", "target": "75bp payout", "stop": "Premium", "conviction": 3, "size": "£1.01m premium", "max_loss_k": 1010, "scenario_pnl_k": [844, -1005, 2009, -563]},
+        {"id": "T3", "name": "Long 3m×10y straddle", "entry": "Implied ≤ 80bp", "target": "—", "stop": "−40% premium; exit 26 Nov", "conviction": 2, "size": "£502k premium", "max_loss_k": 502, "scenario_pnl_k": [-38, 19, 284, 501]},
+        {"id": "T4", "name": "2s10s30s fly, short 10y vs 2y and 30y (50:100:50)", "entry": "+15bp", "target": "+27bp", "stop": "+7bp", "conviction": 3, "size": "£67k/bp", "max_loss_k": 536, "scenario_pnl_k": [669, 335, -469, 804]},
+        {"id": "T5", "name": "10y gilt–OIS widener", "entry": "48bp", "target": "56bp", "stop": "42bp", "conviction": 2, "size": "£67k/bp", "max_loss_k": 402, "scenario_pnl_k": [201, 335, -268, 536]}
+      ]
+    },
+    {
+      "id": 2,
+      "short": "Inflation persistence",
+      "name": "Inflation persistence, with domestic pressures re-accelerating (UK, euro area, G10)",
+      "headline": "Broad persistence is a 25% risk, but breakevens and the Brent curve price the shock fading. The long end stays anchored, so all the trades sit in the front end.",
+      "scenarios": [
+        {"key": "A", "name": "Shock fades", "prob": 0.20, "detail": "Energy reverses (US–Iran deal) or demand destruction; no second-round effects"},
+        {"key": "B", "name": "Contained plateau", "prob": 0.40, "detail": "Energy stays high; headline peaks early 2027; second-round effects contained"},
+        {"key": "C", "name": "Euro-area-led", "prob": 0.15, "detail": "Energy stays high; euro area services ≥ 3.3% and wages respond"},
+        {"key": "D", "name": "Broad persistence", "prob": 0.25, "detail": "Energy stays high plus a winter gas spike; G10-wide second-round effects"}
+      ],
+      "trades": [
+        {"id": "T6", "name": "Long UK 3y zero-coupon RPI swap", "entry": "4.02%", "target": "4.45%", "stop": "3.72%", "conviction": 3, "size": "£33k/bp", "max_loss_k": 1010, "scenario_pnl_k": [-1005, -236, 101, 1441]},
+        {"id": "T7", "name": "Long US 5y breakeven (TIPS vs Treasuries)", "entry": "2.37%", "target": "2.67%", "stop": "2.20%", "conviction": 3, "size": "£59k/bp", "max_loss_k": 1010, "scenario_pnl_k": [-1002, 176, 295, 1768]},
+        {"id": "T8", "name": "Long EUR 1y1y HICPx inflation swap", "entry": "~2.30%", "target": "2.70%", "stop": "2.10%", "conviction": 2, "size": "£25k/bp", "max_loss_k": 502, "scenario_pnl_k": [-504, 126, 753, 1005]},
+        {"id": "T9", "name": "Pay EUR 1y1y vs receive SONIA 1y1y", "entry": "−169bp", "target": "−135bp", "stop": "−192bp", "conviction": 2, "size": "£22k/bp each leg", "max_loss_k": 502, "scenario_pnl_k": [437, 153, 742, -220]},
+        {"id": "T10", "name": "Long Brent Dec-27 future", "entry": "$86.7", "target": "$102", "stop": "$77", "conviction": 3, "size": "£104k per $1/bbl", "max_loss_k": 1010, "scenario_pnl_k": [-1005, 654, 654, 1586]}
+      ]
+    },
+    {
+      "id": 3,
+      "short": "France",
+      "name": "Euro area fiscal crisis, with the political risk premium rising",
+      "headline": "Much of the premium rise has already happened. The base case is a grind wider into the spring 2027 election, so the trades lean on relative value and convexity, with only a small outright widener.",
+      "scenarios": [
+        {"key": "A", "name": "Muddle through", "prob": 0.25, "detail": "Budget passes in some form; ratings hold. OAT–Bund 105bp"},
+        {"key": "B", "name": "Grind wider", "prob": 0.40, "detail": "Budget forced through or delayed; a downgrade; election premium builds. OAT–Bund 150bp"},
+        {"key": "C", "name": "Crisis", "prob": 0.15, "detail": "Government falls or budget fails; contagion to Italy and Belgium. OAT–Bund 190bp"},
+        {"key": "D", "name": "Shock fades", "prob": 0.20, "detail": "Energy reverses; ECB hikes priced out; spreads compress. OAT–Bund 95bp"}
+      ],
+      "trades": [
+        {"id": "T11", "name": "OAT–Bund 10y widener", "entry": "137bp limit", "target": "175bp", "stop": "118bp", "conviction": 2, "size": "£27k/bp", "max_loss_k": 502, "scenario_pnl_k": [-504, 343, 1005, -504]},
+        {"id": "T12", "name": "Short 10y OAT vs long 10y Bonos", "entry": "~85bp", "target": "115bp", "stop": "70bp", "conviction": 2, "size": "£33k/bp", "max_loss_k": 502, "scenario_pnl_k": [-335, 504, 1005, -434]},
+        {"id": "T13", "name": "6m Bund future call spread (≈ 3.42% / 3.20% yield)", "entry": "Premium ≤ 30% of max", "target": "Max payout £3.35m", "stop": "Premium", "conviction": 3, "size": "£1.01m premium", "max_loss_k": 1010, "scenario_pnl_k": [-1005, -699, 2345, 2345]},
+        {"id": "T14", "name": "French bank CDS vs iTraxx Senior Financials", "entry": "~+15bp", "target": "+60bp", "stop": "0bp", "conviction": 2, "size": "£33k/bp", "max_loss_k": 502, "scenario_pnl_k": [-335, 502, 1506, -502]}
+      ]
+    },
+    {
+      "id": 4,
+      "short": "European revival",
+      "name": "Euro area fiscal and growth revival (German fiscal expansion, rotation out of the US, Ukraine resolution)",
+      "headline": "A revival is a 25% scenario, but pricing treats it as close to zero. The curve flattened and EUR fell for cyclical reasons, so the payoff is asymmetric.",
+      "scenarios": [
+        {"key": "A", "name": "Revival takes hold", "prob": 0.25, "detail": "German GDP > 1%; inflows return. EURUSD 1.20, 5s30s 85bp"},
+        {"key": "B", "name": "Slow burn", "prob": 0.40, "detail": "Spending lands slowly; energy offsets it. EURUSD 1.13"},
+        {"key": "C", "name": "Derailed", "prob": 0.25, "detail": "Energy deepens; French crisis; US exceptionalism returns. EURUSD 1.08"},
+        {"key": "D", "name": "Peace dividend", "prob": 0.10, "detail": "Ukraine deal; gas falls; reconstruction. EURUSD 1.17, 5s30s 95bp"}
+      ],
+      "trades": [
+        {"id": "T15", "name": "Bund 5s30s steepener (DV01-neutral)", "entry": "68bp", "target": "95bp", "stop": "55bp", "conviction": 3, "size": "£77k/bp", "max_loss_k": 1010, "scenario_pnl_k": [1313, 308, -772, 2087]},
+        {"id": "T16", "name": "6m EURUSD call spread, 1.14 / 1.20", "entry": "Premium ≤ 80 pips", "target": "~7.5× premium", "stop": "Premium", "conviction": 2, "size": "£502k premium", "max_loss_k": 502, "scenario_pnl_k": [3277, -504, -504, 1388]}
+      ]
+    },
+    {
+      "id": 5,
+      "short": "AI bubble",
+      "name": "The AI bubble bursts",
+      "headline": "A burst is a 20% risk over six months, but pricing treats it as remote. Credit is the weak link because the buildout is debt-funded; the Fed's response turns an equity event into a rates trade.",
+      "scenarios": [
+        {"key": "A", "name": "Boom continues", "prob": 0.45, "detail": "Capex guided higher; earnings beat. Nasdaq +10%, Fed hikes in December"},
+        {"key": "B", "name": "Correction", "prob": 0.35, "detail": "Capex digestion; rates and energy bite. Nasdaq −10%, Fed pauses"},
+        {"key": "C", "name": "Burst", "prob": 0.15, "detail": "A hyperscaler cuts capex. Nasdaq −30%, cuts by Q1 2027"},
+        {"key": "D", "name": "Burst, with a credit event", "prob": 0.05, "detail": "A data-centre financing fails. Nasdaq −40%, IG 190bp"}
+      ],
+      "trades": [
+        {"id": "T17", "name": "Receive US 2y (long 2y Treasury)", "entry": "4.77%", "target": "3.90%", "stop": "5.05%", "conviction": 3, "size": "£36k/bp", "max_loss_k": 1010, "scenario_pnl_k": [-646, 791, 3122, 3122]},
+        {"id": "T18", "name": "6m Nasdaq 100 put spread, 95% / 75%", "entry": "Premium ≤ 3.0% of spot", "target": "~6.7× premium", "stop": "Premium", "conviction": 3, "size": "£1.01m premium", "max_loss_k": 1010, "scenario_pnl_k": [-1005, 686, 5753, 5753]},
+        {"id": "T19", "name": "Buy 5y CDX IG protection", "entry": "84bp", "target": "140bp", "stop": "72bp", "conviction": 2, "size": "£42k/bp", "max_loss_k": 502, "scenario_pnl_k": [-166, 461, 2345, 2345]}
+      ]
+    },
+    {
+      "id": 6,
+      "short": "Dollar debasement",
+      "name": "Dollar debasement (Fed capture, fiscal dominance, reserves moving out of dollars)",
+      "headline": "Debasement is a 50% scenario over six months, but the market prices a hawkish Fed and a firm dollar. If it takes hold, the front end rallies while the long end sells off and gold rallies.",
+      "scenarios": [
+        {"key": "A", "name": "Dollar holds", "prob": 0.40, "detail": "Hikes in December; Cook stays. 2s30s 55bp, gold $3,950"},
+        {"key": "B", "name": "Slow debasement", "prob": 0.35, "detail": "Pauses after December under pressure; deficits widen. 2s30s 85bp, gold $4,550"},
+        {"key": "C", "name": "Capture", "prob": 0.15, "detail": "Cook removed; a board majority pushes cuts by Q1 2027. 2s30s 175bp, gold $5,200"},
+        {"key": "D", "name": "Growth shock", "prob": 0.10, "detail": "Cuts on the data, not politics (Theme 5's burst). 2s30s 120bp"}
+      ],
+      "trades": [
+        {"id": "T20", "name": "UST 2s30s steepener (DV01-neutral)", "entry": "71bp", "target": "120bp", "stop": "50bp", "conviction": 3, "size": "£48k/bp", "max_loss_k": 1010, "scenario_pnl_k": [-766, 669, 2345, 2345]},
+        {"id": "T21", "name": "Short 30y UST", "entry": "5.48%", "target": "6.00%", "stop": "5.25%", "conviction": 2, "size": "£22k/bp", "max_loss_k": 502, "scenario_pnl_k": [44, 262, 699, -502]},
+        {"id": "T22", "name": "Long gold, Jun-27 futures", "entry": "$4,255", "target": "$5,000", "stop": "$3,960", "conviction": 2, "size": "£1.70k per $1", "max_loss_k": 502, "scenario_pnl_k": [-502, 502, 1269, 417]}
+      ]
+    },
+    {
+      "id": 7,
+      "short": "BoJ",
+      "name": "BoJ normalisation, with Japanese money coming home",
+      "headline": "The BoJ is hiking, but the yen hasn't followed. Intervention caps USDJPY at ~165, while steady hikes, a Fed that stops hiking or a risk-off move all take it lower: the payoff is skewed to a stronger yen.",
+      "scenarios": [
+        {"key": "A", "name": "Steady normalisation", "prob": 0.40, "detail": "Hikes in December and April, to 1.75%. USDJPY 150"},
+        {"key": "B", "name": "BoJ stalls", "prob": 0.30, "detail": "On hold at 1.25%. USDJPY 161"},
+        {"key": "C", "name": "Disorderly repricing", "prob": 0.15, "detail": "Hikes to 2% by mid-2027; money comes home. USDJPY 140"},
+        {"key": "D", "name": "Global risk-off", "prob": 0.15, "detail": "Pauses; the yen rallies as a haven (Theme 5's burst). USDJPY 145"}
+      ],
+      "trades": [
+        {"id": "T23", "name": "6m USDJPY put spread, 152 / 142", "entry": "Premium ≤ ¥2.40", "target": "~4.3× premium", "stop": "Premium", "conviction": 3, "size": "£1.01m premium", "max_loss_k": 1010, "scenario_pnl_k": [-142, -1005, 3307, 2014]},
+        {"id": "T24", "name": "Pay 5y TONA OIS", "entry": "OIS at execution", "target": "+36bp", "stop": "−14bp", "conviction": 2, "size": "£36k/bp", "max_loss_k": 502, "scenario_pnl_k": [933, -323, 1292, -502]},
+        {"id": "T25", "name": "Short EURJPY", "entry": "177.6", "target": "168.0", "stop": "182.5", "conviction": 2, "size": "£102k/yen", "max_loss_k": 502, "scenario_pnl_k": [676, -348, 985, 985]}
+      ]
+    }
+  ]
+}

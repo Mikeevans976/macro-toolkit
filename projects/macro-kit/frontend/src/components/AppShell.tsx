@@ -188,7 +188,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <Link to="/" aria-label="Launchpad" className="mb-3.5 rounded-[7px]">
           <Monogram size={30} />
         </Link>
-        <RailItem label="Launchpad" glyph="home" to="/" active={location.pathname === '/'} />
+        <RailItem label="Summary" glyph="ledger" to="/" active={location.pathname === '/'} />
+        <RailItem label="Agents" glyph="pod" to="/agents" active={location.pathname === '/agents'} />
+        <RailItem label="Tools" glyph="home" to="/tools" active={location.pathname === '/tools'} />
         <RailItem label="Jump to tool  ⌘K" glyph="search" onClick={togglePalette} active={paletteOpen} />
 
         {recentTools.length > 0 && <div className="my-2 w-5 h-px bg-hairline" />}

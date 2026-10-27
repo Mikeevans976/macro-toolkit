@@ -66,6 +66,7 @@ from routers import (
     seasonality,
     swap_spreads,
     swaps_rv,
+    themes,
 )
 
 
@@ -202,6 +203,7 @@ for _tool in (
     seasonality,
     swap_spreads,
     swaps_rv,
+    themes,
 ):
     app.include_router(_tool.router)
 

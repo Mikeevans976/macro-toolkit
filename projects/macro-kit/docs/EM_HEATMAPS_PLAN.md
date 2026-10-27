@@ -208,7 +208,7 @@ Only if the desk finds Wave 1 useful. Each is self-contained.
 | C3 Global-beta regression | Regress the region's PC1 on UST 10y and DXY as well as the local factors; report how much of local rates is imported | M |
 | C4 EM cross-section view | One table: each EM region's latest factor z-scores, 10y rich/cheap, scenario probabilities (the DM equivalent would be welcome too) | M |
 
-C4 is the most useful for the pod (the China & EM and EM FX & Rates agents in `GLOBAL_MACRO_POD_PROPOSAL.md` are short of data).
+C4 is the most useful for the pod (the China & EM and EM FX & Rates agents in `GLOBAL_MACRO_POD.md` are short of data).
 
 ---
 

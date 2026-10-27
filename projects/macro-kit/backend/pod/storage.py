@@ -2,7 +2,7 @@
 Pod tables, stored in the same SQLite file as agents/storage.py (runs, events).
 
 views  — structured views submitted by agents (the standard view format, §2 of
-         docs/GLOBAL_MACRO_POD_PROPOSAL.md)
+         docs/GLOBAL_MACRO_POD.md)
 usage  — token usage per agent per run, for cost tracking
 agent_models — per-agent model overrides chosen in the UI
 """

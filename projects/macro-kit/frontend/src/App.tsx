@@ -57,14 +57,10 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Launchpad sections; /tools (no slash) is the tool index, /tools/<id> the tools themselves */}
+        <Route path="/" element={<ProtectedRoute><Dashboard view="summary" /></ProtectedRoute>} />
+        <Route path="/agents" element={<ProtectedRoute><Dashboard view="agents" /></ProtectedRoute>} />
+        <Route path="/tools" element={<ProtectedRoute><Dashboard view="tools" /></ProtectedRoute>} />
         {HEATMAP_REGIONS.map(r => (
           <Route key={r.slug} path={`/tools/${r.slug}-heatmap`} element={<ProtectedRoute><RegionalHeatmapPage region={r.slug} /></ProtectedRoute>} />
         ))}

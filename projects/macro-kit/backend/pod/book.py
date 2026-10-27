@@ -1,5 +1,5 @@
 """
-The trade ledger and alerts (§6.3 of docs/GLOBAL_MACRO_POD_PROPOSAL.md).
+The trade ledger and alerts (§6.3 of docs/GLOBAL_MACRO_POD.md).
 
 Every trade idea moves through a fixed status machine. Each transition is
 owned by one role, so no gate can be skipped:

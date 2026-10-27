@@ -124,15 +124,19 @@ def test_disabled_agents_name_their_blockers():
 
 
 def test_hierarchy():
-    assert len(AGENTS) == 42 and len(ENABLED) == 42
+    assert len(AGENTS) == 45 and len(ENABLED) == 45
     assert ENABLED["deputy-pm"].reports_to == "pm"
     assert ENABLED["cro"].reports_to == "pm"            # independent risk line
     assert ENABLED["red-team"].reports_to == "deputy-pm"
+    assert ENABLED["macro-themes-strategist"].reports_to == "deputy-pm"
     assert {a.id for a in team_of("head-of-rates")} == {
-        "stir-strategist", "curve-strategist", "swaps-rv-analyst",
-        "sovereign-spreads-analyst", "inflation-strategist", "supply-funding-analyst"}
+        "stir-strategist", "curve-strategist", "swaps-rv-analyst", "sovereign-spreads-analyst",
+        "inflation-strategist", "supply-funding-analyst", "rates-vol-strategist"}
     assert len(team_of("head-of-macro-research")) == 8
     assert len(team_of("head-of-fx-cross-asset")) == 5
+    assert {a.id for a in team_of("head-of-quant")} == {
+        "positioning-flows-analyst", "technicals-analyst", "regime-correlation-analyst",
+        "model-backtest-analyst", "strategy-backtest-analyst"}
     assert {a.id for a in team_of("cro")} == {"market-risk-analyst", "sizing-analyst"}
     assert len(team_of("pod-coordinator")) == 5
 
@@ -504,6 +508,28 @@ def test_trade_review_walks_the_gates():
 def test_workflow_info_ids_resolve():
     for w in workflows.workflow_info():
         assert w["id"] in workflows.WORKFLOWS
+        assert w["use_when"]
         for stage in w["stages"]:
             for aid in stage:
                 assert aid in AGENTS or aid.startswith("("), (w["id"], aid)
+
+
+def test_trade_themes_tool_matches_the_launchpad():
+    out = REGISTRY["trade_themes"].handler()
+    assert out["totals"]["themes"] == len(out["themes"]) > 0
+    for t in out["themes"]:
+        assert abs(sum(s["prob"] for s in t["scenarios"]) - 1) < 1e-6
+
+
+def test_nowcast_backtest_tool_lists_models_and_rejects_unknown():
+    import quant_macro
+    out = REGISTRY["nowcast_backtest"].handler()
+    assert {m["slug"] for m in out["models"]} == set(quant_macro.MODELS)
+    with pytest.raises(ValueError):
+        REGISTRY["nowcast_backtest"].handler(model="nope")
+
+
+def test_theme_review_runs_the_themes_strategist():
+    client = FakeClient([message([text("Themes reviewed")], "end_turn")])
+    r = asyncio.run(workflows.theme_review(make_runner(client), "Review the themes"))
+    assert r.name == "Macro Themes Strategist"

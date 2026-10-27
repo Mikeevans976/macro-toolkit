@@ -11,6 +11,8 @@ morning_briefing  — shared services (+ research digest) → research desks in 
                     Red Team → risk review → Deputy PM house view → Publisher
 research_sweep    — ingest inbox and drop folder → Librarian browses each logged-in
                     portal → Librarian processes new documents → digest
+theme_review      — the Macro Themes Strategist reviews the book's themes, consulting
+                    desk specialists as needed
 
 Each workflow returns the AgentResult whose text is the run's final output.
 """
@@ -89,6 +91,17 @@ async def desk_briefing(runner: Runner, head_id: str, question: str, context: st
         "the conclusion depends on with your own tools. Record the desk's views with submit_view. "
         "If the desk has a trade it would back, put it on the ledger with propose_trade and "
         "sponsor it with advance_trade(action='sponsor')."), context))
+
+
+async def theme_review(runner: Runner, question: str) -> AgentResult:
+    return await runner.run(ENABLED["macro-themes-strategist"], "\n\n".join([
+        _header(question),
+        "Review the book's macro themes following the macro themes framework: read trade_themes; track "
+        "each theme against cross-asset prices, data and sell-side research; update its scenarios and "
+        "probabilities; check its trades and propose better ones; and assess risk across themes. Consult "
+        "desk specialists where you need their coverage, sparingly. Record your views with submit_view, "
+        "publish the review with publish_report (kind 'note'), then give your answer.",
+    ]))
 
 
 async def book_review(runner: Runner, question: str) -> AgentResult:
@@ -280,6 +293,7 @@ async def research_sweep(runner: Runner, question: str) -> AgentResult:
 WORKFLOWS = {
     "ask-pod": ("Ask the Pod", ask_pod),
     "trade-review": ("Trade Review", trade_review),
+    "theme-review": ("Theme Review", theme_review),
     "morning-briefing": ("Morning Briefing", morning_briefing),
     "macro-desk": ("Macro Research Briefing", lambda r, q: desk_briefing(r, "head-of-macro-research", q)),
     "rates-desk": ("Rates Desk Briefing", lambda r, q: desk_briefing(r, "head-of-rates", q)),
@@ -295,6 +309,27 @@ def _desk(head: str) -> list[list[str]]:
     return [[a.id for a in team_of(head)], [head]]
 
 
+# When to pick each workflow (shown on the launchpad's Agents tab and the pod page)
+USE_WHEN = {
+    "ask-pod": "A quick or narrow question and you don't know which specialist owns it.",
+    "trade-review": "You have a specific trade idea and want it through the ledger gates before you approve it.",
+    "theme-review": "Checking the book's macro themes: are they playing out, are the probabilities right, "
+                    "are the trades still the best ones, and how do the themes' risks add up.",
+    "morning-briefing": "Start of the day: what changed, the house view and the morning note. The most expensive run.",
+    "macro-desk": "The economic outlook: the cycle, central bank reaction functions, politics.",
+    "rates-desk": "Where the risk/reward is in rates: front end, curve, swaps RV, sovereign spreads, inflation, supply.",
+    "fx-desk": "Currencies, commodities, equity and credit, or the options to express a view.",
+    "quant-desk": "Whether ideas are crowded, fighting the trend or the regime, or backed by the statistics.",
+    "book-review": "Checking live and approved trades: implementation, theses still holding, lessons.",
+    "risk-review": "Before adding risk, after a large market move, or when trades are waiting for sizing and the CRO.",
+    "research-sweep": "New sell-side research has arrived (inbox, drop folder or portals) and should be read and logged.",
+}
+# Steps that wait for the human PM after the agents finish
+HUMAN_STEP = {
+    "trade-review": "You approve or reject the trade on the pod page.",
+}
+
+
 def workflow_info() -> list[dict]:
     """Served by GET /api/agents/workflows: who takes part, in which stage order."""
     research_members = [a.id for h in RESEARCH_DESK_HEADS for a in team_of(h)]
@@ -305,8 +340,13 @@ def workflow_info() -> list[dict]:
                          "sizing, CRO decision, Deputy PM summary. You approve or reject it below.",
                          [["pod-coordinator"], ["(desk head)"], ["red-team"], ["sizing-analyst"], ["cro"], ["deputy-pm"]],
                          "deputy-pm", "Describe the trade idea, e.g. 'Pay 2y EUR swaps: the ECB is done cutting'"),
+        "theme-review": ("The Macro Themes Strategist tracks each theme against prices, data and sell-side research, "
+                         "updates scenarios and probabilities, reviews the trades and the risk across themes, "
+                         "consulting specialists as needed.",
+                         [["macro-themes-strategist"]], "macro-themes-strategist",
+                         "e.g. 'Review all themes after the CPI print.'"),
         "morning-briefing": ("The whole pod: shared services, all four research desks in parallel, Red Team, "
-                             "risk review, Deputy PM house view, then the Publisher's note. About 35 agent runs.",
+                             "risk review, Deputy PM house view, then the Publisher's note. About 37 agent runs.",
                              [["news-scanner", "calendar-analyst"], research_members, RESEARCH_DESK_HEADS,
                               ["red-team"], ["market-risk-analyst", "sizing-analyst"], ["cro"], ["deputy-pm"], ["publisher"]],
                              "deputy-pm", "e.g. 'Morning briefing: what has changed and what should we do?'"),
@@ -328,4 +368,5 @@ def workflow_info() -> list[dict]:
                         _desk("cro"), "cro", "e.g. 'Risk check on the book and pending trades.'"),
     }
     return [{"id": wid, "label": WORKFLOWS[wid][0], "description": d, "stages": stages,
-             "final_agent": final, "placeholder": ph} for wid, (d, stages, final, ph) in info.items()]
+             "final_agent": final, "placeholder": ph, "use_when": USE_WHEN[wid], "human_step": HUMAN_STEP.get(wid)}
+            for wid, (d, stages, final, ph) in info.items()]

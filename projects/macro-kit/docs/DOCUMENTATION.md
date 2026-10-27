@@ -1151,6 +1151,7 @@ All routes require `Authorization: Bearer <JWT>` except `/api/auth/login`.
 | POST | /api/auth/login | Exchange credentials for JWT |
 | GET | /api/me | Current user info |
 | GET | /api/dashboard | Dashboard config from dashboard_config.yaml |
+| GET | /api/themes | Trade themes for the launchpad Summary (`backend/data/trade_themes.json` plus computed expected P&L and totals) |
 
 ### Regional Heatmaps
 
@@ -1193,9 +1194,10 @@ Replace `{region}` with: `euro-area`, `uk`, `us`, `japan`, `canada`, `sweden`, `
 ### Route structure
 
 ```
-/                              → redirect to /dashboard
 /login                         → Login.tsx
-/dashboard                     → Dashboard.tsx (protected)
+/                              → Dashboard.tsx, Summary tab (trade themes)
+/agents                        → Dashboard.tsx, Agents tab
+/tools                         → Dashboard.tsx, Tools tab (every category except Agents)
 /tools/euro-area-heatmap       → EuroAreaHeatmap.tsx
 /tools/uk-heatmap              → UKHeatmap.tsx
 /tools/us-heatmap              → USHeatmap.tsx
@@ -1268,6 +1270,8 @@ categories:
         icon: "🇪🇺"
         url: /tools/euro-area-heatmap
 ```
+
+The launchpad has three tabs. **Summary** (`features/launchpad/SummaryView.tsx`) shows the trade themes from `backend/data/trade_themes.json`: each theme's scenarios and probabilities, the trades under it with their P&L in each scenario, and book totals. The file is edited by hand from the quarterly review. The backend computes expected P&L as the probability-weighted scenario P&L and rejects a theme whose probabilities don't sum to 1. **Agents** (`AgentsView.tsx`) shows the whole pod from `/api/agents/roster` and `/api/agents/workflows`: which workflow to call when (`USE_WHEN` in `pod/workflows.py`), the selected workflow's stages in order (parallel steps, the agent that writes the answer, any step left to the PM), and the org chart (`components/podOrgChart.tsx`, shared with the pod page) with that workflow's agents highlighted. **Tools** lists every other category.
 
 To add a tool: add an entry under the relevant category. A route in `App.tsx` and a page in `frontend/src/pages/` must also exist. To add a category: new top-level entry; use `tools: []` for placeholders.
 

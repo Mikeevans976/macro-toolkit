@@ -1,5 +1,5 @@
 """
-Global Macro Pod API (backend/pod/; design in docs/GLOBAL_MACRO_POD_PROPOSAL.md).
+Global Macro Pod API (backend/pod/; design in docs/GLOBAL_MACRO_POD.md).
 
     /api/agents/...   roster, models, workflows, runs and their SSE streams
     /api/pod/...      trade ledger and risk alerts (the human PM's actions)
